@@ -12,7 +12,7 @@ Write logic directly in your layout. Simply look at the HTML and read what it do
 
 ```HTML
 <!-- Add library to the document from a CDN. -->
-<script src="https://cdn.jsdelivr.net/npm/doars/doars@1/dst/doars.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.umd.js"></script>
 <script>
   // Wait for the DOM to be interactive.
   document.addEventListener('DOMContentLoaded', () => {

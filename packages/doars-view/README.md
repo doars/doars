@@ -1,7 +1,7 @@
 <div align="center">
 
-[![npm @latest version](https://img.shields.io/npm/v/doars/doars-view.svg?label=Version&style=flat-square&maxAge=86400)](https://www.npmjs.com/package/doars/doars-view)
-[![minzipped size](https://img.shields.io/bundlephobia/minzip/doars/doars-view?label=Size&style=flat-square&maxAge=86400)](https://www.npmjs.com/package/doars/doars-view)
+[![npm @latest version](https://img.shields.io/npm/v/@doars/doars-view.svg?label=Version&style=flat-square&maxAge=86400)](https://www.npmjs.com/package/@doars/doars-view)
+[![minzipped size](https://img.shields.io/bundlephobia/minzip/@doars/doars-view?label=Size&style=flat-square&maxAge=86400)](https://www.npmjs.com/package/@doars/doars-view)
 
 </div>
 
@@ -42,8 +42,8 @@ Add the UMD build to the page from for example the jsDelivr CDN and enable the l
 
 ```HTML
 <!-- Import library. -->
-<script src="https://cdn.jsdelivr.net/npm/doars/doars@1/dst/doars.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/doars/doars-view@1/dst/doars-view.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars-view@1/dst/doars-view.umd.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     // Setup a library instance.
@@ -58,7 +58,7 @@ Add the UMD build to the page from for example the jsDelivr CDN and enable the l
 </script>
 ```
 
-> [ESM](https://cdn.jsdelivr.net/npm/doars/doars-view@1/dst/doars-view.esm.js) and [IIFE](https://cdn.jsdelivr.net/npm/doars/doars-view@1/dst/doars-view.iife.js) builds are also available via the jsDelivr CDN.
+> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-view@1/dst/doars-view.esm.js) and [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-view@1/dst/doars-view.iife.js) builds are also available via the jsDelivr CDN.
 
 ## Directives
 
