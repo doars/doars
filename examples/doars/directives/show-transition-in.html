@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doars show transition in example</title>
+    <style>
+      .transition {
+        transition-duration: 500ms;
+        transition-property: opacity;
+      }
+
+      .opacity-0 {
+        opacity: 0;
+      }
+
+      .opacity-1 {
+        opacity: 1;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div d-state="{}">
+      <div d-show="true" style="display: none;" d-transition:in=".transition" d-transition:in.from=".opacity-0"
+        d-transition:in.to=".opacity-1">
+        Hello world!
+      </div>
+    </div>
+
+    <script src="/packages/doars/dst/doars.umd.js"></script>
+    <script>
+      // Wait for the DOM to be interactive.
+      document.addEventListener('DOMContentLoaded', () => {
+        // Setup a library instance.
+        const doars = new window.Doars()
+        // Enable library.
+        doars.enable()
+      })
+    </script>
+  </body>
+
+</html>

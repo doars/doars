@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doars root selector example</title>
+  </head>
+
+  <body>
+    <div d-state="{ message: 'Broken' }">
+      <div d-text="message">Works</div>
+    </div>
+    <div d-state="{ message: 'Works' }">
+      <div d-text="message">Broken</div>
+    </div>
+
+    <script src="/packages/doars/dst/doars.umd.js"></script>
+    <script>
+      // Wait for the DOM to be interactive.
+      document.addEventListener('DOMContentLoaded', () => {
+        // Setup a library instance.
+        const doars = new window.Doars({
+          root: 'body > *:nth-child(2)',
+        })
+        // Enable library.
+        doars.enable()
+      })
+    </script>
+  </body>
+
+</html>

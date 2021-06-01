@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doars store use example</title>
+  </head>
+
+  <body>
+    <div d-state="{}">
+      <input type="text" d-on:input="$store.message = $event.target.value">
+      <div d-text="$store.message">Initial</div>
+    </div>
+
+    <script src="/packages/doars/dst/doars.umd.js"></script>
+    <script src="/packages/doars-store/dst/doars-store.umd.js"></script>
+    <script>
+      // Wait for the DOM to be interactive.
+      document.addEventListener('DOMContentLoaded', () => {
+        // Setup a library instance.
+        const doars = new window.Doars()
+
+        // Add plugin.
+        new window.DoarsStore(doars, {}, {
+          'message': 'Before',
+        })
+
+        // Enable library.
+        doars.enable()
+      })
+    </script>
+  </body>
+
+</html>

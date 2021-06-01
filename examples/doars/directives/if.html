@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doars if example</title>
+
+    <style>
+      [d-cloak] {
+        display: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div d-state="{ a: true, b: false }">
+      <template d-if="a">
+        <span>
+          Should be visible
+        </span>
+      </template>
+
+      <template d-if="b">
+        <span>
+          Should NOT be visible
+        </span>
+      </template>
+    </div>
+
+    <script src="/packages/doars/dst/doars.umd.js"></script>
+    <script>
+      // Wait for the DOM to be interactive.
+      document.addEventListener('DOMContentLoaded', () => {
+        // Setup a library instance.
+        const doars = new window.Doars()
+        // Enable library.
+        doars.enable()
+      })
+    </script>
+  </body>
+
+</html>

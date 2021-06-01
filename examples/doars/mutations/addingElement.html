@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doars changing document example</title>
+    <meta name="description" content="Adding an element to the document tree.">
+  </head>
+
+  <body>
+    <div id="component" d-state="{}"></div>
+
+    <script src="/packages/doars/dst/doars.umd.js"></script>
+    <script>
+      // Wait for the DOM to be interactive.
+      document.addEventListener('DOMContentLoaded', () => {
+        // Setup a library instance.
+        const doars = new window.Doars()
+
+        doars.addEventListener('components-added', (doars, elements) => {
+          elements[0].addEventListener('d-updated', () => {
+            // Create element.
+            const text = document.createElement('span')
+            // Add attribute.
+            text.setAttribute('d-text', "'After'")
+
+            // Get component.
+            var component = document.getElementById('component')
+            // Add text to component.
+            component.append(text)
+          }, { once: true })
+        }, { once: true })
+
+        // Enable library.
+        doars.enable()
+      })
+    </script>
+  </body>
+
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doars components removed example</title>
+  </head>
+
+  <body>
+    <div d-state="{}"></div>
+
+    <script src="/packages/doars/dst/doars.umd.js"></script>
+    <script>
+      // Wait for the DOM to be interactive.
+      document.addEventListener('DOMContentLoaded', () => {
+        // Setup a library instance.
+        const doars = new window.Doars()
+
+        // Listen to event and log parameters.
+        doars.addEventListener('directives-removed', (...parameters) => {
+          console.log('directives-removed', ...parameters)
+        })
+
+        // Setup custom directive.
+        let directive = {}
+
+        // Add custom directive.
+        doars.addDirectives(0, directive)
+
+        // Add custom directive.
+        doars.removeDirectives(directive)
+      })
+    </script>
+  </body>
+
+</html>

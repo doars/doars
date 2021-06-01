@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doars root changed example</title>
+  </head>
+
+  <body>
+    <div>
+      <div x-state="{ message: 'Works' }">
+        <div x-text="message">Broken</div>
+      </div>
+
+      <div d-state="{ message: 'Broken' }">
+        <div d-text="message">Works</div>
+      </div>
+    </div>
+
+    <script src="/packages/doars/dst/doars.umd.js"></script>
+    <script>
+      // Wait for the DOM to be interactive.
+      document.addEventListener('DOMContentLoaded', () => {
+        // Setup a library instance.
+        const doars = new window.Doars({
+          prefix: 'x',
+        })
+
+        // Enable library.
+        doars.enable()
+      })
+    </script>
+  </body>
+
+</html>

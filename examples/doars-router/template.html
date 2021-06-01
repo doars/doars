@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doars router template example</title>
+  </head>
+
+  <body>
+    <div d-state="{}">
+      <div d-router>
+        <nav>
+          <button d-route-to="a">
+            Nav A
+          </button>
+
+          <button d-route-to="b">
+            Nav B
+          </button>
+
+          <button d-route-to="c">
+            Nav C
+          </button>
+        </nav>
+
+        <div>
+          <template d-route="a">
+            Route A
+          </template>
+
+          <template d-route="b">
+            Route B
+          </template>
+
+          <template d-route="c">
+            Route C
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <script src="/packages/doars/dst/doars.umd.js"></script>
+    <script src="/packages/doars-router/dst/doars-router.umd.js"></script>
+    <script>
+      // Wait for the DOM to be interactive.
+      document.addEventListener('DOMContentLoaded', () => {
+        // Setup a library instance.
+        const doars = new window.Doars()
+
+        // Add plugin.
+        new window.DoarsRouter(doars)
+
+        // Enable library.
+        doars.enable()
+      })
+    </script>
+  </body>
+
+</html>
