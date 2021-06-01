@@ -10,7 +10,7 @@
     "doars",
     "update"
   ],
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "main": "src/DoarsUpdate.js",
   "browserMain": "src/DoarsUpdate.js",
