@@ -24,8 +24,9 @@ The core library, it manages the components and plugins as well as includes the 
   - [Doars](#doars)
   - [Component](#component)
   - [Attribute](#attribute)
-- [Writing directives](#writing-directives)
 - [Writing contexts](#writing-contexts)
+- [Writing directives](#writing-directives)
+- [Writing plugins](#writing-plugins)
 
 ## Install
 
@@ -853,10 +854,98 @@ The following events are dispatched by an `Attribute` and can be listened to by 
   - `@param {Symbol} id` The accessed's unique identifier.
   - `@param {String} path` The accessed's context path.
 
+## Writing contexts
+
+Contexts can be added to the Doars instance using the `addContexts` function where the first parameter is the index to add them to in the list, and the rest of the parameters the contexts you want to add.
+
+Technically a context is nothing more than an object with a `name` property and a `create` property. The `name` must be a valid variable name, and `create` a function that returns an object containing the value that will be made available under the context's `name` when executing an expression.
+
+The `create` function is given several arguments, the first is the `Component`, the second the `Attribute`.
+
+Take for example the `$element` context. All it needs to do is the return the element of the attribute that is being executed, simple enough.
+
+```JavaScript
+export default {
+  // The name of the context.
+  name: '$element',
+
+  // The method to execute in order to create the context.
+  create: (component, attribute) => {
+    return {
+      // The value to make available under the context's name.
+      value: attribute.getElement(),
+    }
+  },
+}
+```
+
+In addition to the `Component` and `Attribute` arguments the `create` function is also given a third and fourth argument. The third is an update function, and the fourth an object containing several utility classes and functions.
+
+The update function can be called to trigger an update of the main library instance. In order for the library to know which directives need to be updated it will need to be given where something has updated as well as what has been updated. The where is taken care of by providing a [`Symbol`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Symbol), and the what is a `String`.
+
+The utilities arguments has the following properties:
+- `createContexts:Function` Create component's contexts for an attributes expression. See the [ExpressionUtils](https://github.com/doars/doars/blob/8a530366bc5c8129fc8fabead47ea4f4683d52d4/packages/doars/src/utils/ExpressionUtils.js#L1) for more information.
+- `createContextsProxy:Function` Create component's contexts only after the context gets used. See the [ExpressionUtils](https://github.com/doars/doars/blob/8a530366bc5c8129fc8fabead47ea4f4683d52d4/packages/doars/src/utils/ExpressionUtils.js#L1) for more information.
+- `RevocableProxy:RevocableProxy` A [Proxy.revocable](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Proxy/revocable) polyfill.
+
+Besides the `name` and `create` properties, an additional `deconstruct` property can be set. If `deconstruct` is set to a truthy value then the value returned by the context will be deconstructed using the [`with`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/with) statement. The result is that the context's name will not be needed in order to get the properties on the context. For example `$state.something.or.another` will also be accessible via `something.or.another`. Do note that the with statement is called in the same order that the contexts are added to by the `addContexts` function. In other words if two context both have the `deconstruct` property set and both contain the same property then the one later in the list will be used.
+
+A more advanced context example is the `$state` context. It needs to get the state from the component and trigger an update if the state is changed as well as mark any properties accessed on it as accessed by the attribute. Finally when the contexts is no longer needed it will need to remove the listeners and revoke access to it.
+
+```JavaScript
+export default {
+  // Mark the context for deconstruction.
+  deconstruct: true,
+
+  // The name of the context.
+  name: '$state',
+
+  // The method to execute in order to create the context.
+  create: (component, attribute, update, { RevocableProxy }) => {
+    // Get and check values from the component.
+    const proxy = component.getProxy()
+    const state = component.getState()
+    if (!proxy || !state) {
+      return
+    }
+
+    // Create event handlers that trigger an update if a property on the state is deleted or set, and mark a value as accessed if a value is retrieved.
+    const onDelete = (target, path) => update(component.getId(), '$state.' + path.join('.'))
+    const onGet = (target, path) => attribute.accessed(component.getId(), '$state.' + path.join('.'))
+    const onSet = (target, path) => update(component.getId(), '$state.' + path.join('.'))
+
+    // Add event listeners.
+    proxy.addEventListener('delete', onDelete)
+    proxy.addEventListener('get', onGet)
+    proxy.addEventListener('set', onSet)
+
+    // Wrap in a revocable proxy.
+    const revocable = RevocableProxy(state, {})
+
+    return {
+      // Return
+      value: revocable.proxy,
+
+      // Remove event listeners.
+      destroy: () => {
+        proxy.removeEventListener('delete', onDelete)
+        proxy.removeEventListener('get', onGet)
+        proxy.removeEventListener('set', onSet)
+
+        // Revoke access to state.
+        revocable.revoke()
+      },
+    }
+  },
+}
+```
+
+And there you have it, most of what you need to know about writing your own custom contexts. For more examples see the [build-in contexts](https://github.com/doars/doars/tree/main/packages/doars/src/contexts) and [plugin packages](https://github.com/doars/doars/tree/main/packages).
+
 ## Writing directives
 
 > TODO: See the [build-in directives](https://github.com/doars/doars/tree/main/packages/doars/src/directives) and [plugin packages](https://github.com/doars/doars/tree/main/packages) for now.
 
-## Writing contexts
+## Writing plugins
 
-> TODO: See the [build-in contexts](https://github.com/doars/doars/tree/main/packages/doars/src/contexts) and [plugin packages](https://github.com/doars/doars/tree/main/packages) for now.
+> TODO: See the [plugin packages](https://github.com/doars/doars/tree/main/packages) for now.
