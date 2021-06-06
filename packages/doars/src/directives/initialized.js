@@ -45,7 +45,7 @@ export default {
 
     const handler = ({ detail }) => {
       // Only execute on self.
-      if (detail.component !== component) {
+      if (detail.element !== element) {
         return
       }
 

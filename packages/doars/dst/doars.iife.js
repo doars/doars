@@ -3042,7 +3042,7 @@ var Doars = (function () {
         var detail = _ref2.detail;
 
         // Only execute on self.
-        if (detail.component !== component) {
+        if (detail.element !== element) {
           return;
         } // Execute value using a copy of the attribute since this attribute does not need to update based on what it accesses.
 
