@@ -4,11 +4,13 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doars state initialized example</title>
+    <title>Doars state initialized in element example</title>
   </head>
 
   <body>
-    <div d-state="{}" d-initialized="console.log('initialized')"></div>
+    <div d-state="{}">
+      <div d-initialized="console.log('initialized')"></div>
+    </div>
 
     <script src="/packages/doars/dst/doars.umd.js"></script>
     <script>

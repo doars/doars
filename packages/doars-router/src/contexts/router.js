@@ -1,6 +1,9 @@
 // Import polyfill.
 import RevocableProxy from '@doars/doars/src/polyfills/RevocableProxy.js'
 
+// Import symbol.
+import { ROUTER } from '../symbols'
+
 // Import utils.
 import { closestRouter } from '../utils.js'
 
@@ -16,7 +19,11 @@ export default {
       get: (target, propertyKey, receiver) => {
         // Get closest router from hierarchy.
         if (router === null) {
-          router = closestRouter(element)
+          if (element[ROUTER]) {
+            router = element[ROUTER]
+          } else {
+            router = closestRouter(element)
+          }
 
           // Set router to false so we don't look twice.
           if (!router) {
