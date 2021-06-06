@@ -848,10 +848,11 @@ var DoarsRouter = (function () {
 
       options = Object.assign({
         basePath: '',
-        updateHistory: false,
-        pathToRegexp: {}
+        path: null,
+        pathToRegexp: {},
+        updateHistory: false
       }, options);
-      var path = null;
+      var path = options.path;
       var route = null;
       var routes = {}; // Listen for history state changes.
 
@@ -870,10 +871,10 @@ var DoarsRouter = (function () {
        */
 
 
-      var updateRoute = function (url, _path, _route) {
+      var updateRoute = function (url, newPath, newRoute) {
         // Update stored data.
-        path = _path;
-        route = _route; // Update page history if the option is set.
+        path = newPath;
+        route = newRoute; // Update page history if the option is set.
 
         if (options.updateHistory) {
           // Construct url.
@@ -960,7 +961,7 @@ var DoarsRouter = (function () {
 
         if (path) {
           // Remove base url, if present.
-          var _path = _route.replace(options.basePath, ''); // Check if current route is.
+          var _path = path.replace(options.basePath, ''); // Check if current route is.
 
 
           if (routes[_route].test(_path)) {
@@ -996,9 +997,9 @@ var DoarsRouter = (function () {
 
       _this.setPath = function (url) {
         // Remove base url, if present.
-        var _path = url.replace(options.basePath, '');
+        var newPath = url.replace(options.basePath, '');
 
-        if (path === _path) {
+        if (path === newPath) {
           return;
         } // Find matching routes.
 
@@ -1007,14 +1008,14 @@ var DoarsRouter = (function () {
 
         for (var _route in routes) {
           // Test route.
-          if (routes[_route].test(_path)) {
+          if (routes[_route].test(newPath)) {
             newRoute = _route;
             break;
           }
         } // Update route.
 
 
-        updateRoute(url, path, newRoute);
+        updateRoute(url, newPath, newRoute);
       };
 
       return _this;
@@ -1154,9 +1155,7 @@ var DoarsRouter = (function () {
         attribute[ROUTE].handler = handleChange; // Listen to router changes and perform initial run.
 
         router.addEventListener('changed', handleChange);
-        handleChange({
-          route: router.getRoute()
-        }); // If the router is destroyed look for another
+        handleChange(router, router.getRoute()); // If the router is destroyed look for another
 
         router.addEventListener('destroyed', setup);
       }; // Perform initial setup.

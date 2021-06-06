@@ -81,7 +81,7 @@ export default {
 
       // Listen to router changes and perform initial run.
       router.addEventListener('changed', handleChange)
-      handleChange({ route: router.getRoute() })
+      handleChange(router, router.getRoute())
 
       // If the router is destroyed look for another
       router.addEventListener('destroyed', setup)

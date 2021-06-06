@@ -14,11 +14,12 @@ class Router extends EventDispatcher {
     // Overwrite default with given options.
     options = Object.assign({
       basePath: '',
-      updateHistory: false,
+      path: null,
       pathToRegexp: {},
+      updateHistory: false,
     }, options)
 
-    let path = null
+    let path = options.path
     let route = null
     let routes = {}
 
@@ -36,10 +37,10 @@ class Router extends EventDispatcher {
      * @param {String} _path Path.
      * @param {String} _route Route.
      */
-    const updateRoute = function (url, _path, _route) {
+    const updateRoute = function (url, newPath, newRoute) {
       // Update stored data.
-      path = _path
-      route = _route
+      path = newPath
+      route = newRoute
 
       // Update page history if the option is set.
       if (options.updateHistory) {
@@ -122,7 +123,7 @@ class Router extends EventDispatcher {
 
       if (path) {
         // Remove base url, if present.
-        const _path = _route.replace(options.basePath, '')
+        const _path = path.replace(options.basePath, '')
         // Check if current route is.
         if (routes[_route].test(_path)) {
           updateRoute(path, _path, _route)
@@ -157,8 +158,8 @@ class Router extends EventDispatcher {
      */
     this.setPath = function (url) {
       // Remove base url, if present.
-      const _path = url.replace(options.basePath, '')
-      if (path === _path) {
+      const newPath = url.replace(options.basePath, '')
+      if (path === newPath) {
         return
       }
 
@@ -166,14 +167,14 @@ class Router extends EventDispatcher {
       let newRoute = null
       for (const _route in routes) {
         // Test route.
-        if (routes[_route].test(_path)) {
+        if (routes[_route].test(newPath)) {
           newRoute = _route
           break
         }
       }
 
       // Update route.
-      updateRoute(url, path, newRoute)
+      updateRoute(url, newPath, newRoute)
     }
   }
 }
