@@ -160,8 +160,9 @@ Extends the [`EventDispatcher`](https://github.com/doars/doars/tree/main/package
 ##### Router options
 
 - `{String} basePath = ''` Base path of the routes.
-- `{Boolean} updateHistory = false` Whether to update the [History API](https://developer.mozilla.org/docs/Web/API/History_API).
+- `{String} path = ''` Initial active path.
 - `{Object} pathToRegexp = {}` [Path-to-RegExp options](#path-to-regexp-options) used for parsing route paths.
+- `{Boolean} updateHistory = false` Whether to update the [History API](https://developer.mozilla.org/docs/Web/API/History_API).
 
 ##### Path-to-RegExp options
 
