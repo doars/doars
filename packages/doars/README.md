@@ -872,7 +872,7 @@ export default {
   // The method to execute in order to create the context.
   create: (component, attribute) => {
     return {
-      // The value to make available under the context's name.
+      // Set the value to make available under the context's name.
       value: attribute.getElement(),
     }
   },
@@ -923,11 +923,11 @@ export default {
     const revocable = RevocableProxy(state, {})
 
     return {
-      // Return
+      // Set the value to make available under the context's name.
       value: revocable.proxy,
 
-      // Remove event listeners.
       destroy: () => {
+        // Remove event listeners.
         proxy.removeEventListener('delete', onDelete)
         proxy.removeEventListener('get', onGet)
         proxy.removeEventListener('set', onSet)
