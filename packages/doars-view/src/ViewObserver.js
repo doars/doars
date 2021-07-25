@@ -1,4 +1,4 @@
-class ViewObserver {
+export default class ViewObserver {
   /**
    * Create observer instance.
    * @param {Object} options Intersection observer options.
@@ -73,5 +73,3 @@ class ViewObserver {
     }
   }
 }
-
-export default ViewObserver

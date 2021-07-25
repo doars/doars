@@ -66,7 +66,7 @@ The following [directives](https://github.com/doars/doars/tree/main/packages/doa
 
 ### d-sync-store
 
-Keep the value of an element in sync with a value in the store. It works on input, checkbox, radio, select, and text area elements, as wel as divs with the [content editable](https://developer.mozilla.org/docs/Web/Guide/HTML/Editable_content) attribute. The directive's value should be a dot separated path to a property on the store.
+Keep the value of an element in sync with a value in the datastore. It works on input, checkbox, radio, select, and text area elements, as wel as divs with the [content editable](https://developer.mozilla.org/docs/Web/Guide/HTML/Editable_content) attribute. The directive's value should be a dot separated path to a property on the datastore.
 
 #### Examples
 
@@ -123,4 +123,4 @@ Access the datastore object.
 
 #### DoarsStore options
 
-- `{Boolean} deconstruct = false` Whether to deconstruct the context so when accessing the properties you do not need to prefix it with `$store`. Do note the `$store` context will be checked after the `$for` and `$state` contexts since the `$store` context is inserted before the others. This means that when a property exists on both the store and state the value from the state will be returned.
+- `{Boolean} deconstruct = false` Whether to deconstruct the context so when accessing the properties you do not need to prefix it with `$store`. Do note the `$store` context will be checked after the `$for` and `$state` contexts since the `$store` context is inserted before the others. This means that when a property exists on both the datastore and state the value from the state will be returned.

@@ -7,7 +7,7 @@ import createDirectiveUpdate from './factories/directives/createUpdate.js'
 // Import updater.
 import Updater from './Updater.js'
 
-class DoarsUpdate {
+export default class DoarsUpdate {
   /**
    * Create plugin instance.
    * @param {Doars} library Doars instance to add onto.
@@ -73,5 +73,3 @@ class DoarsUpdate {
     })
   }
 }
-
-export default DoarsUpdate

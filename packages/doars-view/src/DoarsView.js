@@ -4,7 +4,7 @@ import createDirectiveView from './factories/directives/view.js'
 // Import observer.
 import ViewObserver from './ViewObserver.js'
 
-class DoarsView {
+export default class DoarsView {
   /**
    * Create plugin instance.
    * @param {Doars} library Doars instance to add onto.
@@ -44,5 +44,3 @@ class DoarsView {
     })
   }
 }
-
-export default DoarsView

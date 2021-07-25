@@ -1,7 +1,7 @@
 // Import utils.
 import { deepAssign } from '@doars/doars/src/utils/ObjectUtils.js'
 
-class DoarsAlias {
+export default class DoarsAlias {
   /**
    * Create plugin instance.
    * @param {Doars} library Doars instance to add onto.
@@ -223,5 +223,3 @@ class DoarsAlias {
     })
   }
 }
-
-export default DoarsAlias

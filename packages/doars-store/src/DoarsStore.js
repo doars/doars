@@ -10,7 +10,7 @@ import ProxyDispatcher from '@doars/doars/src/events/ProxyDispatcher.js'
 // Import utils.
 import { deepAssign } from '@doars/doars/src/utils/ObjectUtils.js'
 
-class DoarsStore {
+export default class DoarsStore {
   /**
    * Create plugin instance.
    * @param {Doars} library Doars instance to add onto.
@@ -73,5 +73,3 @@ class DoarsStore {
     })
   }
 }
-
-export default DoarsStore
