@@ -9,7 +9,7 @@ import directiveRouteTo from './directives/routeTo.js'
 // Import utils.
 import { deepAssign } from '@doars/doars/src/utils/ObjectUtils.js'
 
-class DoarsRouter {
+export default class DoarsRouter {
   /**
    * Create plugin instance.
    * @param {Doars} library Doars instance to add onto.
@@ -41,5 +41,3 @@ class DoarsRouter {
     })
   }
 }
-
-export default DoarsRouter

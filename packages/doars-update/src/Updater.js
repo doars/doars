@@ -1,7 +1,7 @@
 // Import proxy dispatcher.
 import ProxyDispatcher from '@doars/doars/src/events/ProxyDispatcher.js'
 
-class Updater {
+export default class Updater {
   constructor(options, callback) {
     // Overwrite default options.
     options = Object.assign({
@@ -123,5 +123,3 @@ class Updater {
     }
   }
 }
-
-export default Updater
