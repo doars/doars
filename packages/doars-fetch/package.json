@@ -1,0 +1,45 @@
+{
+  "author": {
+    "name": "Ron Dekker",
+    "website": "https://rondekker.com"
+  },
+  "name": "@doars/doars-fetch",
+  "packagename": "DoarsFetch",
+  "description": "Doars plugin that adds a fetch context that handles parsing the returned content.",
+  "keywords": [
+    "doars",
+    "fetch"
+  ],
+  "version": "1.0.0",
+  "license": "MIT",
+  "main": "src/DoarsFetch.js",
+  "browserMain": "src/DoarsFetch.js",
+  "browser": "dst/doars-fetch.js",
+  "homepage": "https://github.com/doars/doars/tree/main/packages/doars-fetch#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/doars/doars.git"
+  },
+  "bugs": {
+    "url": "https://github.com/doars/doars/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "NODE_ENV=production rollup -c",
+    "dev": "yarn run develop",
+    "develop": "NODE_ENV=development rollup -c -w",
+    "lint": "eslint src/** --cache --fix --no-error-on-unmatched-pattern",
+    "release": "yarn run lint && yarn run build && yarn run docs:build && yarn publish"
+  },
+  "files": [
+    "dst",
+    "src",
+    "CHANGELOG.md",
+    "README.md"
+  ],
+  "dependencies": {
+    "@doars/doars": "^1.0.0"
+  }
+}
