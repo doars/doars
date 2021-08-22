@@ -5,10 +5,10 @@ export default function () {
   return r('span', {
     'aria-hidden': true,
   }, [
-    '૮ ˵･ﻌ･',
+    r('span', '૮ ˵･ﻌ･'),
     // Flip the last character around.
-    r('div', {
-      style: 'display:inline-block;transform:scaleX(-1)',
+    r('span', {
+      style: 'display:inline-block;transform:scale(-1, 1)',
     }, '૮'),
   ])
 }
