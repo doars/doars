@@ -1,4 +1,15 @@
 /**
+ * Convert string to HTML element.
+ * @param {String} string Element contents.
+ * @returns {HTMLElement} HTML element part of a document fragment.
+ */
+export const fromString = (string) => {
+  const template = document.createElement('template')
+  template.innerHTML = string
+  return template.content.childNodes[0]
+}
+
+/**
  * Inserts an element after the reference element opposite of insertBefore and more reliable then ChildNode.after()
  * @param {HTMLElement} reference Node to insert after.
  * @param {Node} node Node to insert.
@@ -9,6 +20,28 @@ export const insertAfter = (reference, node) => {
   } else {
     reference.parentNode.appendChild(node)
   }
+}
+
+/**
+ * Check whether two nodes are the same.
+ * @param {HTMElement} a A node.
+ * @param {HTMElement} b Another node.
+ * @returns {Boolean} Whether the nodes are the same.
+ */
+export const isSame = (a, b) => {
+  if (a.isSameNode) {
+    return a.isSameNode(b)
+  }
+
+  if (a.tagName !== b.tagName) {
+    return false
+  }
+
+  if (a.type === 3) { // Text node.
+    return a.nodeValue === b.nodeValue
+  }
+
+  return false
 }
 
 /**
@@ -51,6 +84,8 @@ export const walk = (element, filter) => {
 }
 
 export default {
+  fromString: fromString,
   insertAfter: insertAfter,
+  isSame: isSame,
   walk: walk,
 }

@@ -186,6 +186,10 @@ Loop over a value and create elements based on a template. The directive's value
 
 Set the inner html of the element. The directive's value should be a function expression returning the HTML to set. The inner HTML is only updated if differs from the current value.
 
+#### Modifiers
+
+- `{Boolean} morph = false` Whether the existing and new element trees should be compared and updated accordingly instead of fully overwriting the existing element tree.
+
 #### Examples
 
 ```HTML
@@ -409,7 +413,7 @@ Set the inner text or text content of the element. The directive's value should 
 
 #### Modifiers
 
-- `{Boolean} content = false` Whether to write to `textContent` instead of `innerText`.
+- `{Boolean} content = false` Whether to write to `textContent` instead of `innerText`. See [the MDN docs for the differences between `innerText` and `textContent`](https://developer.mozilla.org/docs/Web/API/Node/textContent#differences_from_innertext).
 
 #### Examples
 

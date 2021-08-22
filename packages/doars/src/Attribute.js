@@ -7,7 +7,7 @@ import { ATTRIBUTES } from './symbols.js'
 // Import utils.
 import { parseAttributeName, parseAttributeModifiers } from './utils/StringUtils.js'
 
-class Attribute extends EventDispatcher {
+export default class Attribute extends EventDispatcher {
   /**
    * Create instance.
    * @param {Component} component Component instance.
@@ -214,5 +214,3 @@ class Attribute extends EventDispatcher {
     }
   }
 }
-
-export default Attribute

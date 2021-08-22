@@ -1,5 +1,5 @@
 // Import symbols.
-import { ATTRIBUTES, COMPONENT, COMPONENT_SUFFIX } from './symbols.js'
+import { ATTRIBUTES, COMPONENT } from './symbols.js'
 
 // Import classes.
 import Component from './Component.js'
@@ -38,7 +38,7 @@ import EventDispatcher from './events/EventDispatcher.js'
 import { closestComponent } from './utils/ComponentUtils.js'
 import { walk } from './utils/ElementUtils.js'
 
-class Doars extends EventDispatcher {
+export default class Doars extends EventDispatcher {
   /**
    * Create instance.
    * @param {Object} options Options.
@@ -183,7 +183,7 @@ class Doars extends EventDispatcher {
       })
 
       // Scan for components.
-      const componentName = prefix + COMPONENT_SUFFIX
+      const componentName = prefix + '-state'
       const elements = root.querySelectorAll('[' + componentName + ']')
       addComponents(root.hasAttribute(componentName) ? root : null, ...elements)
 
@@ -608,13 +608,17 @@ class Doars extends EventDispatcher {
       mutations = []
 
       // Construct component name.
-      const componentName = prefix + COMPONENT_SUFFIX
+      const componentName = prefix + '-state'
 
       // Store new attribute and elements that define new components.
       const componentsToAdd = []
       const componentsToRemove = []
 
       // Iterate over mutations.
+      // TODO: Handle the following ignore directive cases:
+      // - If and ignore directive is added than remove components and directives on and inside it.
+      // - If an ignore directive is removed than scan for components and directives inside it.
+      // - If element is moved inside an ignore directive remove then remove all components and directives inside it.
       for (const mutation of newMutations) {
         if (mutation.type === 'childList') {
           // Iterate over removed elements.
@@ -773,5 +777,3 @@ class Doars extends EventDispatcher {
     }
   }
 }
-
-export default Doars

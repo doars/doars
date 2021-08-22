@@ -1,5 +1,10 @@
 # CHANGELOG.md
 
+## 1.1.0
+
+- Added morphNode, and morphTree to directive utils.
+- Added morph modifiers to html directive.
+
 ## 1.0.0
 
 - Initial release;

@@ -1,5 +1,5 @@
 // Import symbols.
-import { COMPONENT, COMPONENT_SUFFIX } from './symbols.js'
+import { COMPONENT } from './symbols.js'
 
 // Import classes.
 import Attribute from './Attribute.js'
@@ -8,25 +8,23 @@ import Attribute from './Attribute.js'
 import ProxyDispatcher from './events/ProxyDispatcher.js'
 
 // Import utils.
+import { morphNode, morphTree } from './utils/MorphUtils.js'
 import { closestComponent } from './utils/ComponentUtils.js'
 import { executeExpression } from './utils/ExpressionUtils.js'
 import { transition, transitionIn, transitionOut } from './utils/TransitionUtils.js'
 import { walk } from './utils/ElementUtils.js'
 
-/**
- * Create an object with utility function.
- * @returns {Object} Utils.
- */
-const createDirectiveUtils = () => {
-  return {
-    executeExpression: executeExpression,
-    transition: transition,
-    transitionIn: transitionIn,
-    transitionOut: transitionOut,
-  }
-}
+// Create an object with utility function.
+const DIRECTIVE_UTILS = ({
+  executeExpression: executeExpression,
+  morphNode: morphNode,
+  morphTree: morphTree,
+  transition: transition,
+  transitionIn: transitionIn,
+  transitionOut: transitionOut,
+}).freeze()
 
-export class Component {
+export default class Component {
   /**
    * Create instance.
    * @param {Doars} library Library instance.
@@ -43,7 +41,7 @@ export class Component {
     let attributes = [], hasUpdated = false, isInitialized = false, data, proxy, state
 
     // Check if element has a state attribute.
-    if (!element.attributes[prefix + COMPONENT_SUFFIX]) {
+    if (!element.attributes[prefix + '-state']) {
       console.error('Doars: element given to component does not contain a state attribute!')
       return
     }
@@ -152,7 +150,7 @@ export class Component {
       isInitialized = true
 
       // Get component's state attribute.
-      const componentName = prefix + COMPONENT_SUFFIX
+      const componentName = prefix + '-state'
       const value = element.attributes[componentName].value
 
       // Execute expression for generating the state using a mock attribute.
@@ -192,7 +190,7 @@ export class Component {
           // Clean up attribute if the directive has a destroy function.
           const directive = directives[attribute.getKey()]
           if (directive) {
-            directive.destroy(this, attribute, createDirectiveUtils())
+            directive.destroy(this, attribute, DIRECTIVE_UTILS)
           }
 
           // Destroy the attribute.
@@ -317,7 +315,7 @@ export class Component {
       // Attribute has been removed, call the destroy directive.
       const directive = directives[attribute.getKey()]
       if (directive && directive.destroy) {
-        directive.destroy(this, attribute, createDirectiveUtils())
+        directive.destroy(this, attribute, DIRECTIVE_UTILS)
       }
 
       // Remove attribute from list.
@@ -334,13 +332,14 @@ export class Component {
      */
     this.scanAttributes = (element) => {
       // Get component's state attribute.
-      const componentName = prefix + COMPONENT_SUFFIX
+      const componentName = prefix + '-state'
+      const ignoreName = prefix + '-ignore'
 
       // Store new attributes.
       const newAttributes = []
 
-      // Create iterator for walking over all elements in the component, skipping elements that are components.
-      const iterator = walk(element, (element) => !element.hasAttribute(componentName))
+      // Create iterator for walking over all elements in the component, skipping elements that are components or contain the ignore directive.
+      const iterator = walk(element, (element) => !element.hasAttribute(componentName) && !element.hasAttribute(ignoreName))
       // Start on the given element then continue iterating over all children.
       do {
         for (const { name, value } of element.attributes) {
@@ -375,7 +374,7 @@ export class Component {
       // Execute directive on attribute.
       const directive = directives[attribute.getDirective()]
       if (directive) {
-        directive.update(this, attribute, createDirectiveUtils())
+        directive.update(this, attribute, DIRECTIVE_UTILS)
       }
     }
 
@@ -458,5 +457,3 @@ export class Component {
     }
   }
 }
-
-export default Component

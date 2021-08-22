@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doars ignore mutation example</title>
+  </head>
+
+  <body>
+    <div d-state="{ applyIgnore: false, message: 'Should not change after click' }">
+      <div d-attribute:d-ignore="applyIgnore">
+        <span d-text="message">
+          Before initialization
+        </span>
+      </div>
+
+      <button d-on:click="applyIgnore = true; message = 'Should not be seen'">
+        Click me!
+      </button>
+    </div>
+
+    <script src="/packages/doars/dst/doars.umd.js"></script>
+    <script>
+      // Wait for the DOM to be interactive.
+      document.addEventListener('DOMContentLoaded', () => {
+        // Setup a library instance.
+        const doars = new window.Doars()
+        // Enable library.
+        doars.enable()
+      })
+    </script>
+  </body>
+
+</html>

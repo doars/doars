@@ -11,10 +11,7 @@
     "doars",
     "framework",
     "front-end",
-    "minimal",
-    "modular",
-    "reactive",
-    "small"
+    "reactive"
   ],
   "version": "1.0.2",
   "license": "MIT",

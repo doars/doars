@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doars ignore example</title>
+  </head>
+
+  <body>
+    <div>
+      <!-- Outside any component. -->
+      <div d-ignore>
+        <div d-state="{}">
+          <span d-text="'Should not be seen'">
+            Should not change
+          </span>
+        </div>
+      </div>
+
+      <!-- Inside a component. -->
+      <div d-state="{}">
+        <div d-ignore>
+          <span d-text="'Should not be seen'">
+            Should not change
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <script src="/packages/doars/dst/doars.umd.js"></script>
+    <script>
+      // Wait for the DOM to be interactive.
+      document.addEventListener('DOMContentLoaded', () => {
+        // Setup a library instance.
+        const doars = new window.Doars()
+        // Enable library.
+        doars.enable()
+      })
+    </script>
+  </body>
+
+</html>

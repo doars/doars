@@ -19,6 +19,70 @@ export const addAttributes = (element, data) => {
 }
 
 /**
+ * Copy all attributes onto one node from another.
+ * @param {HTMLElement} existingNode Node to copy to.
+ * @param {HTMLElement} newNode Node to copy from.
+ */
+export const copyAttributes = (existingNode, newNode) => {
+  const existingAttributes = existingNode.attributes
+  const newAttributes = newNode.attributes
+  let attributeNamespaceURI = null
+  let attributeValue = null
+  let fromValue = null
+  let attributeName = null
+  let attribute = null
+
+  for (let i = newAttributes.length - 1; i >= 0; --i) {
+    attribute = newAttributes[i]
+    attributeName = attribute.name
+    attributeNamespaceURI = attribute.namespaceURI
+    attributeValue = attribute.value
+    if (attributeNamespaceURI) {
+      attributeName = attribute.localName || attributeName
+      fromValue = existingNode.getAttributeNS(attributeNamespaceURI, attributeName)
+      if (fromValue !== attributeValue) {
+        existingNode.setAttributeNS(attributeNamespaceURI, attributeName, attributeValue)
+      }
+    } else {
+      if (!existingNode.hasAttribute(attributeName)) {
+        existingNode.setAttribute(attributeName, attributeValue)
+      } else {
+        fromValue = existingNode.getAttribute(attributeName)
+        if (fromValue !== attributeValue) {
+          // apparently values are always cast to strings, ah well
+          if (attributeValue === 'null' || attributeValue === 'undefined') {
+            existingNode.removeAttribute(attributeName)
+          } else {
+            existingNode.setAttribute(attributeName, attributeValue)
+          }
+        }
+      }
+    }
+  }
+
+  // Remove any extra attributes found on the original DOM element that
+  // weren't found on the target element.
+  for (let j = existingAttributes.length - 1; j >= 0; --j) {
+    attribute = existingAttributes[j]
+    if (attribute.specified !== false) {
+      attributeName = attribute.name
+      attributeNamespaceURI = attribute.namespaceURI
+
+      if (attributeNamespaceURI) {
+        attributeName = attribute.localName || attributeName
+        if (!newNode.hasAttributeNS(attributeNamespaceURI, attributeName)) {
+          existingNode.removeAttributeNS(attributeNamespaceURI, attributeName)
+        }
+      } else {
+        if (!newNode.hasAttributeNS(null, attributeName)) {
+          existingNode.removeAttribute(attributeName)
+        }
+      }
+    }
+  }
+}
+
+/**
  * Remove attributes on an element based of an object.
  * @param {HTMLElement} element Element to remove the attributes from.
  * @param {Object} data Attribute data to remove.
@@ -117,6 +181,7 @@ export const setAttributes = (element, data) => {
 
 export default {
   addAttributes: addAttributes,
+  copyAttributes: copyAttributes,
   removeAttributes: removeAttributes,
   setAttribute: setAttribute,
 }
