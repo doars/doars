@@ -52,6 +52,7 @@ Name | Description
 ---- | -----------
 [@doars/doars](https://github.com/doars/doars/tree/main/packages/doars#readme) | The core library, it manages the components and plugins as well as includes the basic contexts and directives.
 [@doars/doars-alias](https://github.com/doars/doars/tree/main/packages/doars-alias#readme) | Plugin for creating aliases or renaming any context or directive.
+[@doars/doars-fetch](https://github.com/doars/doars/tree/main/packages/doars-fetch#readme) | Plugin that adds a fetch context that handles parsing the returned content.
 [@doars/doars-router](https://github.com/doars/doars/tree/main/packages/doars-router#readme) | Plugin that adds a router context with set of directives to control it.
 [@doars/doars-store](https://github.com/doars/doars/tree/main/packages/doars-store#readme) | Plugin that adds a store context for global state management.
 [@doars/doars-update](https://github.com/doars/doars/tree/main/packages/doars-update#readme) | Plugin that adds an update loop context and directive.
