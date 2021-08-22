@@ -19,7 +19,7 @@ export default class DoarsStore {
    */
   constructor(library, options = null, datastore = {}) {
     // Clone options.
-    options = deepAssign({
+    options = Object.assign({
       deconstruct: false,
     }, options)
 
@@ -41,7 +41,7 @@ export default class DoarsStore {
       // Get index of state and insert the context directly before it.
       const existingContexts = library.getContexts()
       let stateIndex = 0
-      for (let i = 0; i < existingContexts.length; i++) {
+      for (let i = existingContexts.length - 1; i >= 0; i--) {
         const context = existingContexts[i]
         if (context.name === '$state') {
           stateIndex = i

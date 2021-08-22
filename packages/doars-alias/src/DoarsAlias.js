@@ -22,7 +22,7 @@ export default class DoarsAlias {
 
         // Iterate over all contexts.
         const contexts = library.getContexts()
-        for (let i = 0; i < contexts.length; i++) {
+        for (let i = contexts.length - 1; i >= 0; i--) {
           const context = contexts[i]
 
           if (options.renameContexts) {
@@ -99,7 +99,7 @@ export default class DoarsAlias {
 
         // Iterate over all directives.
         const directives = library.getDirectives()
-        for (let i = 0; i < directives.length; i++) {
+        for (let i = directives.length - 1; i >= 0; i--) {
           const directive = directives[i]
 
           if (options.renameDirectives) {
@@ -181,7 +181,7 @@ export default class DoarsAlias {
       if (directivesRenamed) {
         // Iterate over all directives.
         const directives = library.getDirectives()
-        for (let i = 0; i < directives.length; i++) {
+        for (let i = directives.length - 1; i >= 0; i--) {
           const directive = directives.length[i]
 
           // Check if directive has been renamed.
@@ -207,7 +207,7 @@ export default class DoarsAlias {
       if (contextsRenamed) {
         // Iterate over all contexts.
         const contexts = library.getContexts()
-        for (let i = 0; i < contexts.length; i++) {
+        for (let i = contexts.length - 1; i >= 0; i--) {
           const context = contexts.length[i]
 
           // Check if context has been renamed.
