@@ -184,8 +184,15 @@ export default class Doars extends EventDispatcher {
 
       // Scan for components.
       const componentName = prefix + '-state'
-      const elements = root.querySelectorAll('[' + componentName + ']')
-      addComponents(root.hasAttribute(componentName) ? root : null, ...elements)
+      const ignoreName = prefix + '-ignore'
+      const elements = [...root.querySelectorAll('[' + componentName + ']')]
+      // Remove any elements that should be ignored.
+      for (let i = elements.length - 1; i >= 0; i--) {
+        if (elements[i].closest('[' + ignoreName + ']')) {
+          elements.splice(i, 1)
+        }
+      }
+      addComponents((root.hasAttribute(componentName) && !root.hasAttribute(ignoreName)) ? root : null, ...elements)
 
       // Dispatch events.
       this.dispatchEvent('enabled', [this])
@@ -609,6 +616,7 @@ export default class Doars extends EventDispatcher {
 
       // Construct component name.
       const componentName = prefix + '-state'
+      const ignoreName = prefix + '-ignore'
 
       // Store new attribute and elements that define new components.
       const componentsToAdd = []
@@ -714,6 +722,18 @@ export default class Doars extends EventDispatcher {
 
             // Add new component.
             addComponents(mutation.target)
+            continue
+          } else if (mutation.attributeName === ignoreName) {
+            if (mutation.target.hasAttribute(ignoreName)) {
+              // Start ignoring everything inside.
+              // TODO:
+
+              continue
+            }
+
+            // Walk everything inside.
+            // TODO:
+
             continue
           }
 

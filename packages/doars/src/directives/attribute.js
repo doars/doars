@@ -36,7 +36,7 @@ export default {
     }
 
     // Deconstruct attribute.
-    const key = attribute.getKey()
+    const key = attribute.getKeyRaw()
 
     // Set attribute on element at key.
     setAttribute(element, key, data)

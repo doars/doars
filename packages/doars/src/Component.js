@@ -15,14 +15,14 @@ import { transition, transitionIn, transitionOut } from './utils/TransitionUtils
 import { walk } from './utils/ElementUtils.js'
 
 // Create an object with utility function.
-const DIRECTIVE_UTILS = ({
+const DIRECTIVE_UTILS = Object.freeze({
   executeExpression: executeExpression,
   morphNode: morphNode,
   morphTree: morphTree,
   transition: transition,
   transitionIn: transitionIn,
   transitionOut: transitionOut,
-}).freeze()
+})
 
 export default class Component {
   /**
