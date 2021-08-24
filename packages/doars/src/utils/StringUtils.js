@@ -36,10 +36,38 @@ export const parseAttributeModifiers = (modifiers) => {
     const key = modifier.substring(0, hyphenIndex)
     let value = modifier.substring(hyphenIndex + 1)
 
+    let tmpValue = value
+
+    // Try to remove time suffixes.
+    let type
+    if (value.endsWith('ms')) {
+      tmpValue = value.substring(-2)
+    } else if (value.endsWith('s')) {
+      type = 's'
+      tmpValue = value.substring(-1)
+    } else if (value.endsWith('m')) {
+      type = 'm'
+      tmpValue = value.substring(-1)
+    } else if (value.endsWith('h')) {
+      type = 'h'
+      tmpValue = value.substring(-1)
+    }
+
     // Try to parse the value as a number.
-    const tmpValue = Number.parseInt(value)
+    tmpValue = Number.parseInt(tmpValue)
     if (!isNaN(tmpValue)) {
       value = tmpValue
+
+      // Convert to milliseconds if given in a different format.
+      switch (type) {
+        case 'h':
+          value *= 60
+        case 'm':
+          value *= 60
+        case 's':
+          value *= 1000
+          break
+      }
     }
 
     // Store modifier data.
