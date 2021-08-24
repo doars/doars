@@ -35,7 +35,7 @@
     "dev": "yarn run develop",
     "develop": "NODE_ENV=development rollup -c -w",
     "lint": "eslint src/** --cache --fix --no-error-on-unmatched-pattern",
-    "release": "yarn run lint && yarn run build && yarn run docs:build && yarn publish"
+    "release": "yarn run lint && yarn run build && yarn publish"
   },
   "files": [
     "dst",
