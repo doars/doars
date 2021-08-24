@@ -310,6 +310,10 @@ export default function () {
           card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars#d-cloak',
           }, 'd-cloak', 'Is removed after the component is initialized.'),
+
+          card({
+            href: 'https://github.com/doars/doars/tree/main/packages/doars#d-ignore',
+          }, 'd-ignore', 'Ignore the element and its children from being processed.'),
         ]),
       ]),
 

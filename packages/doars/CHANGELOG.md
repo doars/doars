@@ -2,6 +2,7 @@
 
 ## 1.1.0
 
+- Added ignore directive.
 - Added morphNode, and morphTree to directive utils.
 - Added morph modifiers to html directive.
 

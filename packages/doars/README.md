@@ -78,6 +78,7 @@ Name | Description
 [d-for](#d-for) | Loop over a value and create elements based on a template.
 [d-html](#d-html) | Set the inner html of the element.
 [d-if](#d-if) | Return whether the template should be added to the document.
+[d-ignore](#d-ignore) | Ignore the element and its children from being processed.
 [d-initialized](#d-initialized) | Runs once when the component is initialized.
 [d-on](#d-on) | Listen to events on the document tree.
 [d-reference](#d-reference) | Add the element to the component's references context.
@@ -227,6 +228,26 @@ Return whether the template should be added to the document. The directive's val
   <template d-if="$state.active">
     <span>Active</span>
   </template>
+</div>
+```
+
+### d-ignore
+
+Ignore the element and its children from being processed.
+
+#### Examples
+
+```HTML
+<!-- The text directive will never run due to the ignore attribute on the same element. -->
+<p d-ignore d-text="'This message will not be displayed.'">
+  This message will not be updated.
+</p>
+
+<!-- The text directive will never run due to the ignore attribute on the parent element. -->
+<div d-ignore>
+  <p d-text="'This message will not be displayed.'">
+    This message will not be updated
+  </p>
 </div>
 ```
 

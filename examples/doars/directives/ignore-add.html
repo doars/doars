@@ -16,7 +16,7 @@
       </div>
 
       <button
-        d-on:click="$references['ignore'].setAttribute('d-ignore', true); $nextTick(() => { message = 'Should never be seen' })">
+        d-on:click="$references['ignore'].setAttribute('d-ignore', true); $nextTick(($state) => { $state.message = 'Should never be seen' })">
         Click me!
       </button>
     </div>
