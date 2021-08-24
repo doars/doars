@@ -185,14 +185,14 @@ export default class Doars extends EventDispatcher {
       // Scan for components.
       const componentName = prefix + '-state'
       const ignoreName = prefix + '-ignore'
-      const elements = [...root.querySelectorAll('[' + componentName + ']')]
+      const componentElements = [...root.querySelectorAll('[' + componentName + ']')]
       // Remove any elements that should be ignored.
-      for (let i = elements.length - 1; i >= 0; i--) {
-        if (elements[i].closest('[' + ignoreName + ']')) {
-          elements.splice(i, 1)
+      for (let i = componentElements.length - 1; i >= 0; i--) {
+        if (componentElements[i].closest('[' + ignoreName + ']')) {
+          componentElements.splice(i, 1)
         }
       }
-      addComponents((root.hasAttribute(componentName) && !root.hasAttribute(ignoreName)) ? root : null, ...elements)
+      addComponents((root.hasAttribute(componentName) && !root.hasAttribute(ignoreName)) ? root : null, ...componentElements)
 
       // Dispatch events.
       this.dispatchEvent('enabled', [this])
@@ -622,118 +622,131 @@ export default class Doars extends EventDispatcher {
       const componentsToAdd = []
       const componentsToRemove = []
 
-      // Iterate over mutations.
-      // TODO: Handle the following ignore directive cases:
-      // - If and ignore directive is added than remove components and directives on and inside it.
-      // - If an ignore directive is removed than scan for components and directives inside it.
-      // - If element is moved inside an ignore directive remove then remove all components and directives inside it.
-      for (const mutation of newMutations) {
-        if (mutation.type === 'childList') {
-          // Iterate over removed elements.
-          for (let element of mutation.removedNodes) {
-            // Skip if not an element.
-            if (element.nodeType !== 1) {
+      const remove = (element) => {
+        // Skip if not an element.
+        if (element.nodeType !== 1) {
+          return
+        }
+
+        // Check if element is a component itself.
+        if (element[COMPONENT]) {
+          // Add component to remove list.
+          componentsToRemove.unshift(element[COMPONENT])
+          // Scan for more components inside this.
+          const componentElements = element.querySelectorAll(componentName)
+          for (const componentElement of componentElements) {
+            if (componentElement[COMPONENT]) {
+              componentsToRemove.unshift(componentElement)
+            }
+          }
+        } else {
+          // Create iterator for walking over all elements in the component, skipping elements that are components and adding those to the remove list.
+          const iterator = walk(element, (element) => {
+            if (element[COMPONENT]) {
+              componentsToRemove.unshift(element[COMPONENT])
+              return false
+            }
+            return true
+          })
+          do {
+            // Check if element has attributes.
+            if (!element[ATTRIBUTES]) {
               continue
             }
 
-            // Check if element is a component itself.
-            if (element[COMPONENT]) {
-              // Add component to remove list.
-              componentsToRemove.unshift(element[COMPONENT])
-              // Scan for more components inside this.
-              const componentElements = element.querySelectorAll(componentName)
-              for (const componentElement of componentElements) {
-                if (componentElement[COMPONENT]) {
-                  componentsToRemove.unshift(componentElement)
-                }
-              }
-            } else {
-              // Create iterator for walking over all elements in the component, skipping elements that are components and adding those to the remove list.
-              const iterator = walk(element, (element) => {
-                if (element[COMPONENT]) {
-                  componentsToRemove.unshift(element[COMPONENT])
-                  return false
-                }
-                return true
-              })
-              do {
-                // Check if element has attributes.
-                if (!element[ATTRIBUTES]) {
-                  continue
-                }
-
-                // Remove attributes from their component.
-                for (const attribute of element[ATTRIBUTES]) {
-                  attribute.getComponent().removeAttribute(attribute)
-                }
-              } while (element = iterator())
+            // Remove attributes from their component.
+            for (const attribute of element[ATTRIBUTES]) {
+              attribute.getComponent().removeAttribute(attribute)
             }
+          } while (element = iterator())
+        }
+      }
+      const add = (element) => {
+        // Skip if not an element.
+        if (element.nodeType !== 1) {
+          return
+        }
+
+        // Skip if inside an ignore tag.
+        const ignoreParent = element.closest('[' + ignoreName + ']')
+        if (ignoreParent) {
+          return
+        }
+
+        // Scan for new components and add them to the list.
+        const componentElements = element.querySelectorAll('[' + componentName + ']')
+        for (const componentElement of componentElements) {
+          // Skip if inside an ignore tag.
+          const ignoreParent = componentElement.closest('[' + ignoreName + ']')
+          if (ignoreParent) {
+            continue
+          }
+
+          componentsToAdd.push(componentElement)
+        }
+
+        // Check if this elements defines a new component.
+        if (element.hasAttribute(componentName)) {
+          // Store new component element and exit early.
+          componentsToAdd.push(element)
+          return
+        }
+
+        // Find nearest component.
+        const component = closestComponent(element)
+        if (component) {
+          // Scan for and update new attributes.
+          const attributes = component.scanAttributes(element)
+          component.updateAttributes(attributes)
+        }
+      }
+
+      // Iterate over mutations.
+      for (const mutation of newMutations) {
+        if (mutation.type === 'childList') {
+          // Iterate over removed elements.
+          for (const element of mutation.removedNodes) {
+            remove(element)
           }
 
           // Iterate over added elements.
           for (const element of mutation.addedNodes) {
-            // Skip if not an element.
-            if (element.nodeType !== 1) {
-              continue
-            }
-
-            // Scan for new components and add them to the list.
-            const componentElements = element.querySelectorAll('[' + componentName + ']')
-            for (const componentElement of componentElements) {
-              componentsToAdd.push(componentElement)
-            }
-
-            // Check if this elements defines a new component.
-            if (element.hasAttribute(componentName)) {
-              // Store new component element and exit early.
-              componentsToAdd.push(element)
-              continue
-            }
-
-            // Find nearest component.
-            const component = closestComponent(element)
-            if (component) {
-              // Scan for and update new attributes.
-              const attributes = component.scanAttributes(element)
-              component.updateAttributes(attributes)
-              continue
-            }
+            add(element)
           }
         } else if (mutation.type === 'attributes') {
+          const element = mutation.target
           // Check if new component is defined.
           if (mutation.attributeName === componentName) {
             // If a component is already defined ignore the change.
-            if (mutation.target[COMPONENT]) {
+            if (element[COMPONENT]) {
               continue
             }
 
             // Get nearest component, this will become the parent.
-            const component = closestComponent(mutation.target)
+            const component = closestComponent(element)
             if (component) {
               // Remove attributes part of nearest component, that will become part of the new component.
-              let element = mutation.target
+              let currentElement = element
               const iterator = walk(element, (element) => element.hasAttribute(componentName))
               do {
-                for (const attribute of element[ATTRIBUTES]) {
+                for (const attribute of currentElement[ATTRIBUTES]) {
                   component.removeAttribute(attribute)
                 }
-              } while (element = iterator())
+              } while (currentElement = iterator())
             }
 
             // Add new component.
-            addComponents(mutation.target)
+            addComponents(element)
             continue
           } else if (mutation.attributeName === ignoreName) {
-            if (mutation.target.hasAttribute(ignoreName)) {
-              // Start ignoring everything inside.
-              // TODO:
-
+            if (element.hasAttribute(ignoreName)) {
+              // Remove everything inside.
+              remove(element)
               continue
             }
 
-            // Walk everything inside.
-            // TODO:
-
+            // Add everything inside.
+            add(element)
             continue
           }
 
@@ -743,25 +756,25 @@ export default class Doars extends EventDispatcher {
           }
 
           // Get component of mutated element.
-          const component = closestComponent(mutation.target)
+          const component = closestComponent(element)
           if (!component) {
             continue
           }
 
           // Get attribute from component and value from element.
           let attribute = null
-          for (const targetAttribute of mutation.target[ATTRIBUTES]) {
+          for (const targetAttribute of element[ATTRIBUTES]) {
             if (targetAttribute.getName() === mutation.attributeName) {
               attribute = targetAttribute
               break
             }
           }
-          const value = mutation.target.getAttribute(mutation.attributeName)
+          const value = element.getAttribute(mutation.attributeName)
 
           // If no attribute found add it.
           if (!attribute) {
             if (value) {
-              component.addAttribute(mutation.target, mutation.attributeName, value)
+              component.addAttribute(element, mutation.attributeName, value)
             }
             continue
           }

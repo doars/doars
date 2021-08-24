@@ -8,14 +8,15 @@
   </head>
 
   <body>
-    <div d-state="{ applyIgnore: false, message: 'Should not change after click' }">
-      <div d-attribute:d-ignore="applyIgnore">
+    <div d-state="{ message: 'Should not change after click' }">
+      <div d-reference="ignore">
         <span d-text="message">
-          Before initialization
+          Before
         </span>
       </div>
 
-      <button d-on:click="applyIgnore = true; message = 'Should not be seen'">
+      <button
+        d-on:click="$references['ignore'].setAttribute('d-ignore', true); $nextTick(() => { message = 'Should never be seen' })">
         Click me!
       </button>
     </div>

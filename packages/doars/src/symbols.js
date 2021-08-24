@@ -6,6 +6,8 @@ export const FOR = Symbol('FOR')
 
 export const IF = Symbol('IF')
 
+export const IGNORE = Symbol('IGNORE')
+
 export const INITIALIZED = Symbol('INITIALIZED')
 
 export const ON = Symbol('ON')

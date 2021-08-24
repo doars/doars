@@ -165,7 +165,8 @@ export const executeExpression = (component, attribute, expression, extra = null
   try {
     result = new Function(...Object.keys(contexts), before + expression + after)(...Object.values(contexts)) // eslint-disable-line no-new-func
   } catch (error) {
-    throw Error(error)
+    console.error(error, 'Error encountered when executing the following expression: ', expression)
+    result = null
   }
 
   // Invoke destroy.

@@ -8,15 +8,15 @@
   </head>
 
   <body>
-    <div d-state="{ applyIgnore: true, message: 'Should not be visible' }">
-      <div d-attribute:d-ignore="applyIgnore">
+    <div d-state="{ message: 'Should only be visible after ignore is removed!' }">
+      <div d-ignore>
         <span d-text="message">
-          Before initialization
+          Before
         </span>
       </div>
 
-      <button d-on:click="applyIgnore = false; message = 'Should not have read \'Should not be visible\' at any point'">
-        Click me!
+      <button d-on:click="$component.querySelector('[d-ignore]').removeAttribute('d-ignore')">
+        Remove ignore!
       </button>
     </div>
 
