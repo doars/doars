@@ -137,7 +137,7 @@ function _iterableToArray(iter) {
 }
 
 function _iterableToArrayLimit(arr, i) {
-  var _i = arr && (typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]);
+  var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
 
   if (_i == null) return;
   var _arr = [];
@@ -250,14 +250,13 @@ function _createForOfIteratorHelper(o, allowArrayLike) {
 
 var ATTRIBUTES = Symbol('ATTRIBUTES');
 var COMPONENT = Symbol('COMPONENT');
-var COMPONENT_SUFFIX = '-state';
 var FOR = Symbol('FOR');
 var IF = Symbol('IF');
 var INITIALIZED = Symbol('INITIALIZED');
-var SYNC_STATE = Symbol('SYNC_STATE');
 var ON = Symbol('ON');
 var REFERENCES = Symbol('REFERENCES');
 var REFERENCES_CACHE = Symbol('REFERENCES_CACHE');
+var SYNC_STATE = Symbol('SYNC_STATE');
 
 var EventDispatcher =
 /**
@@ -1043,6 +1042,554 @@ var ProxyDispatcher = /*#__PURE__*/function (_EventDispatcher) {
   return ProxyDispatcher;
 }(EventDispatcher);
 
+/**
+ * Add attributes on an element based of an object.
+ * @param {HTMLElement} element Element to add the attributes to.
+ * @param {Object} data Attribute data to add.
+ */
+var addAttributes = function addAttributes(element, data) {
+  for (var name in data) {
+    if (name === 'class') {
+      // Add classes to classlist.
+      var _iterator = _createForOfIteratorHelper(data["class"]),
+          _step;
+
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var className = _step.value;
+          element.classList.add(className);
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+
+      continue;
+    } // Set attribute.
+
+
+    element.setAttribute(name, data[name]);
+  }
+};
+/**
+ * Copy all attributes onto one node from another.
+ * @param {HTMLElement} existingNode Node to copy to.
+ * @param {HTMLElement} newNode Node to copy from.
+ */
+
+var copyAttributes = function copyAttributes(existingNode, newNode) {
+  var existingAttributes = existingNode.attributes;
+  var newAttributes = newNode.attributes;
+  var attributeNamespaceURI = null;
+  var attributeValue = null;
+  var fromValue = null;
+  var attributeName = null;
+  var attribute = null;
+
+  for (var i = newAttributes.length - 1; i >= 0; --i) {
+    attribute = newAttributes[i];
+    attributeName = attribute.name;
+    attributeNamespaceURI = attribute.namespaceURI;
+    attributeValue = attribute.value;
+
+    if (attributeNamespaceURI) {
+      attributeName = attribute.localName || attributeName;
+      fromValue = existingNode.getAttributeNS(attributeNamespaceURI, attributeName);
+
+      if (fromValue !== attributeValue) {
+        existingNode.setAttributeNS(attributeNamespaceURI, attributeName, attributeValue);
+      }
+    } else {
+      if (!existingNode.hasAttribute(attributeName)) {
+        existingNode.setAttribute(attributeName, attributeValue);
+      } else {
+        fromValue = existingNode.getAttribute(attributeName);
+
+        if (fromValue !== attributeValue) {
+          // apparently values are always cast to strings, ah well
+          if (attributeValue === 'null' || attributeValue === 'undefined') {
+            existingNode.removeAttribute(attributeName);
+          } else {
+            existingNode.setAttribute(attributeName, attributeValue);
+          }
+        }
+      }
+    }
+  } // Remove any extra attributes found on the original DOM element that
+  // weren't found on the target element.
+
+
+  for (var j = existingAttributes.length - 1; j >= 0; --j) {
+    attribute = existingAttributes[j];
+
+    if (attribute.specified !== false) {
+      attributeName = attribute.name;
+      attributeNamespaceURI = attribute.namespaceURI;
+
+      if (attributeNamespaceURI) {
+        attributeName = attribute.localName || attributeName;
+
+        if (!newNode.hasAttributeNS(attributeNamespaceURI, attributeName)) {
+          existingNode.removeAttributeNS(attributeNamespaceURI, attributeName);
+        }
+      } else {
+        if (!newNode.hasAttributeNS(null, attributeName)) {
+          existingNode.removeAttribute(attributeName);
+        }
+      }
+    }
+  }
+};
+/**
+ * Remove attributes on an element based of an object.
+ * @param {HTMLElement} element Element to remove the attributes from.
+ * @param {Object} data Attribute data to remove.
+ */
+
+var removeAttributes = function removeAttributes(element, data) {
+  for (var name in data) {
+    if (name === 'class') {
+      // Add classes to classlist.
+      var _iterator2 = _createForOfIteratorHelper(data["class"]),
+          _step2;
+
+      try {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          var className = _step2.value;
+          element.classList.remove(className);
+        }
+      } catch (err) {
+        _iterator2.e(err);
+      } finally {
+        _iterator2.f();
+      }
+
+      continue;
+    } // Check if optional values match.
+
+
+    if (data[name] && element.attributes[name] !== data[name]) {
+      continue;
+    } // Remove attribute.
+
+
+    element.removeAttribute(name);
+  }
+};
+/**
+ * Set data at key on element as attribute.
+ * @param {HTMLElement} element Element to set attribute of.
+ * @param {String} key Attribute name.
+ * @param {Any} data Attribute data.
+ */
+
+var setAttribute = function setAttribute(element, key, data) {
+  // Check if a special attribute key.
+  if (key === 'value' && element.tagName === 'INPUT') {
+    if (!data) {
+      data = '';
+    } // Exit early if nothing will change.
+
+
+    if (element.getAttribute(key) === data) {
+      return;
+    } // Update attribute.
+
+
+    element.setAttribute(key, data); // Exit special cases early.
+
+    return;
+  } // If checked attribute then set the checked property instead.
+
+
+  if (key === 'checked') {
+    if (element.type === 'checkbox' || element.type === 'radio') {
+      element.checked = !!data;
+      return;
+    }
+  }
+
+  if (key === 'class') {
+    if (Array.isArray(data)) {
+      // Join values together if it is a list of classes.
+      data = data.join(' ');
+    } else if (_typeof(data) === 'object') {
+      // List keys of object as a string if the value is truthy.
+      data = Object.entries(data).filter(function (_ref) {
+        var _ref2 = _slicedToArray(_ref, 2);
+            _ref2[0];
+            var value = _ref2[1];
+
+        return value;
+      }).map(function (_ref3) {
+        var _ref4 = _slicedToArray(_ref3, 1),
+            key = _ref4[0];
+
+        return key;
+      }).join(' ');
+    }
+  }
+
+  if (key === 'style') {
+    if (Array.isArray(data)) {
+      // Join values together if it is a list of classes.
+      data = data.join(' ');
+    } else if (_typeof(data) === 'object') {
+      // List keys of object as a string if the value is truthy.
+      data = Object.entries(data).map(function (_ref5) {
+        var _ref6 = _slicedToArray(_ref5, 2),
+            key = _ref6[0],
+            value = _ref6[1];
+
+        return key + ':' + value;
+      }).join(';');
+    }
+  } // Update attribute on element.
+
+
+  if (data === false || data === null || data === undefined) {
+    element.removeAttribute(key);
+  } else {
+    element.setAttribute(key, data);
+  }
+};
+/**
+ * Set attributes on an element based of an object.
+ * @param {HTMLElement} element Element to add the attributes to.
+ * @param {Object} data Attribute data to set.
+ */
+
+var setAttributes = function setAttributes(element, data) {
+  for (var name in data) {
+    setAttribute(element, name, data[name]);
+  }
+};
+
+/**
+ * Convert string to HTML element.
+ * @param {String} string Element contents.
+ * @returns {HTMLElement} HTML element part of a document fragment.
+ */
+var fromString = function fromString(string) {
+  var template = document.createElement('template');
+  template.innerHTML = string;
+  return template.content.childNodes[0];
+};
+/**
+ * Inserts an element after the reference element opposite of insertBefore and more reliable then ChildNode.after()
+ * @param {HTMLElement} reference Node to insert after.
+ * @param {Node} node Node to insert.
+ */
+
+var insertAfter = function insertAfter(reference, node) {
+  if (reference.nextSibling) {
+    reference.parentNode.insertBefore(node, reference.nextSibling);
+  } else {
+    reference.parentNode.appendChild(node);
+  }
+};
+/**
+ * Check whether two nodes are the same.
+ * @param {HTMElement} a A node.
+ * @param {HTMElement} b Another node.
+ * @returns {Boolean} Whether the nodes are the same.
+ */
+
+var isSame = function isSame(a, b) {
+  if (a.isSameNode) {
+    return a.isSameNode(b);
+  }
+
+  if (a.tagName !== b.tagName) {
+    return false;
+  }
+
+  if (a.type === 3) {
+    // Text node.
+    return a.nodeValue === b.nodeValue;
+  }
+
+  return false;
+};
+/**
+ * Iterate over all descendants of a given node.
+ * @param {HTMLElement} element Element to walk over.
+ * @param {Function} filter Filter function, return false to skip element.
+ * @returns {Function} Iterator function. Call until a non-truthy value is returned.
+ */
+
+var walk = function walk(element, filter) {
+  var index = -1;
+  var iterator = null;
+  return function () {
+    // First go over iterator.
+    if (index >= 0 && iterator) {
+      var _child = iterator();
+
+      if (_child) {
+        return _child;
+      }
+    } // Get next child that passes the filter.
+
+
+    var child = null;
+
+    do {
+      index++;
+
+      if (index >= element.childElementCount) {
+        return null;
+      }
+
+      child = element.children[index];
+    } while (!filter(child)); // Setup iterator for child.
+
+
+    if (child.childElementCount) {
+      iterator = walk(child, filter);
+    } // Return the child.
+
+
+    return child;
+  };
+};
+
+/**
+ * Diff elements and apply the resulting patch to the existing node.
+ * @param {HTMLElement} existingNode Existing node to update.
+ * @param {HTMLElement} newNode Element to update existing node with.
+*/
+
+var morphNode = function morphNode(existingNode, newNode) {
+  var nodeType = newNode.nodeType;
+  var nodeName = newNode.nodeName; // Element node.
+
+  if (nodeType === 1) {
+    copyAttributes(existingNode, newNode);
+  } // Text node or comment node.
+
+
+  if (nodeType === 3 || nodeType === 8) {
+    if (existingNode.nodeValue !== newNode.nodeValue) {
+      existingNode.nodeValue = newNode.nodeValue;
+    }
+  } // Some DOM nodes are weird
+  // https://github.com/patrick-steele-idem/morphdom/blob/master/src/specialElHandlers.js
+
+
+  if (nodeName === 'INPUT') {
+    updateInput(existingNode, newNode);
+  } else if (nodeName === 'OPTION') {
+    updateAttribute(existingNode, newNode, 'selected');
+  } else if (nodeName === 'TEXTAREA') {
+    updateTextarea(existingNode, newNode);
+  }
+};
+/**
+ * Morph the existing element tree into the given tree.
+ * @param {HTMLElement} existingTree The existing tree to convert.
+ * @param {HTMLElement} newTree The tree to change to.
+ * @param {Object} options Options to modify the morphing behaviour.
+ * @returns {HTMLElement} New tree root element.
+ */
+
+var morphTree = function morphTree(existingTree, newTree, options) {
+  if (_typeof(existingTree) !== 'object') {
+    throw new Error('Existing tree should be an object.');
+  }
+
+  if (typeof newTree === 'string') {
+    newTree = fromString(newTree);
+  } else if (_typeof(newTree) !== 'object') {
+    throw new Error('New tree should be an object.');
+  } // Check if outer or inner html should be updated. Always update children if root node is a document fragment.
+
+
+  if (options && options.childrenOnly || newTree.nodeType === 11) {
+    updateChildren(existingTree, newTree);
+    return existingTree;
+  }
+
+  return updateTree(existingTree, newTree);
+};
+/**
+ * Update attributes on input element.
+ * @param {HTMLElement} existingNode Existing node to update.
+ * @param {HTMLElement} newNode Element to update existing node with.
+ */
+
+var updateInput = function updateInput(existingNode, newNode) {
+  // The "value" attribute is special for the <input> element since it sets the
+  // initial value. Changing the "value" attribute without changing the "value"
+  // property will have no effect since it is only used to the set the initial
+  // value. Similar for the "checked" attribute, and "disabled".
+  var newValue = newNode.value;
+  var existingValue = existingNode.value;
+  updateAttribute(existingNode, newNode, 'checked');
+  updateAttribute(existingNode, newNode, 'disabled'); // The "indeterminate" property can not be set using an HTML attribute.
+  // See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/checkbox
+
+  if (existingNode.indeterminate !== newNode.indeterminate) {
+    existingNode.indeterminate = newNode.indeterminate;
+  } // Persist file value since file inputs can't be changed programmatically
+
+
+  if (existingNode.type === 'file') {
+    return;
+  }
+
+  if (existingValue !== newValue) {
+    existingNode.setAttribute('value', newValue);
+    existingNode.value = newValue;
+  }
+
+  if (newValue === 'null') {
+    existingNode.value = '';
+    existingNode.removeAttribute('value');
+  }
+
+  if (!newNode.hasAttributeNS(null, 'value')) {
+    existingNode.removeAttribute('value');
+  } else if (existingNode.type === 'range') {
+    // this is so elements like slider move their UI thingy
+    existingNode.value = newValue;
+  }
+};
+/**
+ * Update attributes on textarea element.
+ * @param {HTMLElement} existingNode Existing node to update.
+ * @param {HTMLElement} newNode Element to update existing node with.
+ */
+
+
+var updateTextarea = function updateTextarea(existingNode, newNode) {
+  var newValue = newNode.value;
+
+  if (existingNode.value !== newValue) {
+    existingNode.value = newValue;
+  }
+
+  if (existingNode.firstChild && existingNode.firstChild.nodeValue !== newValue) {
+    // Needed for IE. Apparently IE sets the placeholder as the
+    // node value and visa versa. This ignores an empty update.
+    if (existingNode.firstChild.nodeValue === existingNode.placeholder && newValue === '') {
+      return;
+    }
+
+    existingNode.firstChild.nodeValue = newValue;
+  }
+};
+/**
+ * Update attributes on element.
+ * @param {HTMLElement} existingNode Existing node to update.
+ * @param {HTMLElement} newNode Element to update existing node with.
+ */
+
+
+var updateAttribute = function updateAttribute(existingNode, newNode, name) {
+  if (existingNode[name] !== newNode[name]) {
+    existingNode[name] = newNode[name];
+
+    if (newNode[name]) {
+      existingNode.setAttribute(name, '');
+    } else {
+      existingNode.removeAttribute(name);
+    }
+  }
+};
+/**
+ * Morph the existing element tree into the given tree.
+ * @param {HTMLElement} existingTree The existing tree to convert.
+ * @param {HTMLElement} newTree The tree to change to.
+ * @returns {HTMLElement} New tree root element.
+ */
+
+
+var updateTree = function updateTree(existingTree, newTree) {
+  if (!existingTree) {
+    return newTree;
+  }
+
+  if (!newTree) {
+    return null;
+  }
+
+  if (existingTree.isSameNode && existingTree.isSameNode(newTree)) {
+    return existingTree;
+  }
+
+  if (existingTree.tagName !== newTree.tagName) {
+    return newTree;
+  }
+
+  morphNode(existingTree, newTree);
+  updateChildren(existingTree, newTree);
+  return existingTree;
+};
+/**
+ * Change the existing element's children into the given element's children.
+ * @param {HTMLElement} existingNode The existing node who's children to update.
+ * @param {HTMLElement} newNode The existing node who's children to change to.
+ */
+
+
+var updateChildren = function updateChildren(existingNode, newNode) {
+  var existingChild, newChild, morphed, existingMatch; // The offset is only ever increased, and used for [i - offset] in the loop
+
+  var offset = 0;
+
+  for (var i = 0;; i++) {
+    existingChild = existingNode.childNodes[i];
+    newChild = newNode.childNodes[i - offset]; // Both nodes are empty, do nothing
+
+    if (!existingChild && !newChild) {
+      break; // There is no new child, remove old
+    } else if (!newChild) {
+      existingNode.removeChild(existingChild);
+      i--; // There is no old child, add new
+    } else if (!existingChild) {
+      existingNode.appendChild(newChild);
+      offset++; // Both nodes are the same, morph
+    } else if (isSame(existingChild, newChild)) {
+      morphed = updateTree(existingChild, newChild);
+
+      if (morphed !== existingChild) {
+        existingNode.replaceChild(morphed, existingChild);
+        offset++;
+      } // Both nodes do not share an ID or a placeholder, try reorder
+
+    } else {
+      existingMatch = null; // Try and find a similar node somewhere in the tree
+
+      for (var j = i; j < existingNode.childNodes.length; j++) {
+        if (isSame(existingNode.childNodes[j], newChild)) {
+          existingMatch = existingNode.childNodes[j];
+          break;
+        }
+      } // If there was a node with the same ID or placeholder in the old list
+
+
+      if (existingMatch) {
+        morphed = updateTree(existingMatch, newChild);
+        if (morphed !== existingMatch) offset++;
+        existingNode.insertBefore(morphed, existingChild); // It's safe to morph two nodes in-place if neither has an ID
+      } else if (!newChild.id && !existingChild.id) {
+        morphed = updateTree(existingChild, newChild);
+
+        if (morphed !== existingChild) {
+          existingNode.replaceChild(morphed, existingChild);
+          offset++;
+        } // Insert the node at the index if we couldn't morph or find a matching node
+
+      } else {
+        existingNode.insertBefore(newChild, existingChild);
+        offset++;
+      }
+    }
+  }
+};
+
 // Import symbols.
 /**
  * Get closest component in hierarchy.
@@ -1251,7 +1798,8 @@ var executeExpression = function executeExpression(component, attribute, express
   try {
     result = _construct(Function, _toConsumableArray(Object.keys(contexts)).concat([before + expression + after])).apply(void 0, _toConsumableArray(Object.values(contexts))); // eslint-disable-line no-new-func
   } catch (error) {
-    throw Error(error);
+    console.error(error, 'Error encountered when executing the following expression: ', expression);
+    result = null;
   } // Invoke destroy.
 
 
@@ -1262,161 +1810,6 @@ var executeExpression = function executeExpression(component, attribute, express
   }
 
   return result;
-};
-
-/**
- * Add attributes on an element based of an object.
- * @param {HTMLElement} element Element to add the attributes to.
- * @param {Object} data Attribute data to add.
- */
-var addAttributes = function addAttributes(element, data) {
-  for (var name in data) {
-    if (name === 'class') {
-      // Add classes to classlist.
-      var _iterator = _createForOfIteratorHelper(data["class"]),
-          _step;
-
-      try {
-        for (_iterator.s(); !(_step = _iterator.n()).done;) {
-          var className = _step.value;
-          element.classList.add(className);
-        }
-      } catch (err) {
-        _iterator.e(err);
-      } finally {
-        _iterator.f();
-      }
-
-      continue;
-    } // Set attribute.
-
-
-    element.setAttribute(name, data[name]);
-  }
-};
-/**
- * Remove attributes on an element based of an object.
- * @param {HTMLElement} element Element to remove the attributes from.
- * @param {Object} data Attribute data to remove.
- */
-
-var removeAttributes = function removeAttributes(element, data) {
-  for (var name in data) {
-    if (name === 'class') {
-      // Add classes to classlist.
-      var _iterator2 = _createForOfIteratorHelper(data["class"]),
-          _step2;
-
-      try {
-        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-          var className = _step2.value;
-          element.classList.remove(className);
-        }
-      } catch (err) {
-        _iterator2.e(err);
-      } finally {
-        _iterator2.f();
-      }
-
-      continue;
-    } // Check if optional values match.
-
-
-    if (data[name] && element.attributes[name] !== data[name]) {
-      continue;
-    } // Remove attribute.
-
-
-    element.removeAttribute(name);
-  }
-};
-/**
- * Set data at key on element as attribute.
- * @param {HTMLElement} element Element to set attribute of.
- * @param {String} key Attribute name.
- * @param {Any} data Attribute data.
- */
-
-var setAttribute = function setAttribute(element, key, data) {
-  // Check if a special attribute key.
-  if (key === 'value' && element.tagName === 'INPUT') {
-    if (!data) {
-      data = '';
-    } // Exit early if nothing will change.
-
-
-    if (element.getAttribute(key) === data) {
-      return;
-    } // Update attribute.
-
-
-    element.setAttribute(key, data); // Exit special cases early.
-
-    return;
-  } // If checked attribute then set the checked property instead.
-
-
-  if (key === 'checked') {
-    if (element.type === 'checkbox' || element.type === 'radio') {
-      element.checked = !!data;
-      return;
-    }
-  }
-
-  if (key === 'class') {
-    if (Array.isArray(data)) {
-      // Join values together if it is a list of classes.
-      data = data.join(' ');
-    } else if (_typeof(data) === 'object') {
-      // List keys of object as a string if the value is truthy.
-      data = Object.entries(data).filter(function (_ref) {
-        var _ref2 = _slicedToArray(_ref, 2);
-            _ref2[0];
-            var value = _ref2[1];
-
-        return value;
-      }).map(function (_ref3) {
-        var _ref4 = _slicedToArray(_ref3, 1),
-            key = _ref4[0];
-
-        return key;
-      }).join(' ');
-    }
-  }
-
-  if (key === 'style') {
-    if (Array.isArray(data)) {
-      // Join values together if it is a list of classes.
-      data = data.join(' ');
-    } else if (_typeof(data) === 'object') {
-      // List keys of object as a string if the value is truthy.
-      data = Object.entries(data).map(function (_ref5) {
-        var _ref6 = _slicedToArray(_ref5, 2),
-            key = _ref6[0],
-            value = _ref6[1];
-
-        return key + ':' + value;
-      }).join(';');
-    }
-  } // Update attribute on element.
-
-
-  if (data === false || data === null || data === undefined) {
-    element.removeAttribute(key);
-  } else {
-    element.setAttribute(key, data);
-  }
-};
-/**
- * Set attributes on an element based of an object.
- * @param {HTMLElement} element Element to add the attributes to.
- * @param {Object} data Attribute data to set.
- */
-
-var setAttributes = function setAttributes(element, data) {
-  for (var name in data) {
-    setAttribute(element, name, data[name]);
-  }
 };
 
 // Import utils.
@@ -1608,74 +2001,14 @@ var transitionOut = function transitionOut(component, element, callback) {
   return transition('out', component, element, callback);
 };
 
-/**
- * Inserts an element after the reference element opposite of insertBefore and more reliable then ChildNode.after()
- * @param {HTMLElement} reference Node to insert after.
- * @param {Node} node Node to insert.
- */
-var insertAfter = function insertAfter(reference, node) {
-  if (reference.nextSibling) {
-    reference.parentNode.insertBefore(node, reference.nextSibling);
-  } else {
-    reference.parentNode.appendChild(node);
-  }
-};
-/**
- * Iterate over all descendants of a given node.
- * @param {HTMLElement} element Element to walk over.
- * @param {Function} filter Filter function, return false to skip element.
- * @returns {Function} Iterator function. Call until a non-truthy value is returned.
- */
-
-var walk = function walk(element, filter) {
-  var index = -1;
-  var iterator = null;
-  return function () {
-    // First go over iterator.
-    if (index >= 0 && iterator) {
-      var _child = iterator();
-
-      if (_child) {
-        return _child;
-      }
-    } // Get next child that passes the filter.
-
-
-    var child = null;
-
-    do {
-      index++;
-
-      if (index >= element.childElementCount) {
-        return null;
-      }
-
-      child = element.children[index];
-    } while (!filter(child)); // Setup iterator for child.
-
-
-    if (child.childElementCount) {
-      iterator = walk(child, filter);
-    } // Return the child.
-
-
-    return child;
-  };
-};
-
-/**
- * Create an object with utility function.
- * @returns {Object} Utils.
- */
-
-var createDirectiveUtils = function createDirectiveUtils() {
-  return {
-    executeExpression: executeExpression,
-    transition: transition,
-    transitionIn: transitionIn,
-    transitionOut: transitionOut
-  };
-};
+var DIRECTIVE_UTILS = Object.freeze({
+  executeExpression: executeExpression,
+  morphNode: morphNode,
+  morphTree: morphTree,
+  transition: transition,
+  transitionIn: transitionIn,
+  transitionOut: transitionOut
+});
 
 var Component =
 /**
@@ -1702,7 +2035,7 @@ function Component(library, element) {
       proxy,
       state; // Check if element has a state attribute.
 
-  if (!element.attributes[prefix + COMPONENT_SUFFIX]) {
+  if (!element.attributes[prefix + '-state']) {
     console.error('Doars: element given to component does not contain a state attribute!');
     return;
   } // Add reference to element.
@@ -1821,7 +2154,7 @@ function Component(library, element) {
 
     isInitialized = true; // Get component's state attribute.
 
-    var componentName = prefix + COMPONENT_SUFFIX;
+    var componentName = prefix + '-state';
     var value = element.attributes[componentName].value; // Execute expression for generating the state using a mock attribute.
 
     data = (_executeExpression = executeExpression(_this, new Attribute(_this, element, null, value), value)) !== null && _executeExpression !== void 0 ? _executeExpression : {};
@@ -1868,7 +2201,7 @@ function Component(library, element) {
           var directive = directives[attribute.getKey()];
 
           if (directive) {
-            directive.destroy(_this, attribute, createDirectiveUtils());
+            directive.destroy(_this, attribute, DIRECTIVE_UTILS);
           } // Destroy the attribute.
 
 
@@ -2006,7 +2339,7 @@ function Component(library, element) {
     var directive = directives[attribute.getKey()];
 
     if (directive && directive.destroy) {
-      directive.destroy(_this, attribute, createDirectiveUtils());
+      directive.destroy(_this, attribute, DIRECTIVE_UTILS);
     } // Remove attribute from list.
 
 
@@ -2023,12 +2356,13 @@ function Component(library, element) {
 
   this.scanAttributes = function (element) {
     // Get component's state attribute.
-    var componentName = prefix + COMPONENT_SUFFIX; // Store new attributes.
+    var componentName = prefix + '-state';
+    var ignoreName = prefix + '-ignore'; // Store new attributes.
 
-    var newAttributes = []; // Create iterator for walking over all elements in the component, skipping elements that are components.
+    var newAttributes = []; // Create iterator for walking over all elements in the component, skipping elements that are components or contain the ignore directive.
 
     var iterator = walk(element, function (element) {
-      return !element.hasAttribute(componentName);
+      return !element.hasAttribute(componentName) && !element.hasAttribute(ignoreName);
     }); // Start on the given element then continue iterating over all children.
 
     do {
@@ -2078,7 +2412,7 @@ function Component(library, element) {
     var directive = directives[attribute.getDirective()];
 
     if (directive) {
-      directive.update(_this, attribute, createDirectiveUtils());
+      directive.update(_this, attribute, DIRECTIVE_UTILS);
     }
   };
   /**
@@ -2618,7 +2952,7 @@ var directiveAttribute = {
     } // Deconstruct attribute.
 
 
-    var key = attribute.getKey(); // Set attribute on element at key.
+    var key = attribute.getKeyRaw(); // Set attribute on element at key.
 
     setAttribute(element, key, data);
   }
@@ -2915,18 +3249,90 @@ var directiveFor = {
   }
 };
 
+var DECODE_LOOKUP = {
+  '&amp;': '&',
+  '&#38;': '&',
+  '&lt;': '<',
+  '&#60;': '<',
+  '&gt;': '>',
+  '&#62;': '>',
+  '&apos;': '\'',
+  '&#39;': '\'',
+  '&quot;': '"',
+  '&#34;': '"'
+};
+var DECODE_REGEXP = /&(?:amp|#38|lt|#60|gt|#62|apos|#39|quot|#34);/g;
+var decode = function decode(string) {
+  if (typeof string !== 'string') {
+    return string;
+  }
+
+  return string.replaceAll(DECODE_REGEXP, function (character) {
+    return DECODE_LOOKUP[character];
+  });
+};
+
 var directiveHtml = {
   name: 'html',
   update: function update(component, attribute, _ref) {
-    var executeExpression = _ref.executeExpression;
+    var executeExpression = _ref.executeExpression,
+        morphTree = _ref.morphTree;
     // Deconstruct attribute.
-    var element = attribute.getElement(); // Execute value and retrieve html.
+    var element = attribute.getElement();
+    var modifiers = attribute.getModifiers(); // Execute value and retrieve results.
 
-    var html = executeExpression(component, attribute, attribute.getValue()); // Assign html.
+    var html = executeExpression(component, attribute, attribute.getValue()); // Decode string.
 
-    if (element.innerHTML !== html) {
-      element.innerHTML = html;
+    if (modifiers.decode && typeof html === 'string') {
+      html = decode(html);
+    } // Morph if morph modifier is set.
+
+
+    if (modifiers.morph) {
+      // Ensure element only has one child.
+      if (element.children.length === 0) {
+        element.appendChild(document.createElement('div'));
+      } else if (element.children.length > 1) {
+        for (var i = element.children.length - 1; i >= 1; i--) {
+          element.children[i].remove();
+        }
+      } // Morph first child to given element tree.
+
+
+      morphTree(element.children[0], html);
+      return;
+    } // Clone and set html as only child for HTMLElements.
+
+
+    if (html instanceof HTMLElement) {
+      var _iterator = _createForOfIteratorHelper(element.children),
+          _step;
+
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var child = _step.value;
+          child.remove();
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+
+      element.appendChild(html.cloneNode(true));
+      return;
+    } // Set html via inner html for strings.
+
+
+    if (typeof html === 'string') {
+      if (element.innerHTML !== html) {
+        element.innerHTML = html;
+      }
+
+      return;
     }
+
+    console.error('Doars/directives/html: Unknown type returned to directive!');
   }
 };
 
@@ -3945,9 +4351,19 @@ var Doars = /*#__PURE__*/function (_EventDispatcher) {
         subtree: true
       }); // Scan for components.
 
-      var componentName = prefix + COMPONENT_SUFFIX;
-      var elements = root.querySelectorAll('[' + componentName + ']');
-      addComponents.apply(void 0, [root.hasAttribute(componentName) ? root : null].concat(_toConsumableArray(elements))); // Dispatch events.
+      var componentName = prefix + '-state';
+      var ignoreName = prefix + '-ignore';
+
+      var componentElements = _toConsumableArray(root.querySelectorAll('[' + componentName + ']')); // Remove any elements that should be ignored.
+
+
+      for (var i = componentElements.length - 1; i >= 0; i--) {
+        if (componentElements[i].closest('[' + ignoreName + ']')) {
+          componentElements.splice(i, 1);
+        }
+      }
+
+      addComponents.apply(void 0, [root.hasAttribute(componentName) && !root.hasAttribute(ignoreName) ? root : null].concat(_toConsumableArray(componentElements))); // Dispatch events.
 
       _this.dispatchEvent('enabled', [_assertThisInitialized(_this)]);
 
@@ -4164,6 +4580,9 @@ var Doars = /*#__PURE__*/function (_EventDispatcher) {
           continue;
         } // Remove from list.
 
+
+        contexts.slice(index, 1); // Add to results.
+
         results.push(context);
       }
 
@@ -4285,6 +4704,9 @@ var Doars = /*#__PURE__*/function (_EventDispatcher) {
         if (index < 0) {
           continue;
         } // Remove from list.
+
+
+        directives.slice(index, 1); // Add to results
 
         results.push(directive);
       }
@@ -4417,186 +4839,218 @@ var Doars = /*#__PURE__*/function (_EventDispatcher) {
       newMutations = _toConsumableArray(mutations);
       mutations = []; // Construct component name.
 
-      var componentName = prefix + COMPONENT_SUFFIX; // Store new attribute and elements that define new components.
+      var componentName = prefix + '-state';
+      var ignoreName = prefix + '-ignore'; // Store new attribute and elements that define new components.
 
       var componentsToAdd = [];
-      var componentsToRemove = []; // Iterate over mutations.
+      var componentsToRemove = [];
 
-      var _iterator4 = _createForOfIteratorHelper(newMutations),
-          _step4;
+      var remove = function remove(element) {
+        // Skip if not an element.
+        if (element.nodeType !== 1) {
+          return;
+        } // Check if element is a component itself.
 
-      try {
-        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-          var mutation = _step4.value;
 
-          if (mutation.type === 'childList') {
-            // Iterate over removed elements.
-            var _iterator5 = _createForOfIteratorHelper(mutation.removedNodes),
+        if (element[COMPONENT]) {
+          // Add component to remove list.
+          componentsToRemove.unshift(element[COMPONENT]); // Scan for more components inside this.
+
+          var componentElements = element.querySelectorAll(componentName);
+
+          var _iterator4 = _createForOfIteratorHelper(componentElements),
+              _step4;
+
+          try {
+            for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+              var componentElement = _step4.value;
+
+              if (componentElement[COMPONENT]) {
+                componentsToRemove.unshift(componentElement);
+              }
+            }
+          } catch (err) {
+            _iterator4.e(err);
+          } finally {
+            _iterator4.f();
+          }
+        } else {
+          // Create iterator for walking over all elements in the component, skipping elements that are components and adding those to the remove list.
+          var iterator = walk(element, function (element) {
+            if (element[COMPONENT]) {
+              componentsToRemove.unshift(element[COMPONENT]);
+              return false;
+            }
+
+            return true;
+          });
+
+          do {
+            // Check if element has attributes.
+            if (!element[ATTRIBUTES]) {
+              continue;
+            } // Remove attributes from their component.
+
+
+            var _iterator5 = _createForOfIteratorHelper(element[ATTRIBUTES]),
                 _step5;
 
             try {
               for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
-                var element = _step5.value;
-
-                // Skip if not an element.
-                if (element.nodeType !== 1) {
-                  continue;
-                } // Check if element is a component itself.
-
-
-                if (element[COMPONENT]) {
-                  // Add component to remove list.
-                  componentsToRemove.unshift(element[COMPONENT]); // Scan for more components inside this.
-
-                  var componentElements = element.querySelectorAll(componentName);
-
-                  var _iterator7 = _createForOfIteratorHelper(componentElements),
-                      _step7;
-
-                  try {
-                    for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
-                      var componentElement = _step7.value;
-
-                      if (componentElement[COMPONENT]) {
-                        componentsToRemove.unshift(componentElement);
-                      }
-                    }
-                  } catch (err) {
-                    _iterator7.e(err);
-                  } finally {
-                    _iterator7.f();
-                  }
-                } else {
-                  // Create iterator for walking over all elements in the component, skipping elements that are components and adding those to the remove list.
-                  var iterator = walk(element, function (element) {
-                    if (element[COMPONENT]) {
-                      componentsToRemove.unshift(element[COMPONENT]);
-                      return false;
-                    }
-
-                    return true;
-                  });
-
-                  do {
-                    // Check if element has attributes.
-                    if (!element[ATTRIBUTES]) {
-                      continue;
-                    } // Remove attributes from their component.
-
-
-                    var _iterator8 = _createForOfIteratorHelper(element[ATTRIBUTES]),
-                        _step8;
-
-                    try {
-                      for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
-                        var attribute = _step8.value;
-                        attribute.getComponent().removeAttribute(attribute);
-                      }
-                    } catch (err) {
-                      _iterator8.e(err);
-                    } finally {
-                      _iterator8.f();
-                    }
-                  } while (element = iterator());
-                }
-              } // Iterate over added elements.
-
+                var attribute = _step5.value;
+                attribute.getComponent().removeAttribute(attribute);
+              }
             } catch (err) {
               _iterator5.e(err);
             } finally {
               _iterator5.f();
             }
+          } while (element = iterator());
+        }
+      };
 
-            var _iterator6 = _createForOfIteratorHelper(mutation.addedNodes),
-                _step6;
+      var add = function add(element) {
+        // Skip if not an element.
+        if (element.nodeType !== 1) {
+          return;
+        } // Skip if inside an ignore tag.
+
+
+        var ignoreParent = element.closest('[' + ignoreName + ']');
+
+        if (ignoreParent) {
+          return;
+        } // Scan for new components and add them to the list.
+
+
+        var componentElements = element.querySelectorAll('[' + componentName + ']');
+
+        var _iterator6 = _createForOfIteratorHelper(componentElements),
+            _step6;
+
+        try {
+          for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+            var componentElement = _step6.value;
+
+            // Skip if inside an ignore tag.
+            var _ignoreParent = componentElement.closest('[' + ignoreName + ']');
+
+            if (_ignoreParent) {
+              continue;
+            }
+
+            componentsToAdd.push(componentElement);
+          } // Check if this elements defines a new component.
+
+        } catch (err) {
+          _iterator6.e(err);
+        } finally {
+          _iterator6.f();
+        }
+
+        if (element.hasAttribute(componentName)) {
+          // Store new component element and exit early.
+          componentsToAdd.push(element);
+          return;
+        } // Find nearest component.
+
+
+        var component = closestComponent(element);
+
+        if (component) {
+          // Scan for and update new attributes.
+          var attributes = component.scanAttributes(element);
+          component.updateAttributes(attributes);
+        }
+      }; // Iterate over mutations.
+
+
+      var _iterator7 = _createForOfIteratorHelper(newMutations),
+          _step7;
+
+      try {
+        for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+          var mutation = _step7.value;
+
+          if (mutation.type === 'childList') {
+            // Iterate over removed elements.
+            var _iterator8 = _createForOfIteratorHelper(mutation.removedNodes),
+                _step8;
 
             try {
-              for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
-                var _element = _step6.value;
+              for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+                var element = _step8.value;
+                remove(element);
+              } // Iterate over added elements.
 
-                // Skip if not an element.
-                if (_element.nodeType !== 1) {
-                  continue;
-                } // Scan for new components and add them to the list.
+            } catch (err) {
+              _iterator8.e(err);
+            } finally {
+              _iterator8.f();
+            }
 
+            var _iterator9 = _createForOfIteratorHelper(mutation.addedNodes),
+                _step9;
 
-                var _componentElements = _element.querySelectorAll('[' + componentName + ']');
-
-                var _iterator9 = _createForOfIteratorHelper(_componentElements),
-                    _step9;
-
-                try {
-                  for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
-                    var _componentElement = _step9.value;
-                    componentsToAdd.push(_componentElement);
-                  } // Check if this elements defines a new component.
-
-                } catch (err) {
-                  _iterator9.e(err);
-                } finally {
-                  _iterator9.f();
-                }
-
-                if (_element.hasAttribute(componentName)) {
-                  // Store new component element and exit early.
-                  componentsToAdd.push(_element);
-                  continue;
-                } // Find nearest component.
-
-
-                var component = closestComponent(_element);
-
-                if (component) {
-                  // Scan for and update new attributes.
-                  var attributes = component.scanAttributes(_element);
-                  component.updateAttributes(attributes);
-                  continue;
-                }
+            try {
+              for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
+                var _element = _step9.value;
+                add(_element);
               }
             } catch (err) {
-              _iterator6.e(err);
+              _iterator9.e(err);
             } finally {
-              _iterator6.f();
+              _iterator9.f();
             }
           } else if (mutation.type === 'attributes') {
-            // Check if new component is defined.
+            var _element2 = mutation.target; // Check if new component is defined.
+
             if (mutation.attributeName === componentName) {
               // If a component is already defined ignore the change.
-              if (mutation.target[COMPONENT]) {
+              if (_element2[COMPONENT]) {
                 continue;
               } // Get nearest component, this will become the parent.
 
 
-              var _component4 = closestComponent(mutation.target);
+              var _component3 = closestComponent(_element2);
 
-              if (_component4) {
+              if (_component3) {
                 // Remove attributes part of nearest component, that will become part of the new component.
-                var _element2 = mutation.target;
-
-                var _iterator10 = walk(_element2, function (element) {
+                var currentElement = _element2;
+                var iterator = walk(_element2, function (element) {
                   return element.hasAttribute(componentName);
                 });
 
                 do {
-                  var _iterator11 = _createForOfIteratorHelper(_element2[ATTRIBUTES]),
+                  var _iterator10 = _createForOfIteratorHelper(currentElement[ATTRIBUTES]),
                       _step10;
 
                   try {
-                    for (_iterator11.s(); !(_step10 = _iterator11.n()).done;) {
-                      var _attribute2 = _step10.value;
+                    for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
+                      var _attribute = _step10.value;
 
-                      _component4.removeAttribute(_attribute2);
+                      _component3.removeAttribute(_attribute);
                     }
                   } catch (err) {
-                    _iterator11.e(err);
+                    _iterator10.e(err);
                   } finally {
-                    _iterator11.f();
+                    _iterator10.f();
                   }
-                } while (_element2 = _iterator10());
+                } while (currentElement = iterator());
               } // Add new component.
 
 
-              addComponents(mutation.target);
+              addComponents(_element2);
+              continue;
+            } else if (mutation.attributeName === ignoreName) {
+              if (_element2.hasAttribute(ignoreName)) {
+                // Remove everything inside.
+                remove(_element2);
+                continue;
+              } // Add everything inside.
+
+
+              add(_element2);
               continue;
             } // Check if a directive is added.
 
@@ -4606,54 +5060,54 @@ var Doars = /*#__PURE__*/function (_EventDispatcher) {
             } // Get component of mutated element.
 
 
-            var _component3 = closestComponent(mutation.target);
+            var component = closestComponent(_element2);
 
-            if (!_component3) {
+            if (!component) {
               continue;
             } // Get attribute from component and value from element.
 
 
-            var _attribute = null;
+            var attribute = null;
 
-            var _iterator12 = _createForOfIteratorHelper(mutation.target[ATTRIBUTES]),
+            var _iterator11 = _createForOfIteratorHelper(_element2[ATTRIBUTES]),
                 _step11;
 
             try {
-              for (_iterator12.s(); !(_step11 = _iterator12.n()).done;) {
+              for (_iterator11.s(); !(_step11 = _iterator11.n()).done;) {
                 var targetAttribute = _step11.value;
 
                 if (targetAttribute.getName() === mutation.attributeName) {
-                  _attribute = targetAttribute;
+                  attribute = targetAttribute;
                   break;
                 }
               }
             } catch (err) {
-              _iterator12.e(err);
+              _iterator11.e(err);
             } finally {
-              _iterator12.f();
+              _iterator11.f();
             }
 
-            var value = mutation.target.getAttribute(mutation.attributeName); // If no attribute found add it.
+            var value = _element2.getAttribute(mutation.attributeName); // If no attribute found add it.
 
-            if (!_attribute) {
+
+            if (!attribute) {
               if (value) {
-                _component3.addAttribute(mutation.target, mutation.attributeName, value);
+                component.addAttribute(_element2, mutation.attributeName, value);
               }
 
               continue;
             } // Update attribute.
 
 
-            _attribute.setValue(value);
-
-            _component3.updateAttribute(_attribute);
+            attribute.setValue(value);
+            component.updateAttribute(attribute);
           }
         } // Remove old components.
 
       } catch (err) {
-        _iterator4.e(err);
+        _iterator7.e(err);
       } finally {
-        _iterator4.f();
+        _iterator7.f();
       }
 
       if (componentsToRemove.length > 0) {

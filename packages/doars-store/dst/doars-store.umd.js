@@ -922,7 +922,7 @@
     _classCallCheck(this, DoarsStore);
 
     // Clone options.
-    options = deepAssign({
+    options = Object.assign({
       deconstruct: false
     }, options); // Set private variables.
 
@@ -941,7 +941,7 @@
       var existingContexts = library.getContexts();
       var stateIndex = 0;
 
-      for (var i = 0; i < existingContexts.length; i++) {
+      for (var i = existingContexts.length - 1; i >= 0; i--) {
         var context = existingContexts[i];
 
         if (context.name === '$state') {

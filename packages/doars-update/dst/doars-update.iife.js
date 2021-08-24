@@ -123,7 +123,7 @@ var DoarsUpdate = (function () {
   }
 
   function _iterableToArrayLimit(arr, i) {
-    var _i = arr && (typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]);
+    var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
 
     if (_i == null) return;
     var _arr = [];

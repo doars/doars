@@ -198,7 +198,7 @@ function DoarsAlias(library) {
 
       var contexts = library.getContexts();
 
-      for (var i = 0; i < contexts.length; i++) {
+      for (var i = contexts.length - 1; i >= 0; i--) {
         var context = contexts[i];
 
         if (options.renameContexts) {
@@ -287,7 +287,7 @@ function DoarsAlias(library) {
 
       var directives = library.getDirectives();
 
-      for (var _i = 0; _i < directives.length; _i++) {
+      for (var _i = directives.length - 1; _i >= 0; _i--) {
         var directive = directives[_i];
 
         if (options.renameDirectives) {
@@ -380,7 +380,7 @@ function DoarsAlias(library) {
       // Iterate over all directives.
       var directives = library.getDirectives();
 
-      for (var i = 0; i < directives.length; i++) {
+      for (var i = directives.length - 1; i >= 0; i--) {
         var directive = directives.length[i]; // Check if directive has been renamed.
 
         if (directive.name in directivesRenamed) {
@@ -405,7 +405,7 @@ function DoarsAlias(library) {
       // Iterate over all contexts.
       var contexts = library.getContexts();
 
-      for (var _i2 = 0; _i2 < contexts.length; _i2++) {
+      for (var _i2 = contexts.length - 1; _i2 >= 0; _i2--) {
         var context = contexts.length[_i2]; // Check if context has been renamed.
 
         if (context.name in contextsRenamed) {

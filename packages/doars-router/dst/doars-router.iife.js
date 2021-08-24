@@ -380,9 +380,7 @@ var DoarsRouter = (function () {
           var code = str.charCodeAt(j);
 
           if ( // `0-9`
-          code >= 48 && code <= 57 || // `A-Z`
-          code >= 65 && code <= 90 || // `a-z`
-          code >= 97 && code <= 122 || // `_`
+          code >= 48 && code <= 57 || code >= 65 && code <= 90 || code >= 97 && code <= 122 || // `_`
           code === 95) {
             name += str[j++];
             continue;
@@ -1070,10 +1068,16 @@ var DoarsRouter = (function () {
   }
 
   /**
+   * Convert string to HTML element.
+   * @param {String} string Element contents.
+   * @returns {HTMLElement} HTML element part of a document fragment.
+   */
+  /**
    * Inserts an element after the reference element opposite of insertBefore and more reliable then ChildNode.after()
    * @param {HTMLElement} reference Node to insert after.
    * @param {Node} node Node to insert.
    */
+
   var insertAfter = function insertAfter(reference, node) {
     if (reference.nextSibling) {
       reference.parentNode.insertBefore(node, reference.nextSibling);
