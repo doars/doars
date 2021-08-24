@@ -64,7 +64,40 @@ Add the UMD build to the page from for example the jsDelivr CDN and enable the l
 
 The following [contexts](https://github.com/doars/doars/tree/main/packages/doars#contexts) are added by the plugin.
 
-// TODO:
+### $fetch
+
+Call fetch function.
+- Type: `Any`
+- Parameters:
+  - `{String} url` Url to fetch from.
+  - `{Object} init = {}` Fetch init object, [see Fetch docs on MDN](https://developer.mozilla.org/docs/Web/API/WindowOrWorkerGlobalScope/fetch#parameters). However an additional option, `returnType`, has been added to automatically get and convert the returned data. The return type can be one of the following types: `arrayBuffer`, `blob`, `element`, `html`, `formData`, `json`, `svg`, `text`, `xml`, or `auto`. When the value `auto` is used it will try to automatically parse the response based on the content type header used by the response.
+
+```HTML
+<!-- On initialization fetch the data from doars.dev and manually convert it to text and store it as text on the message variable of the state. -->
+<div d-state="{ message: 'empty string' }" d-initialized="
+  $fetch('https://doars.dev').then((result) => {
+    result.text().then((text) => {
+      $inContext(({ $state }) => {
+        $state.message = text
+      })
+    })
+  })">
+  <div d-text="message"></div>
+</div>
+
+<!-- On initialization fetch the data from doars.dev and automatically convert it to text and store it as text on the message variable of the state. -->
+<div d-state="{ message: 'empty string' }" d-initialized="
+  $fetch('https://doars.dev', { returnType: 'text' })
+    .then((text) => {
+      $inContext(({ $state }) => {
+        $state.message = text
+      })
+    })
+  ">
+
+  <div d-text="message"></div>
+</div>
+```
 
 ## API
 
@@ -76,3 +109,5 @@ The following [contexts](https://github.com/doars/doars/tree/main/packages/doars
   - `@returns {DoarsFetch}`
 
 #### DoarsFetch options
+
+- `{Object} defaultInit = {}` Default init to use, the init object provided when calling fetch will be merged with this default.

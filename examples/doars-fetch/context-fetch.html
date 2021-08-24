@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doars fetch example</title>
+  </head>
+
+  <body>
+    <div d-state="{ message: 'empty string' }" d-initialized="
+      $fetch('https://doars.dev')
+        .then((result) => {
+          result.text().then((text) => {
+            $inContext(({ $state }) => {
+              $state.message = text
+            })
+          })
+        })
+      ">
+
+      <div d-text="message"></div>
+    </div>
+
+    <script src="/packages/doars/dst/doars.umd.js"></script>
+    <script src="/packages/doars-fetch/dst/doars-fetch.umd.js"></script>
+    <script>
+      // Wait for the DOM to be interactive.
+      document.addEventListener('DOMContentLoaded', () => {
+        // Setup a library instance.
+        const doars = new window.Doars()
+
+        // Add plugin.
+        new window.DoarsFetch(doars)
+
+        // Enable library.
+        doars.enable()
+      })
+    </script>
+  </body>
+
+</html>

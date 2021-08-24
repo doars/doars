@@ -1643,7 +1643,7 @@
     var extra = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
     // Iterate over all contexts.
     var results = {};
-    var _destroy2 = [];
+    var destroyFunctions = [];
     var after = '';
     var before = '';
     var contexts = component.getLibrary().getContexts();
@@ -1668,7 +1668,7 @@
 
 
         if (result.destroy && typeof result.destroy === 'function') {
-          _destroy2.push(result.destroy);
+          destroyFunctions.push(result.destroy);
         } // Deconstruct options if marked as such.
 
 
@@ -1698,9 +1698,19 @@
       before: before,
       destroy: function destroy() {
         // Call all destroy functions.
-        _destroy2.forEach(function (_destroy) {
-          return _destroy(createContextUtils());
-        });
+        var _iterator2 = _createForOfIteratorHelper(destroyFunctions),
+            _step2;
+
+        try {
+          for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+            var destroyFunction = _step2.value;
+            destroyFunction(createContextUtils());
+          }
+        } catch (err) {
+          _iterator2.e(err);
+        } finally {
+          _iterator2.f();
+        }
       },
       contexts: results
     };
@@ -2700,15 +2710,30 @@
       var createContexts = _ref.createContexts;
       return {
         value: function value(callback) {
-          // Create contexts.
-          var _createContexts = createContexts(component, attribute, update, {}),
+          // Collect update triggers.
+          var triggers = [];
+
+          var contextUpdate = function contextUpdate(id, context) {
+            triggers.push({
+              id: id,
+              path: context
+            });
+          }; // Create contexts.
+
+
+          var _createContexts = createContexts(component, attribute, contextUpdate, {}),
               contexts = _createContexts.contexts,
               destroy = _createContexts.destroy; // Invoke callback and store its result.
 
 
           var result = callback(contexts); // Destroy contexts.
 
-          destroy(); // Return callback's result.
+          destroy(); // Dispatch update triggers.
+
+          if (triggers.length > 0) {
+            component.getLibrary().update(triggers);
+          } // Return callback's result.
+
 
           return result;
         }

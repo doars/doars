@@ -24,7 +24,7 @@ const createContextUtils = () => {
 export const createContexts = (component, attribute, update, extra = null) => {
   // Iterate over all contexts.
   const results = {}
-  const destroy = []
+  const destroyFunctions = []
   let after = ''
   let before = ''
   const contexts = component.getLibrary().getContexts()
@@ -41,7 +41,7 @@ export const createContexts = (component, attribute, update, extra = null) => {
 
     // Store destroy functions.
     if (result.destroy && typeof (result.destroy) === 'function') {
-      destroy.push(result.destroy)
+      destroyFunctions.push(result.destroy)
     }
 
     // Deconstruct options if marked as such.
@@ -66,7 +66,9 @@ export const createContexts = (component, attribute, update, extra = null) => {
     before: before,
     destroy: () => {
       // Call all destroy functions.
-      destroy.forEach(_destroy => _destroy(createContextUtils()))
+      for (const destroyFunction of destroyFunctions) {
+        destroyFunction(createContextUtils())
+      }
     },
     contexts: results,
   }

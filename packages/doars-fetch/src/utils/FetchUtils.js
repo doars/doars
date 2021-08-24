@@ -1,27 +1,41 @@
 export const parseResponse = (response, type) => {
-  return new Promise(() => {
-    switch (String.prototype.toLowerCase(type)) {
-      case 'arrayBuffer':
-        return response.arrayBuffer()
+  let promise
+  switch (String.prototype.toLowerCase.call(type)) {
+    default:
+      console.warn('Unknown response type "' + type + '" used when using the $fetch context.')
+      break
 
-      case 'blob':
-        return response.blob()
+    case 'arraybuffer':
+      promise = response.arrayBuffer()
+      break
 
-      case 'formData':
-        return response.formData()
+    case 'blob':
+      promise = response.blob()
+      break
 
-      case 'json':
-        return response.json()
+    case 'formdata':
+      promise = response.formData()
+      break
 
-      // HTML and xml need to be converted to text before being able to be parsed.
-      case 'element':
-      case 'html':
-      case 'svg':
-      case 'text':
-      case 'xml':
-        return response.text()
-    }
-  })
+    case 'json':
+      promise = response.json()
+      break
+
+    // HTML and xml need to be converted to text before being able to be parsed.
+    case 'element':
+    case 'html':
+    case 'svg':
+    case 'text':
+    case 'xml':
+      promise = response.text()
+      break
+  }
+
+  if (!promise) {
+    return null
+  }
+
+  return promise
     .then((response) => {
       switch (type) {
         // Convert from html to HTMLElement inside a document fragment.

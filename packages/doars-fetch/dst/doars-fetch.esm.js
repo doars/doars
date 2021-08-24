@@ -86,29 +86,44 @@ var isObject = function isObject(value) {
 };
 
 var parseResponse = function parseResponse(response, type) {
-  return new Promise(function () {
-    switch (String.prototype.toLowerCase(type)) {
-      case 'arrayBuffer':
-        return response.arrayBuffer();
+  var promise;
 
-      case 'blob':
-        return response.blob();
+  switch (String.prototype.toLowerCase.call(type)) {
+    default:
+      console.warn('Unknown response type "' + type + '" used when using the $fetch context.');
+      break;
 
-      case 'formData':
-        return response.formData();
+    case 'arraybuffer':
+      promise = response.arrayBuffer();
+      break;
 
-      case 'json':
-        return response.json();
-      // HTML and xml need to be converted to text before being able to be parsed.
+    case 'blob':
+      promise = response.blob();
+      break;
 
-      case 'element':
-      case 'html':
-      case 'svg':
-      case 'text':
-      case 'xml':
-        return response.text();
-    }
-  }).then(function (response) {
+    case 'formdata':
+      promise = response.formData();
+      break;
+
+    case 'json':
+      promise = response.json();
+      break;
+    // HTML and xml need to be converted to text before being able to be parsed.
+
+    case 'element':
+    case 'html':
+    case 'svg':
+    case 'text':
+    case 'xml':
+      promise = response.text();
+      break;
+  }
+
+  if (!promise) {
+    return null;
+  }
+
+  return promise.then(function (response) {
     switch (type) {
       // Convert from html to HTMLElement inside a document fragment.
       case 'element':
@@ -216,11 +231,11 @@ function DoarsFetch(library) {
   var fetchContext = createFetchContext(options); // Enable plugin when library is enabling.
 
   library.addEventListener('enabling', function () {
-    library.addContext(0, fetchContext);
+    library.addContexts(0, fetchContext);
   }); // Disable plugin when library is disabling.
 
   library.addEventListener('disabling', function () {
-    library.removeContext(fetchContext);
+    library.removeContexts(fetchContext);
   });
 };
 

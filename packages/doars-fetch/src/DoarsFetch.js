@@ -18,12 +18,12 @@ export default class DoarsFetch {
 
     // Enable plugin when library is enabling.
     library.addEventListener('enabling', () => {
-      library.addContext(0, fetchContext)
+      library.addContexts(0, fetchContext)
     })
 
     // Disable plugin when library is disabling.
     library.addEventListener('disabling', () => {
-      library.removeContext(fetchContext)
+      library.removeContexts(fetchContext)
     })
   }
 }

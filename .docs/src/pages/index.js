@@ -486,6 +486,10 @@ export default function () {
           }, '@doars/doars-router', 'Adds a router context with set of directives to control it.'),
 
           card({
+            href: 'https://github.com/doars/doars/tree/main/packages/doars-fetch#readme',
+          }, '@doars/doars-fetch', 'Adds a fetch context that handles parsing the returned content.'),
+
+          card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars-alias#readme',
           }, '@doars/doars-alias', 'Create aliases for or rename any context or directive.'),
 
