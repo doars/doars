@@ -18,7 +18,7 @@ Adds a fetch context that handles parsing the returned content.
 Install the package from NPM, then import and enable the library in your build.
 
 ```
-$ npm i @doars/doars @doars/doars-fetch
+npm i @doars/doars @doars/doars-fetch
 ```
 
 ```JavaScript

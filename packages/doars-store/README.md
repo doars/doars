@@ -18,7 +18,7 @@ Plugin that adds a store context for global state management.
 Install the package from NPM, then import and enable the library in your build.
 
 ```
-$ npm i @doars/doars @doars/doars-store
+npm i @doars/doars @doars/doars-store
 ```
 
 ```JavaScript

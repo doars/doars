@@ -18,7 +18,7 @@ Plugin that adds a view directive for reacting to intersection changes.
 Install the package from NPM, then import and enable the library in your build.
 
 ```
-$ npm i @doars/doars @doars/doars-view
+npm i @doars/doars @doars/doars-view
 ```
 
 ```JavaScript

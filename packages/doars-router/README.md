@@ -18,7 +18,7 @@ Plugin that adds a router context with set of directives to control it.
 Install the package from NPM, then import and enable the library in your build.
 
 ```
-$ npm i @doars/doars @doars/doars-router
+npm i @doars/doars @doars/doars-router
 ```
 
 ```JavaScript

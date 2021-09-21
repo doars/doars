@@ -52,7 +52,7 @@ export default function () {
             },
           }, [
             '&#160;',
-            r('code', '$ npm i @doars/doars'),
+            r('code', 'npm i @doars/doars'),
             '&#160;&#160;',
             iconCopy,
           ]),
@@ -386,7 +386,7 @@ export default function () {
               },
             }, [
               '&#160;',
-              r('code', '$ npm i @doars/doars'),
+              r('code', 'npm i @doars/doars'),
               '&#160;&#160;',
               iconCopy,
             ]),

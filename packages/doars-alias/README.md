@@ -18,7 +18,7 @@ Plugin for creating aliases or renaming any context or directive.
 Install the package from NPM, then import and enable the library in your build.
 
 ```
-$ npm i @doars/doars @doars/doars-alias
+npm i @doars/doars @doars/doars-alias
 ```
 
 ```JavaScript

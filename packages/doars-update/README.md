@@ -18,7 +18,7 @@ Plugin that adds an update loop context and directive.
 Install the package from NPM, then import and enable the library in your build.
 
 ```
-$ npm i @doars/doars @doars/doars-update
+npm i @doars/doars @doars/doars-update
 ```
 
 ```JavaScript

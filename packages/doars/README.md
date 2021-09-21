@@ -36,7 +36,7 @@ basic contexts and directives.
 Install the package from NPM, then import and enable the library in your build.
 
 ```
-$ npm i @doars/doars
+npm i @doars/doars
 ```
 
 ```JavaScript
