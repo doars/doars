@@ -10,7 +10,7 @@
     "doars",
     "fetch"
   ],
-  "version": "1.0.1",
+  "version": "1.0.2",
   "license": "MIT",
   "main": "src/DoarsFetch.js",
   "browserMain": "src/DoarsFetch.js",
