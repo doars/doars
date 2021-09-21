@@ -30,7 +30,15 @@ const config = {
       extensions: ['.js'],
       babelHelpers: 'bundled',
       presets: [
-        ['@babel/preset-env'],
+        ['@babel/preset-env', {
+          targets: {
+            chrome: '49',
+            edge: '12',
+            firefox: '39',
+            ios: '10.2',
+            safari: '10',
+          },
+        }],
       ],
     }),
   ],
@@ -41,7 +49,7 @@ if (process.env.NODE_ENV === 'production') {
   config.output.sourcemap = false
 
   // Add additional plugin.
-  config.plugins.splice(2, 1,
+  config.plugins.splice(1, 1,
     rollupReplace({
       preventAssignment: true,
       values: {
@@ -50,13 +58,14 @@ if (process.env.NODE_ENV === 'production') {
     }),
     rollupStrip(),
     rollupStripSymbolDescription(),
+  )
+  config.plugins.push(
     rollupTerser({
       compress: {
         module: false,
         passes: 3,
       },
-    }),
-  )
+    }))
 }
 
 module.exports = config

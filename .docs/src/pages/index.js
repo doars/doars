@@ -232,7 +232,7 @@ export default function () {
       section([
         r('h2', 'Small in size and quick to update!'),
 
-        r('p', 'Minified and gzipped the library is about <code><b>9.5 kB</b></code>, and when the state or document changes only relevant directives are executed making updates fast.'),
+        r('p', 'Minified and gzipped the library is about <code><b>12 kB</b></code>, and when the state or document changes only relevant directives are executed making updates fast.'),
       ]),
 
       section([
