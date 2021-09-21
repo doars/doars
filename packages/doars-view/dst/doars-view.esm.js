@@ -167,7 +167,7 @@ function createDirectiveView (observer) {
           executeExpression(component, attribute.clone(), value, {
             $event: event
           }, {
-            "return": false
+            return: false
           }); // Reset the buffer.
 
           attribute[VIEW].buffer = [];
@@ -335,7 +335,7 @@ function ViewObserver() {
 
     if (list.length === 0) {
       // Remove element from callbacks list.
-      items["delete"](element); // Stop observing element.
+      items.delete(element); // Stop observing element.
 
       intersectionObserver.unobserve(element);
     }
@@ -382,5 +382,5 @@ function DoarsView(library) {
   });
 };
 
-export default DoarsView;
+export { DoarsView as default };
 //# sourceMappingURL=doars-view.esm.js.map

@@ -4,41 +4,10 @@
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.DoarsRouter = factory());
 }(this, (function () { 'use strict';
 
-  function _typeof(obj) {
-    "@babel/helpers - typeof";
-
-    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-      _typeof = function (obj) {
-        return typeof obj;
-      };
-    } else {
-      _typeof = function (obj) {
-        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-      };
-    }
-
-    return _typeof(obj);
-  }
-
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
-  }
-
-  function _defineProperty(obj, key, value) {
-    if (key in obj) {
-      Object.defineProperty(obj, key, {
-        value: value,
-        enumerable: true,
-        configurable: true,
-        writable: true
-      });
-    } else {
-      obj[key] = value;
-    }
-
-    return obj;
   }
 
   function _inherits(subClass, superClass) {
@@ -96,6 +65,8 @@
   function _possibleConstructorReturn(self, call) {
     if (call && (typeof call === "object" || typeof call === "function")) {
       return call;
+    } else if (call !== void 0) {
+      throw new TypeError("Derived constructors may only return object or undefined");
     }
 
     return _assertThisInitialized(self);
@@ -337,9 +308,9 @@
     var i = 0;
 
     while (i < str.length) {
-      var _char = str[i];
+      var char = str[i];
 
-      if (_char === "*" || _char === "+" || _char === "?") {
+      if (char === "*" || char === "+" || char === "?") {
         tokens.push({
           type: "MODIFIER",
           index: i,
@@ -348,7 +319,7 @@
         continue;
       }
 
-      if (_char === "\\") {
+      if (char === "\\") {
         tokens.push({
           type: "ESCAPED_CHAR",
           index: i++,
@@ -357,7 +328,7 @@
         continue;
       }
 
-      if (_char === "{") {
+      if (char === "{") {
         tokens.push({
           type: "OPEN",
           index: i,
@@ -366,7 +337,7 @@
         continue;
       }
 
-      if (_char === "}") {
+      if (char === "}") {
         tokens.push({
           type: "CLOSE",
           index: i,
@@ -375,7 +346,7 @@
         continue;
       }
 
-      if (_char === ":") {
+      if (char === ":") {
         var name = "";
         var j = i + 1;
 
@@ -402,7 +373,7 @@
         continue;
       }
 
-      if (_char === "(") {
+      if (char === "(") {
         var count = 1;
         var pattern = "";
         var j = i + 1;
@@ -504,13 +475,12 @@
     };
 
     while (i < tokens.length) {
-      var _char2 = tryConsume("CHAR");
-
+      var char = tryConsume("CHAR");
       var name = tryConsume("NAME");
       var pattern = tryConsume("PATTERN");
 
       if (name || pattern) {
-        var prefix = _char2 || "";
+        var prefix = char || "";
 
         if (prefixes.indexOf(prefix) === -1) {
           path += prefix;
@@ -532,7 +502,7 @@
         continue;
       }
 
-      var value = _char2 || tryConsume("ESCAPED_CHAR");
+      var value = char || tryConsume("ESCAPED_CHAR");
 
       if (value) {
         path += value;
@@ -1289,7 +1259,9 @@
       for (var key in source) {
         if (isObject(source[key])) {
           if (!target[key]) {
-            Object.assign(target, _defineProperty({}, key, {}));
+            Object.assign(target, {
+              [key]: {}
+            });
           }
 
           deepAssign(target[key], source[key]);
@@ -1302,7 +1274,9 @@
             return value;
           });
         } else {
-          Object.assign(target, _defineProperty({}, key, source[key]));
+          Object.assign(target, {
+            [key]: source[key]
+          });
         }
       }
     }
@@ -1316,7 +1290,7 @@
    */
 
   var isObject = function isObject(value) {
-    return value && _typeof(value) === 'object' && !Array.isArray(value);
+    return value && typeof value === 'object' && !Array.isArray(value);
   };
 
   var DoarsRouter =

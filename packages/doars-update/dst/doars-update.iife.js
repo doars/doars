@@ -1,22 +1,6 @@
 var DoarsUpdate = (function () {
   'use strict';
 
-  function _typeof(obj) {
-    "@babel/helpers - typeof";
-
-    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-      _typeof = function (obj) {
-        return typeof obj;
-      };
-    } else {
-      _typeof = function (obj) {
-        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-      };
-    }
-
-    return _typeof(obj);
-  }
-
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
@@ -78,6 +62,8 @@ var DoarsUpdate = (function () {
   function _possibleConstructorReturn(self, call) {
     if (call && (typeof call === "object" || typeof call === "function")) {
       return call;
+    } else if (call !== void 0) {
+      throw new TypeError("Derived constructors may only return object or undefined");
     }
 
     return _assertThisInitialized(self);
@@ -342,7 +328,7 @@ var DoarsUpdate = (function () {
           var item = _step.value;
 
           directive._execute(item.component, item.attribute.clone(), item.attribute.getValue(), {}, {
-            "return": false
+            return: false
           });
         }
       } catch (err) {
@@ -538,7 +524,7 @@ var DoarsUpdate = (function () {
 
       _this = _super.call(this);
       options = Object.assign({
-        "delete": true,
+        delete: true,
         get: true,
         set: true
       }, options); // Setup WeakMap for keep track of created proxies.
@@ -561,7 +547,7 @@ var DoarsUpdate = (function () {
 
 
         for (var key in target) {
-          if (target[key] && _typeof(target[key]) === 'object') {
+          if (target[key] && typeof target[key] === 'object') {
             target[key] = _this.add(target[key], [].concat(_toConsumableArray(path), [key]));
           }
         } // Create handler and add the handler for which a callback exits..
@@ -569,7 +555,7 @@ var DoarsUpdate = (function () {
 
         var handler = {};
 
-        if (options["delete"]) {
+        if (options.delete) {
           handler.deleteProperty = function (target, key) {
             // Exit early successful if property doesn't exist.
             if (!Reflect.has(target, key)) {
@@ -611,7 +597,7 @@ var DoarsUpdate = (function () {
             } // Add proxy if value is an object.
 
 
-            if (_typeof(value) === 'object') {
+            if (typeof value === 'object') {
               value = _this.add(value, [].concat(_toConsumableArray(path), [key]));
             } // Store value.
 
@@ -645,10 +631,10 @@ var DoarsUpdate = (function () {
         }
 
         var revocable = map.get(target);
-        map["delete"](revocable); // Recursively remove properties as well.
+        map.delete(revocable); // Recursively remove properties as well.
 
         for (var property in revocable.proxy) {
-          if (_typeof(revocable.proxy[property]) === 'object') {
+          if (typeof revocable.proxy[property] === 'object') {
             _this.remove(revocable.proxy[property]);
           }
         } // Revoke proxy.
@@ -678,7 +664,7 @@ var DoarsUpdate = (function () {
 
     var proxy = new ProxyDispatcher({
       // We don't care when they are updated, we have a callback for that. They should never be updated by the user anyway.
-      "delete": false,
+      delete: false,
       set: false
     });
     var time = proxy.add({});

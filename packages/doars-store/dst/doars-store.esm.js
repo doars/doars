@@ -1,38 +1,7 @@
-function _typeof(obj) {
-  "@babel/helpers - typeof";
-
-  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-    _typeof = function (obj) {
-      return typeof obj;
-    };
-  } else {
-    _typeof = function (obj) {
-      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-    };
-  }
-
-  return _typeof(obj);
-}
-
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
     throw new TypeError("Cannot call a class as a function");
   }
-}
-
-function _defineProperty(obj, key, value) {
-  if (key in obj) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  } else {
-    obj[key] = value;
-  }
-
-  return obj;
 }
 
 function _inherits(subClass, superClass) {
@@ -90,6 +59,8 @@ function _assertThisInitialized(self) {
 function _possibleConstructorReturn(self, call) {
   if (call && (typeof call === "object" || typeof call === "function")) {
     return call;
+  } else if (call !== void 0) {
+    throw new TypeError("Derived constructors may only return object or undefined");
   }
 
   return _assertThisInitialized(self);
@@ -267,7 +238,9 @@ var deepAssign = function deepAssign(target) {
     for (var key in source) {
       if (isObject(source[key])) {
         if (!target[key]) {
-          Object.assign(target, _defineProperty({}, key, {}));
+          Object.assign(target, {
+            [key]: {}
+          });
         }
 
         deepAssign(target[key], source[key]);
@@ -280,7 +253,9 @@ var deepAssign = function deepAssign(target) {
           return value;
         });
       } else {
-        Object.assign(target, _defineProperty({}, key, source[key]));
+        Object.assign(target, {
+          [key]: source[key]
+        });
       }
     }
   }
@@ -294,7 +269,7 @@ var deepAssign = function deepAssign(target) {
  */
 
 var isObject = function isObject(value) {
-  return value && _typeof(value) === 'object' && !Array.isArray(value);
+  return value && typeof value === 'object' && !Array.isArray(value);
 };
 /**
  * Set value on path at object.
@@ -305,7 +280,7 @@ var isObject = function isObject(value) {
 
 var set = function set(object, path, value) {
   // Exit early if not an object.
-  if (_typeof(object) !== 'object') {
+  if (typeof object !== 'object') {
     return;
   }
 
@@ -314,7 +289,7 @@ var set = function set(object, path, value) {
   for (; i < path.length - 1; i++) {
     object = object[path[i]]; // Exit early if not an object.
 
-    if (_typeof(object) !== 'object') {
+    if (typeof object !== 'object') {
       return;
     }
   }
@@ -777,7 +752,7 @@ var ProxyDispatcher = /*#__PURE__*/function (_EventDispatcher) {
 
     _this = _super.call(this);
     options = Object.assign({
-      "delete": true,
+      delete: true,
       get: true,
       set: true
     }, options); // Setup WeakMap for keep track of created proxies.
@@ -800,7 +775,7 @@ var ProxyDispatcher = /*#__PURE__*/function (_EventDispatcher) {
 
 
       for (var key in target) {
-        if (target[key] && _typeof(target[key]) === 'object') {
+        if (target[key] && typeof target[key] === 'object') {
           target[key] = _this.add(target[key], [].concat(_toConsumableArray(path), [key]));
         }
       } // Create handler and add the handler for which a callback exits..
@@ -808,7 +783,7 @@ var ProxyDispatcher = /*#__PURE__*/function (_EventDispatcher) {
 
       var handler = {};
 
-      if (options["delete"]) {
+      if (options.delete) {
         handler.deleteProperty = function (target, key) {
           // Exit early successful if property doesn't exist.
           if (!Reflect.has(target, key)) {
@@ -850,7 +825,7 @@ var ProxyDispatcher = /*#__PURE__*/function (_EventDispatcher) {
           } // Add proxy if value is an object.
 
 
-          if (_typeof(value) === 'object') {
+          if (typeof value === 'object') {
             value = _this.add(value, [].concat(_toConsumableArray(path), [key]));
           } // Store value.
 
@@ -884,10 +859,10 @@ var ProxyDispatcher = /*#__PURE__*/function (_EventDispatcher) {
       }
 
       var revocable = map.get(target);
-      map["delete"](revocable); // Recursively remove properties as well.
+      map.delete(revocable); // Recursively remove properties as well.
 
       for (var property in revocable.proxy) {
-        if (_typeof(revocable.proxy[property]) === 'object') {
+        if (typeof revocable.proxy[property] === 'object') {
           _this.remove(revocable.proxy[property]);
         }
       } // Revoke proxy.
@@ -965,5 +940,5 @@ function DoarsStore(library) {
   });
 };
 
-export default DoarsStore;
+export { DoarsStore as default };
 //# sourceMappingURL=doars-store.esm.js.map

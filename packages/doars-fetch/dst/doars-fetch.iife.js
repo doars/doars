@@ -1,41 +1,10 @@
 var DoarsFetch = (function () {
   'use strict';
 
-  function _typeof(obj) {
-    "@babel/helpers - typeof";
-
-    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-      _typeof = function (obj) {
-        return typeof obj;
-      };
-    } else {
-      _typeof = function (obj) {
-        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-      };
-    }
-
-    return _typeof(obj);
-  }
-
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
-  }
-
-  function _defineProperty(obj, key, value) {
-    if (key in obj) {
-      Object.defineProperty(obj, key, {
-        value: value,
-        enumerable: true,
-        configurable: true,
-        writable: true
-      });
-    } else {
-      obj[key] = value;
-    }
-
-    return obj;
   }
 
   /**
@@ -58,7 +27,9 @@ var DoarsFetch = (function () {
       for (var key in source) {
         if (isObject(source[key])) {
           if (!target[key]) {
-            Object.assign(target, _defineProperty({}, key, {}));
+            Object.assign(target, {
+              [key]: {}
+            });
           }
 
           deepAssign(target[key], source[key]);
@@ -71,7 +42,9 @@ var DoarsFetch = (function () {
             return value;
           });
         } else {
-          Object.assign(target, _defineProperty({}, key, source[key]));
+          Object.assign(target, {
+            [key]: source[key]
+          });
         }
       }
     }
@@ -85,7 +58,7 @@ var DoarsFetch = (function () {
    */
 
   var isObject = function isObject(value) {
-    return value && _typeof(value) === 'object' && !Array.isArray(value);
+    return value && typeof value === 'object' && !Array.isArray(value);
   };
 
   var parseResponse = function parseResponse(response, type) {

@@ -1,19 +1,3 @@
-function _typeof(obj) {
-  "@babel/helpers - typeof";
-
-  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-    _typeof = function (obj) {
-      return typeof obj;
-    };
-  } else {
-    _typeof = function (obj) {
-      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-    };
-  }
-
-  return _typeof(obj);
-}
-
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
     throw new TypeError("Cannot call a class as a function");
@@ -92,6 +76,8 @@ function _assertThisInitialized(self) {
 function _possibleConstructorReturn(self, call) {
   if (call && (typeof call === "object" || typeof call === "function")) {
     return call;
+  } else if (call !== void 0) {
+    throw new TypeError("Derived constructors may only return object or undefined");
   }
 
   return _assertThisInitialized(self);
@@ -421,12 +407,41 @@ var parseAttributeModifiers = function parseAttributeModifiers(modifiers) {
 
 
       var key = modifier.substring(0, hyphenIndex);
-      var value = modifier.substring(hyphenIndex + 1); // Try to parse the value as a number.
+      var value = modifier.substring(hyphenIndex + 1);
+      var tmpValue = value; // Try to remove time suffixes.
 
-      var tmpValue = Number.parseInt(value);
+      var type = void 0;
+
+      if (value.endsWith('ms')) {
+        tmpValue = value.substring(-2);
+      } else if (value.endsWith('s')) {
+        type = 's';
+        tmpValue = value.substring(-1);
+      } else if (value.endsWith('m')) {
+        type = 'm';
+        tmpValue = value.substring(-1);
+      } else if (value.endsWith('h')) {
+        type = 'h';
+        tmpValue = value.substring(-1);
+      } // Try to parse the value as a number.
+
+
+      tmpValue = Number.parseInt(tmpValue);
 
       if (!isNaN(tmpValue)) {
-        value = tmpValue;
+        value = tmpValue; // Convert to milliseconds if given in a different format.
+
+        switch (type) {
+          case 'h':
+            value *= 60;
+
+          case 'm':
+            value *= 60;
+
+          case 's':
+            value *= 1000;
+            break;
+        }
       } // Store modifier data.
 
 
@@ -560,12 +575,12 @@ var parseSelector = function parseSelector(selector) {
           // Remove leading character.
           selectorSegment = selectorSegment.substring(1); // Add to classlist.
 
-          if (!attributes["class"]) {
-            attributes["class"] = [];
+          if (!attributes.class) {
+            attributes.class = [];
           }
 
-          if (!attributes["class"].includes(selectorSegment)) {
-            attributes["class"].push(selectorSegment);
+          if (!attributes.class.includes(selectorSegment)) {
+            attributes.class.push(selectorSegment);
           }
 
           break;
@@ -917,7 +932,7 @@ var ProxyDispatcher = /*#__PURE__*/function (_EventDispatcher) {
 
     _this = _super.call(this);
     options = Object.assign({
-      "delete": true,
+      delete: true,
       get: true,
       set: true
     }, options); // Setup WeakMap for keep track of created proxies.
@@ -940,7 +955,7 @@ var ProxyDispatcher = /*#__PURE__*/function (_EventDispatcher) {
 
 
       for (var key in target) {
-        if (target[key] && _typeof(target[key]) === 'object') {
+        if (target[key] && typeof target[key] === 'object') {
           target[key] = _this.add(target[key], [].concat(_toConsumableArray(path), [key]));
         }
       } // Create handler and add the handler for which a callback exits..
@@ -948,7 +963,7 @@ var ProxyDispatcher = /*#__PURE__*/function (_EventDispatcher) {
 
       var handler = {};
 
-      if (options["delete"]) {
+      if (options.delete) {
         handler.deleteProperty = function (target, key) {
           // Exit early successful if property doesn't exist.
           if (!Reflect.has(target, key)) {
@@ -990,7 +1005,7 @@ var ProxyDispatcher = /*#__PURE__*/function (_EventDispatcher) {
           } // Add proxy if value is an object.
 
 
-          if (_typeof(value) === 'object') {
+          if (typeof value === 'object') {
             value = _this.add(value, [].concat(_toConsumableArray(path), [key]));
           } // Store value.
 
@@ -1024,10 +1039,10 @@ var ProxyDispatcher = /*#__PURE__*/function (_EventDispatcher) {
       }
 
       var revocable = map.get(target);
-      map["delete"](revocable); // Recursively remove properties as well.
+      map.delete(revocable); // Recursively remove properties as well.
 
       for (var property in revocable.proxy) {
-        if (_typeof(revocable.proxy[property]) === 'object') {
+        if (typeof revocable.proxy[property] === 'object') {
           _this.remove(revocable.proxy[property]);
         }
       } // Revoke proxy.
@@ -1051,7 +1066,7 @@ var addAttributes = function addAttributes(element, data) {
   for (var name in data) {
     if (name === 'class') {
       // Add classes to classlist.
-      var _iterator = _createForOfIteratorHelper(data["class"]),
+      var _iterator = _createForOfIteratorHelper(data.class),
           _step;
 
       try {
@@ -1151,7 +1166,7 @@ var removeAttributes = function removeAttributes(element, data) {
   for (var name in data) {
     if (name === 'class') {
       // Add classes to classlist.
-      var _iterator2 = _createForOfIteratorHelper(data["class"]),
+      var _iterator2 = _createForOfIteratorHelper(data.class),
           _step2;
 
       try {
@@ -1214,7 +1229,7 @@ var setAttribute = function setAttribute(element, key, data) {
     if (Array.isArray(data)) {
       // Join values together if it is a list of classes.
       data = data.join(' ');
-    } else if (_typeof(data) === 'object') {
+    } else if (typeof data === 'object') {
       // List keys of object as a string if the value is truthy.
       data = Object.entries(data).filter(function (_ref) {
         var _ref2 = _slicedToArray(_ref, 2);
@@ -1235,7 +1250,7 @@ var setAttribute = function setAttribute(element, key, data) {
     if (Array.isArray(data)) {
       // Join values together if it is a list of classes.
       data = data.join(' ');
-    } else if (_typeof(data) === 'object') {
+    } else if (typeof data === 'object') {
       // List keys of object as a string if the value is truthy.
       data = Object.entries(data).map(function (_ref5) {
         var _ref6 = _slicedToArray(_ref5, 2),
@@ -1355,6 +1370,7 @@ var walk = function walk(element, filter) {
   };
 };
 
+// Based on choo's nanomorph, v5.4.3, https://github.com/choojs/nanomorph#readme).
 /**
  * Diff elements and apply the resulting patch to the existing node.
  * @param {HTMLElement} existingNode Existing node to update.
@@ -1395,13 +1411,13 @@ var morphNode = function morphNode(existingNode, newNode) {
  */
 
 var morphTree = function morphTree(existingTree, newTree, options) {
-  if (_typeof(existingTree) !== 'object') {
+  if (typeof existingTree !== 'object') {
     throw new Error('Existing tree should be an object.');
   }
 
   if (typeof newTree === 'string') {
     newTree = fromString(newTree);
-  } else if (_typeof(newTree) !== 'object') {
+  } else if (typeof newTree !== 'object') {
     throw new Error('New tree should be an object.');
   } // Check if outer or inner html should be updated. Always update children if root node is a document fragment.
 
@@ -1666,7 +1682,7 @@ var createContexts = function createContexts(component, attribute, update) {
       } // Deconstruct options if marked as such.
 
 
-      if (context.deconstruct && _typeof(result.value) === 'object') {
+      if (context.deconstruct && typeof result.value === 'object') {
         before += 'with(' + context.name + ') { ';
         after += ' }';
       } // Store result value in context results.
@@ -1681,7 +1697,7 @@ var createContexts = function createContexts(component, attribute, update) {
     _iterator.f();
   }
 
-  if (_typeof(extra) === 'object') {
+  if (typeof extra === 'object') {
     for (var name in extra) {
       results[name] = extra[name];
     }
@@ -1778,7 +1794,7 @@ var executeExpression = function executeExpression(component, attribute, express
   var options = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
   // Override default with given options.
   options = Object.assign({
-    "return": true
+    return: true
   }, options); // Collect update triggers.
 
   var triggers = [];
@@ -1798,7 +1814,7 @@ var executeExpression = function executeExpression(component, attribute, express
       destroy = _createContexts.destroy; // Apply options.
 
 
-  if (options["return"]) {
+  if (options.return) {
     before += 'return ';
   } // Try to execute code.
 
@@ -2169,7 +2185,7 @@ function Component(library, element) {
 
     data = (_executeExpression = executeExpression(_this, new Attribute(_this, element, null, value), value)) !== null && _executeExpression !== void 0 ? _executeExpression : {};
 
-    if (Array.isArray(data) || _typeof(data) !== 'object') {
+    if (Array.isArray(data) || typeof data !== 'object') {
       console.error('Doars: component tag must return an object!');
       return;
     } // Create proxy dispatcher for state.
@@ -2944,6 +2960,7 @@ var contextState = {
   }
 };
 
+// Import utils.
 var directiveAttribute = {
   name: 'attribute',
   update: function update(component, attribute, _ref) {
@@ -2971,7 +2988,7 @@ var directiveAttribute = {
     } // Set attributes on element.
 
 
-    if (_typeof(data) === 'object') {
+    if (typeof data === 'object') {
       setAttributes(element, data);
       return;
     } // Deconstruct attribute.
@@ -3161,8 +3178,7 @@ var directiveFor = {
       iterable = executeExpression(component, attribute, data.iterable);
     }
 
-    var iterableType = _typeof(iterable); // Process iterable based on type.
-
+    var iterableType = typeof iterable; // Process iterable based on type.
 
     if (iterableType === 'number') {
       for (var index = 0; index < iterable; index++) {
@@ -3476,7 +3492,7 @@ var directiveInitialized = {
 
 
       executeExpression(component, attribute.clone(), value, {}, {
-        "return": false
+        return: false
       }); // Call destroy.
 
       destroy$1(component, attribute);
@@ -3592,7 +3608,7 @@ var directiveOn = {
 
     if (key) {
       // Convert command and super to meta.
-      modifiers.meta = modifiers.meta ? true : modifiers.cmd || modifiers["super"];
+      modifiers.meta = modifiers.meta ? true : modifiers.cmd || modifiers.super;
 
       var _iterator = _createForOfIteratorHelper(KEYPRESS_MODIFIERS),
           _step;
@@ -3672,7 +3688,7 @@ var directiveOn = {
           $event: event,
           $events: attribute[ON].buffer
         }, {
-          "return": false
+          return: false
         }); // Reset the buffer.
 
         attribute[ON].buffer = [];
@@ -3906,6 +3922,11 @@ var directiveShow = {
 };
 
 /**
+ * Deeply assign a series of objects properties together.
+ * @param {Object} target Target object to merge to.
+ * @param  {...Object} sources Objects to merge into the target.
+ */
+/**
  * Set value on path at object.
  * @param {Object} object Object to set on.
  * @param {Array<String>} path Path to value.
@@ -3914,7 +3935,7 @@ var directiveShow = {
 
 var set = function set(object, path, value) {
   // Exit early if not an object.
-  if (_typeof(object) !== 'object') {
+  if (typeof object !== 'object') {
     return;
   }
 
@@ -3923,7 +3944,7 @@ var set = function set(object, path, value) {
   for (; i < path.length - 1; i++) {
     object = object[path[i]]; // Exit early if not an object.
 
-    if (_typeof(object) !== 'object') {
+    if (typeof object !== 'object') {
       return;
     }
   }
@@ -4226,7 +4247,7 @@ var directiveWatch = {
     var value = attribute.getValue(); // Execute attribute expression.
 
     executeExpression(component, attribute, value, {}, {
-      "return": false
+      return: false
     });
   }
 };
@@ -4276,7 +4297,7 @@ var Doars = /*#__PURE__*/function (_EventDispatcher) {
         return _possibleConstructorReturn(_this);
       }
 
-      if (_typeof(root) !== 'object') {
+      if (typeof root !== 'object') {
         console.error('Doars: `root` option must be a string or HTMLElement.');
         return _possibleConstructorReturn(_this);
       }
@@ -5164,5 +5185,5 @@ var Doars = /*#__PURE__*/function (_EventDispatcher) {
   return Doars;
 }(EventDispatcher);
 
-export default Doars;
+export { Doars as default };
 //# sourceMappingURL=doars.esm.js.map
