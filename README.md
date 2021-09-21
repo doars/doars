@@ -22,10 +22,10 @@ since the functionality is written on the relevant element itself.
   // Wait for the DOM to be interactive.
   document.addEventListener('DOMContentLoaded', () => {
     // Setup a library instance.
-    const doars = new window.Doars()
+    const doars = new window.Doars();
     // Enable library.
-    doars.enable()
-  })
+    doars.enable();
+  });
 </script>
 
 <!-- Define component with a list of messages. -->

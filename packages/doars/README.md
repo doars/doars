@@ -44,7 +44,7 @@ $ npm i @doars/doars
 import Doars from "@doars/doars";
 
 // Setup a library instance.
-const doars = new Doars(); /* options */
+const doars = new Doars(/* options */);
 
 // Enable library.
 doars.enable();
