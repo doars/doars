@@ -30,7 +30,7 @@ import DoarsView from "@doars/doars-view";
 const doars = new Doars();
 
 // Setup the plugin.
-const doarsView = new DoarsView(doars /* options */);
+const doarsView = new DoarsView(doars /*, options */);
 
 // Enable library.
 doars.enable();
@@ -51,7 +51,7 @@ library.
     const doars = new window.Doars()
 
     // Setup the plugin.
-    const doarsView = new  window.DoarsView(doars, /* options */)
+    const doarsView = new  window.DoarsView(doars /*, options */)
 
     // Enable library.
     doars.enable()
