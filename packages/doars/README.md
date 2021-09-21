@@ -1,7 +1,7 @@
 <div align="center">
 
 [![npm @latest version](https://img.shields.io/npm/v/@doars/doars.svg?label=Version&style=flat-square&maxAge=86400)](https://www.npmjs.com/package/@doars/doars)
-[![minzipped size](https://img.shields.io/static/v1?label=Size&message=9.65%20kb&color=blue&style=flat-square)](https://www.npmjs.com/package/@doars/doars)
+[![minzipped size](https://img.shields.io/static/v1?label=Size&message=12%20kb&color=blue&style=flat-square)](https://www.npmjs.com/package/@doars/doars)
 
 </div>
 
