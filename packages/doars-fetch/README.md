@@ -23,22 +23,23 @@ $ npm i @doars/doars @doars/doars-fetch
 
 ```JavaScript
 // Import library.
-import Doars from '@doars/doars'
-import DoarsFetch from '@doars/doars-fetch'
+import Doars from "@doars/doars";
+import DoarsFetch from "@doars/doars-fetch";
 
 // Setup a library instance.
-const doars = new Doars()
+const doars = new Doars();
 
 // Setup the plugin.
-const doarsFetch = new DoarsFetch(doars /*, options */)
+const doarsFetch = new DoarsFetch(doars /*, options */);
 
 // Enable library.
-doars.enable()
+doars.enable();
 ```
 
 ### UMD build from jsDelivr
 
-Add the UMD build to the page from for example the jsDelivr CDN and enable the library.
+Add the UMD build to the page from for example the jsDelivr CDN and enable the
+library.
 
 ```HTML
 <!-- Import library. -->
@@ -58,19 +59,32 @@ Add the UMD build to the page from for example the jsDelivr CDN and enable the l
 </script>
 ```
 
-> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-fetch@1/dst/doars-fetch.esm.js) and [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-fetch@1/dst/doars-fetch.iife.js) builds are also available via the jsDelivr CDN.
+> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-fetch@1/dst/doars-fetch.esm.js)
+> and
+> [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-fetch@1/dst/doars-fetch.iife.js)
+> builds are also available via the jsDelivr CDN.
 
 ## Contexts
 
-The following [contexts](https://github.com/doars/doars/tree/main/packages/doars#contexts) are added by the plugin.
+The following
+[contexts](https://github.com/doars/doars/tree/main/packages/doars#contexts) are
+added by the plugin.
 
 ### $fetch
 
 Call fetch function.
+
 - Type: `Any`
 - Parameters:
   - `{String} url` Url to fetch from.
-  - `{Object} init = {}` Fetch init object, [see Fetch docs on MDN](https://developer.mozilla.org/docs/Web/API/WindowOrWorkerGlobalScope/fetch#parameters). However an additional option, `returnType`, has been added to automatically get and convert the returned data. The return type can be one of the following types: `arrayBuffer`, `blob`, `element`, `html`, `formData`, `json`, `svg`, `text`, `xml`, or `auto`. When the value `auto` is used it will try to automatically parse the response based on the content type header used by the response.
+  - `{Object} init = {}` Fetch init object,
+    [see Fetch docs on MDN](https://developer.mozilla.org/docs/Web/API/WindowOrWorkerGlobalScope/fetch#parameters).
+    However an additional option, `returnType`, has been added to automatically
+    get and convert the returned data. The return type can be one of the
+    following types: `arrayBuffer`, `blob`, `element`, `html`, `formData`,
+    `json`, `svg`, `text`, `xml`, or `auto`. When the value `auto` is used it
+    will try to automatically parse the response based on the content type
+    header used by the response.
 
 ```HTML
 <!-- On initialization fetch the data from doars.dev and manually convert it to text and store it as text on the message variable of the state. -->
@@ -110,4 +124,5 @@ Call fetch function.
 
 #### DoarsFetch options
 
-- `{Object} defaultInit = {}` Default init to use, the init object provided when calling fetch will be merged with this default.
+- `{Object} defaultInit = {}` Default init to use, the init object provided when
+  calling fetch will be merged with this default.

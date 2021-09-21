@@ -23,22 +23,23 @@ $ npm i @doars/doars @doars/doars-alias
 
 ```JavaScript
 // Import library.
-import Doars from '@doars/doars'
-import DoarsAlias from '@doars/doars-alias'
+import Doars from "@doars/doars";
+import DoarsAlias from "@doars/doars-alias";
 
 // Setup a library instance.
-const doars = new Doars()
+const doars = new Doars();
 
 // Setup the plugin.
-const doarsAlias = new DoarsAlias(doars /*, options */)
+const doarsAlias = new DoarsAlias(doars /*, options */);
 
 // Enable library.
-doars.enable()
+doars.enable();
 ```
 
 ### UMD build from jsDelivr
 
-Add the UMD build to the page from for example the jsDelivr CDN and enable the library.
+Add the UMD build to the page from for example the jsDelivr CDN and enable the
+library.
 
 ```HTML
 <!-- Import library. -->
@@ -58,33 +59,36 @@ Add the UMD build to the page from for example the jsDelivr CDN and enable the l
 </script>
 ```
 
-> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-alias@1/dst/doars-alias.esm.js) and [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-alias@1/dst/doars-alias.iife.js) builds are also available via the jsDelivr CDN.
+> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-alias@1/dst/doars-alias.esm.js)
+> and
+> [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-alias@1/dst/doars-alias.iife.js)
+> builds are also available via the jsDelivr CDN.
 
 ## Examples
 
 ```JavaScript
 // Setup a library instance.
-const doars = new Doars()
+const doars = new Doars();
 
 // Setup the plugin.
 const doarsAlias = new DoarsAlias(doars, {
   aliasContexts: {
-    component: 'root',
+    component: "root",
   },
   renameContexts: {
-    references: 'refs',
+    references: "refs",
   },
   aliasDirective: {
-    attribute: 'attr',
-    initialized: 'init',
+    attribute: "attr",
+    initialized: "init",
   },
   renameDirective: {
-    reference: 'ref',
+    reference: "ref",
   },
-})
+});
 
 // Enable library.
-doars.enable()
+doars.enable();
 ```
 
 ## API
@@ -107,4 +111,5 @@ doars.enable()
 - `{Object} renameDirectives` The directives to rename.
   - `{String} [name]` The new name of the directive.
 
-> Where `[name]` is the current name of the context or directive that should be aliased or renamed.
+> Where `[name]` is the current name of the context or directive that should be
+> aliased or renamed.

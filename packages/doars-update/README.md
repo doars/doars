@@ -23,22 +23,23 @@ $ npm i @doars/doars @doars/doars-update
 
 ```JavaScript
 // Import library.
-import Doars from '@doars/doars'
-import DoarsUpdate from '@doars/doars-update'
+import Doars from "@doars/doars";
+import DoarsUpdate from "@doars/doars-update";
 
 // Setup a library instance.
-const doars = new Doars()
+const doars = new Doars();
 
 // Setup the plugin.
-const doarsUpdate = new DoarsUpdate(doars /*, options */)
+const doarsUpdate = new DoarsUpdate(doars /*, options */);
 
 // Enable library.
-doars.enable()
+doars.enable();
 ```
 
 ### UMD build from jsDelivr
 
-Add the UMD build to the page from for example the jsDelivr CDN and enable the library.
+Add the UMD build to the page from for example the jsDelivr CDN and enable the
+library.
 
 ```HTML
 <!-- Import library. -->
@@ -58,21 +59,29 @@ Add the UMD build to the page from for example the jsDelivr CDN and enable the l
 </script>
 ```
 
-> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-update@1/dst/doars-update.esm.js) and [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-update@1/dst/doars-update.iife.js) builds are also available via the jsDelivr CDN.
+> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-update@1/dst/doars-update.esm.js)
+> and
+> [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-update@1/dst/doars-update.iife.js)
+> builds are also available via the jsDelivr CDN.
 
 ## Directives
 
-The following [directives](https://github.com/doars/doars/tree/main/packages/doars#directives) are added by the plugin.
+The following
+[directives](https://github.com/doars/doars/tree/main/packages/doars#directives)
+are added by the plugin.
 
 ### d-update
 
-Executes the attribute each iteration of the update loop. The directive's value should be a function expression.
+Executes the attribute each iteration of the update loop. The directive's value
+should be a function expression.
 
 #### Modifiers
 
 The directive supports the following modifiers.
 
-- `{Number} order = {options.defaultOrder}` The execution order of the directive. To change the default order see the [plugin options](#doarsupdate-options).
+- `{Number} order = {options.defaultOrder}` The execution order of the
+  directive. To change the default order see the
+  [plugin options](#doarsupdate-options).
 
 #### Examples
 
@@ -86,16 +95,20 @@ The directive supports the following modifiers.
 
 ## Contexts
 
-The following [contexts](https://github.com/doars/doars/tree/main/packages/doars#contexts) are added by the plugin.
+The following
+[contexts](https://github.com/doars/doars/tree/main/packages/doars#contexts) are
+added by the plugin.
 
 ### $update
 
-Get information about the most recent update iteration. The context is an `Object` that contains the following properties.
+Get information about the most recent update iteration. The context is an
+`Object` that contains the following properties.
 
 - `{Number} current` Current update time in seconds.
 - `{Number} currentMs` Current update time in milliseconds.
 - `{Number} delta` Time in between the previous and current update in seconds.
-- `{Number} deltaMs` Time in between the previous and current update in milliseconds.
+- `{Number} deltaMs` Time in between the previous and current update in
+  milliseconds.
 - `{Number} last` Previous update time in seconds.
 - `{Number} lastMs` Previous update time in milliseconds.
 - `{Number} passed` Total time passed in seconds.
@@ -124,5 +137,7 @@ Get information about the most recent update iteration. The context is an `Objec
 
 #### DoarsUpdate options
 
-- `{Number} defaultOrder = 500` Default order modifier value of update directive.
-- `{Number} stepMinimum = 0` Minimum amount of time in milliseconds between updates.
+- `{Number} defaultOrder = 500` Default order modifier value of update
+  directive.
+- `{Number} stepMinimum = 0` Minimum amount of time in milliseconds between
+  updates.

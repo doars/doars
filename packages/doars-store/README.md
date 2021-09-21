@@ -23,22 +23,23 @@ $ npm i @doars/doars @doars/doars-store
 
 ```JavaScript
 // Import library.
-import Doars from '@doars/doars'
-import DoarsStore from '@doars/doars-store'
+import Doars from "@doars/doars";
+import DoarsStore from "@doars/doars-store";
 
 // Setup a library instance.
-const doars = new Doars()
+const doars = new Doars();
 
 // Setup the plugin.
-const doarsStore = new DoarsStore(doars /*, options, data */)
+const doarsStore = new DoarsStore(doars /*, options, data */);
 
 // Enable library.
-doars.enable()
+doars.enable();
 ```
 
 ### UMD build from jsDelivr
 
-Add the UMD build to the page from for example the jsDelivr CDN and enable the library.
+Add the UMD build to the page from for example the jsDelivr CDN and enable the
+library.
 
 ```HTML
 <!-- Import library. -->
@@ -58,15 +59,24 @@ Add the UMD build to the page from for example the jsDelivr CDN and enable the l
 </script>
 ```
 
-> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-store@1/dst/doars-store.esm.js) and [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-store@1/dst/doars-store.iife.js) builds are also available via the jsDelivr CDN.
+> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-store@1/dst/doars-store.esm.js)
+> and
+> [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-store@1/dst/doars-store.iife.js)
+> builds are also available via the jsDelivr CDN.
 
 ## Directives
 
-The following [directives](https://github.com/doars/doars/tree/main/packages/doars#directives) are added by the plugin.
+The following
+[directives](https://github.com/doars/doars/tree/main/packages/doars#directives)
+are added by the plugin.
 
 ### d-sync-store
 
-Keep the value of an element in sync with a value in the datastore. It works on input, checkbox, radio, select, and text area elements, as wel as divs with the [content editable](https://developer.mozilla.org/docs/Web/Guide/HTML/Editable_content) attribute. The directive's value should be a dot separated path to a property on the datastore.
+Keep the value of an element in sync with a value in the datastore. It works on
+input, checkbox, radio, select, and text area elements, as wel as divs with the
+[content editable](https://developer.mozilla.org/docs/Web/Guide/HTML/Editable_content)
+attribute. The directive's value should be a dot separated path to a property on
+the datastore.
 
 #### Examples
 
@@ -80,7 +90,9 @@ Keep the value of an element in sync with a value in the datastore. It works on 
 
 ## Contexts
 
-The following [contexts](https://github.com/doars/doars/tree/main/packages/doars#contexts) are added by the plugin.
+The following
+[contexts](https://github.com/doars/doars/tree/main/packages/doars#contexts) are
+added by the plugin.
 
 ### $store
 
@@ -123,4 +135,9 @@ Access the datastore object.
 
 #### DoarsStore options
 
-- `{Boolean} deconstruct = false` Whether to deconstruct the context so when accessing the properties you do not need to prefix it with `$store`. Do note the `$store` context will be checked after the `$for` and `$state` contexts since the `$store` context is inserted before the others. This means that when a property exists on both the datastore and state the value from the state will be returned.
+- `{Boolean} deconstruct = false` Whether to deconstruct the context so when
+  accessing the properties you do not need to prefix it with `$store`. Do note
+  the `$store` context will be checked after the `$for` and `$state` contexts
+  since the `$store` context is inserted before the others. This means that when
+  a property exists on both the datastore and state the value from the state
+  will be returned.
