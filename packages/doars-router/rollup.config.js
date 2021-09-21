@@ -90,7 +90,15 @@ const baseConfig = {
       extensions: extensions,
       babelHelpers: 'bundled',
       presets: [
-        '@babel/preset-env',
+        ['@babel/preset-env', {
+          targets: {
+            chrome: '49',
+            edge: '12',
+            firefox: '39',
+            ios: '10.2',
+            safari: '10',
+          },
+        }],
       ],
     }),
   ],
@@ -121,7 +129,8 @@ if (process.env.NODE_ENV === 'production') {
     // Disable sourcemaps.
     newConfig.output.sourcemap = false
 
-    newConfig.plugins.splice(2, 1,
+    // Add additional plugin.
+    newConfig.plugins.splice(1, 1,
       rollupReplace({
         preventAssignment: true,
         values: {
@@ -130,7 +139,9 @@ if (process.env.NODE_ENV === 'production') {
         },
       }),
       rollupStrip(),
-      rollupStripSymbolDescription(),
+      rollupStripSymbolDescription()
+    )
+    newConfig.plugins.push(
       rollupTerser({
         compress: {
           module: newConfig.output.format !== 'iife',
