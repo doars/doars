@@ -17,7 +17,7 @@ const REFLECTION_METHODS = [
 /**
  * Revocable proxy made using regular a proxy and a simple boolean.
  */
-export default function (target, handler) {
+export default (target, handler) => {
   // Keep track of status.
   let revoked = false
 

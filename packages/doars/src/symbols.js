@@ -15,4 +15,5 @@ export const ON = Symbol('ON')
 export const REFERENCES = Symbol('REFERENCES')
 export const REFERENCES_CACHE = Symbol('REFERENCES_CACHE')
 
+export const SYNC = Symbol('SYNC')
 export const SYNC_STATE = Symbol('SYNC_STATE')

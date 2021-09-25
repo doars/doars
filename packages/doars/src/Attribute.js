@@ -31,7 +31,7 @@ export default class Attribute extends EventDispatcher {
     }
 
     // Create private variables.
-    let accessedItems = {}, directive, key, keyRaw, modifiersRaw, modifiers
+    let accessedItems = {}, data = null, directive, key, keyRaw, modifiersRaw, modifiers
 
     // Parse and store name.
     if (name) {
@@ -140,9 +140,43 @@ export default class Attribute extends EventDispatcher {
     }
 
     /**
+     * Clear custom data set.
+     */
+    this.clearData = () => {
+      data = null
+    }
+
+    /**
+     * Whether there is data set.
+     * @returns {boolean} Whether data is set.
+     */
+    this.hasData = () => {
+      return data !== null
+    }
+
+    /**
+     * Get custom data set previously.
+     * @returns {any} the data.
+     */
+    this.getData = () => {
+      return data
+    }
+
+    /**
+     * Set custom attribute data.
+     * @param {any} data Some data.
+     */
+    this.setData = (_data) => {
+      data = _data
+    }
+
+    /**
      * Destroy the attribute.
      */
     this.destroy = () => {
+      // Clear data.
+      this.setData(null)
+
       // Clear accessed.
       this.clearAccessed()
 

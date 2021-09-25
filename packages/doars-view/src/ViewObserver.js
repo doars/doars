@@ -18,7 +18,7 @@ export default class ViewObserver {
      * Intersection observer handler.
      * @param {Array<IntersectionObserverEntry>} entries Intersection observer entries.
      */
-    const intersect = function (entries) {
+    const intersect = (entries) => {
       // Invoke callbacks of each entry.
       for (const entry of entries) {
         for (const callback of items.get(entry.target)) {
@@ -35,7 +35,7 @@ export default class ViewObserver {
      * @param {HTMLElement} element Element to observer.
      * @param {Function} callback Callback to call on intersection change.
      */
-    this.add = function (element, callback) {
+    this.add = (element, callback) => {
       // Add callback to list.
       if (!items.has(element)) {
         items.set(element, [])
@@ -51,7 +51,7 @@ export default class ViewObserver {
      * @param {HTMLElement} element Element that is observed.
      * @param {Function} callback Callback that is called on intersection change.
      */
-    this.remove = function (element, callback) {
+    this.remove = (element, callback) => {
       // Remove callback from list.
       if (!items.has(element)) {
         return

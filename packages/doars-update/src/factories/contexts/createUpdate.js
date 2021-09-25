@@ -1,4 +1,4 @@
-export default function (updater) {
+export default (updater) => {
   // Deconstruct updater.
   const id = updater.getId()
   const proxy = updater.getProxy()

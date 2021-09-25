@@ -1,4 +1,4 @@
-export default function (options) {
+export default (options) => {
   // Overwrite default options.
   options = Object.assign({
     defaultOrder: 500,
@@ -11,7 +11,7 @@ export default function (options) {
   const directive = {
     name: 'update',
 
-    update: function (component, attribute, { executeExpression }) {
+    update: (component, attribute, { executeExpression }) => {
       // Store execute expression locally.
       if (!this._execute) {
         this._execute = executeExpression

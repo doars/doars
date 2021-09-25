@@ -4,7 +4,7 @@ import Router from '../../Router.js'
 // Import symbols.
 import { ROUTER } from '../../symbols.js'
 
-export default function (routerOptions) {
+export default (routerOptions) => {
   return {
     name: 'router',
 

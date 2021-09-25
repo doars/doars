@@ -37,7 +37,7 @@ class Router extends EventDispatcher {
      * @param {String} _path Path.
      * @param {String} _route Route.
      */
-    const updateRoute = function (url, newPath, newRoute) {
+    const updateRoute = (url, newPath, newRoute) => {
       // Update stored data.
       path = newPath
       route = newRoute
@@ -55,7 +55,7 @@ class Router extends EventDispatcher {
 
       // Dispatch event on router.
       this.dispatchEvent('changed', [this, route, path])
-    }.bind(this)
+    }
 
     /**
      * Get router id.
@@ -114,7 +114,7 @@ class Router extends EventDispatcher {
      * Add route.
      * @param {String} _route Route pattern.
      */
-    this.addRoute = function (_route) {
+    this.addRoute = (_route) => {
       // Convert path to regexp and store it in routes.
       routes[_route] = pathToRegexp(_route, [], options.pathToRegexp)
 
@@ -135,7 +135,7 @@ class Router extends EventDispatcher {
      * Remove route.
      * @param {String} _route Route pattern.
      */
-    this.removeRoute = function (_route) {
+    this.removeRoute = (_route) => {
       // Delete route.
       delete routes[_route]
 
@@ -156,7 +156,7 @@ class Router extends EventDispatcher {
      * Set current route.
      * @param {String} url URL path.
      */
-    this.setPath = function (url) {
+    this.setPath = (url) => {
       // Remove base url, if present.
       const newPath = url.replace(options.basePath, '')
       if (path === newPath) {

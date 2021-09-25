@@ -1,4 +1,4 @@
-export default function (options, id, store, proxy) {
+export default (options, id, store, proxy) => {
   return {
     deconstruct: !!options.deconstruct,
 

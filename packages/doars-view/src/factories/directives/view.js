@@ -9,7 +9,7 @@ const EXECUTION_MODIFIERS = {
   THROTTLE: 3,
 }
 
-export default function (observer) {
+export default (observer) => {
   return {
     name: 'view',
 

@@ -22,7 +22,7 @@ export default class Updater {
     })
     const time = proxy.add({})
 
-    const update = function (timeAbsolute) {
+    const update = (timeAbsolute) => {
       // Exit if not enabled any more.
       if (!isEnabled) {
         return

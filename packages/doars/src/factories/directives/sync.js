@@ -1,7 +1,7 @@
 // Import utils.
 import { set } from '../../utils/ObjectUtils.js'
 
-export default function (symbol, getData, contextPrefix) {
+export default (symbol, getData, contextPrefix) => {
   const destroy = (component, attribute) => {
     // Exit early if nothing to destroy.
     if (!attribute[symbol]) {

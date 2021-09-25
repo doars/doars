@@ -6,7 +6,7 @@ import createDirectiveSync from '@doars/doars/src/factories/directives/sync.js'
 
 const STORE_PREFIX = '$store.'
 
-export default function (id, store) {
+export default (id, store) => {
   const directive = createDirectiveSync(SYNC_STORE, (component, attribute) => {
     // Remove prefix from value.
     let value = attribute.getValue()
