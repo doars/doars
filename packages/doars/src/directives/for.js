@@ -3,6 +3,7 @@ import { FOR } from '../symbols.js'
 
 // Import utils.
 import { insertAfter } from '../utils/ElementUtils.js'
+import { isPromise } from '../utils/PromiseUtils.js'
 import { parseForExpression } from '../utils/StringUtils.js'
 import { transitionIn, transitionOut } from '../utils/TransitionUtils.js'
 
@@ -131,17 +132,11 @@ export default {
       return
     }
 
-    const data = parseForExpression(attribute.getValue())
-    if (!data) {
+    const expression = parseForExpression(attribute.getValue())
+    if (!expression) {
       console.error('Doars: Error in `for` expression: ', attribute.getValue())
       return
     }
-
-    // Get list of elements already made by this attribute.
-    if (!attribute[FOR]) {
-      attribute[FOR] = []
-    }
-    const elements = attribute[FOR]
 
     // Setup update method.
     const triggers = {}
@@ -151,114 +146,144 @@ export default {
       }
     }
 
-    // Get iterable value.
-    let iterable
-    // Check if iterable is a number.
-    if (!isNaN(data.iterable)) {
-      iterable = Number(data.iterable)
-    } else {
-      // Get iterable data, and this will automatically mark the data as being accessed by this component.
-      iterable = executeExpression(component, attribute, data.iterable)
-    }
-    const iterableType = typeof (iterable)
+    const set = (iterable) => {
+      // Get stored data.
+      const data = attribute.getData()
 
-    // Process iterable based on type.
-    if (iterableType === 'number') {
-      for (let index = 0; index < iterable; index++) {
-        // Setup variables for context.
-        const variables = createVariables(data.variables, index)
+      // Get list of elements already made by this attribute.
+      const elements = data.elements ?? []
 
-        // Add element based on data after previously iterated value.
-        setAfter(component, update, template, elements, index - 1, iterable, variables)
-      }
+      // Process iterable based on type.
+      const iterableType = typeof (iterable)
+      if (iterableType === 'number') {
+        for (let index = 0; index < iterable; index++) {
+          // Setup variables for context.
+          const variables = createVariables(expression.variables, index)
 
-      // Remove old values.
-      removeAfter(component, elements, iterable)
-    } else if (iterableType === 'string') {
-      for (let index = 0; index < iterable.length; index++) {
-        // Get value at index.
-        const value = iterable[index]
+          // Add element based on data after previously iterated value.
+          setAfter(component, update, template, elements, index - 1, iterable, variables)
+        }
 
-        // Setup variables for context.
-        const variables = createVariables(data.variables, value, index)
-
-        // Add element based on data after previously iterated value.
-        setAfter(component, update, template, elements, index - 1, value, variables)
-      }
-
-      // Remove old values.
-      removeAfter(component, elements, iterable.length)
-    } else {
-      // We can't rely on Array.isArray since it might be a proxy, therefore we try to convert it to an array.
-      let isArray, length
-      try {
-        const values = [...iterable]
-        isArray = true
-        length = values.length
-      } catch { }
-
-      if (isArray) {
-        for (let index = 0; index < length; index++) {
+        // Remove old values.
+        removeAfter(component, elements, iterable)
+      } else if (iterableType === 'string') {
+        for (let index = 0; index < iterable.length; index++) {
           // Get value at index.
           const value = iterable[index]
 
           // Setup variables for context.
-          const variables = createVariables(data.variables, value, index)
+          const variables = createVariables(expression.variables, value, index)
 
           // Add element based on data after previously iterated value.
           setAfter(component, update, template, elements, index - 1, value, variables)
         }
+
+        // Remove old values.
+        removeAfter(component, elements, iterable.length)
       } else {
-        const keys = Object.keys(iterable)
-        length = keys.length
+        // We can't rely on Array.isArray since it might be a proxy, therefore we try to convert it to an array.
+        let isArray, length
+        try {
+          const values = [...iterable]
+          isArray = true
+          length = values.length
+        } catch { }
 
-        for (let index = 0; index < length; index++) {
-          // Get value at index.
-          const key = keys[index]
-          const value = iterable[key]
+        if (isArray) {
+          for (let index = 0; index < length; index++) {
+            // Get value at index.
+            const value = iterable[index]
 
-          // Setup variables for context.
-          const variables = createVariables(data.variables, key, value, index)
+            // Setup variables for context.
+            const variables = createVariables(expression.variables, value, index)
 
-          // Add element based on data after previously iterated value.
-          setAfter(component, update, template, elements, index - 1, value, variables)
+            // Add element based on data after previously iterated value.
+            setAfter(component, update, template, elements, index - 1, value, variables)
+          }
+        } else {
+          const keys = Object.keys(iterable)
+          length = keys.length
+
+          for (let index = 0; index < length; index++) {
+            // Get value at index.
+            const key = keys[index]
+            const value = iterable[key]
+
+            // Setup variables for context.
+            const variables = createVariables(expression.variables, key, value, index)
+
+            // Add element based on data after previously iterated value.
+            setAfter(component, update, template, elements, index - 1, value, variables)
+          }
         }
+
+        // Remove old values.
+        removeAfter(component, elements, length)
       }
 
-      // Remove old values.
-      removeAfter(component, elements, length)
+      // Dispatch triggers.
+      if (Object.getOwnPropertySymbols(triggers).length > 0) {
+        component.update(triggers)
+      }
+
+      // Store results.
+      attribute.setData(
+        Object.assign(data, {
+          elements: elements,
+        })
+      )
     }
 
-    // Dispatch triggers.
-    if (Object.getOwnPropertySymbols(triggers).length > 0) {
-      component.update(triggers)
+    // Get iterable value.
+    let result
+    // Check if iterable is a number.
+    if (!isNaN(expression.iterable)) {
+      result = Number(expression.iterable)
+    } else {
+      // Get iterable data, and this will automatically mark the data as being accessed by this component.
+      result = executeExpression(component, attribute, expression.iterable)
+    }
+
+    // Get stored data.
+    const data = attribute.getData()
+
+    // Store results.
+    attribute.setData(
+      Object.assign(data, {
+        result: result,
+      })
+    )
+
+    // Handle promises.
+    if (isPromise(result)) {
+      Promise.resolve(result)
+        .then((result) => {
+          // If stored data has changed then this promise should be ignored.
+          if (attribute.getData().result !== result) {
+            return
+          }
+
+          set(result)
+        })
+    } else {
+      set(result)
     }
   },
 
   destroy: (component, attribute) => {
-    // Check if an object of lists exists.
-    if (!component[FOR]) {
-      return
-    }
-
-    // Check if list made by this attribute exist.
-    if (!attribute[FOR]) {
-      return
-    }
+    // Get stored data.
+    const data = attribute.getData()
 
     // Get list of elements created by this attribute.
-    const elements = attribute[FOR]
-
-    // Iterate over generated elements.
-    for (const element of elements) {
-      // Transition out.
-      transitionOut(component, element, () => {
-        // Remove element.
-        element.remove()
-      })
+    if (data.elements) {
+      // Iterate over generated elements.
+      for (const element of data.elements) {
+        // Transition out.
+        transitionOut(component, element, () => {
+          // Remove element.
+          element.remove()
+        })
+      }
     }
-
-    // Delete list of elements.
-    delete attribute[FOR]
   },
 }

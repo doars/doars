@@ -6,22 +6,22 @@
     "@doars/doars": "^1.0.0"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.15.0",
-    "@hoast/hoast": "^3.0.2",
+    "@babel/preset-env": "^7.16.4",
+    "@hoast/hoast": "^3.0.3",
     "@hoast/process-custom": "^3.0.0",
     "@hoast/process-postprocess": "^3.0.2",
     "@hoast/process-writefiles": "^3.0.0",
     "@hoast/source-javascript": "^3.0.0",
     "@hoast/source-readfiles": "^3.0.0",
-    "autoprefixer": "10.3.2",
-    "highlight.js": "^11.2.0",
-    "postcss": "^8.3.6",
+    "autoprefixer": "^10.4.0",
+    "highlight.js": "^11.3.1",
+    "postcss": "^8.3.11",
     "postcss-import": "^14.0.2",
-    "postcss-nesting": "^8.0.1",
+    "postcss-nesting": "^10.0.2",
     "postcss-reuse": "^2.1.9",
-    "postcss-preset-env": "6.7.0",
-    "serve": "12.0.0",
-    "tailwindcss": "^2.2.7"
+    "postcss-preset-env": "^7.0.1",
+    "serve": "13.0.2",
+    "tailwindcss": "^2.2.19"
   },
   "type": "module",
   "scripts": {

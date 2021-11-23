@@ -133,7 +133,8 @@ The directive's value should be function expression. If the directive is given a
 name the attribute with that name will be set to the value returned by the
 expression. Otherwise an object needs to be returned where the keys of the
 object are the attribute names and the value is set as the value of the
-attribute.
+attribute. Alternatively a promise can be returned resolving into an attribute
+value or object if attribute name and value pairs.
 
 #### Modifiers
 
@@ -182,13 +183,13 @@ gets split into two parts. The first part a list of variable names and the
 second part should be a function expression. The split happens at the `of` or
 `in` keyword. The variable names are the names under which the values of the
 function expression are made available on the [$for context](#$for). The
-function expression can return either a number, array, or object. Which variable
-name matches which value of the return type depends on the return type. For
-numbers only one variable will be set to the index of the iteration. For arrays
-the first variable is the value, and the second variable the index of the
-iteration. For objects the first variable is the key, the second variable is the
-value, and the third variable the index of the iteration. The directive can only
-be used on a
+function expression can return either a number, array, object, or promise
+resolving into a number, array, or object. Which variable name matches which
+value of the return type depends on the return type. For numbers only one
+variable will be set to the index of the iteration. For arrays the first
+variable is the value, and the second variable the index of the iteration. For
+objects the first variable is the key, the second variable is the value, and the
+third variable the index of the iteration. The directive can only be used on a
 [`template`](https://developer.mozilla.org/docs/Web/HTML/Element/template)
 element.
 
@@ -218,8 +219,8 @@ element.
 ### d-html
 
 Set the inner html of the element. The directive's value should be a function
-expression returning the HTML to set. The inner HTML is only updated if differs
-from the current value.
+expression returning the HTML to set, or a promise resolving into the HTML to
+set. The inner HTML is only updated if it differs from the current value.
 
 #### Modifiers
 
@@ -246,8 +247,10 @@ from the current value.
 Return whether the template should be added to the document. The directive's
 value should be a function expression. If the result is truthy then the element
 will added to the document otherwise. If the result was previously truthy and is
-not anymore then the element added by the directive will be removed. The
-directive can only be used on a
+not any more then the element added by the directive will be removed.
+Alternatively a promise can be returned. After it has been resolved its
+truthiness will be checked and the directive will update then. The directive can
+only be used on a
 [`template`](https://developer.mozilla.org/docs/Web/HTML/Element/template)
 element.
 
@@ -393,9 +396,9 @@ should be the variable name under which to make the reference available in the
 Set selected item of a select element or selectable input elements. Selectable
 input elements are input elements with the type `checkbox` or `radio`. The
 directive's value should be a function expression. The function expression
-should return the value of the item to select or an array of values to select if
-the `multiple` attribute is applied or an input element with the type `checkbox`
-is used.
+should return the value of the item to select, an array of values to select if
+the `multiple` attribute is applied, an input element with the type `checkbox`
+is used, or a promising resolving into one the previously mentioned types.
 
 #### Examples
 
@@ -450,7 +453,9 @@ Return whether the element should be displayed. The directive's value should be
 a function expression. The directive applies the inline styling of
 `display: none;` to the element if the directive's value returns a non truthy
 value (`false`, or `null`, etc.), otherwise the inline styling of
-`display: none;` is removed.
+`display: none;` is removed. Alternatively a promise can be returned. After it
+has been resolved its truthiness will be checked and the directive will update
+then.
 
 #### Examples
 
@@ -514,8 +519,9 @@ the state of the component.
 ### d-text
 
 Set the inner text or text content of the element. The directive's value should
-be a function expression returning the text to set. The inner text or text
-content is only updated if differs from the current value.
+be a function expression returning the text to set, or a promise resolving into
+the text to set. The inner text or text content is only updated if differs from
+the current value.
 
 #### Modifiers
 

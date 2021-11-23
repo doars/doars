@@ -1,3 +1,6 @@
+// Import utils.
+import { isPromise } from '../utils/PromiseUtils.js'
+
 export default {
   name: 'select',
 
@@ -12,48 +15,68 @@ export default {
       return
     }
 
-    // Execute attribute value.
-    const data = executeExpression(component, attribute, attribute.getValue())
+    const set = (data) => {
+      // Iterate over the select options.
+      if (element.tagName === 'SELECT') {
+        for (const option of Array.from(element.options)) {
+          // Update option if the selected value has changed.
+          const select = Array.isArray(data) ? data.includes(option.value) : data === option.value
+          if (option.selected !== select) {
+            // Update option's status.
+            option.selected = select
 
-    // Iterate over the select options.
-    if (element.tagName === 'SELECT') {
-      for (const option of Array.from(element.options)) {
-        // Update option if the selected value has changed.
-        const select = Array.isArray(data) ? data.includes(option.value) : data === option.value
-        if (option.selected !== select) {
-          // Update option's status.
-          option.selected = select
-
-          // Update option's attribute.
-          if (select) {
-            option.setAttribute('selected', '')
+            // Update option's attribute.
+            if (select) {
+              option.setAttribute('selected', '')
+            } else {
+              option.removeAttribute('selected')
+            }
+          }
+        }
+      } else if (type === 'checkbox') {
+        // Update option if the checked value has changed.
+        const checked = data.includes(element.value)
+        if (element.checked !== checked) {
+          // Update checked attribute.
+          if (checked) {
+            element.setAttribute('checked', '')
           } else {
-            option.removeAttribute('selected')
+            element.removeAttribute('checked')
+          }
+        }
+      } else {
+        // Update option if the checked value has changed.
+        const checked = data === element.value
+        if (element.checked !== checked) {
+          // Update checked attribute.
+          if (checked) {
+            element.setAttribute('checked', '')
+          } else {
+            element.removeAttribute('checked')
           }
         }
       }
-    } else if (type === 'checkbox') {
-      // Update option if the checked value has changed.
-      const checked = data.includes(element.value)
-      if (element.checked !== checked) {
-        // Update checked attribute.
-        if (checked) {
-          element.setAttribute('checked', '')
-        } else {
-          element.removeAttribute('checked')
-        }
-      }
+    }
+
+    // Execute attribute value.
+    const result = executeExpression(component, attribute, attribute.getValue())
+
+    // Store results.
+    attribute.setData(result)
+
+    // Handle promises.
+    if (isPromise(result)) {
+      Promise.resolve(result)
+        .then((result) => {
+          // If stored data has changed then this promise should be ignored.
+          if (attribute.getData() !== result) {
+            return
+          }
+
+          set(result)
+        })
     } else {
-      // Update option if the checked value has changed.
-      const checked = data === element.value
-      if (element.checked !== checked) {
-        // Update checked attribute.
-        if (checked) {
-          element.setAttribute('checked', '')
-        } else {
-          element.removeAttribute('checked')
-        }
-      }
+      set(result)
     }
   },
 }

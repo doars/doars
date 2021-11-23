@@ -1,5 +1,6 @@
 // Import utils.
 import { setAttribute, setAttributes } from '../utils/AttributeUtils.js'
+import { isPromise } from '../utils/PromiseUtils.js'
 import { parseSelector } from '../utils/StringUtils.js'
 
 export default {
@@ -10,35 +11,55 @@ export default {
     const element = attribute.getElement()
     const modifiers = attribute.getModifiers()
 
-    // Execute attribute value.
-    let data = executeExpression(component, attribute, attribute.getValue())
+    const set = (value) => {
+      if (modifiers.selector) {
+        if (typeof (value) !== 'string') {
+          console.error('Doars: Value returned to attribute directive must be a string if the selector modifier is set.')
+          return
+        }
+        value = parseSelector(value)
 
-    if (modifiers.selector) {
-      if (typeof (data) !== 'string') {
-        console.error('Doars: Value returned to attribute directive must be a string if the selector modifier is set.')
+        setAttributes(element, value)
         return
       }
-      data = parseSelector(data)
 
-      setAttributes(element, data)
-      return
+      if (Array.isArray(value)) {
+        console.error('Doars: Value returned to attribute directive can not be of type array.')
+        return
+      }
+
+      // Set attributes on element.
+      if (typeof (value) === 'object') {
+        setAttributes(element, value)
+        return
+      }
+
+      // Deconstruct attribute.
+      const key = attribute.getKeyRaw()
+
+      // Set attribute on element at key.
+      setAttribute(element, key, value)
     }
 
-    if (Array.isArray(data)) {
-      console.error('Doars: Value returned to attribute directive can not be of type array.')
-      return
+    // Execute attribute value.
+    const result = executeExpression(component, attribute, attribute.getValue())
+
+    // Store results.
+    attribute.setData(result)
+
+    // Handle promises.
+    if (isPromise(result)) {
+      Promise.resolve(result)
+        .then((result) => {
+          // If stored data has changed then this promise should be ignored.
+          if (attribute.getData() !== result) {
+            return
+          }
+
+          set(result)
+        })
+    } else {
+      set(result)
     }
-
-    // Set attributes on element.
-    if (typeof (data) === 'object') {
-      setAttributes(element, data)
-      return
-    }
-
-    // Deconstruct attribute.
-    const key = attribute.getKeyRaw()
-
-    // Set attribute on element at key.
-    setAttribute(element, key, data)
   },
 }

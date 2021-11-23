@@ -54,24 +54,24 @@ export default {
     }
 
     // Execute value and retrieve result.
-    const data = executeExpression(component, attribute, attribute.getValue())
+    const result = executeExpression(component, attribute, attribute.getValue())
 
-    // Store data for comparison later.
-    attribute.setData(data)
+    // Store results.
+    attribute.setData(result)
 
-    // Optionally handle promises and set data.
-    if (isPromise(data)) {
-      Promise.resolve(data)
+    // Handle promises.
+    if (isPromise(result)) {
+      Promise.resolve(result)
         .then((result) => {
           // If stored data has changed then this promise should be ignored.
-          if (attribute.getDate() !== data) {
+          if (attribute.getData() !== result) {
             return
           }
 
           set(result)
         })
     } else {
-      set(data)
+      set(result)
     }
   },
 }
