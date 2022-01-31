@@ -66,13 +66,13 @@ export default {
     // Handle promises.
     if (isPromise(result)) {
       Promise.resolve(result)
-        .then((result) => {
+        .then((resultResolved) => {
           // If stored data has changed then this promise should be ignored.
           if (attribute.getData() !== result) {
             return
           }
 
-          set(result)
+          set(resultResolved)
         })
     } else {
       set(result)

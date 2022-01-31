@@ -3074,13 +3074,13 @@ var directiveAttribute = {
     attribute.setData(result); // Handle promises.
 
     if (isPromise(result)) {
-      Promise.resolve(result).then(function (result) {
+      Promise.resolve(result).then(function (resultResolved) {
         // If stored data has changed then this promise should be ignored.
         if (attribute.getData() !== result) {
           return;
         }
 
-        set(result);
+        set(resultResolved);
       });
     } else {
       set(result);
@@ -3353,13 +3353,13 @@ var directiveFor = {
     })); // Handle promises.
 
     if (isPromise(result)) {
-      Promise.resolve(result).then(function (result) {
+      Promise.resolve(result).then(function (resultResolved) {
         // If stored data has changed then this promise should be ignored.
         if (attribute.getData().result !== result) {
           return;
         }
 
-        set(result);
+        set(resultResolved);
       });
     } else {
       set(result);
@@ -3494,13 +3494,13 @@ var directiveHtml = {
     attribute.setData(result); // Handle promises.
 
     if (isPromise(result)) {
-      Promise.resolve(result).then(function (result) {
+      Promise.resolve(result).then(function (resultResolved) {
         // If stored data has changed then this promise should be ignored.
         if (attribute.getData() !== result) {
           return;
         }
 
-        set(result);
+        set(resultResolved);
       });
     } else {
       set(result);
@@ -4068,13 +4068,13 @@ var directiveSelect = {
     attribute.setData(result); // Handle promises.
 
     if (isPromise(result)) {
-      Promise.resolve(result).then(function (result) {
+      Promise.resolve(result).then(function (resultResolved) {
         // If stored data has changed then this promise should be ignored.
         if (attribute.getData() !== result) {
           return;
         }
 
-        set(result);
+        set(resultResolved);
       });
     } else {
       set(result);
@@ -4128,7 +4128,7 @@ var directiveShow = {
       attribute.setData(Object.assign({}, data, {
         result: result
       }));
-      Promise.resolve(result).then(function (result) {
+      Promise.resolve(result).then(function (resultResolved) {
         // If stored data has changed then this promise should be ignored.
         if (attribute.getData().result !== result) {
           return;
@@ -4469,13 +4469,13 @@ var directiveText = {
     attribute.setData(result); // Handle promises.
 
     if (isPromise(result)) {
-      Promise.resolve(result).then(function (result) {
+      Promise.resolve(result).then(function (resultResolved) {
         // If stored data has changed then this promise should be ignored.
         if (attribute.getData() !== result) {
           return;
         }
 
-        set(result);
+        set(resultResolved);
       });
     } else {
       set(result);
