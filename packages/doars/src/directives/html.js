@@ -28,7 +28,11 @@ export default {
         }
 
         // Morph first child to given element tree.
-        morphTree(element.children[0], html)
+        const root = morphTree(element.children[0], html)
+        if (!element.children[0].isSameNode(root)) {
+          element.children[0].remove()
+          element.appendChild(root)
+        }
         return
       }
 

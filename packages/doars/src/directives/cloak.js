@@ -1,12 +1,14 @@
 export default {
   name: 'cloak',
 
-  update: (component, attribute, { transitionIn }) => {
+  update: function (component, attribute, { transitionIn }) {
     // Deconstruct attribute.
     const element = attribute.getElement()
 
     // Remove attribute from element.
-    element.removeAttribute(component.getLibrary().getOptions().prefix + '-' + this.name)
+    element.removeAttribute(
+      component.getLibrary().getOptions().prefix + '-' + this.name
+    )
 
     // Transition in.
     transitionIn(component, element)

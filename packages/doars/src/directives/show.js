@@ -30,7 +30,7 @@ export default {
 
       // Store new transition.
       attribute.setData(
-        Object.assign(data, {
+        Object.assign({}, data, {
           transition: transition,
         })
       )
@@ -46,7 +46,7 @@ export default {
     if (isPromise(result)) {
       // Store results.
       attribute.setData(
-        Object.assign(data, {
+        Object.assign({}, data, {
           result: result,
         })
       )
@@ -60,10 +60,10 @@ export default {
 
           set(result)
         })
-    } else if (data.result !== result) {
+    } else if (!data || data.result !== result) {
       // Store results.
       attribute.setData(
-        Object.assign(data, {
+        Object.assign({}, data, {
           result: result,
         })
       )

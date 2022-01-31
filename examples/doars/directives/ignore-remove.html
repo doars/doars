@@ -15,7 +15,8 @@
         </span>
       </div>
 
-      <button d-on:click="$component.querySelector('[d-ignore]').removeAttribute('d-ignore')">
+      <button
+        d-on:click="[...$component.querySelectorAll('[d-ignore]')].forEach(element => element.removeAttribute('d-ignore'))">
         Remove ignore!
       </button>
     </div>

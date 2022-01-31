@@ -23,19 +23,19 @@ export default {
         return
       }
 
-      if (Array.isArray(value)) {
-        console.error('Doars: Value returned to attribute directive can not be of type array.')
-        return
-      }
-
-      // Set attributes on element.
-      if (typeof (value) === 'object') {
-        setAttributes(element, value)
-        return
-      }
-
       // Deconstruct attribute.
       const key = attribute.getKeyRaw()
+
+      if (!key) {
+        // Set attributes on element.
+        if (typeof (value) === 'object' && !Array.isArray(value)) {
+          setAttributes(element, value)
+        } else {
+          console.error('Doars: Value returned to attribute directive of invalid type.')
+        }
+
+        return
+      }
 
       // Set attribute on element at key.
       setAttribute(element, key, value)

@@ -165,7 +165,7 @@ export default {
         }
 
         execute()
-      } else if (executionModifier === EXECUTION_MODIFIERS.BUFFER) {
+      } else if (executionModifier === EXECUTION_MODIFIERS.DEBOUNCE) {
         // Clear existing timeout.
         if (attribute[ON].timeout) {
           clearTimeout(attribute[ON].timeout)

@@ -228,7 +228,7 @@ export default {
 
       // Store results.
       attribute.setData(
-        Object.assign(data, {
+        Object.assign({}, data, {
           elements: elements,
         })
       )
@@ -249,7 +249,7 @@ export default {
 
     // Store results.
     attribute.setData(
-      Object.assign(data, {
+      Object.assign({}, data, {
         result: result,
       })
     )
