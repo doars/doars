@@ -7,6 +7,25 @@ var DoarsStore = (function () {
     }
   }
 
+  function _defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      descriptor.enumerable = descriptor.enumerable || false;
+      descriptor.configurable = true;
+      if ("value" in descriptor) descriptor.writable = true;
+      Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+
+  function _createClass(Constructor, protoProps, staticProps) {
+    if (protoProps) _defineProperties(Constructor.prototype, protoProps);
+    if (staticProps) _defineProperties(Constructor, staticProps);
+    Object.defineProperty(Constructor, "prototype", {
+      writable: false
+    });
+    return Constructor;
+  }
+
   function _inherits(subClass, superClass) {
     if (typeof superClass !== "function" && superClass !== null) {
       throw new TypeError("Super expression must either be null or a function");
@@ -18,6 +37,9 @@ var DoarsStore = (function () {
         writable: true,
         configurable: true
       }
+    });
+    Object.defineProperty(subClass, "prototype", {
+      writable: false
     });
     if (superClass) _setPrototypeOf(subClass, superClass);
   }
@@ -178,7 +200,7 @@ var DoarsStore = (function () {
     };
   }
 
-  function createContextStore (options, id, store, proxy) {
+  var createContextStore = (function (options, id, store, proxy) {
     return {
       deconstruct: !!options.deconstruct,
       name: '$store',
@@ -217,7 +239,7 @@ var DoarsStore = (function () {
         };
       }
     };
-  }
+  });
 
   var SYNC_STORE = Symbol('SYNC_STORE');
 
@@ -300,7 +322,7 @@ var DoarsStore = (function () {
     object[path[i]] = value;
   };
 
-  function createDirectiveSync (symbol, getData, contextPrefix) {
+  var createDirectiveSync = (function (symbol, getData, contextPrefix) {
     var destroy = function destroy(component, attribute) {
       // Exit early if nothing to destroy.
       if (!attribute[symbol]) {
@@ -546,11 +568,11 @@ var DoarsStore = (function () {
       },
       destroy: destroy
     };
-  }
+  });
 
   // Import symbols.
   var STORE_PREFIX = '$store.';
-  function createDirectiveSyncStore (id, store) {
+  var createDirectiveSyncStore = (function (id, store) {
     var directive = createDirectiveSync(SYNC_STORE, function (component, attribute) {
       // Remove prefix from value.
       var value = attribute.getValue();
@@ -568,7 +590,7 @@ var DoarsStore = (function () {
     }, STORE_PREFIX);
     directive.name = 'sync-store';
     return directive;
-  }
+  });
 
   // List of methods to revoke access to.
   var REFLECTION_METHODS = ['apply', 'construct', 'defineProperty', 'deleteProperty', 'get', 'getOwnPropertyDescriptor', 'getPrototypeOf', 'isExtensible', 'ownKeys', 'preventExtensions', 'set', 'setPrototypeOf'];
@@ -576,7 +598,7 @@ var DoarsStore = (function () {
    * Revocable proxy made using regular a proxy and a simple boolean.
    */
 
-  function RevocableProxy (target, handler) {
+  var RevocableProxy = (function (target, handler) {
     // Keep track of status.
     var revoked = false; // Add revocable handlers for each given handlers.
 
@@ -619,9 +641,9 @@ var DoarsStore = (function () {
         revoked = true;
       }
     };
-  }
+  });
 
-  var EventDispatcher =
+  var EventDispatcher = /*#__PURE__*/_createClass(
   /**
    * Create instance.
    */
@@ -739,7 +761,7 @@ var DoarsStore = (function () {
         event.callback.apply(event, _toConsumableArray(parameters));
       }
     };
-  };
+  });
 
   var ProxyDispatcher = /*#__PURE__*/function (_EventDispatcher) {
     _inherits(ProxyDispatcher, _EventDispatcher);
@@ -877,10 +899,10 @@ var DoarsStore = (function () {
       return _this;
     }
 
-    return ProxyDispatcher;
+    return _createClass(ProxyDispatcher);
   }(EventDispatcher);
 
-  var DoarsStore =
+  var DoarsStore = /*#__PURE__*/_createClass(
   /**
    * Create plugin instance.
    * @param {Doars} library Doars instance to add onto.
@@ -941,9 +963,9 @@ var DoarsStore = (function () {
       directiveSyncStore = null;
       contextStore = null;
     });
-  };
+  });
 
   return DoarsStore;
 
-}());
+})();
 //# sourceMappingURL=doars-store.iife.js.map

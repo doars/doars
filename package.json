@@ -3,7 +3,6 @@
   "name": "@doars/workspace",
   "workspaces": [
     ".docs/",
-    "examples/*",
     "packages/*"
   ],
   "scripts": {

@@ -11,7 +11,7 @@ export default (options) => {
   const directive = {
     name: 'update',
 
-    update: (component, attribute, { executeExpression }) => {
+    update: function (component, attribute, { executeExpression }) {
       // Store execute expression locally.
       if (!this._execute) {
         this._execute = executeExpression

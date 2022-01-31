@@ -4,6 +4,25 @@ function _classCallCheck(instance, Constructor) {
   }
 }
 
+function _defineProperties(target, props) {
+  for (var i = 0; i < props.length; i++) {
+    var descriptor = props[i];
+    descriptor.enumerable = descriptor.enumerable || false;
+    descriptor.configurable = true;
+    if ("value" in descriptor) descriptor.writable = true;
+    Object.defineProperty(target, descriptor.key, descriptor);
+  }
+}
+
+function _createClass(Constructor, protoProps, staticProps) {
+  if (protoProps) _defineProperties(Constructor.prototype, protoProps);
+  if (staticProps) _defineProperties(Constructor, staticProps);
+  Object.defineProperty(Constructor, "prototype", {
+    writable: false
+  });
+  return Constructor;
+}
+
 function _inherits(subClass, superClass) {
   if (typeof superClass !== "function" && superClass !== null) {
     throw new TypeError("Super expression must either be null or a function");
@@ -15,6 +34,9 @@ function _inherits(subClass, superClass) {
       writable: true,
       configurable: true
     }
+  });
+  Object.defineProperty(subClass, "prototype", {
+    writable: false
   });
   if (superClass) _setPrototypeOf(subClass, superClass);
 }
@@ -217,7 +239,7 @@ function _createForOfIteratorHelper(o, allowArrayLike) {
   };
 }
 
-function createContextUpdate (updater) {
+var createContextUpdate = (function (updater) {
   // Deconstruct updater.
   var id = updater.getId();
   var proxy = updater.getProxy();
@@ -241,9 +263,9 @@ function createContextUpdate (updater) {
       };
     }
   };
-}
+});
 
-function createDirectiveUpdate (options) {
+var createDirectiveUpdate = (function (options) {
   // Overwrite default options.
   options = Object.assign({
     defaultOrder: 500
@@ -334,7 +356,7 @@ function createDirectiveUpdate (options) {
       _iterator.f();
     }
   }];
-}
+});
 
 // List of methods to revoke access to.
 var REFLECTION_METHODS = ['apply', 'construct', 'defineProperty', 'deleteProperty', 'get', 'getOwnPropertyDescriptor', 'getPrototypeOf', 'isExtensible', 'ownKeys', 'preventExtensions', 'set', 'setPrototypeOf'];
@@ -342,7 +364,7 @@ var REFLECTION_METHODS = ['apply', 'construct', 'defineProperty', 'deletePropert
  * Revocable proxy made using regular a proxy and a simple boolean.
  */
 
-function RevocableProxy (target, handler) {
+var RevocableProxy = (function (target, handler) {
   // Keep track of status.
   var revoked = false; // Add revocable handlers for each given handlers.
 
@@ -385,9 +407,9 @@ function RevocableProxy (target, handler) {
       revoked = true;
     }
   };
-}
+});
 
-var EventDispatcher =
+var EventDispatcher = /*#__PURE__*/_createClass(
 /**
  * Create instance.
  */
@@ -505,7 +527,7 @@ function EventDispatcher() {
       event.callback.apply(event, _toConsumableArray(parameters));
     }
   };
-};
+});
 
 var ProxyDispatcher = /*#__PURE__*/function (_EventDispatcher) {
   _inherits(ProxyDispatcher, _EventDispatcher);
@@ -643,10 +665,10 @@ var ProxyDispatcher = /*#__PURE__*/function (_EventDispatcher) {
     return _this;
   }
 
-  return ProxyDispatcher;
+  return _createClass(ProxyDispatcher);
 }(EventDispatcher);
 
-var Updater = function Updater(options, callback) {
+var Updater = /*#__PURE__*/_createClass(function Updater(options, callback) {
   _classCallCheck(this, Updater);
 
   // Overwrite default options.
@@ -770,9 +792,9 @@ var Updater = function Updater(options, callback) {
       request = null;
     }
   };
-};
+});
 
-var DoarsUpdate =
+var DoarsUpdate = /*#__PURE__*/_createClass(
 /**
  * Create plugin instance.
  * @param {Doars} library Doars instance to add onto.
@@ -834,7 +856,7 @@ function DoarsUpdate(library) {
     directiveUpdate = null;
     updater = null;
   });
-};
+});
 
 export { DoarsUpdate as default };
 //# sourceMappingURL=doars-update.esm.js.map

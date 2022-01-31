@@ -4,6 +4,25 @@ function _classCallCheck(instance, Constructor) {
   }
 }
 
+function _defineProperties(target, props) {
+  for (var i = 0; i < props.length; i++) {
+    var descriptor = props[i];
+    descriptor.enumerable = descriptor.enumerable || false;
+    descriptor.configurable = true;
+    if ("value" in descriptor) descriptor.writable = true;
+    Object.defineProperty(target, descriptor.key, descriptor);
+  }
+}
+
+function _createClass(Constructor, protoProps, staticProps) {
+  if (protoProps) _defineProperties(Constructor.prototype, protoProps);
+  if (staticProps) _defineProperties(Constructor, staticProps);
+  Object.defineProperty(Constructor, "prototype", {
+    writable: false
+  });
+  return Constructor;
+}
+
 function _inherits(subClass, superClass) {
   if (typeof superClass !== "function" && superClass !== null) {
     throw new TypeError("Super expression must either be null or a function");
@@ -15,6 +34,9 @@ function _inherits(subClass, superClass) {
       writable: true,
       configurable: true
     }
+  });
+  Object.defineProperty(subClass, "prototype", {
+    writable: false
   });
   if (superClass) _setPrototypeOf(subClass, superClass);
 }
@@ -175,7 +197,7 @@ function _createForOfIteratorHelper(o, allowArrayLike) {
   };
 }
 
-function createContextStore (options, id, store, proxy) {
+var createContextStore = (function (options, id, store, proxy) {
   return {
     deconstruct: !!options.deconstruct,
     name: '$store',
@@ -214,7 +236,7 @@ function createContextStore (options, id, store, proxy) {
       };
     }
   };
-}
+});
 
 var SYNC_STORE = Symbol('SYNC_STORE');
 
@@ -297,7 +319,7 @@ var set = function set(object, path, value) {
   object[path[i]] = value;
 };
 
-function createDirectiveSync (symbol, getData, contextPrefix) {
+var createDirectiveSync = (function (symbol, getData, contextPrefix) {
   var destroy = function destroy(component, attribute) {
     // Exit early if nothing to destroy.
     if (!attribute[symbol]) {
@@ -543,11 +565,11 @@ function createDirectiveSync (symbol, getData, contextPrefix) {
     },
     destroy: destroy
   };
-}
+});
 
 // Import symbols.
 var STORE_PREFIX = '$store.';
-function createDirectiveSyncStore (id, store) {
+var createDirectiveSyncStore = (function (id, store) {
   var directive = createDirectiveSync(SYNC_STORE, function (component, attribute) {
     // Remove prefix from value.
     var value = attribute.getValue();
@@ -565,7 +587,7 @@ function createDirectiveSyncStore (id, store) {
   }, STORE_PREFIX);
   directive.name = 'sync-store';
   return directive;
-}
+});
 
 // List of methods to revoke access to.
 var REFLECTION_METHODS = ['apply', 'construct', 'defineProperty', 'deleteProperty', 'get', 'getOwnPropertyDescriptor', 'getPrototypeOf', 'isExtensible', 'ownKeys', 'preventExtensions', 'set', 'setPrototypeOf'];
@@ -573,7 +595,7 @@ var REFLECTION_METHODS = ['apply', 'construct', 'defineProperty', 'deletePropert
  * Revocable proxy made using regular a proxy and a simple boolean.
  */
 
-function RevocableProxy (target, handler) {
+var RevocableProxy = (function (target, handler) {
   // Keep track of status.
   var revoked = false; // Add revocable handlers for each given handlers.
 
@@ -616,9 +638,9 @@ function RevocableProxy (target, handler) {
       revoked = true;
     }
   };
-}
+});
 
-var EventDispatcher =
+var EventDispatcher = /*#__PURE__*/_createClass(
 /**
  * Create instance.
  */
@@ -736,7 +758,7 @@ function EventDispatcher() {
       event.callback.apply(event, _toConsumableArray(parameters));
     }
   };
-};
+});
 
 var ProxyDispatcher = /*#__PURE__*/function (_EventDispatcher) {
   _inherits(ProxyDispatcher, _EventDispatcher);
@@ -874,10 +896,10 @@ var ProxyDispatcher = /*#__PURE__*/function (_EventDispatcher) {
     return _this;
   }
 
-  return ProxyDispatcher;
+  return _createClass(ProxyDispatcher);
 }(EventDispatcher);
 
-var DoarsStore =
+var DoarsStore = /*#__PURE__*/_createClass(
 /**
  * Create plugin instance.
  * @param {Doars} library Doars instance to add onto.
@@ -938,7 +960,7 @@ function DoarsStore(library) {
     directiveSyncStore = null;
     contextStore = null;
   });
-};
+});
 
 export { DoarsStore as default };
 //# sourceMappingURL=doars-store.esm.js.map

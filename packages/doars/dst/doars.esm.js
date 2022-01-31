@@ -4,6 +4,25 @@ function _classCallCheck(instance, Constructor) {
   }
 }
 
+function _defineProperties(target, props) {
+  for (var i = 0; i < props.length; i++) {
+    var descriptor = props[i];
+    descriptor.enumerable = descriptor.enumerable || false;
+    descriptor.configurable = true;
+    if ("value" in descriptor) descriptor.writable = true;
+    Object.defineProperty(target, descriptor.key, descriptor);
+  }
+}
+
+function _createClass(Constructor, protoProps, staticProps) {
+  if (protoProps) _defineProperties(Constructor.prototype, protoProps);
+  if (staticProps) _defineProperties(Constructor, staticProps);
+  Object.defineProperty(Constructor, "prototype", {
+    writable: false
+  });
+  return Constructor;
+}
+
 function _inherits(subClass, superClass) {
   if (typeof superClass !== "function" && superClass !== null) {
     throw new TypeError("Super expression must either be null or a function");
@@ -15,6 +34,9 @@ function _inherits(subClass, superClass) {
       writable: true,
       configurable: true
     }
+  });
+  Object.defineProperty(subClass, "prototype", {
+    writable: false
   });
   if (superClass) _setPrototypeOf(subClass, superClass);
 }
@@ -237,14 +259,13 @@ function _createForOfIteratorHelper(o, allowArrayLike) {
 var ATTRIBUTES = Symbol('ATTRIBUTES');
 var COMPONENT = Symbol('COMPONENT');
 var FOR = Symbol('FOR');
-var IF = Symbol('IF');
 var INITIALIZED = Symbol('INITIALIZED');
 var ON = Symbol('ON');
 var REFERENCES = Symbol('REFERENCES');
 var REFERENCES_CACHE = Symbol('REFERENCES_CACHE');
 var SYNC_STATE = Symbol('SYNC_STATE');
 
-var EventDispatcher =
+var EventDispatcher = /*#__PURE__*/_createClass(
 /**
  * Create instance.
  */
@@ -362,7 +383,7 @@ function EventDispatcher() {
       event.callback.apply(event, _toConsumableArray(parameters));
     }
   };
-};
+});
 
 /**
   * Convert a string from kebab-case to camelCase.
@@ -643,6 +664,7 @@ var Attribute = /*#__PURE__*/function (_EventDispatcher) {
 
 
     var accessedItems = {},
+        data = null,
         directive,
         key,
         keyRaw,
@@ -769,12 +791,50 @@ var Attribute = /*#__PURE__*/function (_EventDispatcher) {
       _this.dispatchEvent('changed', [_assertThisInitialized(_this)]);
     };
     /**
+     * Clear custom data set.
+     */
+
+
+    _this.clearData = function () {
+      data = null;
+    };
+    /**
+     * Whether there is data set.
+     * @returns {boolean} Whether data is set.
+     */
+
+
+    _this.hasData = function () {
+      return data !== null;
+    };
+    /**
+     * Get custom data set previously.
+     * @returns {any} the data.
+     */
+
+
+    _this.getData = function () {
+      return data;
+    };
+    /**
+     * Set custom attribute data.
+     * @param {any} data Some data.
+     */
+
+
+    _this.setData = function (_data) {
+      data = _data;
+    };
+    /**
      * Destroy the attribute.
      */
 
 
     _this.destroy = function () {
-      // Clear accessed.
+      // Clear data.
+      _this.setData(null); // Clear accessed.
+
+
       _this.clearAccessed(); // Remove attribute from element's attributes.
 
 
@@ -864,7 +924,7 @@ var Attribute = /*#__PURE__*/function (_EventDispatcher) {
     return _this;
   }
 
-  return Attribute;
+  return _createClass(Attribute);
 }(EventDispatcher);
 
 // List of methods to revoke access to.
@@ -873,7 +933,7 @@ var REFLECTION_METHODS = ['apply', 'construct', 'defineProperty', 'deletePropert
  * Revocable proxy made using regular a proxy and a simple boolean.
  */
 
-function RevocableProxy (target, handler) {
+var RevocableProxy = (function (target, handler) {
   // Keep track of status.
   var revoked = false; // Add revocable handlers for each given handlers.
 
@@ -916,7 +976,7 @@ function RevocableProxy (target, handler) {
       revoked = true;
     }
   };
-}
+});
 
 var ProxyDispatcher = /*#__PURE__*/function (_EventDispatcher) {
   _inherits(ProxyDispatcher, _EventDispatcher);
@@ -1054,7 +1114,7 @@ var ProxyDispatcher = /*#__PURE__*/function (_EventDispatcher) {
     return _this;
   }
 
-  return ProxyDispatcher;
+  return _createClass(ProxyDispatcher);
 }(EventDispatcher);
 
 /**
@@ -2036,7 +2096,7 @@ var DIRECTIVE_UTILS = Object.freeze({
   transitionOut: transitionOut
 });
 
-var Component =
+var Component = /*#__PURE__*/_createClass(
 /**
  * Create instance.
  * @param {Doars} library Library instance.
@@ -2555,7 +2615,7 @@ function Component(library, element) {
       bubbles: true
     }));
   };
-};
+});
 
 var contextChildren = {
   name: '$children',
@@ -2960,6 +3020,15 @@ var contextState = {
   }
 };
 
+// Create and cache native promise for comparison.
+Function.prototype.toString.call(Function
+/* A native object */
+).replace('Function', 'Promise') // Replace identifier.
+.replace(/\(.*\)/, '()'); // Remove possible FormalParameterList.
+var isPromise = function isPromise(value) {
+  return value && Object.prototype.toString.call(value) === '[object Promise]';
+};
+
 // Import utils.
 var directiveAttribute = {
   name: 'attribute',
@@ -2967,36 +3036,55 @@ var directiveAttribute = {
     var executeExpression = _ref.executeExpression;
     // Deconstruct attribute.
     var element = attribute.getElement();
-    var modifiers = attribute.getModifiers(); // Execute attribute value.
+    var modifiers = attribute.getModifiers();
 
-    var data = executeExpression(component, attribute, attribute.getValue());
+    var set = function set(value) {
+      if (modifiers.selector) {
+        if (typeof value !== 'string') {
+          console.error('Doars: Value returned to attribute directive must be a string if the selector modifier is set.');
+          return;
+        }
 
-    if (modifiers.selector) {
-      if (typeof data !== 'string') {
-        console.error('Doars: Value returned to attribute directive must be a string if the selector modifier is set.');
+        value = parseSelector(value);
+        setAttributes(element, value);
         return;
-      }
+      } // Deconstruct attribute.
 
-      data = parseSelector(data);
-      setAttributes(element, data);
-      return;
+
+      var key = attribute.getKeyRaw();
+
+      if (!key) {
+        // Set attributes on element.
+        if (typeof value === 'object' && !Array.isArray(value)) {
+          setAttributes(element, value);
+        } else {
+          console.error('Doars: Value returned to attribute directive of invalid type.');
+        }
+
+        return;
+      } // Set attribute on element at key.
+
+
+      setAttribute(element, key, value);
+    }; // Execute attribute value.
+
+
+    var result = executeExpression(component, attribute, attribute.getValue()); // Store results.
+
+    attribute.setData(result); // Handle promises.
+
+    if (isPromise(result)) {
+      Promise.resolve(result).then(function (result) {
+        // If stored data has changed then this promise should be ignored.
+        if (attribute.getData() !== result) {
+          return;
+        }
+
+        set(result);
+      });
+    } else {
+      set(result);
     }
-
-    if (Array.isArray(data)) {
-      console.error('Doars: Value returned to attribute directive can not be of type array.');
-      return;
-    } // Set attributes on element.
-
-
-    if (typeof data === 'object') {
-      setAttributes(element, data);
-      return;
-    } // Deconstruct attribute.
-
-
-    var key = attribute.getKeyRaw(); // Set attribute on element at key.
-
-    setAttribute(element, key, data);
   }
 };
 
@@ -3146,19 +3234,13 @@ var directiveFor = {
       return;
     }
 
-    var data = parseForExpression(attribute.getValue());
+    var expression = parseForExpression(attribute.getValue());
 
-    if (!data) {
+    if (!expression) {
       console.error('Doars: Error in `for` expression: ', attribute.getValue());
       return;
-    } // Get list of elements already made by this attribute.
+    } // Setup update method.
 
-
-    if (!attribute[FOR]) {
-      attribute[FOR] = [];
-    }
-
-    var elements = attribute[FOR]; // Setup update method.
 
     var triggers = {};
 
@@ -3166,127 +3248,151 @@ var directiveFor = {
       if (!triggers[id]) {
         triggers[id] = ['$for'];
       }
+    };
+
+    var set = function set(iterable) {
+      var _data$elements;
+
+      // Get stored data.
+      var data = attribute.getData(); // Get list of elements already made by this attribute.
+
+      var elements = (_data$elements = data.elements) !== null && _data$elements !== void 0 ? _data$elements : []; // Process iterable based on type.
+
+      var iterableType = typeof iterable;
+
+      if (iterableType === 'number') {
+        for (var index = 0; index < iterable; index++) {
+          // Setup variables for context.
+          var variables = createVariables(expression.variables, index); // Add element based on data after previously iterated value.
+
+          setAfter(component, update, template, elements, index - 1, iterable, variables);
+        } // Remove old values.
+
+
+        removeAfter(component, elements, iterable);
+      } else if (iterableType === 'string') {
+        for (var _index = 0; _index < iterable.length; _index++) {
+          // Get value at index.
+          var value = iterable[_index]; // Setup variables for context.
+
+          var _variables = createVariables(expression.variables, value, _index); // Add element based on data after previously iterated value.
+
+
+          setAfter(component, update, template, elements, _index - 1, value, _variables);
+        } // Remove old values.
+
+
+        removeAfter(component, elements, iterable.length);
+      } else {
+        // We can't rely on Array.isArray since it might be a proxy, therefore we try to convert it to an array.
+        var isArray, length;
+
+        try {
+          var values = _toConsumableArray(iterable);
+
+          isArray = true;
+          length = values.length;
+        } catch (_unused) {}
+
+        if (isArray) {
+          for (var _index2 = 0; _index2 < length; _index2++) {
+            // Get value at index.
+            var _value = iterable[_index2]; // Setup variables for context.
+
+            var _variables2 = createVariables(expression.variables, _value, _index2); // Add element based on data after previously iterated value.
+
+
+            setAfter(component, update, template, elements, _index2 - 1, _value, _variables2);
+          }
+        } else {
+          var keys = Object.keys(iterable);
+          length = keys.length;
+
+          for (var _index3 = 0; _index3 < length; _index3++) {
+            // Get value at index.
+            var key = keys[_index3];
+            var _value2 = iterable[key]; // Setup variables for context.
+
+            var _variables3 = createVariables(expression.variables, key, _value2, _index3); // Add element based on data after previously iterated value.
+
+
+            setAfter(component, update, template, elements, _index3 - 1, _value2, _variables3);
+          }
+        } // Remove old values.
+
+
+        removeAfter(component, elements, length);
+      } // Dispatch triggers.
+
+
+      if (Object.getOwnPropertySymbols(triggers).length > 0) {
+        component.update(triggers);
+      } // Store results.
+
+
+      attribute.setData(Object.assign({}, data, {
+        elements: elements
+      }));
     }; // Get iterable value.
 
 
-    var iterable; // Check if iterable is a number.
+    var result; // Check if iterable is a number.
 
-    if (!isNaN(data.iterable)) {
-      iterable = Number(data.iterable);
+    if (!isNaN(expression.iterable)) {
+      result = Number(expression.iterable);
     } else {
       // Get iterable data, and this will automatically mark the data as being accessed by this component.
-      iterable = executeExpression(component, attribute, data.iterable);
-    }
-
-    var iterableType = typeof iterable; // Process iterable based on type.
-
-    if (iterableType === 'number') {
-      for (var index = 0; index < iterable; index++) {
-        // Setup variables for context.
-        var variables = createVariables(data.variables, index); // Add element based on data after previously iterated value.
-
-        setAfter(component, update, template, elements, index - 1, iterable, variables);
-      } // Remove old values.
+      result = executeExpression(component, attribute, expression.iterable);
+    } // Get stored data.
 
 
-      removeAfter(component, elements, iterable);
-    } else if (iterableType === 'string') {
-      for (var _index = 0; _index < iterable.length; _index++) {
-        // Get value at index.
-        var value = iterable[_index]; // Setup variables for context.
+    var data = attribute.getData(); // Store results.
 
-        var _variables = createVariables(data.variables, value, _index); // Add element based on data after previously iterated value.
+    attribute.setData(Object.assign({}, data, {
+      result: result
+    })); // Handle promises.
 
+    if (isPromise(result)) {
+      Promise.resolve(result).then(function (result) {
+        // If stored data has changed then this promise should be ignored.
+        if (attribute.getData().result !== result) {
+          return;
+        }
 
-        setAfter(component, update, template, elements, _index - 1, value, _variables);
-      } // Remove old values.
-
-
-      removeAfter(component, elements, iterable.length);
+        set(result);
+      });
     } else {
-      // We can't rely on Array.isArray since it might be a proxy, therefore we try to convert it to an array.
-      var isArray, length;
-
-      try {
-        var values = _toConsumableArray(iterable);
-
-        isArray = true;
-        length = values.length;
-      } catch (_unused) {}
-
-      if (isArray) {
-        for (var _index2 = 0; _index2 < length; _index2++) {
-          // Get value at index.
-          var _value = iterable[_index2]; // Setup variables for context.
-
-          var _variables2 = createVariables(data.variables, _value, _index2); // Add element based on data after previously iterated value.
-
-
-          setAfter(component, update, template, elements, _index2 - 1, _value, _variables2);
-        }
-      } else {
-        var keys = Object.keys(iterable);
-        length = keys.length;
-
-        for (var _index3 = 0; _index3 < length; _index3++) {
-          // Get value at index.
-          var key = keys[_index3];
-          var _value2 = iterable[key]; // Setup variables for context.
-
-          var _variables3 = createVariables(data.variables, key, _value2, _index3); // Add element based on data after previously iterated value.
-
-
-          setAfter(component, update, template, elements, _index3 - 1, _value2, _variables3);
-        }
-      } // Remove old values.
-
-
-      removeAfter(component, elements, length);
-    } // Dispatch triggers.
-
-
-    if (Object.getOwnPropertySymbols(triggers).length > 0) {
-      component.update(triggers);
+      set(result);
     }
   },
   destroy: function destroy(component, attribute) {
-    // Check if an object of lists exists.
-    if (!component[FOR]) {
-      return;
-    } // Check if list made by this attribute exist.
+    // Get stored data.
+    var data = attribute.getData(); // Get list of elements created by this attribute.
 
+    if (data.elements) {
+      // Iterate over generated elements.
+      var _iterator = _createForOfIteratorHelper(data.elements),
+          _step;
 
-    if (!attribute[FOR]) {
-      return;
-    } // Get list of elements created by this attribute.
+      try {
+        var _loop2 = function _loop2() {
+          var element = _step.value;
+          // Transition out.
+          transitionOut(component, element, function () {
+            // Remove element.
+            element.remove();
+          });
+        };
 
-
-    var elements = attribute[FOR]; // Iterate over generated elements.
-
-    var _iterator = _createForOfIteratorHelper(elements),
-        _step;
-
-    try {
-      var _loop2 = function _loop2() {
-        var element = _step.value;
-        // Transition out.
-        transitionOut(component, element, function () {
-          // Remove element.
-          element.remove();
-        });
-      };
-
-      for (_iterator.s(); !(_step = _iterator.n()).done;) {
-        _loop2();
-      } // Delete list of elements.
-
-    } catch (err) {
-      _iterator.e(err);
-    } finally {
-      _iterator.f();
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          _loop2();
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
     }
-
-    delete attribute[FOR];
   }
 };
 
@@ -3320,64 +3426,89 @@ var directiveHtml = {
         morphTree = _ref.morphTree;
     // Deconstruct attribute.
     var element = attribute.getElement();
-    var modifiers = attribute.getModifiers(); // Execute value and retrieve results.
+    var modifiers = attribute.getModifiers();
 
-    var html = executeExpression(component, attribute, attribute.getValue()); // Decode string.
+    var set = function set(html) {
+      // Decode string.
+      if (modifiers.decode && typeof html === 'string') {
+        html = decode(html);
+      } // Morph if morph modifier is set.
 
-    if (modifiers.decode && typeof html === 'string') {
-      html = decode(html);
-    } // Morph if morph modifier is set.
+
+      if (modifiers.morph) {
+        // Ensure element only has one child.
+        if (element.children.length === 0) {
+          element.appendChild(document.createElement('div'));
+        } else if (element.children.length > 1) {
+          for (var i = element.children.length - 1; i >= 1; i--) {
+            element.children[i].remove();
+          }
+        } // Morph first child to given element tree.
 
 
-    if (modifiers.morph) {
-      // Ensure element only has one child.
-      if (element.children.length === 0) {
-        element.appendChild(document.createElement('div'));
-      } else if (element.children.length > 1) {
-        for (var i = element.children.length - 1; i >= 1; i--) {
-          element.children[i].remove();
+        var root = morphTree(element.children[0], html);
+
+        if (!element.children[0].isSameNode(root)) {
+          element.children[0].remove();
+          element.appendChild(root);
         }
-      } // Morph first child to given element tree.
+
+        return;
+      } // Clone and set html as only child for HTMLElements.
 
 
-      morphTree(element.children[0], html);
-      return;
-    } // Clone and set html as only child for HTMLElements.
+      if (html instanceof HTMLElement) {
+        var _iterator = _createForOfIteratorHelper(element.children),
+            _step;
 
-
-    if (html instanceof HTMLElement) {
-      var _iterator = _createForOfIteratorHelper(element.children),
-          _step;
-
-      try {
-        for (_iterator.s(); !(_step = _iterator.n()).done;) {
-          var child = _step.value;
-          child.remove();
+        try {
+          for (_iterator.s(); !(_step = _iterator.n()).done;) {
+            var child = _step.value;
+            child.remove();
+          }
+        } catch (err) {
+          _iterator.e(err);
+        } finally {
+          _iterator.f();
         }
-      } catch (err) {
-        _iterator.e(err);
-      } finally {
-        _iterator.f();
+
+        element.appendChild(html.cloneNode(true));
+        return;
+      } // Set html via inner html for strings.
+
+
+      if (typeof html === 'string') {
+        if (element.innerHTML !== html) {
+          element.innerHTML = html;
+        }
+
+        return;
       }
 
-      element.appendChild(html.cloneNode(true));
-      return;
-    } // Set html via inner html for strings.
+      console.error('Doars/directives/html: Unknown type returned to directive!');
+    }; // Execute value and retrieve result.
 
 
-    if (typeof html === 'string') {
-      if (element.innerHTML !== html) {
-        element.innerHTML = html;
-      }
+    var result = executeExpression(component, attribute, attribute.getValue()); // Store results.
 
-      return;
+    attribute.setData(result); // Handle promises.
+
+    if (isPromise(result)) {
+      Promise.resolve(result).then(function (result) {
+        // If stored data has changed then this promise should be ignored.
+        if (attribute.getData() !== result) {
+          return;
+        }
+
+        set(result);
+      });
+    } else {
+      set(result);
     }
-
-    console.error('Doars/directives/html: Unknown type returned to directive!');
   }
 };
 
-// Import symbols.
+// Import utils.
 var directiveIf = {
   name: 'if',
   update: function update(component, attribute, _ref) {
@@ -3394,50 +3525,83 @@ var directiveIf = {
 
 
     if (template.childCount > 1) {
-      console.warn('Doars: `if` directive must have only one child node.');
+      console.warn('Doars: `if` directive must have a single child node.');
       return;
-    } // Execute expression.
+    }
+
+    var set = function set(result) {
+      // Get stored data.
+      var data = attribute.getData(); // Get existing reference element.
+
+      var element = data.element;
+      var transition = data.transition;
+
+      if (!result) {
+        // If the element exists then transition out and remove the element.
+        if (element) {
+          // Cancel previous transition.
+          if (transition) {
+            transition();
+          }
+
+          transition = transitionOut(component, element, function () {
+            element.remove();
+          });
+        }
+      } else if (!element) {
+        // If the reference does not exist create the element.
+        // Cancel previous transition.
+        if (transition) {
+          transition();
+        } // Create new element from template.
 
 
-    var data = executeExpression(component, attribute, attribute.getValue()); // Get existing reference element.
+        element = document.importNode(template.content, true); // Add element after the template element.
 
-    var element = template[IF];
+        insertAfter(template, element); // Get HTMLElement reference instead of DocumentFragment.
 
-    if (!data) {
-      // If the element exists then transition out and remove the element.
-      if (element) {
-        transitionOut(component, element, function () {
-          element.remove();
-        });
-      } // Exit early.
+        element = template.nextElementSibling; // Transition element in.
+
+        transition = transitionIn(component, element);
+      } // Store results.
 
 
-      return;
-    } // If the reference does not exist create the element.
+      attribute.setData(Object.assign({}, data, {
+        element: element,
+        transition: transition
+      }));
+    }; // Execute expression.
 
 
-    if (!element) {
-      // Create new element from template.
-      element = document.importNode(template.content, true); // Add element after the template element.
+    var result = executeExpression(component, attribute, attribute.getValue()); // Get stored data.
 
-      insertAfter(template, element); // Get HTMLElement reference instead of DocumentFragment.
+    var data = attribute.getData(); // Store results.
 
-      template[IF] = element = template.nextElementSibling; // Transition element in.
+    attribute.setData(Object.assign({}, data, {
+      result: result
+    })); // Handle promises.
 
-      transitionIn(component, element);
+    if (isPromise(result)) {
+      Promise.resolve(result).then(function (result) {
+        // If stored data has changed then this promise should be ignored.
+        if (attribute.getData().result !== result) {
+          return;
+        }
+
+        set(result);
+      });
+    } else {
+      set(result);
     }
   },
   destroy: function destroy(component, attribute, _ref2) {
     var transitionOut = _ref2.transitionOut;
-    // Deconstruct attribute.
-    var template = attribute.getElement(); // Get element from template.
+    // Get stored data.
+    var data = attribute.getData(); // If the element exists then transition out and remove the element.
 
-    var element = template[IF]; // If the element exists then transition out and remove the element.
-
-    if (element) {
-      transitionOut(component, element, function () {
-        element.remove();
-        template[IF] = undefined;
+    if (data.element) {
+      transitionOut(component, data.element, function () {
+        data.element.remove();
       });
     }
   }
@@ -3704,7 +3868,7 @@ var directiveOn = {
         }
 
         execute();
-      } else if (executionModifier === EXECUTION_MODIFIERS.BUFFER) {
+      } else if (executionModifier === EXECUTION_MODIFIERS.DEBOUNCE) {
         // Clear existing timeout.
         if (attribute[ON].timeout) {
           clearTimeout(attribute[ON].timeout);
@@ -3837,6 +4001,7 @@ var directiveReference = {
   destroy: destroy
 };
 
+// Import utils.
 var directiveSelect = {
   name: 'select',
   update: function update(component, attribute, _ref) {
@@ -3849,56 +4014,75 @@ var directiveSelect = {
     if (element.tagName !== 'SELECT' && !(element.tagName === 'INPUT' && (type === 'checkbox' || type === 'radio'))) {
       console.warn('Doars: `select` directive must be placed on a `select` tag or `input` of type checkbox or radio.');
       return;
-    } // Execute attribute value.
+    }
 
+    var set = function set(data) {
+      // Iterate over the select options.
+      if (element.tagName === 'SELECT') {
+        for (var _i = 0, _Array$from = Array.from(element.options); _i < _Array$from.length; _i++) {
+          var option = _Array$from[_i];
+          // Update option if the selected value has changed.
+          var select = Array.isArray(data) ? data.includes(option.value) : data === option.value;
 
-    var data = executeExpression(component, attribute, attribute.getValue()); // Iterate over the select options.
+          if (option.selected !== select) {
+            // Update option's status.
+            option.selected = select; // Update option's attribute.
 
-    if (element.tagName === 'SELECT') {
-      for (var _i = 0, _Array$from = Array.from(element.options); _i < _Array$from.length; _i++) {
-        var option = _Array$from[_i];
-        // Update option if the selected value has changed.
-        var select = Array.isArray(data) ? data.includes(option.value) : data === option.value;
+            if (select) {
+              option.setAttribute('selected', '');
+            } else {
+              option.removeAttribute('selected');
+            }
+          }
+        }
+      } else if (type === 'checkbox') {
+        // Update option if the checked value has changed.
+        var checked = data.includes(element.value);
 
-        if (option.selected !== select) {
-          // Update option's status.
-          option.selected = select; // Update option's attribute.
-
-          if (select) {
-            option.setAttribute('selected', '');
+        if (element.checked !== checked) {
+          // Update checked attribute.
+          if (checked) {
+            element.setAttribute('checked', '');
           } else {
-            option.removeAttribute('selected');
+            element.removeAttribute('checked');
+          }
+        }
+      } else {
+        // Update option if the checked value has changed.
+        var _checked = data === element.value;
+
+        if (element.checked !== _checked) {
+          // Update checked attribute.
+          if (_checked) {
+            element.setAttribute('checked', '');
+          } else {
+            element.removeAttribute('checked');
           }
         }
       }
-    } else if (type === 'checkbox') {
-      // Update option if the checked value has changed.
-      var checked = data.includes(element.value);
+    }; // Execute attribute value.
 
-      if (element.checked !== checked) {
-        // Update checked attribute.
-        if (checked) {
-          element.setAttribute('checked', '');
-        } else {
-          element.removeAttribute('checked');
+
+    var result = executeExpression(component, attribute, attribute.getValue()); // Store results.
+
+    attribute.setData(result); // Handle promises.
+
+    if (isPromise(result)) {
+      Promise.resolve(result).then(function (result) {
+        // If stored data has changed then this promise should be ignored.
+        if (attribute.getData() !== result) {
+          return;
         }
-      }
+
+        set(result);
+      });
     } else {
-      // Update option if the checked value has changed.
-      var _checked = data === element.value;
-
-      if (element.checked !== _checked) {
-        // Update checked attribute.
-        if (_checked) {
-          element.setAttribute('checked', '');
-        } else {
-          element.removeAttribute('checked');
-        }
-      }
+      set(result);
     }
   }
 };
 
+// Import utils.
 var directiveShow = {
   name: 'show',
   update: function update(component, attribute, _ref) {
@@ -3906,17 +4090,58 @@ var directiveShow = {
         transitionIn = _ref.transitionIn,
         transitionOut = _ref.transitionOut;
     // Deconstruct attribute.
-    var element = attribute.getElement(); // Execute attribute value.
+    var element = attribute.getElement();
 
-    var data = executeExpression(component, attribute, attribute.getValue()); // Assign display based on truthiness of expression result.
+    var set = function set() {
+      // Get stored data.
+      var data = attribute.getData(); // Cancel previous transition.
 
-    if (data) {
-      element.style.display = null;
-      transitionIn(component, element);
-    } else {
-      transitionOut(component, element, function () {
-        element.style.display = 'none';
+      if (data.transition) {
+        data.transition();
+      } // Assign display based on truthiness of expression result.
+
+
+      var transition;
+
+      if (data.result) {
+        element.style.display = null;
+        transition = transitionIn(component, element);
+      } else {
+        transition = transitionOut(component, element, function () {
+          element.style.display = 'none';
+        });
+      } // Store new transition.
+
+
+      attribute.setData(Object.assign({}, data, {
+        transition: transition
+      }));
+    }; // Execute attribute value.
+
+
+    var result = executeExpression(component, attribute, attribute.getValue()); // Get stored data.
+
+    var data = attribute.getData(); // Handle promises.
+
+    if (isPromise(result)) {
+      // Store results.
+      attribute.setData(Object.assign({}, data, {
+        result: result
+      }));
+      Promise.resolve(result).then(function (result) {
+        // If stored data has changed then this promise should be ignored.
+        if (attribute.getData().result !== result) {
+          return;
+        }
+
+        set();
       });
+    } else if (!data || data.result !== result) {
+      // Store results.
+      attribute.setData(Object.assign({}, data, {
+        result: result
+      }));
+      set();
     }
   }
 };
@@ -3952,7 +4177,7 @@ var set = function set(object, path, value) {
   object[path[i]] = value;
 };
 
-function createDirectiveSync (symbol, getData, contextPrefix) {
+var createDirectiveSync = (function (symbol, getData, contextPrefix) {
   var destroy = function destroy(component, attribute) {
     // Exit early if nothing to destroy.
     if (!attribute[symbol]) {
@@ -4198,7 +4423,7 @@ function createDirectiveSync (symbol, getData, contextPrefix) {
     },
     destroy: destroy
   };
-}
+});
 
 // Import symbols.
 var STATE_PREFIX = '$state.';
@@ -4225,16 +4450,35 @@ var directiveText = {
     var executeExpression = _ref.executeExpression;
     // Deconstruct attribute.
     var element = attribute.getElement();
-    var modifiers = attribute.getModifiers(); // Execute value and retrieve text.
+    var modifiers = attribute.getModifiers();
 
-    var text = executeExpression(component, attribute, attribute.getValue()); // Assign text.
-
-    if (modifiers.content) {
-      if (element.textContent !== text) {
-        element.textContent = text;
+    var set = function set(text) {
+      // Assign text.
+      if (modifiers.content) {
+        if (element.textContent !== text) {
+          element.textContent = text;
+        }
+      } else if (element.innerText !== text) {
+        element.innerText = text;
       }
-    } else if (element.innerText !== text) {
-      element.innerText = text;
+    }; // Execute value and retrieve result.
+
+
+    var result = executeExpression(component, attribute, attribute.getValue()); // Store results.
+
+    attribute.setData(result); // Handle promises.
+
+    if (isPromise(result)) {
+      Promise.resolve(result).then(function (result) {
+        // If stored data has changed then this promise should be ignored.
+        if (attribute.getData() !== result) {
+          return;
+        }
+
+        set(result);
+      });
+    } else {
+      set(result);
     }
   }
 };
@@ -5182,7 +5426,7 @@ var Doars = /*#__PURE__*/function (_EventDispatcher) {
     return _this;
   }
 
-  return Doars;
+  return _createClass(Doars);
 }(EventDispatcher);
 
 export { Doars as default };

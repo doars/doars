@@ -7,6 +7,25 @@ var DoarsRouter = (function () {
     }
   }
 
+  function _defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      descriptor.enumerable = descriptor.enumerable || false;
+      descriptor.configurable = true;
+      if ("value" in descriptor) descriptor.writable = true;
+      Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+
+  function _createClass(Constructor, protoProps, staticProps) {
+    if (protoProps) _defineProperties(Constructor.prototype, protoProps);
+    if (staticProps) _defineProperties(Constructor, staticProps);
+    Object.defineProperty(Constructor, "prototype", {
+      writable: false
+    });
+    return Constructor;
+  }
+
   function _inherits(subClass, superClass) {
     if (typeof superClass !== "function" && superClass !== null) {
       throw new TypeError("Super expression must either be null or a function");
@@ -18,6 +37,9 @@ var DoarsRouter = (function () {
         writable: true,
         configurable: true
       }
+    });
+    Object.defineProperty(subClass, "prototype", {
+      writable: false
     });
     if (superClass) _setPrototypeOf(subClass, superClass);
   }
@@ -184,7 +206,7 @@ var DoarsRouter = (function () {
    * Revocable proxy made using regular a proxy and a simple boolean.
    */
 
-  function RevocableProxy (target, handler) {
+  var RevocableProxy = (function (target, handler) {
     // Keep track of status.
     var revoked = false; // Add revocable handlers for each given handlers.
 
@@ -227,7 +249,7 @@ var DoarsRouter = (function () {
         revoked = true;
       }
     };
-  }
+  });
 
   var ROUTE_TO = Symbol('ROUTE_TO');
   var ROUTER = Symbol('ROUTER');
@@ -351,7 +373,9 @@ var DoarsRouter = (function () {
           var code = str.charCodeAt(j);
 
           if ( // `0-9`
-          code >= 48 && code <= 57 || code >= 65 && code <= 90 || code >= 97 && code <= 122 || // `_`
+          code >= 48 && code <= 57 || // `A-Z`
+          code >= 65 && code <= 90 || // `a-z`
+          code >= 97 && code <= 122 || // `_`
           code === 95) {
             name += str[j++];
             continue;
@@ -678,7 +702,7 @@ var DoarsRouter = (function () {
     return stringToRegexp(path, keys, options);
   }
 
-  var EventDispatcher =
+  var EventDispatcher = /*#__PURE__*/_createClass(
   /**
    * Create instance.
    */
@@ -796,7 +820,7 @@ var DoarsRouter = (function () {
         event.callback.apply(event, _toConsumableArray(parameters));
       }
     };
-  };
+  });
 
   var Router = /*#__PURE__*/function (_EventDispatcher) {
     _inherits(Router, _EventDispatcher);
@@ -839,7 +863,7 @@ var DoarsRouter = (function () {
        */
 
 
-      var updateRoute = function (url, newPath, newRoute) {
+      var updateRoute = function updateRoute(url, newPath, newRoute) {
         // Update stored data.
         path = newPath;
         route = newRoute; // Update page history if the option is set.
@@ -856,8 +880,8 @@ var DoarsRouter = (function () {
         } // Dispatch event on router.
 
 
-        this.dispatchEvent('changed', [this, route, path]);
-      }.bind(_assertThisInitialized(_this));
+        _this.dispatchEvent('changed', [_assertThisInitialized(_this), route, path]);
+      };
       /**
        * Get router id.
        * @returns {Symbol} Unique identifier.
@@ -925,7 +949,7 @@ var DoarsRouter = (function () {
         // Convert path to regexp and store it in routes.
         routes[_route] = pathToRegexp(_route, [], options.pathToRegexp); // Dispatch add event.
 
-        this.dispatchEvent('added', [this, _route]);
+        _this.dispatchEvent('added', [_assertThisInitialized(_this), _route]);
 
         if (path) {
           // Remove base url, if present.
@@ -947,14 +971,14 @@ var DoarsRouter = (function () {
         // Delete route.
         delete routes[_route]; // Dispatch removed event.
 
-        this.dispatchEvent('removed', [this, _route]);
+        _this.dispatchEvent('removed', [_assertThisInitialized(_this), _route]);
 
         if (route === _route) {
           // Set current route as none.
           path = null;
           route = null; // Dispatch changed event.
 
-          this.dispatchEvent('changed', [this, route, path]);
+          _this.dispatchEvent('changed', [_assertThisInitialized(_this), route, path]);
         }
       };
       /**
@@ -989,11 +1013,11 @@ var DoarsRouter = (function () {
       return _this;
     }
 
-    return Router;
+    return _createClass(Router);
   }(EventDispatcher);
 
   // Import router.
-  function createDirectiveRouter (routerOptions) {
+  var createDirectiveRouter = (function (routerOptions) {
     return {
       name: 'router',
       update: function update(component, attribute, _ref) {
@@ -1035,7 +1059,7 @@ var DoarsRouter = (function () {
         }]);
       }
     };
-  }
+  });
 
   /**
    * Convert string to HTML element.
@@ -1290,7 +1314,7 @@ var DoarsRouter = (function () {
     return value && typeof value === 'object' && !Array.isArray(value);
   };
 
-  var DoarsRouter =
+  var DoarsRouter = /*#__PURE__*/_createClass(
   /**
    * Create plugin instance.
    * @param {Doars} library Doars instance to add onto.
@@ -1320,9 +1344,9 @@ var DoarsRouter = (function () {
 
       directiveRouter = null;
     });
-  };
+  });
 
   return DoarsRouter;
 
-}());
+})();
 //# sourceMappingURL=doars-router.iife.js.map

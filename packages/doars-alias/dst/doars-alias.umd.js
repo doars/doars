@@ -2,12 +2,31 @@
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.DoarsAlias = factory());
-}(this, (function () { 'use strict';
+})(this, (function () { 'use strict';
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
+  }
+
+  function _defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      descriptor.enumerable = descriptor.enumerable || false;
+      descriptor.configurable = true;
+      if ("value" in descriptor) descriptor.writable = true;
+      Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+
+  function _createClass(Constructor, protoProps, staticProps) {
+    if (protoProps) _defineProperties(Constructor.prototype, protoProps);
+    if (staticProps) _defineProperties(Constructor, staticProps);
+    Object.defineProperty(Constructor, "prototype", {
+      writable: false
+    });
+    return Constructor;
   }
 
   function _toConsumableArray(arr) {
@@ -154,7 +173,7 @@
     return value && typeof value === 'object' && !Array.isArray(value);
   };
 
-  var DoarsAlias =
+  var DoarsAlias = /*#__PURE__*/_createClass(
   /**
    * Create plugin instance.
    * @param {Doars} library Doars instance to add onto.
@@ -397,9 +416,9 @@
         contextsRenamed = null;
       }
     });
-  };
+  });
 
   return DoarsAlias;
 
-})));
+}));
 //# sourceMappingURL=doars-alias.umd.js.map
