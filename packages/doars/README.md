@@ -19,6 +19,7 @@ basic contexts and directives.
 - [Contexts overview](#contexts-overview)
 - [Directives](#directives)
 - [Contexts](#contexts)
+- [Scope](#scope)
 - [API](#api)
   - [EventDispatcher](#eventdispatcher)
   - [ProxyDispatcher](#proxydispatcher)
@@ -96,18 +97,18 @@ library.
 
 ## Contexts overview
 
-| Name                        | Description                                                            |
-| --------------------------- | ---------------------------------------------------------------------- |
-| [$children](#$children)     | List of contexts of child components.                                  |
-| [$component](#$component)   | Component's root element.                                              |
-| [$dispatch](#$dispatch)     | Dispatch custom event on the element.                                  |
-| [$element](#$element)       | Directive's element.                                                   |
-| [$for](#$for)               | Get variables defined in the for directive.                            |
-| [$inContext](#$inContext)   | Execute a function in context after the existing one has been revoked. |
-| [$nextTick](#$nextTick)     | Execute a function after updates are done processing.                  |
-| [$parent](#$parent)         | Context of parent component.                                           |
-| [$references](#$references) | List of referenced elements in the component.                          |
-| [$state](#$state)           | Get component's state.                                                 |
+| Name                         | Description                                                            |
+| ---------------------------- | ---------------------------------------------------------------------- |
+| [\$children](#$children)     | List of contexts of child components.                                  |
+| [\$component](#$component)   | Component's root element.                                              |
+| [\$dispatch](#$dispatch)     | Dispatch custom event on the element.                                  |
+| [\$element](#$element)       | Directive's element.                                                   |
+| [\$for](#$for)               | Get variables defined in the for directive.                            |
+| [\$inContext](#$inContext)   | Execute a function in context after the existing one has been revoked. |
+| [\$nextTick](#$nextTick)     | Execute a function after updates are done processing.                  |
+| [\$parent](#$parent)         | Context of parent component.                                           |
+| [\$references](#$references) | List of referenced elements in the component.                          |
+| [\$state](#$state)           | Get component's state.                                                 |
 
 ## Directives
 
@@ -182,7 +183,7 @@ Loop over a value and create elements based on a template. The directive's value
 gets split into two parts. The first part a list of variable names and the
 second part should be a function expression. The split happens at the `of` or
 `in` keyword. The variable names are the names under which the values of the
-function expression are made available on the [$for context](#$for). The
+function expression are made available on the [\$for context](#$for). The
 function expression can return either a number, array, object, or promise
 resolving into a number, array, or object. Which variable name matches which
 value of the return type depends on the return type. For numbers only one
@@ -335,6 +336,17 @@ event is triggered.
   made available in an $events context and the most recent event is also
   available in the $event context. If set without a specific value then 500 will
   be used.
+- `{Boolean} document = false` Listen for the event on the document, instead of
+  the element the directive is placed on.
+- `{Number} held = null` Only fire the event if the key, mouse, or pointer was
+  held down for the amount of time in milliseconds specified. This modifier can
+  only be used in combination with the `keydown`, `mousedown`, and `pointerdown`
+  events.
+- `{Number} hold = null` Only fire the event after the amount of time specified
+  has been elapsed and the key, mouse, or pointer has been held down. This
+  modifier can only be used in combination with the `keydown`, `mousedown`, and
+  `pointerdown` events. The key difference with the held modifier is this fires
+  as soon as the time has elapsed.
 - `{Boolean} meta = false` Whether the meta (command or windows) key needs to
   held for the directive to fire.
 - `{Boolean} once = false` WWhether the `once` option needs to be enabled when
@@ -349,14 +361,19 @@ event is triggered.
   change must be the directive's element itself and not an underlying element.
 - `{Boolean} stop = false` Whether to call `stopPropagation` on the event
   invoking the route change.
-- `{Boolean} super = false` See meta modifier.
+- `{Boolean} super = false` See `meta` modifier.
 - `{Number} throttle = null` Prevent the event from firing again for the amount
   of time in milliseconds specified. All events will be made available in an
   $events context and the most recent event is also available in the $event
   context. If set without a specific value then 500 will be used.
+- `{Boolean} window = false` Listen for the event on the window, instead of
+  the element the directive is placed on.
 
-Only one of the following three modifiers can be used at a time `buffer`,
-`debounce`, or `throttle`.
+Only one of the following five modifiers can be used at a time `buffer`, `held`
+`hold`, `debounce`, or `throttle`.
+
+Only one of the following four modifiers can be used at a time `document`,
+`outside`, `self`, or `window`.
 
 #### Examples
 
@@ -602,7 +619,7 @@ value should be a function expression.
 
 Contexts are the variables available to directive expressions during execution.
 
-### $children
+### \$children
 
 List of contexts of child components.
 
@@ -618,7 +635,7 @@ List of contexts of child components.
 <div d-text="console.log($children[0])"></div>
 ```
 
-### $component
+### \$component
 
 Component's root element.
 
@@ -629,7 +646,7 @@ Component's root element.
 <div d-initialized="$component.id = 'myComponent'"></div>
 ```
 
-### $dispatch
+### \$dispatch
 
 Dispatch custom event on the element.
 
@@ -643,7 +660,7 @@ Dispatch custom event on the element.
 <div d-on:click="$dispatch('beenClicked')"></div>
 ```
 
-### $element
+### \$element
 
 Directive's element.
 
@@ -656,7 +673,7 @@ Directive's element.
 <div d-initialized="$element.id = 'myElement'"></div>
 ```
 
-### $for
+### \$for
 
 Get variables defined in the for directive. This context gets deconstruct
 automatically so when accessing the properties you do not need to prefix it with
@@ -691,7 +708,7 @@ automatically so when accessing the properties you do not need to prefix it with
 </template>
 ```
 
-### $inContext
+### \$inContext
 
 Execute a function in context after the existing one has been revoked. Whereby
 the first parameter of the callback method will be an object containing the
@@ -714,7 +731,7 @@ asynchronous function.
   })"></div>
 ```
 
-### $nextTick
+### \$nextTick
 
 Execute a function after updates are done processing. Whereby the first
 parameter of the callback method will be an object containing the contexts.
@@ -733,7 +750,7 @@ parameter of the callback method will be an object containing the contexts.
   })"></div>
 ```
 
-### $parent
+### \$parent
 
 Context of parent component.
 
@@ -746,7 +763,7 @@ Context of parent component.
 <div d-initialized="$parent.state.accessible = true"></div>
 ```
 
-### $references
+### \$references
 
 List of referenced elements in the component.
 
@@ -760,7 +777,7 @@ List of referenced elements in the component.
 <div d-initialized="console.log($references.otherElement)"></div>
 ```
 
-### $state
+### \$state
 
 Get component's state. This context gets deconstruct automatically so when
 accessing the properties you do not need to prefix it with `$state`. Do note the
@@ -787,6 +804,10 @@ returned.
 <!-- Sets the message of the state as innerText on the directive's element. The same as the previous example, but it makes use of the fact that the context gets automatically deconstructed. -->
 <div d-text="message"></div>
 ```
+
+## Scope
+
+TODO:
 
 ## API
 
@@ -900,6 +921,14 @@ Extends the [`EventDispatcher`](#eventdispatcher).
 - `removeDirectives` Remove directives. _Can only be called when NOT enabled._
   - `@param {...Object} directives` List of directives to remove.
   - `@returns {Array<Object>}` List of removed directives.
+- `getScope` Get scope.
+  - `@returns {Object}` Stored scope.
+- `addScope` Add a value to the scope.
+  - `@param {String} name` Property name.
+  - `@param {Any} value` Value to add.
+  - `@returns {Boolean}` Whether it was successfully added.
+- `removeScope` Remove a property from the scope.
+  - `@param {String} name` Name of the property.
 - `update` Update directives based on triggers. _Can only be called when
   enabled._
   - `@param {Array<Object>} triggers` List of triggers to update with.
