@@ -2,13 +2,25 @@
 import { ON } from '../symbols.js'
 
 // Declare constants.
+const CANCEL_EVENTS = {
+  keydown: 'keyup',
+  mousedown: 'mouseup',
+  pointerdown: 'pointerup',
+}
 const EXECUTION_MODIFIERS = {
   NONE: 0,
   BUFFER: 1,
   DEBOUNCE: 2,
-  THROTTLE: 3,
+  HELD: 3,
+  HOLD: 4,
+  THROTTLE: 5,
 }
-const KEYPRESS_MODIFIERS = ['alt', 'ctrl', 'meta', 'shift']
+const KEYPRESS_MODIFIERS = [
+  'alt',
+  'ctrl',
+  'meta',
+  'shift',
+]
 
 export default {
   name: 'on',
@@ -85,6 +97,16 @@ export default {
       if (modifiers.debounce === true) {
         modifiers.debounce = 500
       }
+    } else if (modifiers.held) {
+      executionModifier = EXECUTION_MODIFIERS.HELD
+      if (modifiers.held === true) {
+        modifiers.held = 500
+      }
+    } else if (modifiers.hold) {
+      executionModifier = EXECUTION_MODIFIERS.HOLD
+      if (modifiers.hold === true) {
+        modifiers.hold = 500
+      }
     } else if (modifiers.throttle) {
       executionModifier = EXECUTION_MODIFIERS.THROTTLE
       if (modifiers.throttle === true) {
@@ -105,17 +127,27 @@ export default {
       }
     }
 
+    // Set listener target and start listening.
+    let target = element
+    if (modifiers.document || modifiers.outside) {
+      target = document
+    } else if (modifiers.window) {
+      target = window
+    }
+
     const handler = (event) => {
       // Only fire when self is provided if the target is the element itself.
       if (modifiers.self && event.target !== element) {
         return
       }
 
-      if (modifiers.outside && element.contains(event.target)) { // Don't fire with outside modifier unless the event came from outside.
+      // Don't fire with outside modifier unless the event came from outside.
+      if (modifiers.outside && element.contains(event.target)) {
         return
       }
 
-      if ((name === 'keydown' || name === 'keyup') && key) { // For keyboard events check the key pressed.
+      // For keyboard events check the key is pressed.
+      if ((name === 'keydown' || name === 'keyup') && key) {
         // Check if all key press modifiers are held.
         for (const keypressModifier of keypressModifiers) {
           if (!event[keypressModifier + 'Key']) {
@@ -123,13 +155,15 @@ export default {
           }
         }
 
+        // Convert key.
         let eventKey = modifiers.code ? event.code : event.key
         if (eventKey === ' ') {
           eventKey = 'space'
         }
         eventKey = eventKey.toLowerCase()
 
-        if (key !== eventKey) {
+        // Check if the key matches.
+        if (eventKey !== key) {
           return
         }
       }
@@ -158,43 +192,166 @@ export default {
       attribute[ON].buffer.push(event)
 
       // Check if we need to apply an execution modifier.
-      if (executionModifier === EXECUTION_MODIFIERS.BUFFER) {
-        // Exit early if buffer is not full.
-        if (attribute[ON].buffer.length < modifiers.buffer) {
+      switch (executionModifier) {
+        case EXECUTION_MODIFIERS.BUFFER:
+          // Exit early if buffer is not full.
+          if (attribute[ON].buffer.length < modifiers.buffer) {
+            return
+          }
+
+          execute()
           return
-        }
 
-        execute()
-      } else if (executionModifier === EXECUTION_MODIFIERS.DEBOUNCE) {
-        // Clear existing timeout.
-        if (attribute[ON].timeout) {
-          clearTimeout(attribute[ON].timeout)
-          attribute[ON].timeout = null
-        }
+        case EXECUTION_MODIFIERS.DEBOUNCE:
+          // Clear existing timeout.
+          if (attribute[ON].timeout) {
+            clearTimeout(attribute[ON].timeout)
+            attribute[ON].timeout = null
+          }
 
-        // Setup timeout and execute expression when it finishes.
-        attribute[ON].timeout = setTimeout(execute, modifiers.debounce)
-      } else if (executionModifier === EXECUTION_MODIFIERS.THROTTLE) {
-        // Get current time in milliseconds.
-        const now = window.performance.now()
-
-        // Exit early if throttle time has not passed.
-        if (attribute[ON].lastExecution && now - attribute[ON].lastExecution < modifiers.throttle) {
+          // Setup timeout and execute expression when it finishes.
+          attribute[ON].timeout = setTimeout(execute, modifiers.debounce)
           return
-        }
 
-        execute()
+        // Execute the event when let go after the given time has exceeded.
+        case EXECUTION_MODIFIERS.HELD:
+          // Check if cancelable.
+          if (!(name in CANCEL_EVENTS)) {
+            console.warn('Doars: `on` directive, event of name "' + name + '" is not cancelable and can not have "held" modifier.')
+            return
+          }
+          const cancelHeldName = CANCEL_EVENTS[name]
 
-        // Store new latest execution time.
-        attribute[ON].lastExecution = now
-      } else {
-        // Execute expression.
-        execute()
+          const nowHeld = window.performance.now()
+
+          attribute[ON].cancel = (cancelEvent) => {
+            // Check if minimum time has passed.
+            if (nowHeld - window.performance.now() < modifiers.held) {
+              return
+            }
+
+            // For keyboard events check any required key has been depressed.
+            if (cancelHeldName === 'keyup' && key) {
+              // Check if all key press modifiers are held.
+              for (const keypressModifier of keypressModifiers) {
+                if (!cancelEvent[keypressModifier + 'Key']) {
+                  return
+                }
+              }
+
+              // Convert key.
+              let eventKey = modifiers.code ? cancelEvent.code : cancelEvent.key
+              if (eventKey === ' ') {
+                eventKey = 'space'
+              }
+              eventKey = eventKey.toLowerCase()
+
+              // Check if the key matches.
+              if (eventKey !== key) {
+                return
+              }
+            }
+
+            // Only fire when self is provided if the target is the element itself.
+            if (modifiers.self && cancelEvent.target !== element) {
+              return
+            }
+
+            // Don't fire with outside modifier unless the event came from outside.
+            if (modifiers.outside && element.contains(cancelEvent.target)) {
+              return
+            }
+
+            // Execute expression.
+            execute()
+          }
+
+          target.addEventListener(cancelHeldName, attribute[ON].cancel, { once: true })
+          return
+
+        // Execute event when keys have been held down for the given time.
+        case EXECUTION_MODIFIERS.HOLD:
+          // Check if cancelable.
+          if (!(name in CANCEL_EVENTS)) {
+            console.warn('Doars: `on` directive, event of name "' + name + '" is not cancelable and can not have "hold" modifier.')
+            return
+          }
+          const cancelHoldName = CANCEL_EVENTS[name]
+
+          attribute[ON].cancel = (cancelEvent) => {
+            // For keyboard events check any required key has been depressed.
+            if (cancelHoldName === 'keyup' && key) {
+              let keyLetGo = false
+
+              // Check if all key press modifiers are held.
+              for (const keypressModifier of keypressModifiers) {
+                if (!cancelEvent[keypressModifier + 'Key']) {
+                  keyLetGo = true
+                }
+              }
+
+              // Convert key.
+              let eventKey = modifiers.code ? cancelEvent.code : cancelEvent.key
+              if (eventKey === ' ') {
+                eventKey = 'space'
+              }
+              eventKey = eventKey.toLowerCase()
+
+              // Check if the key matches.
+              if (eventKey === key) {
+                keyLetGo = true
+              }
+
+              if (!keyLetGo) {
+                return
+              }
+            }
+
+            // Only fire when self is provided if the target is the element itself.
+            if (modifiers.self && cancelEvent.target !== element) {
+              return
+            }
+
+            // Don't fire with outside modifier unless the event came from outside.
+            if (modifiers.outside && element.contains(cancelEvent.target)) {
+              return
+            }
+
+            // Prevent timeout from firing.
+            clearTimeout(attribute[ON].timeout)
+          }
+          target.addEventListener(cancelHoldName, attribute[ON].cancel, { once: true })
+
+          // Setup timeout and execute expression when it finishes.
+          attribute[ON].timeout = setTimeout(() => {
+            // Ensure cancel is removed.
+            target.removeEventListener(cancelHoldName, attribute[ON].cancel)
+
+            // Execute expression.
+            execute()
+          }, modifiers.hold)
+          return
+
+        case EXECUTION_MODIFIERS.THROTTLE:
+          // Get current time in milliseconds.
+          const nowThrottle = window.performance.now()
+
+          // Exit early if throttle time has not passed.
+          if (attribute[ON].lastExecution && nowThrottle - attribute[ON].lastExecution < modifiers.throttle) {
+            return
+          }
+
+          execute()
+
+          // Store new latest execution time.
+          attribute[ON].lastExecution = nowThrottle
+          return
       }
+
+      // Otherwise execute expression immediately.
+      execute()
     }
 
-    // Set listener target and start listening.
-    const target = modifiers.outside ? document : element
     target.addEventListener(name, handler, options)
 
     // Store listener data on the component.
@@ -219,7 +376,14 @@ export default {
     // Remove existing listener.
     attribute[ON].target.removeEventListener(key, attribute[ON].handler)
 
-    // Clear any ongoing timeouts.
+    // Clear any ongoing callbacks and timeouts.
+    if (attribute[ON].cancel) {
+      attribute[ON].target
+        .removeEventListener(
+          CANCEL_EVENTS[key],
+          attribute[ON].cancel
+        )
+    }
     if (attribute[ON].timeout) {
       clearTimeout(attribute[ON].timeout)
     }
