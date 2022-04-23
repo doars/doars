@@ -117,6 +117,7 @@ export default class Doars extends EventDispatcher {
       directiveWatch,
     ]
     let directivesNames, directivesObject, directivesRegexp
+    const scope = {}
 
     /**
      * Whether this is currently enabled.
@@ -316,9 +317,7 @@ export default class Doars extends EventDispatcher {
      * Get list contexts.
      * @returns {Array<Object>} List of contexts.
      */
-    this.getContexts = () => {
-      return [...contexts]
-    }
+    this.getContexts = () => [...contexts]
 
     /**
      * Add contexts at the index. *Can only be called when NOT enabled.*
@@ -403,34 +402,26 @@ export default class Doars extends EventDispatcher {
      * Get list directives.
      * @returns {Array<Object>} List of directives.
      */
-    this.getDirectives = () => {
-      return [...directives]
-    }
+    this.getDirectives = () => [...directives]
 
     /**
      * Get list of directive names.
      * @returns {Array<String>} List of directive names.
      */
-    this.getDirectivesNames = () => {
-      return [...directivesNames]
-    }
+    this.getDirectivesNames = () => [...directivesNames]
 
     /**
      * Get object of directives with the directive name as key.
      * @returns {Object} Object of directives.
      */
-    this.getDirectivesObject = () => {
-      return Object.assign({}, directivesObject)
-    }
+    this.getDirectivesObject = () => Object.assign({}, directivesObject)
 
     /**
      * Check whether a name matches that of a directive.
      * @param {String} attributeName Name of the attribute to match.
      * @returns {Boolean} Whether the name matches that of a directive.
      */
-    this.isDirectiveName = (attributeName) => {
-      return directivesRegexp.test(attributeName)
-    }
+    this.isDirectiveName = (attributeName) => directivesRegexp.test(attributeName)
 
     /**
      * Add directives at the index. *Can only be called when NOT enabled.*
@@ -513,6 +504,37 @@ export default class Doars extends EventDispatcher {
       }
 
       return results
+    }
+
+    /**
+     * Get scope.
+     * @returns {Object} Stored scope.
+     */
+    this.getScope = () => Object.assign({}, scope)
+
+    /**
+     * Add a value to the scope.
+     * @param {String} name Property name.
+     * @param {Any} value Value to add.
+     * @returns {Boolean} Whether it was successfully added.
+     */
+    this.addScope = (name, value) => {
+      name = name.trim()
+      if (name[0] === '$') {
+        console.warn('Doars: name of a bind can not start with a "$".')
+        return false
+      }
+
+      scope[name] = value
+      return true
+    }
+
+    /**
+     * Remove a property from the scope.
+     * @param {String} name Name of the property.
+     */
+    this.removeScope = (name) => {
+      delete scope[name]
     }
 
     /**

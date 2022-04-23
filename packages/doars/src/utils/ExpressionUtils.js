@@ -22,12 +22,18 @@ const createContextUtils = () => {
  * @returns {Array<Object, Function>} Expressions contexts and destroy functions.
  */
 export const createContexts = (component, attribute, update, extra = null) => {
-  // Iterate over all contexts.
-  const results = {}
-  const destroyFunctions = []
+  // Get library.
+  const library = component.getLibrary()
+
+  // Start with scope.
+  const results = library.getScope()
+
   let after = ''
   let before = ''
-  const contexts = component.getLibrary().getContexts()
+  // Iterate over all contexts.
+  const contexts = library.getContexts()
+  // Store destroy functions.
+  const destroyFunctions = []
   for (const context of contexts) {
     if (!context || !context.name) {
       continue
