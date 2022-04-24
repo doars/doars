@@ -65,7 +65,7 @@ const setAfter = (component, update, template, elements, index, value, variables
     const element = elements[existingIndex]
 
     // Move element after element at index or directly after the template.
-    insertAfter(elements[index] ?? template, element)
+    insertAfter(elements[index] ? elements[index] : template, element)
 
     // Update all attributes using this for item's data.
     update(element[FOR].id)
@@ -122,7 +122,7 @@ const removeAfter = (component, elements, maxLength) => {
 export default {
   name: 'for',
 
-  update: (component, attribute, { executeExpression }) => {
+  update: (component, attribute, { processExpression }) => {
     // Deconstruct attribute.
     const template = attribute.getElement()
 
@@ -151,7 +151,7 @@ export default {
       const data = attribute.getData()
 
       // Get list of elements already made by this attribute.
-      const elements = data.elements ?? []
+      const elements = data.elements ? data.elements : []
 
       // Process iterable based on type.
       const iterableType = typeof (iterable)
@@ -241,7 +241,7 @@ export default {
       result = Number(expression.iterable)
     } else {
       // Get iterable data, and this will automatically mark the data as being accessed by this component.
-      result = executeExpression(component, attribute, expression.iterable)
+      result = processExpression(component, attribute, expression.iterable)
     }
 
     // Get stored data.

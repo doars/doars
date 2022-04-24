@@ -8,7 +8,7 @@ export default (routerOptions) => {
   return {
     name: 'router',
 
-    update: (component, attribute, { executeExpression }) => {
+    update: (component, attribute, { processExpression }) => {
       // Deconstruct attribute.
       const element = attribute.getElement()
 
@@ -16,7 +16,7 @@ export default (routerOptions) => {
       let router = element[ROUTER]
       if (!router) {
         // Construct options.
-        const options = Object.assign({}, routerOptions, executeExpression(component, attribute.clone(), attribute.getValue()))
+        const options = Object.assign({}, routerOptions, processExpression(component, attribute.clone(), attribute.getValue()))
         // Create router
         router = element[ROUTER] = new Router(options)
       }

@@ -27,7 +27,7 @@ import directiveOn from './directives/on.js'
 import directiveReference from './directives/reference.js'
 import directiveSelect from './directives/select.js'
 import directiveShow from './directives/show.js'
-import directiveSyncState from './directives/syncState.js'
+import directiveSync from './directives/sync.js'
 import directiveText from './directives/text.js'
 import directiveWatch from './directives/watch.js'
 
@@ -48,6 +48,7 @@ export default class Doars extends EventDispatcher {
 
     // Deconstruct options.
     let { prefix, root } = options = Object.assign({
+      expressions: 'execute',
       prefix: 'd',
       root: document.body.firstElementChild,
     }, options)
@@ -82,7 +83,7 @@ export default class Doars extends EventDispatcher {
     let isEnabled = false, isUpdating = false, mutations, observer, triggers
 
     const components = []
-    const contexts = [
+    const contextsBase = {}, contexts = [
       contextChildren,
       contextComponent,
       contextElement,
@@ -113,19 +114,10 @@ export default class Doars extends EventDispatcher {
       directiveOn,
       directiveSelect,
       directiveShow,
-      directiveSyncState,
+      directiveSync,
       directiveWatch,
     ]
     let directivesNames, directivesObject, directivesRegexp
-    const scope = {}
-
-    /**
-     * Whether this is currently enabled.
-     * @returns {Boolean} Whether the library is enabled.
-     */
-    this.getEnabled = () => {
-      return isEnabled
-    }
 
     /**
      * Get the unique identifier.
@@ -141,6 +133,16 @@ export default class Doars extends EventDispatcher {
      */
     this.getOptions = () => {
       return Object.assign({}, options)
+    }
+
+    /* State */
+
+    /**
+     * Whether this is currently enabled.
+     * @returns {Boolean} Whether the library is enabled.
+     */
+    this.getEnabled = () => {
+      return isEnabled
     }
 
     /**
@@ -236,6 +238,8 @@ export default class Doars extends EventDispatcher {
       return this
     }
 
+    /* Components */
+
     /**
      * Add components to instance.
      * @param  {...HTMLElement} elements Elements to add as components.
@@ -312,6 +316,37 @@ export default class Doars extends EventDispatcher {
 
       return results
     }
+
+    /* Simple contexts */
+
+    /**
+     * Get simple contexts.
+     * @returns {Object} Stored simple contexts.
+     */
+    this.getSimpleContexts = () => Object.assign({}, contextsBase)
+
+    /**
+     * Add a value directly to the contexts without needing to use an object or having to deal with indices.
+     * @param {String} name Property name under which to add the context.
+     * @param {Any} value The value to add, null removes the context.
+     * @returns {Boolean} Whether the value was successfully set.
+     */
+    this.setSimpleContext = (name, value = null) => {
+      if (value === null) {
+        delete contextsBase[name]
+        return true
+      }
+
+      if (name[0] === '$') {
+        console.warn('Doars: name of a bind can not start with a "$".')
+        return false
+      }
+
+      contextsBase[name] = value
+      return true
+    }
+
+    /* Contexts */
 
     /**
      * Get list contexts.
@@ -506,36 +541,7 @@ export default class Doars extends EventDispatcher {
       return results
     }
 
-    /**
-     * Get scope.
-     * @returns {Object} Stored scope.
-     */
-    this.getScope = () => Object.assign({}, scope)
-
-    /**
-     * Add a value to the scope.
-     * @param {String} name Property name.
-     * @param {Any} value Value to add.
-     * @returns {Boolean} Whether it was successfully added.
-     */
-    this.addScope = (name, value) => {
-      name = name.trim()
-      if (name[0] === '$') {
-        console.warn('Doars: name of a bind can not start with a "$".')
-        return false
-      }
-
-      scope[name] = value
-      return true
-    }
-
-    /**
-     * Remove a property from the scope.
-     * @param {String} name Name of the property.
-     */
-    this.removeScope = (name) => {
-      delete scope[name]
-    }
+    /* Update */
 
     /**
      * Update directives based on triggers. *Can only be called when enabled.*

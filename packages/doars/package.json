@@ -15,9 +15,7 @@
   ],
   "version": "1.2.0",
   "license": "MIT",
-  "main": "src/Doars.js",
-  "browserMain": "src/Doars.js",
-  "browser": "dst/doars.js",
+  "main": "src/DoarsExecute.js",
   "homepage": "https://github.com/doars/doars#readme",
   "repository": {
     "type": "git",

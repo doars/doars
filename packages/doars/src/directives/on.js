@@ -25,7 +25,7 @@ const KEYPRESS_MODIFIERS = [
 export default {
   name: 'on',
 
-  update: (component, attribute, { executeExpression }) => {
+  update: (component, attribute, { processExpression }) => {
     // Deconstruct attribute.
     let name = attribute.getKeyRaw()
 
@@ -136,6 +136,16 @@ export default {
     }
 
     const handler = (event) => {
+      // Prevent repeat calls if prevent is set.
+      if (attribute[ON].prevent) {
+        return
+      }
+
+      // Disallow repeat calls if the modifier is not present.
+      if (!modifiers.repeat && event.repeat) {
+        return
+      }
+
       // Only fire when self is provided if the target is the element itself.
       if (modifiers.self && event.target !== element) {
         return
@@ -179,7 +189,7 @@ export default {
 
       const execute = () => {
         // Execute value using a copy of the attribute since this attribute should not update based on what contexts will be accessed.
-        executeExpression(component, attribute.clone(), value, {
+        processExpression(component, attribute.clone(), value, {
           $event: event,
           $events: attribute[ON].buffer,
         }, { return: false })
@@ -222,11 +232,13 @@ export default {
           }
           const cancelHeldName = CANCEL_EVENTS[name]
 
+          // Store time of holding down.
           const nowHeld = window.performance.now()
 
           attribute[ON].cancel = (cancelEvent) => {
             // Check if minimum time has passed.
-            if (nowHeld - window.performance.now() < modifiers.held) {
+            if (window.performance.now() - nowHeld < modifiers.held) {
+              attribute[ON].prevent = false
               return
             }
 
@@ -235,6 +247,7 @@ export default {
               // Check if all key press modifiers are held.
               for (const keypressModifier of keypressModifiers) {
                 if (!cancelEvent[keypressModifier + 'Key']) {
+                  attribute[ON].prevent = false
                   return
                 }
               }
@@ -248,23 +261,29 @@ export default {
 
               // Check if the key matches.
               if (eventKey !== key) {
+                attribute[ON].prevent = false
                 return
               }
             }
 
             // Only fire when self is provided if the target is the element itself.
             if (modifiers.self && cancelEvent.target !== element) {
+              attribute[ON].prevent = false
               return
             }
 
             // Don't fire with outside modifier unless the event came from outside.
             if (modifiers.outside && element.contains(cancelEvent.target)) {
+              attribute[ON].prevent = false
               return
             }
 
             // Execute expression.
             execute()
           }
+
+          // Prevent repeat calls.
+          attribute[ON].prevent = true
 
           target.addEventListener(cancelHeldName, attribute[ON].cancel, { once: true })
           return
@@ -303,17 +322,20 @@ export default {
               }
 
               if (!keyLetGo) {
+                attribute[ON].prevent = false
                 return
               }
             }
 
             // Only fire when self is provided if the target is the element itself.
             if (modifiers.self && cancelEvent.target !== element) {
+              attribute[ON].prevent = false
               return
             }
 
             // Don't fire with outside modifier unless the event came from outside.
             if (modifiers.outside && element.contains(cancelEvent.target)) {
+              attribute[ON].prevent = false
               return
             }
 
@@ -322,10 +344,16 @@ export default {
           }
           target.addEventListener(cancelHoldName, attribute[ON].cancel, { once: true })
 
+          // Prevent repeat calls.
+          attribute[ON].prevent = true
+
           // Setup timeout and execute expression when it finishes.
           attribute[ON].timeout = setTimeout(() => {
             // Ensure cancel is removed.
             target.removeEventListener(cancelHoldName, attribute[ON].cancel)
+
+            // Allow calls again.
+            attribute[ON].prevent = false
 
             // Execute expression.
             execute()
@@ -361,6 +389,7 @@ export default {
       target: target,
       timeout: attribute[ON] ? attribute[ON].timeout : undefined,
       value: value,
+      prevent: false,
     }
   },
 

@@ -8,21 +8,10 @@ import Attribute from './Attribute.js'
 import ProxyDispatcher from './events/ProxyDispatcher.js'
 
 // Import utils.
-import { morphNode, morphTree } from './utils/MorphUtils.js'
+import { morphTree } from './utils/MorphUtils.js'
 import { closestComponent } from './utils/ComponentUtils.js'
-import { executeExpression } from './utils/ExpressionUtils.js'
 import { transition, transitionIn, transitionOut } from './utils/TransitionUtils.js'
 import { walk } from './utils/ElementUtils.js'
-
-// Create an object with utility function.
-const DIRECTIVE_UTILS = Object.freeze({
-  executeExpression: executeExpression,
-  morphNode: morphNode,
-  morphTree: morphTree,
-  transition: transition,
-  transitionIn: transitionIn,
-  transitionOut: transitionOut,
-})
 
 export default class Component {
   /**
@@ -35,7 +24,23 @@ export default class Component {
     const id = Symbol('ID_COMPONENT')
 
     // Deconstruct library options.
-    const { prefix } = library.getOptions()
+    const { prefix, expressions } = library.getOptions()
+
+    // Get the expression processor.
+    const processExpression =
+      typeof (expressions) === 'function'
+        ? expressions
+        : (library.constructor.evaluateExpression && expression === 'evaluate'
+          ? library.constructor.evaluateExpression
+          : library.constructor.executeExpression)
+    // Create a immutable object with the directive utilities.
+    const directiveUtils = Object.freeze({
+      morphTree: morphTree,
+      processExpression: processExpression,
+      transition: transition,
+      transitionIn: transitionIn,
+      transitionOut: transitionOut,
+    })
 
     // create private variables.
     let attributes = [], hasUpdated = false, isInitialized = false, data, proxy, state
@@ -153,9 +158,11 @@ export default class Component {
       const componentName = prefix + '-state'
       const value = element.attributes[componentName].value
 
-      // Execute expression for generating the state using a mock attribute.
-      data = executeExpression(this, new Attribute(this, element, null, value), value) ?? {}
-      if (Array.isArray(data) || typeof (data) !== 'object') {
+      // Process expression for generating the state using a mock attribute.
+      data = processExpression(this, new Attribute(this, element, null, value), value)
+      if (data === null) {
+        data = {}
+      } else if (typeof (data) !== 'object' || Array.isArray(data)) {
         console.error('Doars: component tag must return an object!')
         return
       }
@@ -190,7 +197,7 @@ export default class Component {
           // Clean up attribute if the directive has a destroy function.
           const directive = directives[attribute.getKey()]
           if (directive) {
-            directive.destroy(this, attribute, DIRECTIVE_UTILS)
+            directive.destroy(this, attribute, directiveUtils)
           }
 
           // Destroy the attribute.
@@ -315,7 +322,7 @@ export default class Component {
       // Attribute has been removed, call the destroy directive.
       const directive = directives[attribute.getKey()]
       if (directive && directive.destroy) {
-        directive.destroy(this, attribute, DIRECTIVE_UTILS)
+        directive.destroy(this, attribute, directiveUtils)
       }
 
       // Remove attribute from list.
@@ -371,10 +378,10 @@ export default class Component {
       // Clear accessed.
       attribute.clearAccessed()
 
-      // Execute directive on attribute.
+      // Process directive on attribute.
       const directive = directives[attribute.getDirective()]
       if (directive) {
-        directive.update(this, attribute, DIRECTIVE_UTILS)
+        directive.update(this, attribute, directiveUtils)
       }
     }
 

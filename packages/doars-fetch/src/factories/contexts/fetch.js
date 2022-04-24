@@ -15,7 +15,7 @@ export default (options) => {
           }
 
           // Extract optional return type.
-          let returnType = init.returnType ?? null
+          let returnType = init.returnType ? init.returnType : null
           delete init.returnType
 
           // Perform and process fetch request.

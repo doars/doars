@@ -13,7 +13,7 @@ export default (observer) => {
   return {
     name: 'view',
 
-    update: (component, attribute, { executeExpression }) => {
+    update: (component, attribute, { processExpression }) => {
       // Deconstruct attribute.
       const element = attribute.getElement()
       const key = attribute.getKey()
@@ -81,7 +81,7 @@ export default (observer) => {
 
         const execute = () => {
           // Execute value using a copy of the attribute since this attribute should not update based on what contexts will be accessed.
-          executeExpression(component, attribute.clone(), value, {
+          processExpression(component, attribute.clone(), value, {
             $event: event,
           }, { return: false })
 

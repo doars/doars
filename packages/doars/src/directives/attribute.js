@@ -6,7 +6,7 @@ import { parseSelector } from '../utils/StringUtils.js'
 export default {
   name: 'attribute',
 
-  update: (component, attribute, { executeExpression }) => {
+  update: (component, attribute, { processExpression }) => {
     // Deconstruct attribute.
     const element = attribute.getElement()
     const modifiers = attribute.getModifiers()
@@ -42,7 +42,7 @@ export default {
     }
 
     // Execute attribute value.
-    const result = executeExpression(component, attribute, attribute.getValue())
+    const result = processExpression(component, attribute, attribute.getValue())
 
     // Store results.
     attribute.setData(result)

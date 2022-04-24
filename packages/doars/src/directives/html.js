@@ -5,7 +5,7 @@ import { isPromise } from '../utils/PromiseUtils.js'
 export default {
   name: 'html',
 
-  update: (component, attribute, { executeExpression, morphTree }) => {
+  update: (component, attribute, { processExpression, morphTree }) => {
     // Deconstruct attribute.
     const element = attribute.getElement()
     const modifiers = attribute.getModifiers()
@@ -58,7 +58,7 @@ export default {
     }
 
     // Execute value and retrieve result.
-    const result = executeExpression(component, attribute, attribute.getValue())
+    const result = processExpression(component, attribute, attribute.getValue())
 
     // Store results.
     attribute.setData(result)

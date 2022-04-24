@@ -25,22 +25,21 @@ export const createContexts = (component, attribute, update, extra = null) => {
   // Get library.
   const library = component.getLibrary()
 
-  // Start with scope.
-  const results = library.getScope()
+  // Start with the simple contexts.
+  const contexts = library.getSimpleContexts()
 
-  let after = ''
-  let before = ''
+  let after = '', before = '', deconstructed = []
   // Iterate over all contexts.
-  const contexts = library.getContexts()
+  const creatableContexts = library.getContexts()
   // Store destroy functions.
   const destroyFunctions = []
-  for (const context of contexts) {
-    if (!context || !context.name) {
+  for (const creatableContext of creatableContexts) {
+    if (!creatableContext || !creatableContext.name) {
       continue
     }
 
     // Get context result.
-    const result = context.create(component, attribute, update, createContextUtils())
+    const result = creatableContext.create(component, attribute, update, createContextUtils())
     if (!result || !result.value) {
       continue
     }
@@ -51,32 +50,35 @@ export const createContexts = (component, attribute, update, extra = null) => {
     }
 
     // Deconstruct options if marked as such.
-    if (context.deconstruct && typeof (result.value) === 'object') {
-      before += 'with(' + context.name + ') { '
+    if (creatableContext.deconstruct && typeof (result.value) === 'object') {
+      deconstructed.push(creatableContext.name)
+      before += 'with(' + creatableContext.name + ') { '
       after += ' }'
     }
 
     // Store result value in context results.
-    results[context.name] = result.value
+    contexts[creatableContext.name] = result.value
   }
 
   // Add extra items to context.
   if (typeof (extra) === 'object') {
     for (const name in extra) {
-      results[name] = extra[name]
+      contexts[name] = extra[name]
     }
   }
 
   return {
-    after: after,
-    before: before,
+    contexts: contexts,
     destroy: () => {
       // Call all destroy functions.
       for (const destroyFunction of destroyFunctions) {
         destroyFunction(createContextUtils())
       }
     },
-    contexts: results,
+
+    after: after,
+    before: before,
+    deconstructed: deconstructed,
   }
 }
 
@@ -136,60 +138,7 @@ export const createContextsProxy = (component, attribute, update, extra = null) 
   }
 }
 
-/**
- * Executes value in the correct context.
- * @param {Component} component Instance of the component.
- * @param {Attribute} attribute Instance of the attribute.
- * @param {String} expression Expression to execute.
- * @param {Object} extra Optional extra context items.
- * @param {Object} options Optional options object.
- * @returns {Any} Result of expression.
- */
-export const executeExpression = (component, attribute, expression, extra = null, options = null) => {
-  // Override default with given options.
-  options = Object.assign({
-    return: true,
-  }, options)
-
-  // Collect update triggers.
-  const triggers = []
-  const update = (id, context) => {
-    triggers.push({
-      id: id,
-      path: context,
-    })
-  }
-
-  // Create function context.
-  let { after, before, contexts, destroy } = createContexts(component, attribute, update, extra)
-
-  // Apply options.
-  if (options.return) {
-    before += 'return '
-  }
-
-  // Try to execute code.
-  let result
-  try {
-    result = new Function(...Object.keys(contexts), before + expression + after)(...Object.values(contexts)) // eslint-disable-line no-new-func
-  } catch (error) {
-    console.error(error, 'Error encountered when executing the following expression: ', expression)
-    result = null
-  }
-
-  // Invoke destroy.
-  destroy()
-
-  // Dispatch update triggers.
-  if (triggers.length > 0) {
-    component.getLibrary().update(triggers)
-  }
-
-  return result
-}
-
 export default {
   createContexts: createContexts,
   createContextsProxy: createContextsProxy,
-  executeExpression: executeExpression,
 }

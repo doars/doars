@@ -1,9 +1,6 @@
 // Import contexts.
 import createContextStore from './factories/contexts/store.js'
 
-// Import directive.
-import createDirectiveSyncStore from './factories/directives/syncStore.js'
-
 // Import proxy dispatcher.
 import ProxyDispatcher from '@doars/doars/src/events/ProxyDispatcher.js'
 
@@ -15,23 +12,23 @@ export default class DoarsStore {
    * Create plugin instance.
    * @param {Doars} library Doars instance to add onto.
    * @param {Object} options The plugin options.
-   * @param {Object} datastore Initial datastore's data.
+   * @param {Object} dataStore Initial store data.
    */
-  constructor(library, options = null, datastore = {}) {
+  constructor(library, options = null, dataStore = {}) {
     // Clone options.
     options = Object.assign({
       deconstruct: false,
     }, options)
 
     // Set private variables.
-    let contextStore, datastoreCopy, directiveSyncStore, proxy, store
+    let contextStore, dataStoreCopy, proxy, store
 
     // Enable plugin when library is enabling.
     library.addEventListener('enabling', () => {
       // Create proxy.
-      datastoreCopy = deepAssign({}, datastore)
+      dataStoreCopy = deepAssign({}, dataStore)
       proxy = new ProxyDispatcher()
-      store = proxy.add(datastoreCopy)
+      store = proxy.add(dataStoreCopy)
 
       // Create store id.
       const id = Symbol('ID_STORE')
@@ -49,10 +46,6 @@ export default class DoarsStore {
         }
       }
       library.addContexts(stateIndex, contextStore)
-
-      // Create and add directive.
-      directiveSyncStore = createDirectiveSyncStore(id, store)
-      library.addDirectives(-1, directiveSyncStore)
     })
 
     // Disable plugin when library is disabling.
@@ -60,14 +53,11 @@ export default class DoarsStore {
       // Remove contexts.
       library.removeContexts(contextStore)
 
-      // Remove directive.
-      library.removeDirective(directiveSyncStore)
-
       // Reset references.
       store = null
-      proxy.remove(datastoreCopy)
+      proxy.remove(dataStoreCopy)
       proxy = null
-      datastoreCopy = null
+      dataStoreCopy = null
       directiveSyncStore = null
       contextStore = null
     })

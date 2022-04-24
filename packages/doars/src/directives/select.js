@@ -4,7 +4,7 @@ import { isPromise } from '../utils/PromiseUtils.js'
 export default {
   name: 'select',
 
-  update: (component, attribute, { executeExpression }) => {
+  update: (component, attribute, { processExpression }) => {
     // Deconstruct attribute.
     const element = attribute.getElement()
 
@@ -59,7 +59,7 @@ export default {
     }
 
     // Execute attribute value.
-    const result = executeExpression(component, attribute, attribute.getValue())
+    const result = processExpression(component, attribute, attribute.getValue())
 
     // Store results.
     attribute.setData(result)

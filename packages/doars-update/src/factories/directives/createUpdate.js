@@ -11,10 +11,10 @@ export default (options) => {
   const directive = {
     name: 'update',
 
-    update: function (component, attribute, { executeExpression }) {
+    update: function (component, attribute, { processExpression }) {
       // Store execute expression locally.
       if (!this._execute) {
-        this._execute = executeExpression
+        this._execute = processExpression
       }
 
       // Deconstruct attribute.

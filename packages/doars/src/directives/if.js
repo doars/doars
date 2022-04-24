@@ -5,7 +5,7 @@ import { isPromise } from '../utils/PromiseUtils.js'
 export default {
   name: 'if',
 
-  update: (component, attribute, { executeExpression, transitionIn, transitionOut }) => {
+  update: (component, attribute, { processExpression, transitionIn, transitionOut }) => {
     // Deconstruct attribute.
     const template = attribute.getElement()
 
@@ -70,7 +70,7 @@ export default {
     }
 
     // Execute expression.
-    const result = executeExpression(component, attribute, attribute.getValue())
+    const result = processExpression(component, attribute, attribute.getValue())
 
     // Get stored data.
     const data = attribute.getData()

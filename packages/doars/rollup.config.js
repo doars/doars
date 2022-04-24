@@ -57,67 +57,80 @@ const deepAssign = function (target, ...sources) {
   return deepAssign(target, ...sources)
 }
 
+// Builds to make.
+const builds = [{
+  input: 'src/DoarsExecute.js',
+  output: 'dst/doars.js',
+}, {
+  input: 'src/DoarsEvaluate.js',
+  output: 'dst/doars-secure.js',
+}]
+// Create config for each path.
+const configFormats =
+  process.env.NODE_ENV === 'production'
+    ? ['esm', 'iife', 'umd']
+    : ['umd']
+// Create configs to return.
+const configs = []
 // File extensions to potentially process.
 const extensions = [
   '.js',
 ]
 
-// Create config for each path.
-const configFormats = process.env.NODE_ENV === 'production' ? ['esm', 'iife', 'umd'] : ['umd']
-// Create configs to return.
-const configs = []
-const baseConfig = {
-  input: _package.browserMain,
-  output: {
-    file: _package.browser,
-    inlineDynamicImports: true,
-    name: _package.packagename,
-    sourcemap: true,
-  },
-  plugins: [
-    rollupResolve({
-      extensions: extensions,
-    }),
-    rollupReplace({
-      preventAssignment: true,
-      values: {
-        'process.env.NODE_ENV': '\'development\'',
-        'process.env.PKG_VERSION': '\'' + _package.version + '\'',
-      },
-    }),
-    rollupBabel({
-      exclude: 'node_modules/**',
-      extensions: extensions,
-      babelHelpers: 'bundled',
-      presets: [
-        ['@babel/preset-env', {
-          targets: {
-            chrome: '49',
-            edge: '12',
-            firefox: '39',
-            ios: '10.2',
-            safari: '10',
-          },
-        }],
-      ],
-    }),
-  ],
-}
-configFormats.forEach((_format) => {
-  // Duplicate base config.
-  const newConfig = deepAssign({}, baseConfig)
+builds.forEach(build => {
+  const baseConfig = {
+    input: build.input,
+    output: {
+      file: build.output,
+      inlineDynamicImports: true,
+      name: _package.packagename,
+      sourcemap: true,
+    },
+    plugins: [
+      rollupResolve({
+        extensions: extensions,
+      }),
+      rollupReplace({
+        preventAssignment: true,
+        values: {
+          'process.env.NODE_ENV': '\'development\'',
+          'process.env.PKG_VERSION': '\'' + _package.version + '\'',
+        },
+      }),
+      rollupBabel({
+        exclude: 'node_modules/**',
+        extensions: extensions,
+        babelHelpers: 'bundled',
+        presets: [
+          ['@babel/preset-env', {
+            targets: {
+              chrome: '49',
+              edge: '12',
+              firefox: '39',
+              ios: '10.2',
+              safari: '10',
+            },
+          }],
+        ],
+      }),
+    ],
+  }
+  configFormats.forEach((_format) => {
+    // Duplicate base config.
+    const newConfig = deepAssign({}, baseConfig)
 
-  // Set format to new config.
-  newConfig.output.format = _format
+    // Set format to new config.
+    newConfig.output.format = _format
 
-  // Create destination path based of format.
-  let destination = newConfig.output.file
-  destination = destination.split('.')
-  destination.splice(destination.length - 1, 0, _format)
-  newConfig.output.file = destination.join('.')
+    // Create destination path based of format.
+    let destination = newConfig.output.file
+    destination = destination.split('.')
+    destination.splice(destination.length - 1, 0, _format)
+    newConfig.output.file = destination.join('.')
 
-  // Add to config list.
-  configs.push(newConfig)
+    // Add to config list.
+    configs.push(newConfig)
+  })
 })
 
 // Create configs for build.
