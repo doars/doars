@@ -64,37 +64,13 @@ library.
 > [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-store@1/dst/doars-store.iife.js)
 > builds are also available via the jsDelivr CDN.
 
-## Directives
-
-The following
-[directives](https://github.com/doars/doars/tree/main/packages/doars#directives)
-are added by the plugin.
-
-### d-sync-store
-
-Keep the value of an element in sync with a value in the datastore. It works on
-input, checkbox, radio, select, and text area elements, as wel as divs with the
-[content editable](https://developer.mozilla.org/docs/Web/Guide/HTML/Editable_content)
-attribute. The directive's value should be a dot separated path to a property on
-the datastore.
-
-#### Examples
-
-```HTML
-<input type="text" name="message" d-sync-store="message" />
-```
-
-```HTML
-<input type="text" name="status" d-sync-store="messenger.status" />
-```
-
 ## Contexts
 
 The following
 [contexts](https://github.com/doars/doars/tree/main/packages/doars#contexts) are
 added by the plugin.
 
-### $store
+### \$store
 
 Access the datastore object.
 
@@ -123,6 +99,31 @@ Access the datastore object.
 </div>
 ```
 
+## Directives
+
+The plugin does not add any
+[directives](https://github.com/doars/doars/tree/main/packages/doars#directives)
+of its own, however the
+[`sync`](https://github.com/doars/doars/tree/main/packages/doars#d-sync)
+directive can used well with the [\$store](#$store) context.
+
+```HTML
+<input type="text" name="message" d-sync="$store.message" />
+```
+
+```HTML
+<input type="text" name="status" d-sync="$store.messenger.status" />
+```
+
+```HTML
+<input type="text" name="message" d-sync:store="message" />
+```
+
+```HTML
+<input type="text" name="message" d-sync="message" />
+<!-- Message can only be directly accessed if the deconstruct option is enabled. -->
+```
+
 ## API
 
 ### DoarsStore
@@ -141,3 +142,9 @@ Access the datastore object.
   since the `$store` context is inserted before the others. This means that when
   a property exists on both the datastore and state the value from the state
   will be returned.
+
+## Compatible versions
+
+| `@doars/doars-store` version | `@doars/doars` version |
+| ---------------------------- | ---------------------- |
+| `1.x`                        | `1.x`                  |

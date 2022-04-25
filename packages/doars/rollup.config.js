@@ -63,7 +63,7 @@ const builds = [{
   output: 'dst/doars.js',
 }, {
   input: 'src/DoarsEvaluate.js',
-  output: 'dst/doars-secure.js',
+  output: 'dst/doars-no-eval.js',
 }]
 // Create config for each path.
 const configFormats =

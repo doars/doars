@@ -4,15 +4,14 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doars sync state checkbox example</title>
+    <title>Doars sync state input example</title>
   </head>
 
   <body>
-    <div d-state="{ selected: ['after'] }">
-      <input type="checkbox" d-sync:state="selected" value="before" checked>
-      <input type="checkbox" d-sync:state="selected" value="after">
+    <div d-state="{ message: 'After' }">
+      <input type="text" d-sync="$state.message" value="Initial">
 
-      <div d-text="selected.join(', ')">Initial</div>
+      <div d-text="message">Initial</div>
     </div>
 
     <script src="/packages/doars/dst/doars.umd.js"></script>

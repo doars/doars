@@ -70,7 +70,7 @@ The following
 [contexts](https://github.com/doars/doars/tree/main/packages/doars#contexts) are
 added by the plugin.
 
-### $fetch
+### \$fetch
 
 Call fetch function.
 
@@ -126,3 +126,9 @@ Call fetch function.
 
 - `{Object} defaultInit = {}` Default init to use, the init object provided when
   calling fetch will be merged with this default.
+
+## Compatible versions
+
+| `@doars/doars-fetch` version | `@doars/doars` version |
+| ---------------------------- | ---------------------- |
+| `1.x`                        | `1.x`                  |

@@ -99,7 +99,7 @@ The following
 [contexts](https://github.com/doars/doars/tree/main/packages/doars#contexts) are
 added by the plugin.
 
-### $update
+### \$update
 
 Get information about the most recent update iteration. The context is an
 `Object` that contains the following properties.
@@ -141,3 +141,9 @@ Get information about the most recent update iteration. The context is an
   directive.
 - `{Number} stepMinimum = 0` Minimum amount of time in milliseconds between
   updates.
+
+## Compatible versions
+
+| `@doars/doars-update` version | `@doars/doars` version |
+| ----------------------------- | ---------------------- |
+| `1.x`                         | `1.x`                  |

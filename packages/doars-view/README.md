@@ -127,3 +127,9 @@ The directive supports the following modifiers.
 > The options are the same as those of the
 > [intersection observer](https://developer.mozilla.org/docs/Web/API/Intersection_Observer_API#intersection_observer_options)
 > itself.
+
+## Compatible versions
+
+| `@doars/doars-view` version | `@doars/doars` version |
+| --------------------------- | ---------------------- |
+| `1.x`                       | `1.x`                  |

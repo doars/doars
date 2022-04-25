@@ -4,23 +4,29 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doars sync state checkbox example</title>
+    <title>Doars store sync example</title>
   </head>
 
   <body>
-    <div d-state="{ selected: ['after'] }">
-      <input type="checkbox" d-sync:state="selected" value="before" checked>
-      <input type="checkbox" d-sync:state="selected" value="after">
+    <div d-state="{}">
+      <input type="text" d-sync:store="message" value="Initial">
 
-      <div d-text="selected.join(', ')">Initial</div>
+      <div d-text="$store.message">Initial</div>
     </div>
 
     <script src="/packages/doars/dst/doars.umd.js"></script>
+    <script src="/packages/doars-store/dst/doars-store.umd.js"></script>
     <script>
       // Wait for the DOM to be interactive.
       document.addEventListener('DOMContentLoaded', () => {
         // Setup a library instance.
         const doars = new window.Doars()
+
+        // Add plugin.
+        new window.DoarsStore(doars, {}, {
+          message: 'Before',
+        })
+
         // Enable library.
         doars.enable()
       })

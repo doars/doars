@@ -113,3 +113,9 @@ doars.enable();
 
 > Where `[name]` is the current name of the context or directive that should be
 > aliased or renamed.
+
+## Compatible versions
+
+| `@doars/doars-alias` version | `@doars/doars` version |
+| ---------------------------- | ---------------------- |
+| `1.x`                        | `1.x`                  |

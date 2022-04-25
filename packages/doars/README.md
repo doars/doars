@@ -19,7 +19,7 @@ basic contexts and directives.
 - [Contexts overview](#contexts-overview)
 - [Directives](#directives)
 - [Contexts](#contexts)
-- [Scope](#scope)
+- [Simple contexts](#simple-contexts)
 - [API](#api)
   - [EventDispatcher](#eventdispatcher)
   - [ProxyDispatcher](#proxydispatcher)
@@ -90,25 +90,25 @@ library.
 | [d-select](#d-select)           | Set selected item of a select element or selectable input elements. |
 | [d-show](#d-show)               | Return whether the element should be displayed.                     |
 | [d-state](#d-state)             | Define a component and set its initial state.                       |
-| [d-sync-state](#d-sync-state)   | Keep the value of an element in sync with a value in the state.     |
+| [d-sync](#d-sync)               | Keep the value of an element in sync with a value in the state.     |
 | [d-text](#d-text)               | Set the inner text or text content of the element.                  |
 | [d-transition](#d-transition)   | Change attributes on an element when being hidden or shown.         |
 | [d-watch](#d-watch)             | Runs every time a value used changes.                               |
 
 ## Contexts overview
 
-| Name                         | Description                                                            |
-| ---------------------------- | ---------------------------------------------------------------------- |
-| [\$children](#$children)     | List of contexts of child components.                                  |
-| [\$component](#$component)   | Component's root element.                                              |
-| [\$dispatch](#$dispatch)     | Dispatch custom event on the element.                                  |
-| [\$element](#$element)       | Directive's element.                                                   |
-| [\$for](#$for)               | Get variables defined in the for directive.                            |
-| [\$inContext](#$inContext)   | Execute a function in context after the existing one has been revoked. |
-| [\$nextTick](#$nextTick)     | Execute a function after updates are done processing.                  |
-| [\$parent](#$parent)         | Context of parent component.                                           |
-| [\$references](#$references) | List of referenced elements in the component.                          |
-| [\$state](#$state)           | Get component's state.                                                 |
+| Name                         | Description                                                         |
+| ---------------------------- | ------------------------------------------------------------------- |
+| [\$children](#$children)     | List of contexts of child components.                               |
+| [\$component](#$component)   | Component's root element.                                           |
+| [\$dispatch](#$dispatch)     | Dispatch custom event on the element.                               |
+| [\$element](#$element)       | Directive's element.                                                |
+| [\$for](#$for)               | Get variables defined in the for directive.                         |
+| [\$inContext](#$inContext)   | Call a function in context after the existing one has been revoked. |
+| [\$nextTick](#$nextTick)     | Call a function after updates are done processing.                  |
+| [\$parent](#$parent)         | Context of parent component.                                        |
+| [\$references](#$references) | List of referenced elements in the component.                       |
+| [\$state](#$state)           | Get component's state.                                              |
 
 ## Directives
 
@@ -311,13 +311,13 @@ function expression.
 
 ### d-on
 
-Listen to events on the document tree.
+Listen to events on the document.
 
 The directive's name is the event name to listen to. When listen to the
 `keydown` or `keyup` events a hyphen after the event name can be used to specify
 which key to filter on. For example `d-on:keydown-h`, or `d-on:keyup-space`.
 
-The directive's value should be a function expression. It will executed when the
+The directive's value should be a function expression. It will processed when the
 event is triggered.
 
 #### Modifiers
@@ -357,6 +357,10 @@ event is triggered.
   when listening to the event.
 - `{Boolean} prevent = false` Whether to call `preventDefault` on the event
   invoking the route change.
+- `{Boolean} repeat = false` Whether to allow repeat calls of the event. Repeat
+  calls are detriment by the
+  [`KeyboardEvent.repeat`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/repeat)
+  property.
 - `{Boolean} self = false` Whether the target of the event invoking the route
   change must be the directive's element itself and not an underlying element.
 - `{Boolean} stop = false` Whether to call `stopPropagation` on the event
@@ -372,8 +376,8 @@ event is triggered.
 Only one of the following five modifiers can be used at a time `buffer`, `held`
 `hold`, `debounce`, or `throttle`.
 
-Only one of the following four modifiers can be used at a time `document`,
-`outside`, `self`, or `window`.
+Only one of the following three modifiers can be used at a time `document`,
+`outside`, or `window`.
 
 #### Examples
 
@@ -515,7 +519,7 @@ function expression returning an object. If no value is given an empty state of
 </div>
 ```
 
-### d-sync-state
+### d-sync
 
 Keep the value of an element in sync with a value in the state. It works on
 input, checkbox, radio, select, and text area elements, as wel as div's with the
@@ -526,11 +530,19 @@ the state of the component.
 #### Examples
 
 ```HTML
-<input type="text" name="message" d-sync-state="message" />
+<input type="text" name="message" d-sync="$state.message" />
 ```
 
 ```HTML
-<input type="text" name="status" d-sync-state="messenger.status" />
+<input type="text" name="status" d-sync="$state.messenger.status" />
+```
+
+```HTML
+<input type="text" name="message" d-sync:state="message" />
+```
+
+```HTML
+<input type="text" name="message" d-sync="message" />
 ```
 
 ### d-text
@@ -608,7 +620,7 @@ value should be a function expression.
 ```HTML
 <div d-state="{ message: null }">
   <!-- Store the value of this input in the state. -->
-  <input type="text" d-sync-state="message" />
+  <input type="text" d-sync="$state.message" />
 
 <!-- Log the message to the console when it changes. -->
   <div d-watch="console.log(message)"></div>
@@ -710,7 +722,7 @@ automatically so when accessing the properties you do not need to prefix it with
 
 ### \$inContext
 
-Execute a function in context after the existing one has been revoked. Whereby
+Call a function in context after the existing one has been revoked. Whereby
 the first parameter of the callback method will be an object containing the
 contexts. Useful for accessing a component's context after running an
 asynchronous function.
@@ -733,7 +745,7 @@ asynchronous function.
 
 ### \$nextTick
 
-Execute a function after updates are done processing. Whereby the first
+Call a function after updates are done processing. Whereby the first
 parameter of the callback method will be an object containing the contexts.
 
 - Type: `Function`
@@ -805,7 +817,7 @@ returned.
 <div d-text="message"></div>
 ```
 
-## Scope
+## Simple contexts
 
 TODO:
 
@@ -894,6 +906,12 @@ Extends the [`EventDispatcher`](#eventdispatcher).
   removed, modifications to the document will not be undone. For instance the
   `cloak` attribute once removed will not return.
   - `@returns {Doars}` This instance.
+- `getSimpleContexts` Get simple contexts.
+  - `@returns {Object}` Stored simple contexts.
+- `setSimpleContexts` Add a value directly to the contexts without needing to use an object or having to deal with indices.
+  - `@param {String} name` Property name under which to add the context.
+  - `@param {Any} value = null` The value to add, null removes the context.
+  - `@returns {Boolean}` Whether the value was successfully set.
 - `getContexts` Get list of contexts.
   - `@returns {Array<Object>}` List of contexts.
 - `addContexts` Add contexts at the index. _Can only be called when NOT
@@ -921,14 +939,6 @@ Extends the [`EventDispatcher`](#eventdispatcher).
 - `removeDirectives` Remove directives. _Can only be called when NOT enabled._
   - `@param {...Object} directives` List of directives to remove.
   - `@returns {Array<Object>}` List of removed directives.
-- `getScope` Get scope.
-  - `@returns {Object}` Stored scope.
-- `addScope` Add a value to the scope.
-  - `@param {String} name` Property name.
-  - `@param {Any} value` Value to add.
-  - `@returns {Boolean}` Whether it was successfully added.
-- `removeScope` Remove a property from the scope.
-  - `@param {String} name` Name of the property.
 - `update` Update directives based on triggers. _Can only be called when
   enabled._
   - `@param {Array<Object>} triggers` List of triggers to update with.
@@ -1071,14 +1081,14 @@ The `create` function is given several arguments, the first is the `Component`,
 the second the `Attribute`.
 
 Take for example the `$element` context. All it needs to do is the return the
-element of the attribute that is being executed, simple enough.
+element of the attribute that is being processed, simple enough.
 
 ```JavaScript
 export default {
   // The name of the context.
   name: "$element",
 
-  // The method to execute in order to create the context.
+  // The function to process in order to create the context.
   create: (component, attribute) => {
     return {
       // Set the value to make available under the context's name.
@@ -1103,11 +1113,11 @@ The utilities arguments has the following properties:
 
 - `createContexts:Function` Create component's contexts for an attributes
   expression. See the
-  [ExpressionUtils](https://github.com/doars/doars/blob/8a530366bc5c8129fc8fabead47ea4f4683d52d4/packages/doars/src/utils/ExpressionUtils.js#L1)
+  [ContextUtils](https://github.com/doars/doars/blob/8a530366bc5c8129fc8fabead47ea4f4683d52d4/packages/doars/src/utils/ContextUtils.js#L1)
   for more information.
 - `createContextsProxy:Function` Create component's contexts only after the
   context gets used. See the
-  [ExpressionUtils](https://github.com/doars/doars/blob/8a530366bc5c8129fc8fabead47ea4f4683d52d4/packages/doars/src/utils/ExpressionUtils.js#L1)
+  [ContextUtils](https://github.com/doars/doars/blob/8a530366bc5c8129fc8fabead47ea4f4683d52d4/packages/doars/src/utils/ContextUtils.js#L1)
   for more information.
 - `RevocableProxy:RevocableProxy` A
   [Proxy.revocable](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Proxy/revocable)
@@ -1139,7 +1149,7 @@ export default {
   // The name of the context.
   name: "$state",
 
-  // The method to execute in order to create the context.
+  // The function to process in order to create the context.
   create: (component, attribute, update, { RevocableProxy }) => {
     // Get and check values from the component.
     const proxy = component.getProxy();

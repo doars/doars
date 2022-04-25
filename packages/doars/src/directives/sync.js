@@ -1,5 +1,6 @@
 // Import symbols.
 import { SYNC } from '../symbols.js'
+import { escapeHtml } from '../utils/StringUtils.js'
 
 export default {
   name: 'sync',
@@ -44,19 +45,18 @@ export default {
         case 'DIV':
           handler = () => {
             // Update value.
-            const newValue = element.innerText // FIX: Encode for assignment.
             processExpression(
               component,
               attribute.clone(),
-              value + '=\'' + newValue + '\''
+              value + '=\'' + escapeHtml(element.innerText) + '\''
             )
-            return true
           }
           break
 
         case 'INPUT':
           handler = () => {
             const attributeClone = attribute.clone()
+            const elementValue = escapeHtml(element.value)
 
             if (element.type === 'checkbox') {
               // Get current value.
@@ -72,13 +72,13 @@ export default {
                   processExpression(
                     component,
                     attributeClone,
-                    value + '=[\'' + element.value + '\']'
+                    value + '=[\'' + elementValue + '\']'
                   )
                 } if (!dataValue.includes(element.value)) {
                   processExpression(
                     component,
                     attributeClone,
-                    value + '.push(\'' + element.value + '\')'
+                    value + '.push(\'' + elementValue + '\')'
                   )
                 }
               } else if (dataValue) {
@@ -98,7 +98,7 @@ export default {
                   processExpression(
                     component,
                     attributeClone,
-                    value + '=\'' + element.value + '\''
+                    value + '=\'' + elementValue + '\''
                   )
                 }
               } else if (dataValue === element.value) {
@@ -112,7 +112,7 @@ export default {
               processExpression(
                 component,
                 attributeClone,
-                value + '=\'' + element.value + '\''
+                value + '=\'' + elementValue + '\''
               )
 
             }
@@ -122,11 +122,10 @@ export default {
         case 'TEXTAREA':
           handler = () => {
             // Update value.
-            const newValue = element.value // FIX: Encode for assignment.
             processExpression(
               component,
               attribute.clone(),
-              value + '=\'' + newValue + '\''
+              value + '=\'' + escapeHtml(element.value) + '\''
             )
           }
           break
@@ -138,21 +137,22 @@ export default {
             if (element.multiple) {
               const values = []
               for (const option of element.selectedOptions) {
-                values.push(option.value)
+                values.push(
+                  escapeHtml(option.value)
+                )
               }
               processExpression(
                 component,
                 attributeClone,
                 value + '=[\'' + values.join('\',\'') + '\']'
               )
-              return
+            } else {
+              processExpression(
+                component,
+                attributeClone,
+                value + '=\'' + escapeHtml(element.selectedOptions[0].value) + '\''
+              )
             }
-
-            processExpression(
-              component,
-              attributeClone,
-              value + '=\'' + element.selectedOptions[0].value + '\''
-            )
           }
           break
       }

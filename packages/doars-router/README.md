@@ -145,7 +145,7 @@ The following
 [contexts](https://github.com/doars/doars/tree/main/packages/doars#contexts) are
 added by the plugin.
 
-### $router
+### \$router
 
 Access the closest [Router](#router) instance. The closest router is retrieved
 by going up in the document tree looking for a [`d-router`](#d-router)
@@ -226,3 +226,9 @@ instance.
 - `removed` When an existing route is unregistered.
   - `@param {Router} router` Router instance.
   - `@param {String} route` Removed route.
+
+## Compatible versions
+
+| `@doars/doars-router` version | `@doars/doars` version |
+| ----------------------------- | ---------------------- |
+| `1.x`                         | `1.x`                  |

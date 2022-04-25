@@ -1,8 +1,21 @@
 /**
-  * Convert a string from kebab-case to camelCase.
-  * @param {String} text String to modify.
-  * @returns {String} Converted string.
-  */
+ * Escape slashes, quotation marks, and new lines.
+ * @param {String} text String to escape.
+ * @returns {String} Escaped string.
+ */
+export const escapeHtml = (text) => {
+  return text
+    .replace(/\\/g, '\\\\')
+    .replace(/\'/g, '\\\'')
+    .replace(/\"/g, '\\"')
+    .replace(/\n/g, '\\n')
+}
+
+/**
+ * Convert a string from kebab-case to camelCase.
+ * @param {String} text String to modify.
+ * @returns {String} Converted string.
+ */
 export const kebabToCamel = (text) => {
   return text.replace(/-(\w)/g, (match, character) => character.toUpperCase())
 }
@@ -198,6 +211,7 @@ export const parseSelector = (selector) => {
 }
 
 export default {
+  escapeHtml: escapeHtml,
   kebabToCamel: kebabToCamel,
   parseAttributeModifiers: parseAttributeModifiers,
   parseAttributeName: parseAttributeName,
