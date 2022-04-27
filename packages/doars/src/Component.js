@@ -24,12 +24,12 @@ export default class Component {
     const id = Symbol('ID_COMPONENT')
 
     // Deconstruct library options.
-    const { prefix, expressions } = library.getOptions()
+    const { prefix, processor } = library.getOptions()
 
     // Get the expression processor.
     const processExpression =
-      typeof (expressions) === 'function'
-        ? expressions
+      typeof (processor) === 'function'
+        ? processor
         : (library.constructor.evaluateExpression && expression === 'evaluate'
           ? library.constructor.evaluateExpression
           : library.constructor.executeExpression)

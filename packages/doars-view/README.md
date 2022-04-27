@@ -45,7 +45,7 @@ library.
 <!-- Import library. -->
 <script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@doars/doars-view@1/dst/doars-view.umd.js"></script>
-<script>
+<script type="application/javascript">
   document.addEventListener('DOMContentLoaded', () => {
     // Setup a library instance.
     const doars = new window.Doars()

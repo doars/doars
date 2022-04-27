@@ -48,8 +48,8 @@ export default class Doars extends EventDispatcher {
 
     // Deconstruct options.
     let { prefix, root } = options = Object.assign({
-      expressions: 'execute',
       prefix: 'd',
+      processor: 'execute',
       root: document.body.firstElementChild,
     }, options)
     // If root is a string assume it is a selector.
@@ -332,17 +332,27 @@ export default class Doars extends EventDispatcher {
      * @returns {Boolean} Whether the value was successfully set.
      */
     this.setSimpleContext = (name, value = null) => {
+      // Delete context if value is null.
       if (value === null) {
         delete contextsBase[name]
+
+        // Dispatch event.
+        this.dispatchEvent('simple-context-removed', [this, name])
         return true
       }
 
-      if (name[0] === '$') {
+      // Validate name.
+      if (!name.match('^([a-zA-Z_$][a-zA-Z\d_$]*)$')) {
         console.warn('Doars: name of a bind can not start with a "$".')
         return false
       }
 
+      // Store value on contexts base.
       contextsBase[name] = value
+
+      // Dispatch event.
+      this.dispatchEvent('simple-context-added', [this, name, value])
+
       return true
     }
 
