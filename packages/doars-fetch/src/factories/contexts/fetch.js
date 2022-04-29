@@ -2,7 +2,7 @@
 import { deepAssign } from '@doars/doars/src/utils/ObjectUtils.js'
 import { parseResponse, responseType } from '../../utils/FetchUtils.js'
 
-export default (options) => {
+export default ({ defaultInit }) => {
   return {
     name: '$fetch',
 
@@ -10,8 +10,8 @@ export default (options) => {
       return {
         value: (url, init = null) => {
           // Apply default options to init.
-          if (options.defaultInit) {
-            init = deepAssign(options.defaultInit, init)
+          if (defaultInit) {
+            init = deepAssign({}, defaultInit, init)
           }
 
           // Extract optional return type.
