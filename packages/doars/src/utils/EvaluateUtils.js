@@ -2,20 +2,21 @@
 
 /*
 TODO: Parse expression and lookup on context instead of executing the code.
-- Numbers: 12
-- Strings single quote: 'hello'
-- Strings double quote: "hello"
-- Objects: { hello: 'world' }
-- Objects: { 'hello': 'world' }
-- Object access using paths: hello.world
-- Arrays: [ 'hello', 'world' ]
-- Array/object access using values: hello[0]
-- Calls: hello.world()
-- Parameters: hello('world')
-- Expression separation: hello(); world()
-- Assignment operator: hello = world
-- Addition operator: hello + world
-- Addition assignment operator: hello += world
+- [O] Numbers: 12
+- [O] Strings single quote: 'hello'
+- [O] Strings double quote: "hello"
+- [O] Comma: hello, world
+- [ ] Objects: { hello: 'world' }
+- [ ] Objects: { 'hello': 'world' }
+- [ ] Object access using paths: hello.world
+- [ ] Arrays: [ 'hello', 'world' ]
+- [ ] Array/object access using values: hello[0]
+- [ ] Calls: hello.world()
+- [ ] Parameters: hello('world')
+- [ ] Expression separation: hello(); world()
+- [ ] Assignment operator: hello = world
+- [ ] Addition operator: hello + world
+- [ ] Addition assignment operator: hello += world
 */
 
 const NUMBER_MATCHER = new RegExp('[0-9]')
