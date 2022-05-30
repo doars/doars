@@ -41,7 +41,7 @@
     "README.md"
   ],
   "dependencies": {
-    "@doars/doars": "1.x",
+    "@doars/utils": "1.x",
     "path-to-regexp": "^6.2.1"
   }
 }

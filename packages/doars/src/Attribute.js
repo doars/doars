@@ -1,11 +1,11 @@
 // Import event dispatcher.
-import EventDispatcher from './events/EventDispatcher.js'
+import EventDispatcher from '@doars/utils/src/events/EventDispatcher.js'
 
 // Import symbols.
 import { ATTRIBUTES } from './symbols.js'
 
 // Import utils.
-import { parseAttributeName, parseAttributeModifiers } from './utils/StringUtils.js'
+import { parseAttributeName, parseAttributeModifiers } from '@doars/utils/src/StringUtils.js'
 
 export default class Attribute extends EventDispatcher {
   /**

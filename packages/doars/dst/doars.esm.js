@@ -42,18 +42,17 @@ function _inherits(subClass, superClass) {
 }
 
 function _getPrototypeOf(o) {
-  _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
+  _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) {
     return o.__proto__ || Object.getPrototypeOf(o);
   };
   return _getPrototypeOf(o);
 }
 
 function _setPrototypeOf(o, p) {
-  _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
+  _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) {
     o.__proto__ = p;
     return o;
   };
-
   return _setPrototypeOf(o, p);
 }
 
@@ -72,7 +71,7 @@ function _isNativeReflectConstruct() {
 
 function _construct(Parent, args, Class) {
   if (_isNativeReflectConstruct()) {
-    _construct = Reflect.construct;
+    _construct = Reflect.construct.bind();
   } else {
     _construct = function _construct(Parent, args, Class) {
       var a = [null];
@@ -263,7 +262,7 @@ var INITIALIZED = Symbol('INITIALIZED');
 var ON = Symbol('ON');
 var REFERENCES = Symbol('REFERENCES');
 var REFERENCES_CACHE = Symbol('REFERENCES_CACHE');
-var SYNC_STATE = Symbol('SYNC_STATE');
+var SYNC = Symbol('SYNC');
 
 var EventDispatcher = /*#__PURE__*/_createClass(
 /**
@@ -386,10 +385,19 @@ function EventDispatcher() {
 });
 
 /**
-  * Convert a string from kebab-case to camelCase.
-  * @param {String} text String to modify.
-  * @returns {String} Converted string.
-  */
+ * Escape slashes, quotation marks, and new lines.
+ * @param {String} text String to escape.
+ * @returns {String} Escaped string.
+ */
+var escapeHtml = function escapeHtml(text) {
+  return text.replace(/\\/g, '\\\\').replace(/\'/g, '\\\'').replace(/\"/g, '\\"').replace(/\n/g, '\\n');
+};
+/**
+ * Convert a string from kebab-case to camelCase.
+ * @param {String} text String to modify.
+ * @returns {String} Converted string.
+ */
+
 var kebabToCamel = function kebabToCamel(text) {
   return text.replace(/-(\w)/g, function (match, character) {
     return character.toUpperCase();
@@ -1687,217 +1695,6 @@ var closestComponent = function closestComponent(element) {
   return closestComponent(element);
 };
 
-/**
- * Create an object with utility function.
- * @returns {Object} Utils.
- */
-
-var createContextUtils = function createContextUtils() {
-  return {
-    createContexts: createContexts,
-    createContextsProxy: createContextsProxy,
-    RevocableProxy: RevocableProxy
-  };
-};
-/**
- * Create component's contexts for an attributes expression.
- * @param {Component} component Instance of the component.
- * @param {Attribute} attribute Instance of the attribute.
- * @param {Function} update Called when update needs to be invoked.
- * @param {Object} extra Optional extra context items.
- * @returns {Array<Object, Function>} Expressions contexts and destroy functions.
- */
-
-
-var createContexts = function createContexts(component, attribute, update) {
-  var extra = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
-  // Iterate over all contexts.
-  var results = {};
-  var destroyFunctions = [];
-  var after = '';
-  var before = '';
-  var contexts = component.getLibrary().getContexts();
-
-  var _iterator = _createForOfIteratorHelper(contexts),
-      _step;
-
-  try {
-    for (_iterator.s(); !(_step = _iterator.n()).done;) {
-      var context = _step.value;
-
-      if (!context || !context.name) {
-        continue;
-      } // Get context result.
-
-
-      var result = context.create(component, attribute, update, createContextUtils());
-
-      if (!result || !result.value) {
-        continue;
-      } // Store destroy functions.
-
-
-      if (result.destroy && typeof result.destroy === 'function') {
-        destroyFunctions.push(result.destroy);
-      } // Deconstruct options if marked as such.
-
-
-      if (context.deconstruct && typeof result.value === 'object') {
-        before += 'with(' + context.name + ') { ';
-        after += ' }';
-      } // Store result value in context results.
-
-
-      results[context.name] = result.value;
-    } // Add extra items to context.
-
-  } catch (err) {
-    _iterator.e(err);
-  } finally {
-    _iterator.f();
-  }
-
-  if (typeof extra === 'object') {
-    for (var name in extra) {
-      results[name] = extra[name];
-    }
-  }
-
-  return {
-    after: after,
-    before: before,
-    destroy: function destroy() {
-      // Call all destroy functions.
-      var _iterator2 = _createForOfIteratorHelper(destroyFunctions),
-          _step2;
-
-      try {
-        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-          var destroyFunction = _step2.value;
-          destroyFunction(createContextUtils());
-        }
-      } catch (err) {
-        _iterator2.e(err);
-      } finally {
-        _iterator2.f();
-      }
-    },
-    contexts: results
-  };
-};
-/**
- * Create component's contexts only after the context gets used.
- * @param {Component} component Instance of the component.
- * @param {Attribute} attribute Instance of the attribute.
- * @param {Object} extra Optional extra context items.
- * @param {Function} update Called when update needs to be invoked.
- * @returns {Proxy} Expressions contexts' proxy.
- */
-
-var createContextsProxy = function createContextsProxy(component, attribute, update) {
-  var extra = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
-  // Store context after first call.
-  var data = null; // Create context proxy.
-
-  var revocable = RevocableProxy({}, {
-    get: function get(target, property) {
-      // Create context.
-      if (!data) {
-        data = createContexts(component, attribute, update, extra);
-      } // Check if name exists in context.
-
-
-      if (property in data.contexts) {
-        // Call accessed callback if element or state is accessed.
-        attribute.accessed(component.getId(), property); // Return value.
-
-        return data.contexts[property];
-      } // Try and get value from state.
-
-
-      if (data.contexts.$state) {
-        if (property in data.contexts.$state) {
-          // Call accessed callback if element or state is accessed.
-          attribute.accessed(component.getId(), '$state'); // Return value.
-
-          return data.contexts.$state[property];
-        }
-      }
-    }
-  }); // Return context.
-
-  return {
-    contexts: revocable.proxy,
-    destroy: function destroy() {
-      // Call destroy on created context.
-      if (data && data.destroy) {
-        data.destroy(component, attribute);
-      } // Revoke proxy.
-
-
-      revocable.revoke();
-    }
-  };
-};
-/**
- * Executes value in the correct context.
- * @param {Component} component Instance of the component.
- * @param {Attribute} attribute Instance of the attribute.
- * @param {String} expression Expression to execute.
- * @param {Object} extra Optional extra context items.
- * @param {Object} options Optional options object.
- * @returns {Any} Result of expression.
- */
-
-var executeExpression = function executeExpression(component, attribute, expression) {
-  var extra = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
-  var options = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
-  // Override default with given options.
-  options = Object.assign({
-    return: true
-  }, options); // Collect update triggers.
-
-  var triggers = [];
-
-  var update = function update(id, context) {
-    triggers.push({
-      id: id,
-      path: context
-    });
-  }; // Create function context.
-
-
-  var _createContexts = createContexts(component, attribute, update, extra),
-      after = _createContexts.after,
-      before = _createContexts.before,
-      contexts = _createContexts.contexts,
-      destroy = _createContexts.destroy; // Apply options.
-
-
-  if (options.return) {
-    before += 'return ';
-  } // Try to execute code.
-
-
-  var result;
-
-  try {
-    result = _construct(Function, _toConsumableArray(Object.keys(contexts)).concat([before + expression + after])).apply(void 0, _toConsumableArray(Object.values(contexts))); // eslint-disable-line no-new-func
-  } catch (error) {
-    console.error(error, 'Error encountered when executing the following expression: ', expression);
-    result = null;
-  } // Invoke destroy.
-
-
-  destroy(); // Dispatch update triggers.
-
-  if (triggers.length > 0) {
-    component.getLibrary().update(triggers);
-  }
-
-  return result;
-};
-
 // Import utils.
 
 var TRANSITION_NAME = '-transition:';
@@ -2087,15 +1884,6 @@ var transitionOut = function transitionOut(component, element, callback) {
   return transition('out', component, element, callback);
 };
 
-var DIRECTIVE_UTILS = Object.freeze({
-  executeExpression: executeExpression,
-  morphNode: morphNode,
-  morphTree: morphTree,
-  transition: transition,
-  transitionIn: transitionIn,
-  transitionOut: transitionOut
-});
-
 var Component = /*#__PURE__*/_createClass(
 /**
  * Create instance.
@@ -2111,8 +1899,19 @@ function Component(library, element) {
   var id = Symbol('ID_COMPONENT'); // Deconstruct library options.
 
   var _library$getOptions = library.getOptions(),
-      prefix = _library$getOptions.prefix; // create private variables.
+      prefix = _library$getOptions.prefix,
+      processor = _library$getOptions.processor; // Get the expression processor.
 
+
+  var processExpression = typeof processor === 'function' ? processor : library.constructor.evaluateExpression && expression === 'evaluate' ? library.constructor.evaluateExpression : library.constructor.executeExpression; // Create a immutable object with the directive utilities.
+
+  var directiveUtils = Object.freeze({
+    morphTree: morphTree,
+    processExpression: processExpression,
+    transition: transition,
+    transitionIn: transitionIn,
+    transitionOut: transitionOut
+  }); // create private variables.
 
   var attributes = [],
       hasUpdated = false,
@@ -2231,8 +2030,6 @@ function Component(library, element) {
 
 
   this.initialize = function () {
-    var _executeExpression;
-
     if (isInitialized) {
       return;
     } // Set as enabled.
@@ -2241,11 +2038,13 @@ function Component(library, element) {
     isInitialized = true; // Get component's state attribute.
 
     var componentName = prefix + '-state';
-    var value = element.attributes[componentName].value; // Execute expression for generating the state using a mock attribute.
+    var value = element.attributes[componentName].value; // Process expression for generating the state using a mock attribute.
 
-    data = (_executeExpression = executeExpression(_this, new Attribute(_this, element, null, value), value)) !== null && _executeExpression !== void 0 ? _executeExpression : {};
+    data = processExpression(_this, new Attribute(_this, element, null, value), value);
 
-    if (Array.isArray(data) || typeof data !== 'object') {
+    if (data === null) {
+      data = {};
+    } else if (typeof data !== 'object' || Array.isArray(data)) {
       console.error('Doars: component tag must return an object!');
       return;
     } // Create proxy dispatcher for state.
@@ -2287,7 +2086,7 @@ function Component(library, element) {
           var directive = directives[attribute.getKey()];
 
           if (directive) {
-            directive.destroy(_this, attribute, DIRECTIVE_UTILS);
+            directive.destroy(_this, attribute, directiveUtils);
           } // Destroy the attribute.
 
 
@@ -2425,7 +2224,7 @@ function Component(library, element) {
     var directive = directives[attribute.getKey()];
 
     if (directive && directive.destroy) {
-      directive.destroy(_this, attribute, DIRECTIVE_UTILS);
+      directive.destroy(_this, attribute, directiveUtils);
     } // Remove attribute from list.
 
 
@@ -2493,12 +2292,12 @@ function Component(library, element) {
 
     var directives = library.getDirectivesObject(); // Clear accessed.
 
-    attribute.clearAccessed(); // Execute directive on attribute.
+    attribute.clearAccessed(); // Process directive on attribute.
 
     var directive = directives[attribute.getDirective()];
 
     if (directive) {
-      directive.update(_this, attribute, DIRECTIVE_UTILS);
+      directive.update(_this, attribute, directiveUtils);
     }
   };
   /**
@@ -3033,7 +2832,7 @@ var isPromise = function isPromise(value) {
 var directiveAttribute = {
   name: 'attribute',
   update: function update(component, attribute, _ref) {
-    var executeExpression = _ref.executeExpression;
+    var processExpression = _ref.processExpression;
     // Deconstruct attribute.
     var element = attribute.getElement();
     var modifiers = attribute.getModifiers();
@@ -3069,7 +2868,7 @@ var directiveAttribute = {
     }; // Execute attribute value.
 
 
-    var result = executeExpression(component, attribute, attribute.getValue()); // Store results.
+    var result = processExpression(component, attribute, attribute.getValue()); // Store results.
 
     attribute.setData(result); // Handle promises.
 
@@ -3159,8 +2958,6 @@ var setAfter = function setAfter(component, update, template, elements, index, v
   var existingIndex = indexInSiblings(elements, value, index);
 
   if (existingIndex >= 0) {
-    var _elements$index;
-
     // Exit early it is already in place.
     if (existingIndex === index + 1) {
       return;
@@ -3169,7 +2966,7 @@ var setAfter = function setAfter(component, update, template, elements, index, v
 
     var _element = elements[existingIndex]; // Move element after element at index or directly after the template.
 
-    insertAfter((_elements$index = elements[index]) !== null && _elements$index !== void 0 ? _elements$index : template, _element); // Update all attributes using this for item's data.
+    insertAfter(elements[index] ? elements[index] : template, _element); // Update all attributes using this for item's data.
 
     update(_element[FOR].id);
     return;
@@ -3225,7 +3022,7 @@ var removeAfter = function removeAfter(component, elements, maxLength) {
 var directiveFor = {
   name: 'for',
   update: function update(component, attribute, _ref) {
-    var executeExpression = _ref.executeExpression;
+    var processExpression = _ref.processExpression;
     // Deconstruct attribute.
     var template = attribute.getElement(); // Check if placed on a template tag.
 
@@ -3251,12 +3048,10 @@ var directiveFor = {
     };
 
     var set = function set(iterable) {
-      var _data$elements;
-
       // Get stored data.
       var data = attribute.getData(); // Get list of elements already made by this attribute.
 
-      var elements = (_data$elements = data.elements) !== null && _data$elements !== void 0 ? _data$elements : []; // Process iterable based on type.
+      var elements = data.elements ? data.elements : []; // Process iterable based on type.
 
       var iterableType = typeof iterable;
 
@@ -3342,7 +3137,7 @@ var directiveFor = {
       result = Number(expression.iterable);
     } else {
       // Get iterable data, and this will automatically mark the data as being accessed by this component.
-      result = executeExpression(component, attribute, expression.iterable);
+      result = processExpression(component, attribute, expression.iterable);
     } // Get stored data.
 
 
@@ -3422,7 +3217,7 @@ var decode = function decode(string) {
 var directiveHtml = {
   name: 'html',
   update: function update(component, attribute, _ref) {
-    var executeExpression = _ref.executeExpression,
+    var processExpression = _ref.processExpression,
         morphTree = _ref.morphTree;
     // Deconstruct attribute.
     var element = attribute.getElement();
@@ -3489,7 +3284,7 @@ var directiveHtml = {
     }; // Execute value and retrieve result.
 
 
-    var result = executeExpression(component, attribute, attribute.getValue()); // Store results.
+    var result = processExpression(component, attribute, attribute.getValue()); // Store results.
 
     attribute.setData(result); // Handle promises.
 
@@ -3512,7 +3307,7 @@ var directiveHtml = {
 var directiveIf = {
   name: 'if',
   update: function update(component, attribute, _ref) {
-    var executeExpression = _ref.executeExpression,
+    var processExpression = _ref.processExpression,
         transitionIn = _ref.transitionIn,
         transitionOut = _ref.transitionOut;
     // Deconstruct attribute.
@@ -3573,7 +3368,7 @@ var directiveIf = {
     }; // Execute expression.
 
 
-    var result = executeExpression(component, attribute, attribute.getValue()); // Get stored data.
+    var result = processExpression(component, attribute, attribute.getValue()); // Get stored data.
 
     var data = attribute.getData(); // Store results.
 
@@ -3627,7 +3422,7 @@ var destroy$1 = function destroy(component, attribute) {
 var directiveInitialized = {
   name: 'initialized',
   update: function update(component, attribute, _ref) {
-    var executeExpression = _ref.executeExpression;
+    var processExpression = _ref.processExpression;
     // Deconstruct component.
     var element = component.getElement(); // Deconstruct attribute.
 
@@ -3655,7 +3450,7 @@ var directiveInitialized = {
       } // Execute value using a copy of the attribute since this attribute does not need to update based on what it accesses.
 
 
-      executeExpression(component, attribute.clone(), value, {}, {
+      processExpression(component, attribute.clone(), value, {}, {
         return: false
       }); // Call destroy.
 
@@ -3675,17 +3470,24 @@ var directiveInitialized = {
   destroy: destroy$1
 };
 
+var CANCEL_EVENTS = {
+  keydown: 'keyup',
+  mousedown: 'mouseup',
+  pointerdown: 'pointerup'
+};
 var EXECUTION_MODIFIERS = {
   NONE: 0,
   BUFFER: 1,
   DEBOUNCE: 2,
-  THROTTLE: 3
+  HELD: 3,
+  HOLD: 4,
+  THROTTLE: 5
 };
 var KEYPRESS_MODIFIERS = ['alt', 'ctrl', 'meta', 'shift'];
 var directiveOn = {
   name: 'on',
   update: function update(component, attribute, _ref) {
-    var executeExpression = _ref.executeExpression;
+    var processExpression = _ref.processExpression;
     // Deconstruct attribute.
     var name = attribute.getKeyRaw(); // Check if required key is set.
 
@@ -3759,6 +3561,18 @@ var directiveOn = {
       if (modifiers.debounce === true) {
         modifiers.debounce = 500;
       }
+    } else if (modifiers.held) {
+      executionModifier = EXECUTION_MODIFIERS.HELD;
+
+      if (modifiers.held === true) {
+        modifiers.held = 500;
+      }
+    } else if (modifiers.hold) {
+      executionModifier = EXECUTION_MODIFIERS.HOLD;
+
+      if (modifiers.hold === true) {
+        modifiers.hold = 500;
+      }
     } else if (modifiers.throttle) {
       executionModifier = EXECUTION_MODIFIERS.THROTTLE;
 
@@ -3790,21 +3604,40 @@ var directiveOn = {
       } finally {
         _iterator.f();
       }
+    } // Set listener target and start listening.
+
+
+    var target = element;
+
+    if (modifiers.document || modifiers.outside) {
+      target = document;
+    } else if (modifiers.window) {
+      target = window;
     }
 
     var handler = function handler(event) {
-      // Only fire when self is provided if the target is the element itself.
+      // Prevent repeat calls if prevent is set.
+      if (attribute[ON].prevent) {
+        return;
+      } // Disallow repeat calls if the modifier is not present.
+
+
+      if (!modifiers.repeat && event.repeat) {
+        return;
+      } // Only fire when self is provided if the target is the element itself.
+
+
       if (modifiers.self && event.target !== element) {
         return;
-      }
+      } // Don't fire with outside modifier unless the event came from outside.
+
 
       if (modifiers.outside && element.contains(event.target)) {
-        // Don't fire with outside modifier unless the event came from outside.
         return;
-      }
+      } // For keyboard events check the key is pressed.
+
 
       if ((name === 'keydown' || name === 'keyup') && key) {
-        // For keyboard events check the key pressed.
         // Check if all key press modifiers are held.
         var _iterator2 = _createForOfIteratorHelper(keypressModifiers),
             _step2;
@@ -3816,7 +3649,8 @@ var directiveOn = {
             if (!event[keypressModifier + 'Key']) {
               return;
             }
-          }
+          } // Convert key.
+
         } catch (err) {
           _iterator2.e(err);
         } finally {
@@ -3829,9 +3663,9 @@ var directiveOn = {
           eventKey = 'space';
         }
 
-        eventKey = eventKey.toLowerCase();
+        eventKey = eventKey.toLowerCase(); // Check if the key matches.
 
-        if (key !== eventKey) {
+        if (eventKey !== key) {
           return;
         }
       } // Prevent default if the prevent modifier is present.
@@ -3848,7 +3682,7 @@ var directiveOn = {
 
       var execute = function execute() {
         // Execute value using a copy of the attribute since this attribute should not update based on what contexts will be accessed.
-        executeExpression(component, attribute.clone(), value, {
+        processExpression(component, attribute.clone(), value, {
           $event: event,
           $events: attribute[ON].buffer
         }, {
@@ -3861,41 +3695,206 @@ var directiveOn = {
 
       attribute[ON].buffer.push(event); // Check if we need to apply an execution modifier.
 
-      if (executionModifier === EXECUTION_MODIFIERS.BUFFER) {
-        // Exit early if buffer is not full.
-        if (attribute[ON].buffer.length < modifiers.buffer) {
+      switch (executionModifier) {
+        case EXECUTION_MODIFIERS.BUFFER:
+          // Exit early if buffer is not full.
+          if (attribute[ON].buffer.length < modifiers.buffer) {
+            return;
+          }
+
+          execute();
           return;
-        }
 
-        execute();
-      } else if (executionModifier === EXECUTION_MODIFIERS.DEBOUNCE) {
-        // Clear existing timeout.
-        if (attribute[ON].timeout) {
-          clearTimeout(attribute[ON].timeout);
-          attribute[ON].timeout = null;
-        } // Setup timeout and execute expression when it finishes.
+        case EXECUTION_MODIFIERS.DEBOUNCE:
+          // Clear existing timeout.
+          if (attribute[ON].timeout) {
+            clearTimeout(attribute[ON].timeout);
+            attribute[ON].timeout = null;
+          } // Setup timeout and execute expression when it finishes.
 
 
-        attribute[ON].timeout = setTimeout(execute, modifiers.debounce);
-      } else if (executionModifier === EXECUTION_MODIFIERS.THROTTLE) {
-        // Get current time in milliseconds.
-        var now = window.performance.now(); // Exit early if throttle time has not passed.
-
-        if (attribute[ON].lastExecution && now - attribute[ON].lastExecution < modifiers.throttle) {
+          attribute[ON].timeout = setTimeout(execute, modifiers.debounce);
           return;
-        }
+        // Execute the event when let go after the given time has exceeded.
 
-        execute(); // Store new latest execution time.
+        case EXECUTION_MODIFIERS.HELD:
+          // Check if cancelable.
+          if (!(name in CANCEL_EVENTS)) {
+            console.warn('Doars: `on` directive, event of name "' + name + '" is not cancelable and can not have "held" modifier.');
+            return;
+          }
 
-        attribute[ON].lastExecution = now;
-      } else {
-        // Execute expression.
-        execute();
-      }
-    }; // Set listener target and start listening.
+          var cancelHeldName = CANCEL_EVENTS[name]; // Store time of holding down.
+
+          var nowHeld = window.performance.now();
+
+          attribute[ON].cancel = function (cancelEvent) {
+            // Check if minimum time has passed.
+            if (window.performance.now() - nowHeld < modifiers.held) {
+              attribute[ON].prevent = false;
+              return;
+            } // For keyboard events check any required key has been depressed.
 
 
-    var target = modifiers.outside ? document : element;
+            if (cancelHeldName === 'keyup' && key) {
+              // Check if all key press modifiers are held.
+              var _iterator3 = _createForOfIteratorHelper(keypressModifiers),
+                  _step3;
+
+              try {
+                for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+                  var _keypressModifier = _step3.value;
+
+                  if (!cancelEvent[_keypressModifier + 'Key']) {
+                    attribute[ON].prevent = false;
+                    return;
+                  }
+                } // Convert key.
+
+              } catch (err) {
+                _iterator3.e(err);
+              } finally {
+                _iterator3.f();
+              }
+
+              var _eventKey = modifiers.code ? cancelEvent.code : cancelEvent.key;
+
+              if (_eventKey === ' ') {
+                _eventKey = 'space';
+              }
+
+              _eventKey = _eventKey.toLowerCase(); // Check if the key matches.
+
+              if (_eventKey !== key) {
+                attribute[ON].prevent = false;
+                return;
+              }
+            } // Only fire when self is provided if the target is the element itself.
+
+
+            if (modifiers.self && cancelEvent.target !== element) {
+              attribute[ON].prevent = false;
+              return;
+            } // Don't fire with outside modifier unless the event came from outside.
+
+
+            if (modifiers.outside && element.contains(cancelEvent.target)) {
+              attribute[ON].prevent = false;
+              return;
+            } // Execute expression.
+
+
+            execute();
+          }; // Prevent repeat calls.
+
+
+          attribute[ON].prevent = true;
+          target.addEventListener(cancelHeldName, attribute[ON].cancel, {
+            once: true
+          });
+          return;
+        // Execute event when keys have been held down for the given time.
+
+        case EXECUTION_MODIFIERS.HOLD:
+          // Check if cancelable.
+          if (!(name in CANCEL_EVENTS)) {
+            console.warn('Doars: `on` directive, event of name "' + name + '" is not cancelable and can not have "hold" modifier.');
+            return;
+          }
+
+          var cancelHoldName = CANCEL_EVENTS[name];
+
+          attribute[ON].cancel = function (cancelEvent) {
+            // For keyboard events check any required key has been depressed.
+            if (cancelHoldName === 'keyup' && key) {
+              var keyLetGo = false; // Check if all key press modifiers are held.
+
+              var _iterator4 = _createForOfIteratorHelper(keypressModifiers),
+                  _step4;
+
+              try {
+                for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+                  var _keypressModifier2 = _step4.value;
+
+                  if (!cancelEvent[_keypressModifier2 + 'Key']) {
+                    keyLetGo = true;
+                  }
+                } // Convert key.
+
+              } catch (err) {
+                _iterator4.e(err);
+              } finally {
+                _iterator4.f();
+              }
+
+              var _eventKey2 = modifiers.code ? cancelEvent.code : cancelEvent.key;
+
+              if (_eventKey2 === ' ') {
+                _eventKey2 = 'space';
+              }
+
+              _eventKey2 = _eventKey2.toLowerCase(); // Check if the key matches.
+
+              if (_eventKey2 === key) {
+                keyLetGo = true;
+              }
+
+              if (!keyLetGo) {
+                attribute[ON].prevent = false;
+                return;
+              }
+            } // Only fire when self is provided if the target is the element itself.
+
+
+            if (modifiers.self && cancelEvent.target !== element) {
+              attribute[ON].prevent = false;
+              return;
+            } // Don't fire with outside modifier unless the event came from outside.
+
+
+            if (modifiers.outside && element.contains(cancelEvent.target)) {
+              attribute[ON].prevent = false;
+              return;
+            } // Prevent timeout from firing.
+
+
+            clearTimeout(attribute[ON].timeout);
+          };
+
+          target.addEventListener(cancelHoldName, attribute[ON].cancel, {
+            once: true
+          }); // Prevent repeat calls.
+
+          attribute[ON].prevent = true; // Setup timeout and execute expression when it finishes.
+
+          attribute[ON].timeout = setTimeout(function () {
+            // Ensure cancel is removed.
+            target.removeEventListener(cancelHoldName, attribute[ON].cancel); // Allow calls again.
+
+            attribute[ON].prevent = false; // Execute expression.
+
+            execute();
+          }, modifiers.hold);
+          return;
+
+        case EXECUTION_MODIFIERS.THROTTLE:
+          // Get current time in milliseconds.
+          var nowThrottle = window.performance.now(); // Exit early if throttle time has not passed.
+
+          if (attribute[ON].lastExecution && nowThrottle - attribute[ON].lastExecution < modifiers.throttle) {
+            return;
+          }
+
+          execute(); // Store new latest execution time.
+
+          attribute[ON].lastExecution = nowThrottle;
+          return;
+      } // Otherwise execute expression immediately.
+
+
+      execute();
+    };
+
     target.addEventListener(name, handler, options); // Store listener data on the component.
 
     attribute[ON] = {
@@ -3903,7 +3902,8 @@ var directiveOn = {
       handler: handler,
       target: target,
       timeout: attribute[ON] ? attribute[ON].timeout : undefined,
-      value: value
+      value: value,
+      prevent: false
     };
   },
   destroy: function destroy(component, attribute) {
@@ -3915,7 +3915,11 @@ var directiveOn = {
 
     var key = attribute.getKeyRaw(); // Remove existing listener.
 
-    attribute[ON].target.removeEventListener(key, attribute[ON].handler); // Clear any ongoing timeouts.
+    attribute[ON].target.removeEventListener(key, attribute[ON].handler); // Clear any ongoing callbacks and timeouts.
+
+    if (attribute[ON].cancel) {
+      attribute[ON].target.removeEventListener(CANCEL_EVENTS[key], attribute[ON].cancel);
+    }
 
     if (attribute[ON].timeout) {
       clearTimeout(attribute[ON].timeout);
@@ -4005,7 +4009,7 @@ var directiveReference = {
 var directiveSelect = {
   name: 'select',
   update: function update(component, attribute, _ref) {
-    var executeExpression = _ref.executeExpression;
+    var processExpression = _ref.processExpression;
     // Deconstruct attribute.
     var element = attribute.getElement(); // Check if placed on a select tag.
 
@@ -4063,7 +4067,7 @@ var directiveSelect = {
     }; // Execute attribute value.
 
 
-    var result = executeExpression(component, attribute, attribute.getValue()); // Store results.
+    var result = processExpression(component, attribute, attribute.getValue()); // Store results.
 
     attribute.setData(result); // Handle promises.
 
@@ -4086,7 +4090,7 @@ var directiveSelect = {
 var directiveShow = {
   name: 'show',
   update: function update(component, attribute, _ref) {
-    var executeExpression = _ref.executeExpression,
+    var processExpression = _ref.processExpression,
         transitionIn = _ref.transitionIn,
         transitionOut = _ref.transitionOut;
     // Deconstruct attribute.
@@ -4119,7 +4123,7 @@ var directiveShow = {
     }; // Execute attribute value.
 
 
-    var result = executeExpression(component, attribute, attribute.getValue()); // Get stored data.
+    var result = processExpression(component, attribute, attribute.getValue()); // Get stored data.
 
     var data = attribute.getData(); // Handle promises.
 
@@ -4146,308 +4150,229 @@ var directiveShow = {
   }
 };
 
-/**
- * Deeply assign a series of objects properties together.
- * @param {Object} target Target object to merge to.
- * @param  {...Object} sources Objects to merge into the target.
- */
-/**
- * Set value on path at object.
- * @param {Object} object Object to set on.
- * @param {Array<String>} path Path to value.
- * @param {Any} value Value to set.
- */
+var directiveSync = {
+  name: 'sync',
+  update: function update(component, attribute, _ref) {
+    var processExpression = _ref.processExpression;
+    // Deconstruct attribute.
+    var element = attribute.getElement(); // Store whether this call is an update.
 
-var set = function set(object, path, value) {
-  // Exit early if not an object.
-  if (typeof object !== 'object') {
-    return;
-  }
+    var isNew = !attribute[SYNC];
 
-  var i = 0;
+    if (isNew) {
+      // Check if placed on a valid tag.
+      if (!(element.tagName === 'DIV' && element.hasAttribute('contenteditable')) && element.tagName !== 'INPUT' && element.tagName !== 'SELECT' && element.tagName !== 'TEXTAREA') {
+        console.warn('Doars: `sync` directive must be placed on an `<input>`, `<select>`, `<textarea>` tag, or a content editable `div`.');
+        return;
+      }
+    } // Deconstruct attribute.
 
-  for (; i < path.length - 1; i++) {
-    object = object[path[i]]; // Exit early if not an object.
 
-    if (typeof object !== 'object') {
+    var value = attribute.getValue().trim();
+    var key = attribute.getKey();
+
+    if (key) {
+      value = '$' + key + '.' + value;
+    } // Check if value is a valid variable name.
+
+
+    if (!/^[_$a-z]{1}[._$a-z0-9]{0,}$/i.test(value)) {
+      console.warn('Doars: `sync` directive\'s value not a valid variable name: "' + value + '".');
       return;
     }
-  }
 
-  object[path[i]] = value;
-};
+    if (isNew) {
+      // Set handler that updates data based of node tag.
+      var handler;
 
-var createDirectiveSync = (function (symbol, getData, contextPrefix) {
-  var destroy = function destroy(component, attribute) {
+      switch (element.tagName) {
+        case 'DIV':
+          handler = function handler() {
+            // Update value.
+            processExpression(component, attribute.clone(), value + '=\'' + escapeHtml(element.innerText) + '\'');
+          };
+
+          break;
+
+        case 'INPUT':
+          handler = function handler() {
+            var attributeClone = attribute.clone();
+            var elementValue = escapeHtml(element.value);
+
+            if (element.type === 'checkbox') {
+              // Get current value.
+              var _dataValue = processExpression(component, attributeClone, value); // Update value.
+
+
+              if (element.checked) {
+                if (!_dataValue) {
+                  processExpression(component, attributeClone, value + '=[\'' + elementValue + '\']');
+                }
+
+                if (!_dataValue.includes(element.value)) {
+                  processExpression(component, attributeClone, value + '.push(\'' + elementValue + '\')');
+                }
+              } else if (_dataValue) {
+                var index = _dataValue.indexOf(element.value);
+
+                if (index >= 0) {
+                  processExpression(component, attributeClone, value + '.splice(' + index + ',1)');
+                }
+              }
+            } else if (element.type === 'radio') {
+              var _dataValue2 = processExpression(component, attributeClone, value);
+
+              if (element.checked) {
+                if (_dataValue2 !== element.value) {
+                  processExpression(component, attributeClone, value + '=\'' + elementValue + '\'');
+                }
+              } else if (_dataValue2 === element.value) {
+                processExpression(component, attributeClone, value + '=null');
+              }
+            } else {
+              processExpression(component, attributeClone, value + '=\'' + elementValue + '\'');
+            }
+          };
+
+          break;
+
+        case 'TEXTAREA':
+          handler = function handler() {
+            // Update value.
+            processExpression(component, attribute.clone(), value + '=\'' + escapeHtml(element.value) + '\'');
+          };
+
+          break;
+
+        case 'SELECT':
+          handler = function handler() {
+            var attributeClone = attribute.clone();
+
+            if (element.multiple) {
+              var values = [];
+
+              var _iterator = _createForOfIteratorHelper(element.selectedOptions),
+                  _step;
+
+              try {
+                for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                  var option = _step.value;
+                  values.push(escapeHtml(option.value));
+                }
+              } catch (err) {
+                _iterator.e(err);
+              } finally {
+                _iterator.f();
+              }
+
+              processExpression(component, attributeClone, value + '=[\'' + values.join('\',\'') + '\']');
+            } else {
+              processExpression(component, attributeClone, value + '=\'' + escapeHtml(element.selectedOptions[0].value) + '\'');
+            }
+          };
+
+          break;
+      } // Add event listener.
+
+
+      element.addEventListener('input', handler); // Store handler wrapper.
+
+      attribute[SYNC] = handler;
+    }
+
+    var dataValue = processExpression(component, attribute, value);
+
+    switch (element.tagName) {
+      case 'DIV':
+      case 'TEXTAREA':
+        // Check if current value is different than attribute value.
+        if (dataValue !== element.innerText) {
+          // Update current value.
+          element.innerText = dataValue;
+        }
+
+        break;
+
+      case 'INPUT':
+        if (element.type === 'checkbox') {
+          // Update option if the checked value has changed.
+          var checked = dataValue.includes(element.value);
+
+          if (element.checked !== checked) {
+            // Update checked value.
+            element.checked = checked; // Update checked attribute.
+
+            if (checked) {
+              element.setAttribute('checked', '');
+            } else {
+              element.removeAttribute('checked');
+            }
+          }
+        } else if (element.type === 'radio') {
+          // Update option if the checked value has changed.
+          var _checked = dataValue === element.value;
+
+          if (element.checked !== _checked) {
+            // Update checked value.
+            element.checked = _checked; // Update checked attribute.
+
+            if (_checked) {
+              element.setAttribute('checked', '');
+            } else {
+              element.removeAttribute('checked');
+            }
+          }
+        } else {
+          // Check if current value is different than attribute value.
+          if (dataValue !== element.value) {
+            // Update current value.
+            element.setAttribute('value', dataValue);
+          }
+        }
+
+        break;
+
+      case 'SELECT':
+        // Iterate over the select options.
+        for (var _i = 0, _Array$from = Array.from(element.options); _i < _Array$from.length; _i++) {
+          var option = _Array$from[_i];
+          // Update option if the selected value has changed.
+          var select = Array.isArray(dataValue) ? dataValue.includes(option.value) : dataValue === option.value;
+
+          if (option.selected !== select) {
+            // Update option status.
+            option.selected = select; // Update option attribute.
+
+            if (select) {
+              option.setAttribute('selected', '');
+            } else {
+              option.removeAttribute('selected');
+            }
+          }
+        }
+
+        break;
+    }
+  },
+  destroy: function destroy(component, attribute) {
     // Exit early if nothing to destroy.
-    if (!attribute[symbol]) {
+    if (!attribute[SYNC]) {
       return;
     } // Deconstruct attribute.
 
 
     var element = attribute.getElement(); // Remove existing event listeners.
 
-    element.removeEventListener('input', attribute[symbol]); // Remove data from attribute.
+    element.removeEventListener('input', attribute[SYNC]); // Remove data from attribute.
 
-    delete attribute[symbol];
-  };
-
-  return {
-    update: function update(component, attribute, _ref) {
-      var executeExpression = _ref.executeExpression;
-      // Deconstruct attribute.
-      var element = attribute.getElement(); // Store whether this call is an update.
-
-      var isNew = !attribute[symbol];
-
-      if (isNew) {
-        // Check if placed on a correct tag.
-        if (!(element.tagName === 'DIV' && element.hasAttribute('contenteditable')) && element.tagName !== 'INPUT' && element.tagName !== 'SELECT' && element.tagName !== 'TEXTAREA') {
-          console.warn('Doars: `sync` directive must be placed on an `<input>`, `<select>`, `<textarea>` tag, or a content editable `div`.');
-          return;
-        }
-      } // Deconstruct attribute.
-
-
-      var value = attribute.getValue(); // Check if value is a valid variable name.
-
-      if (!/^[_$a-z]{1}[._$a-z0-9]{0,}$/i.test(value)) {
-        destroy(component, attribute);
-        console.warn('Doars: `sync` directive\'s value not a valid variable name: "' + value + '".');
-        return;
-      } // Remove context prefix.
-
-
-      var pathSplit = value;
-
-      if (pathSplit.startsWith(contextPrefix)) {
-        pathSplit = pathSplit.substring(contextPrefix.length);
-      } // Split value into path segments.
-
-
-      pathSplit = pathSplit.split('.');
-
-      if (isNew) {
-        // Get data for syncing.
-        var _getData = getData(component, attribute),
-            data = _getData.data,
-            id = _getData.id,
-            path = _getData.path; // Set handler that updates data based of node tag.
-
-
-        var handler;
-
-        switch (element.tagName) {
-          case 'DIV':
-            handler = function handler() {
-              set(data, pathSplit, element.innerText);
-              return true;
-            };
-
-            break;
-
-          case 'INPUT':
-            handler = function handler() {
-              if (element.type === 'checkbox') {
-                var _dataValue = executeExpression(component, attribute.clone(), value);
-
-                if (element.checked) {
-                  if (!_dataValue) {
-                    set(data, pathSplit, [element.value]);
-                    return true;
-                  }
-
-                  if (!_dataValue.includes(element.value)) {
-                    _dataValue.push(element.value);
-
-                    return true;
-                  }
-                } else if (_dataValue) {
-                  var index = _dataValue.indexOf(element.value);
-
-                  if (index >= 0) {
-                    _dataValue.splice(index, 1);
-
-                    return true;
-                  }
-                }
-              } else if (element.type === 'radio') {
-                var _dataValue2 = executeExpression(component, attribute.clone(), value);
-
-                if (element.checked) {
-                  if (_dataValue2 !== element.value) {
-                    set(data, pathSplit, element.value);
-                    return true;
-                  }
-                } else if (_dataValue2 === element.value) {
-                  set(data, pathSplit, null);
-                  return true;
-                }
-              } else {
-                set(data, pathSplit, element.value);
-                return true;
-              }
-
-              return false;
-            };
-
-            break;
-
-          case 'TEXTAREA':
-            handler = function handler() {
-              set(data, pathSplit, element.value);
-              return true;
-            };
-
-            break;
-
-          case 'SELECT':
-            handler = function handler() {
-              if (element.multiple) {
-                var values = [];
-
-                var _iterator = _createForOfIteratorHelper(element.selectedOptions),
-                    _step;
-
-                try {
-                  for (_iterator.s(); !(_step = _iterator.n()).done;) {
-                    var option = _step.value;
-                    values.push(option.value);
-                  }
-                } catch (err) {
-                  _iterator.e(err);
-                } finally {
-                  _iterator.f();
-                }
-
-                set(data, pathSplit, values);
-                return true;
-              }
-
-              set(data, pathSplit, element.selectedOptions[0].value);
-              return true;
-            };
-
-            break;
-        } // Wrap handler so an update is triggered.
-
-
-        var handlerWrapper = function handlerWrapper() {
-          // Call handler.
-          if (handler()) {
-            // Dispatch update trigger.
-            component.getLibrary().update([{
-              id: id,
-              path: path
-            }]);
-          }
-        }; // Add event listener.
-
-
-        element.addEventListener('input', handlerWrapper); // Store handler wrapper.
-
-        attribute[symbol] = handlerWrapper;
-      }
-
-      var dataValue = executeExpression(component, attribute, value);
-
-      switch (element.tagName) {
-        case 'DIV':
-        case 'TEXTAREA':
-          // Check if current value is different than attribute value.
-          if (dataValue !== element.innerText) {
-            // Update current value.
-            element.innerText = dataValue;
-          }
-
-          break;
-
-        case 'INPUT':
-          if (element.type === 'checkbox') {
-            // Update option if the checked value has changed.
-            var checked = dataValue.includes(element.value);
-
-            if (element.checked !== checked) {
-              // Update checked value.
-              element.checked = checked; // Update checked attribute.
-
-              if (checked) {
-                element.setAttribute('checked', '');
-              } else {
-                element.removeAttribute('checked');
-              }
-            }
-          } else if (element.type === 'radio') {
-            // Update option if the checked value has changed.
-            var _checked = dataValue === element.value;
-
-            if (element.checked !== _checked) {
-              // Update checked value.
-              element.checked = _checked; // Update checked attribute.
-
-              if (_checked) {
-                element.setAttribute('checked', '');
-              } else {
-                element.removeAttribute('checked');
-              }
-            }
-          } else if (dataValue !== element.value) {
-            // Check if current value is different than attribute value.
-            // Update current value.
-            element.setAttribute('value', dataValue);
-          }
-
-          break;
-
-        case 'SELECT':
-          // Iterate over the select options.
-          for (var _i = 0, _Array$from = Array.from(element.options); _i < _Array$from.length; _i++) {
-            var option = _Array$from[_i];
-            // Update option if the selected value has changed.
-            var select = Array.isArray(dataValue) ? dataValue.includes(option.value) : dataValue === option.value;
-
-            if (option.selected !== select) {
-              // Update option status.
-              option.selected = select; // Update option attribute.
-
-              if (select) {
-                option.setAttribute('selected', '');
-              } else {
-                option.removeAttribute('selected');
-              }
-            }
-          }
-
-          break;
-      }
-    },
-    destroy: destroy
-  };
-});
-
-// Import symbols.
-var STATE_PREFIX = '$state.';
-var directive = createDirectiveSync(SYNC_STATE, function (component, attribute) {
-  // Add prefix to value.
-  var value = attribute.getValue();
-
-  if (!value.startsWith(STATE_PREFIX)) {
-    value = STATE_PREFIX + value;
-  } // Return directive data.
-
-
-  return {
-    data: component.getState(),
-    id: component.getId(),
-    path: value
-  };
-}, STATE_PREFIX);
-directive.name = 'sync-state';
+    delete attribute[SYNC];
+  }
+};
 
 var directiveText = {
   name: 'text',
   update: function update(component, attribute, _ref) {
-    var executeExpression = _ref.executeExpression;
+    var processExpression = _ref.processExpression;
     // Deconstruct attribute.
     var element = attribute.getElement();
     var modifiers = attribute.getModifiers();
@@ -4464,7 +4389,7 @@ var directiveText = {
     }; // Execute value and retrieve result.
 
 
-    var result = executeExpression(component, attribute, attribute.getValue()); // Store results.
+    var result = processExpression(component, attribute, attribute.getValue()); // Store results.
 
     attribute.setData(result); // Handle promises.
 
@@ -4486,11 +4411,11 @@ var directiveText = {
 var directiveWatch = {
   name: 'watch',
   update: function update(component, attribute, _ref) {
-    var executeExpression = _ref.executeExpression;
+    var processExpression = _ref.processExpression;
     // Deconstruct attribute.
     var value = attribute.getValue(); // Execute attribute expression.
 
-    executeExpression(component, attribute, value, {}, {
+    processExpression(component, attribute, value, {}, {
       return: false
     });
   }
@@ -4514,6 +4439,7 @@ var Doars = /*#__PURE__*/function (_EventDispatcher) {
 
     var _options = options = Object.assign({
       prefix: 'd',
+      processor: 'execute',
       root: document.body.firstElementChild
     }, options),
         prefix = _options.prefix,
@@ -4556,26 +4482,18 @@ var Doars = /*#__PURE__*/function (_EventDispatcher) {
         observer,
         triggers;
     var components = [];
-    var contexts = [contextChildren, contextComponent, contextElement, contextDispatch, contextInContext, contextNextTick, contextParent, contextReferences, // Order of `state` before `for` context is important for deconstruction.
+    var contextsBase = {},
+        contexts = [contextChildren, contextComponent, contextElement, contextDispatch, contextInContext, contextNextTick, contextParent, contextReferences, // Order of `state` before `for` context is important for deconstruction.
     contextState, contextFor];
     var directives = [// Must happen first as other directives can rely on it.
     directiveReference, // Then execute those that modify the document tree, since it could make other directives redundant and save on processing.
     directiveAttribute, directiveFor, directiveHtml, directiveIf, directiveText, // Order does not matter any more.
-    directiveCloak, directiveInitialized, directiveOn, directiveSelect, directiveShow, directive, directiveWatch];
+    directiveCloak, directiveInitialized, directiveOn, directiveSelect, directiveShow, directiveSync, directiveWatch];
     var directivesNames, directivesObject, directivesRegexp;
-    /**
-     * Whether this is currently enabled.
-     * @returns {Boolean} Whether the library is enabled.
-     */
-
-    _this.getEnabled = function () {
-      return isEnabled;
-    };
     /**
      * Get the unique identifier.
      * @returns {Symbol} Unique identifier.
      */
-
 
     _this.getId = function () {
       return id;
@@ -4588,6 +4506,17 @@ var Doars = /*#__PURE__*/function (_EventDispatcher) {
 
     _this.getOptions = function () {
       return Object.assign({}, options);
+    };
+    /* State */
+
+    /**
+     * Whether this is currently enabled.
+     * @returns {Boolean} Whether the library is enabled.
+     */
+
+
+    _this.getEnabled = function () {
+      return isEnabled;
     };
     /**
      * Enable the library.
@@ -4695,6 +4624,8 @@ var Doars = /*#__PURE__*/function (_EventDispatcher) {
 
       return _assertThisInitialized(_this);
     };
+    /* Components */
+
     /**
      * Add components to instance.
      * @param  {...HTMLElement} elements Elements to add as components.
@@ -4790,6 +4721,52 @@ var Doars = /*#__PURE__*/function (_EventDispatcher) {
 
       return results;
     };
+    /* Simple contexts */
+
+    /**
+     * Get simple contexts.
+     * @returns {Object} Stored simple contexts.
+     */
+
+
+    _this.getSimpleContexts = function () {
+      return Object.assign({}, contextsBase);
+    };
+    /**
+     * Add a value directly to the contexts without needing to use an object or having to deal with indices.
+     * @param {String} name Property name under which to add the context.
+     * @param {Any} value The value to add, null removes the context.
+     * @returns {Boolean} Whether the value was successfully set.
+     */
+
+
+    _this.setSimpleContext = function (name) {
+      var value = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+
+      // Delete context if value is null.
+      if (value === null) {
+        delete contextsBase[name]; // Dispatch event.
+
+        _this.dispatchEvent('simple-context-removed', [_assertThisInitialized(_this), name]);
+
+        return true;
+      } // Validate name.
+
+
+      if (!name.match('^([a-zA-Z_$][a-zA-Z\d_$]*)$')) {
+        console.warn('Doars: name of a bind can not start with a "$".');
+        return false;
+      } // Store value on contexts base.
+
+
+      contextsBase[name] = value; // Dispatch event.
+
+      _this.dispatchEvent('simple-context-added', [_assertThisInitialized(_this), name, value]);
+
+      return true;
+    };
+    /* Contexts */
+
     /**
      * Get list contexts.
      * @returns {Array<Object>} List of contexts.
@@ -5010,6 +4987,8 @@ var Doars = /*#__PURE__*/function (_EventDispatcher) {
 
       return results;
     };
+    /* Update */
+
     /**
      * Update directives based on triggers. *Can only be called when enabled.*
      * @param {Array<Object>} _triggers List of triggers to update with.
@@ -5428,6 +5407,227 @@ var Doars = /*#__PURE__*/function (_EventDispatcher) {
 
   return _createClass(Doars);
 }(EventDispatcher);
+
+/**
+ * Create an object with utility function.
+ * @returns {Object} Utils.
+ */
+
+var createContextUtils = function createContextUtils() {
+  return {
+    createContexts: createContexts,
+    createContextsProxy: createContextsProxy,
+    RevocableProxy: RevocableProxy
+  };
+};
+/**
+ * Create component's contexts for an attributes expression.
+ * @param {Component} component Instance of the component.
+ * @param {Attribute} attribute Instance of the attribute.
+ * @param {Function} update Called when update needs to be invoked.
+ * @param {Object} extra Optional extra context items.
+ * @returns {Array<Object, Function>} Expressions contexts and destroy functions.
+ */
+
+
+var createContexts = function createContexts(component, attribute, update) {
+  var extra = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+  // Get library.
+  var library = component.getLibrary(); // Start with the simple contexts.
+
+  var contexts = library.getSimpleContexts();
+  var after = '',
+      before = '',
+      deconstructed = []; // Iterate over all contexts.
+
+  var creatableContexts = library.getContexts(); // Store destroy functions.
+
+  var destroyFunctions = [];
+
+  var _iterator = _createForOfIteratorHelper(creatableContexts),
+      _step;
+
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var creatableContext = _step.value;
+
+      if (!creatableContext || !creatableContext.name) {
+        continue;
+      } // Get context result.
+
+
+      var result = creatableContext.create(component, attribute, update, createContextUtils());
+
+      if (!result || !result.value) {
+        continue;
+      } // Store destroy functions.
+
+
+      if (result.destroy && typeof result.destroy === 'function') {
+        destroyFunctions.push(result.destroy);
+      } // Deconstruct options if marked as such.
+
+
+      if (creatableContext.deconstruct && typeof result.value === 'object') {
+        deconstructed.push(creatableContext.name);
+        before += 'with(' + creatableContext.name + ') { ';
+        after += ' }';
+      } // Store result value in context results.
+
+
+      contexts[creatableContext.name] = result.value;
+    } // Add extra items to context.
+
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+
+  if (typeof extra === 'object') {
+    for (var name in extra) {
+      contexts[name] = extra[name];
+    }
+  }
+
+  return {
+    contexts: contexts,
+    destroy: function destroy() {
+      // Call all destroy functions.
+      var _iterator2 = _createForOfIteratorHelper(destroyFunctions),
+          _step2;
+
+      try {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          var destroyFunction = _step2.value;
+          destroyFunction(createContextUtils());
+        }
+      } catch (err) {
+        _iterator2.e(err);
+      } finally {
+        _iterator2.f();
+      }
+    },
+    after: after,
+    before: before,
+    deconstructed: deconstructed
+  };
+};
+/**
+ * Create component's contexts only after the context gets used.
+ * @param {Component} component Instance of the component.
+ * @param {Attribute} attribute Instance of the attribute.
+ * @param {Object} extra Optional extra context items.
+ * @param {Function} update Called when update needs to be invoked.
+ * @returns {Proxy} Expressions contexts' proxy.
+ */
+
+var createContextsProxy = function createContextsProxy(component, attribute, update) {
+  var extra = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+  // Store context after first call.
+  var data = null; // Create context proxy.
+
+  var revocable = RevocableProxy({}, {
+    get: function get(target, property) {
+      // Create context.
+      if (!data) {
+        data = createContexts(component, attribute, update, extra);
+      } // Check if name exists in context.
+
+
+      if (property in data.contexts) {
+        // Call accessed callback if element or state is accessed.
+        attribute.accessed(component.getId(), property); // Return value.
+
+        return data.contexts[property];
+      } // Try and get value from state.
+
+
+      if (data.contexts.$state) {
+        if (property in data.contexts.$state) {
+          // Call accessed callback if element or state is accessed.
+          attribute.accessed(component.getId(), '$state'); // Return value.
+
+          return data.contexts.$state[property];
+        }
+      }
+    }
+  }); // Return context.
+
+  return {
+    contexts: revocable.proxy,
+    destroy: function destroy() {
+      // Call destroy on created context.
+      if (data && data.destroy) {
+        data.destroy(component, attribute);
+      } // Revoke proxy.
+
+
+      revocable.revoke();
+    }
+  };
+};
+
+/**
+ * Executes value in the correct context.
+ * @param {Component} component Instance of the component.
+ * @param {Attribute} attribute Instance of the attribute.
+ * @param {String} expression Expression to execute.
+ * @param {Object} extra Optional extra context items.
+ * @param {Object} options Optional options object.
+ * @returns {Any} Result of expression.
+ */
+
+var execute = function execute(component, attribute, expression) {
+  var extra = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+  var options = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
+  // Override default with given options.
+  options = Object.assign({
+    return: true
+  }, options); // Collect update triggers.
+
+  var triggers = [];
+
+  var update = function update(id, context) {
+    triggers.push({
+      id: id,
+      path: context
+    });
+  }; // Create function context.
+
+
+  var _createContexts = createContexts(component, attribute, update, extra),
+      after = _createContexts.after,
+      before = _createContexts.before,
+      contexts = _createContexts.contexts,
+      destroy = _createContexts.destroy; // Apply options.
+
+
+  if (options.return) {
+    before += 'return ';
+  } // Try to execute code.
+
+
+  var result;
+
+  try {
+    result = _construct(Function, _toConsumableArray(Object.keys(contexts)).concat([before + expression + after])).apply(void 0, _toConsumableArray(Object.values(contexts))); // eslint-disable-line no-new-func
+  } catch (error) {
+    console.error(error, 'Error encountered when executing the following expression: ', expression);
+    result = null;
+  } // Invoke destroy.
+
+
+  destroy(); // Dispatch update triggers.
+
+  if (triggers.length > 0) {
+    component.getLibrary().update(triggers);
+  }
+
+  return result;
+};
+
+Doars.executeExpression = execute;
 
 export { Doars as default };
 //# sourceMappingURL=doars.esm.js.map

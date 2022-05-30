@@ -166,23 +166,22 @@ var responseType = function responseType(response) {
 };
 
 // Import utils.
-var createFetchContext = (function (options) {
+var createFetchContext = (function (_ref) {
+  var defaultInit = _ref.defaultInit;
   return {
     name: '$fetch',
     create: function create() {
       return {
         value: function value(url) {
-          var _init$returnType;
-
           var init = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
           // Apply default options to init.
-          if (options.defaultInit) {
-            init = deepAssign(options.defaultInit, init);
+          if (defaultInit) {
+            init = deepAssign({}, defaultInit, init);
           } // Extract optional return type.
 
 
-          var returnType = (_init$returnType = init.returnType) !== null && _init$returnType !== void 0 ? _init$returnType : null;
+          var returnType = init.returnType ? init.returnType : null;
           delete init.returnType; // Perform and process fetch request.
 
           return fetch(url, init).then(function (response) {

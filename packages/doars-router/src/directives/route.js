@@ -3,7 +3,7 @@ import { ROUTE } from '../symbols.js'
 
 // Import utils.
 import { closestRouter } from '../utils.js'
-import { insertAfter } from '@doars/doars/src/utils/ElementUtils.js'
+import { insertAfter } from '@doars/utils/src/ElementUtils.js'
 
 export default {
   name: 'route',

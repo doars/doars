@@ -1,5 +1,5 @@
 // Import polyfill.
-import RevocableProxy from '@doars/doars/src/polyfills/RevocableProxy.js'
+import RevocableProxy from '@doars/utils/src/polyfills/RevocableProxy.js'
 
 // Import symbol.
 import { ROUTER } from '../symbols'

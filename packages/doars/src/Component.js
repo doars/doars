@@ -5,13 +5,13 @@ import { COMPONENT } from './symbols.js'
 import Attribute from './Attribute.js'
 
 // Import proxy dispatcher.
-import ProxyDispatcher from './events/ProxyDispatcher.js'
+import ProxyDispatcher from '@doars/utils/src/events/ProxyDispatcher.js'
 
 // Import utils.
-import { morphTree } from './utils/MorphUtils.js'
+import { morphTree } from '@doars/utils/src/MorphUtils.js'
 import { closestComponent } from './utils/ComponentUtils.js'
-import { transition, transitionIn, transitionOut } from './utils/TransitionUtils.js'
-import { walk } from './utils/ElementUtils.js'
+import { transition, transitionIn, transitionOut } from '@doars/utils/src/TransitionUtils.js'
+import { walk } from '@doars/utils/src/ElementUtils.js'
 
 export default class Component {
   /**

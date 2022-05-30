@@ -2,7 +2,7 @@
 import { pathToRegexp } from 'path-to-regexp'
 
 // Import event dispatcher.
-import EventDispatcher from '@doars/doars/src/events/EventDispatcher.js'
+import EventDispatcher from '@doars/utils/src/events/EventDispatcher.js'
 
 class Router extends EventDispatcher {
   constructor(options = {}) {

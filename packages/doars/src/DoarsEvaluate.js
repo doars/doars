@@ -1,6 +1,6 @@
 import Doars from './Doars.js'
-import { evaluate } from './utils/EvaluateUtils.js'
+// import { evaluate } from './utils/EvaluateUtils.js' TODO:
 
-Doars.evaluateExpression = evaluate
+// Doars.evaluateExpression = evaluate TODO:
 
 export default Doars

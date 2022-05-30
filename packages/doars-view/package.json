@@ -42,8 +42,5 @@
     "src",
     "CHANGELOG.md",
     "README.md"
-  ],
-  "dependencies": {
-    "@doars/doars": "1.x"
-  }
+  ]
 }

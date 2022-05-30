@@ -114,7 +114,7 @@ var DoarsView = (function () {
     return {
       name: 'view',
       update: function update(component, attribute, _ref) {
-        var executeExpression = _ref.executeExpression;
+        var processExpression = _ref.processExpression;
         // Deconstruct attribute.
         var element = attribute.getElement();
         var key = attribute.getKey();
@@ -186,7 +186,7 @@ var DoarsView = (function () {
 
           var execute = function execute() {
             // Execute value using a copy of the attribute since this attribute should not update based on what contexts will be accessed.
-            executeExpression(component, attribute.clone(), value, {
+            processExpression(component, attribute.clone(), value, {
               $event: event
             }, {
               return: false

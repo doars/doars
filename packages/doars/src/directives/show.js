@@ -1,5 +1,5 @@
 // Import utils.
-import { isPromise } from '../utils/PromiseUtils.js'
+import { isPromise } from '@doars/utils/src/PromiseUtils.js'
 
 export default {
   name: 'show',

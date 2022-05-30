@@ -1,6 +1,6 @@
 // Import symbols.
 import { SYNC } from '../symbols.js'
-import { escapeHtml } from '../utils/StringUtils.js'
+import { escapeHtml } from '@doars/utils/src/StringUtils.js'
 
 export default {
   name: 'sync',
