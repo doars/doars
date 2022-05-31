@@ -1,4 +1,5 @@
-// TODO: import { createContexts } from './ContextUtils.js'
+// TODO:
+// import { createContexts } from './ContextUtils.js'
 
 /*
 TODO: Parse expression and lookup on context instead of executing the code.
@@ -6,7 +7,9 @@ TODO: Parse expression and lookup on context instead of executing the code.
 - [O] Strings single quote: 'hello'
 - [O] Strings double quote: "hello"
 - [O] Comma: hello, world
-- [ ] Objects: { hello: 'world' }
+- [O] Null: null
+- [O] Undefined: undefined
+- [O] Variables: $var_able5
 - [ ] Objects: { 'hello': 'world' }
 - [ ] Object access using paths: hello.world
 - [ ] Arrays: [ 'hello', 'world' ]
@@ -19,11 +22,17 @@ TODO: Parse expression and lookup on context instead of executing the code.
 - [ ] Addition assignment operator: hello += world
 */
 
-const NUMBER_MATCHER = new RegExp('[0-9]')
-const NUMBER_PARSER = new RegExp('[0-9.]{1,}')
+const NUMBER_MATCHER = /[0-9]/
+const NUMBER_PARSER = /^[0-9.]{1,}/s
 
-const STRING_MATCHER = new RegExp('[\'"]')
-const STRING_PARSER = new RegExp('^([\'"])(?:(?=(\\\\?))\\2.)*?\\1', 's')
+const STRING_MATCHER = /['"]/
+const STRING_PARSER = /^(['"])(?:(?=(\\?))\2.)*?\1/s
+
+const WHITESPACE_MATCHER = /\s/
+const WHITESPACE_PARSER = /^(\s+)/s
+
+const WORD_MATCHER = /[a-z$_]/i
+const WORD_PARSER = /^([a-z$_]+[0-9a-z$_]+)/is
 
 const TYPES = {
   ADDITION_ASSIGN: 0,
@@ -31,11 +40,13 @@ const TYPES = {
   ARRAY: 2,
   ASSIGN: 3,
   NEW_STATEMENT: 4,
-  NUMBER: 5,
-  OBJECT: 6,
-  PATH_SEPARATION: 7,
-  STRING: 8,
-  VARIABLE: 9,
+  NULL: 5,
+  NUMBER: 6,
+  OBJECT: 7,
+  PATH_SEPARATION: 8,
+  STRING: 9,
+  UNDEFINED: 10,
+  VARIABLE: 11,
 }
 
 const parseText = (text) => {
@@ -49,6 +60,9 @@ const parseText = (text) => {
     let value = data
     for (const pathSegment of path) {
       value = value[pathSegment]
+    }
+    if (Array.isArray(value)) {
+      return value[value.length - 1]
     }
     return value
   }
@@ -74,12 +88,7 @@ const parseText = (text) => {
   const lastIsValue = () => {
     // Ensure the previous node is either an array, number, object, string, or variable.
     const previousType = get().type
-    return previousType === TYPES.ARRAY || previousType === TYPES.NUMBER || previousType === TYPES.OBJECT || previousType === TYPES.STRING || previousType === TYPES.VARIABLE
-  }
-  const lastIsAssignable = () => {
-    // Ensure the previous node is either an array, number, object, string, or variable.
-    const previousType = get().type
-    return previousType === TYPES.NUMBER || previousType === TYPES.STRING || previousType === TYPES.VARIABLE
+    return previousType === TYPES.ARRAY || previousType === TYPES.NULL || previousType === TYPES.NUMBER || previousType === TYPES.OBJECT || previousType === TYPES.STRING || previousType === TYPES.UNDEFINED || previousType === TYPES.VARIABLE
   }
 
   // Start iterating over the text.
@@ -122,8 +131,8 @@ const parseText = (text) => {
       // continue
 
       case '=':
-        if (!lastIsAssignable()) {
-          throw new Error('Unexpected assignment found at "' + index + '"', text)
+        if (!lastIsValue()) {
+          throw new Error('Unexpected assignment found at "' + index + '": ' + text)
         }
 
         // TODO:
@@ -131,8 +140,8 @@ const parseText = (text) => {
       // continue
 
       case '+':
-        if (!lastIsAssignable()) {
-          throw new Error('Unexpected addition found at "' + index + '"', text)
+        if (!lastIsValue()) {
+          throw new Error('Unexpected addition found at "' + index + '": ' + text)
         }
 
         // Look ahead for an assignment operator.
@@ -152,7 +161,7 @@ const parseText = (text) => {
 
       case ',':
         if (!lastIsValue()) {
-          throw new Error('Unexpected comma found at "' + index + '"', text)
+          throw new Error('Unexpected comma found at "' + index + '": ' + text)
         }
         break
 
@@ -166,6 +175,13 @@ const parseText = (text) => {
         break
 
       default:
+        // Skip whitespace.
+        if (WHITESPACE_MATCHER.test(character)) {
+          const match = WHITESPACE_PARSER.exec(text.substring(index))
+          index += match[0].length
+          continue;
+        }
+
         // Check for a number match.
         if (NUMBER_MATCHER.test(character)) {
           // Parse expecting a number.
@@ -203,7 +219,45 @@ const parseText = (text) => {
           continue
         }
 
-      // TODO: Check for variable name or path.
+        if (WORD_MATCHER.test(character)) {
+          // Parse expecting a string.
+          const match = WORD_PARSER.exec(text.substring(index))
+
+          // Check for keywords.
+          switch (match[0]) {
+            case 'null':
+              set({
+                type: TYPES.NULL,
+              })
+              index += 4
+              break;
+
+            case 'undefined':
+              set({
+                type: TYPES.UNDEFINED,
+              })
+              index += 9
+              break;
+
+            // Otherwise assume it is a variable.
+            default:
+              set({
+                type: TYPES.VARIABLE,
+                value: match[0],
+              })
+
+              // TODO: Look ahead for a function call!
+
+              // Move to after the variable.
+              index += match[0].length
+              break;
+          }
+
+          continue;
+        }
+
+        throw new Error(character + ' encountered')
+      // break
     }
 
     // Move to the next character.
@@ -213,19 +267,43 @@ const parseText = (text) => {
   return data
 }
 
-// FIX: Tests.
-console.log(
-  parseText('12.34, 90, 56.78')
-)
-console.log(
-  parseText('"hello", "world"')
-)
+(function () {
+  const tests = {
+    float: '34.56',
+    int: '12',
+    null: 'null',
+    string: '"string"',
+    undefined: 'undefined',
+    variable: 'variable',
+    variableWithCapital: 'variAble',
+    variableWithDollar: '$variable',
+    variableWithNumber: 'var1able',
+    variableWithUnderscore: 'var_able',
+    whitespace: ' ',
+    commas: '12.34, 56, null, "hello", undefined',
+  };
 
-/*
-TODO:
-export const evaluate = () => { }
+  let name = null, result = null
+  const names = Object.keys(tests)
+  for (let i = 0; i < names.length; i++) {
+    name = names[i];
 
-export default {
-  evaluate: evaluate,
-}
-*/
+    try {
+      result = parseText(tests[name])
+    } catch (error) {
+      console.warn(error)
+      continue;
+    }
+
+    console.log('"' + name + '": ', result)
+  }
+}())
+
+// TODO:
+// export const evaluate = () => {
+//   throw new Error('Not yet implemented')
+// }
+
+// export default {
+//   evaluate: evaluate,
+// }
