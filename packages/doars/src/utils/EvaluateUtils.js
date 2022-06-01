@@ -19,6 +19,10 @@ TODO: Parse expression and lookup on context instead of executing the code.
 - [ ] Expression separation: hello(); world()
 - [ ] Assignment operator: hello = world
 - [ ] Addition operator: hello + world
+- [ ] Comparison equal operator: hello == world
+- [ ] Comparison equal strict operator: hello === world
+- [ ] Comparison not equal operator: hello != world
+- [ ] Comparison not equal strict operator: hello !== world
 - [ ] Addition assignment operator: hello += world
 */
 
@@ -39,14 +43,23 @@ const TYPES = {
   ADDITION: 1,
   ARRAY: 2,
   ASSIGN: 3,
-  NEW_STATEMENT: 4,
-  NULL: 5,
-  NUMBER: 6,
-  OBJECT: 7,
-  PATH_SEPARATION: 8,
-  STRING: 9,
-  UNDEFINED: 10,
-  VARIABLE: 11,
+  DECREMENT: 4,
+  EQUAL_STRICT: 5,
+  EQUAL: 6,
+  INCREMENT: 7,
+  NEW_STATEMENT: 8,
+  NOT: 9,
+  NOT_EQUAL_STRICT: 9,
+  NOT_EQUAL: 10,
+  NULL: 11,
+  NUMBER: 12,
+  OBJECT: 13,
+  PATH_SEPARATION: 14,
+  STRING: 15,
+  SUBTRACTION: 16,
+  SUBTRACTION_ASSIGN: 17,
+  UNDEFINED: 18,
+  VARIABLE: 19,
 }
 
 const parseText = (text) => {
@@ -84,7 +97,6 @@ const parseText = (text) => {
     // TODO:
     // Get last array and override it with this value assign the array to the value.value property.
   }
-
   const lastIsValue = () => {
     // Ensure the previous node is either an array, number, object, string, or variable.
     const previousType = get().type
@@ -130,21 +142,90 @@ const parseText = (text) => {
         throw new Error(character + ' encountered')
       // continue
 
-      case '=':
+      case '!':
         if (!lastIsValue()) {
-          throw new Error('Unexpected assignment found at "' + index + '": ' + text)
+          throw new Error('Unexpected exclamation (!) symbol found at "' + index + '": ' + text)
         }
 
-        // TODO:
-        throw new Error(character + ' encountered')
-      // continue
+        if (text.substring(index + 1, 2) === '==') {
+          set({
+            type: TYPES.EQUAL_STRICT,
+          })
+          index += 3
+          continue
+        }
+        if (text[index + 1] === '=') {
+          set({
+            type: TYPES.EQUAL,
+          })
+          index += 2
+          continue
+        }
+        set({
+          type: TYPES.NOT,
+        })
+        break
+
+      case '=':
+        if (!lastIsValue()) {
+          throw new Error('Unexpected equal (=) symbol found at "' + index + '": ' + text)
+        }
+
+        if (text.substring(index + 1, 2) === '==') {
+          set({
+            type: TYPES.EQUAL_STRICT,
+          })
+          index += 3
+          continue
+        }
+        if (text[index + 1] === '=') {
+          set({
+            type: TYPES.EQUAL,
+          })
+          index += 2
+          continue
+        }
+        set({
+          type: TYPES.ASSIGN,
+        })
+        break
+
+      case '-':
+        if (!lastIsValue()) {
+          throw new Error('Unexpected subtraction (-) symbol found at "' + index + '": ' + text)
+        }
+
+        if (text[index + 1] === '-') {
+          set({
+            type: TYPES.DECREMENT,
+          })
+          index += 2
+          continue
+        }
+        if (text[index + 1] === '=') {
+          set({
+            type: TYPES.SUBTRACTION_ASSIGN,
+          })
+          index += 2
+          continue
+        }
+        set({
+          type: TYPES.SUBTRACTION,
+        })
+        break
 
       case '+':
         if (!lastIsValue()) {
-          throw new Error('Unexpected addition found at "' + index + '": ' + text)
+          throw new Error('Unexpected addition (+) symbol found at "' + index + '": ' + text)
         }
 
-        // Look ahead for an assignment operator.
+        if (text[index + 1] === '+') {
+          set({
+            type: TYPES.INCREMENT,
+          })
+          index += 2
+          continue
+        }
         if (text[index + 1] === '=') {
           set({
             type: TYPES.ADDITION_ASSIGN,
@@ -152,8 +233,6 @@ const parseText = (text) => {
           index += 2
           continue
         }
-
-        // Addition operator.
         set({
           type: TYPES.ADDITION,
         })
@@ -256,8 +335,7 @@ const parseText = (text) => {
           continue;
         }
 
-        throw new Error(character + ' encountered')
-      // break
+        throw new Error('Unable to continue parsing code: ' + text.substring(index))
     }
 
     // Move to the next character.
