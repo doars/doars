@@ -372,9 +372,8 @@ const parseText = (text) => {
       console.warn(error)
       continue;
     }
-
-    console.log('"' + name + '": ', result)
   }
+  console.log('"' + name + '": ', result)
 }())
 
 // TODO:
