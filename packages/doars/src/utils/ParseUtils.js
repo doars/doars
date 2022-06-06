@@ -1,21 +1,29 @@
-// Based on Eric Smekens's jsep, v1.3.6, https://github.com/EricSmekens/jsep#readme).
+// Based on jsep, v1.3.6, https://github.com/EricSmekens/jsep#readme).
 
-const COMPOUND = 'Compound'
-const SEQUENCE_EXP = 'SequenceExpression'
-const IDENTIFIER = 'Identifier'
-const MEMBER_EXP = 'MemberExpression'
-const LITERAL = 'Literal'
-const THIS_EXP = 'ThisExpression'
-const CALL_EXP = 'CallExpression'
-const UNARY_EXP = 'UnaryExpression'
-const BINARY_EXP = 'BinaryExpression'
-const ARRAY_EXP = 'ArrayExpression'
+// Node types.
+export const COMPOUND = 1
+export const IDENTIFIER = 2
+export const LITERAL = 3
+export const PROPERTY = 4
+// Node expression types.
+export const ARRAY_EXPRESSION = 5
+export const ASSIGNMENT_EXPRESSION = 6
+export const BINARY_EXPRESSION = 7
+export const CALL_EXPRESSION = 8
+export const CONDITIONAL_EXPRESSION = 9
+export const MEMBER_EXPRESSION = 10
+export const OBJECT_EXPRESSION = 11
+export const SEQUENCE_EXPRESSION = 12
+export const UNARY_EXPRESSION = 13
+export const UPDATE_EXPRESSION = 14
 
+// Character codes.
 const TAB_CODE = 9
 const LF_CODE = 10
 const CR_CODE = 13
 const SPACE_CODE = 32
 const DOUBLE_QUOTE_CODE = 34 // "
+const DOLLAR_CODE = 36 // $
 const SINGLE_QUOTE_CODE = 39 // '
 const OPENING_PARENTHESIS_CODE = 40 // (
 const CLOSING_PARENTHESIS_CODE = 41 // )
@@ -33,41 +41,76 @@ const UPPERCASE_A_CODE = 48 // A
 const UPPERCASE_Z_CODE = 57 // Z
 const OPENING_BRACKET_CODE = 91 // [
 const CLOSING_BRACKET_CODE = 93 // ]
+const UNDERSCORE_CODE = 95 // _
 const LOWERCASE_A_CODE = 97 // a
 const LOWERCASE_Z_CODE = 122 // z
+const OPENING_BRACES_CODE = 123 // {
+const CLOSING_BRACES_CODE = 125 // }
 
+// Operators.
+const ASSIGNMENT_OPERATORS = [
+  '=',
+  '*=',
+  '**=',
+  '/=',
+  '%=',
+  '+=',
+  '-=',
+  // '<<=',
+  // '>>=',
+  // '>>>=',
+  // '&=',
+  // '^=',
+  // '|=',
+]
 const BINARY_OPERATORS = {
-  '||': 1,
-  '&&': 2,
-  // '|': 3,
-  // '^': 4,
-  // '&': 5,
-  '==': 6,
-  '!=': 6,
-  '===': 6,
-  '!==': 6,
-  '<': 7,
-  '>': 7,
-  '<=': 7,
-  '>=': 7,
-  // '<<': 8,
-  // '>>': 8,
-  // '>>>': 8,
-  '+': 9,
-  '-': 9,
-  '*': 10,
-  '/': 10,
-  '%': 10,
+  '=': 1,
+  '*=': 1,
+  '**=': 1,
+  '/=': 1,
+  '%=': 1,
+  '+=': 1,
+  '-=': 1,
+  // '<<=': 1,
+  // '>>=': 1,
+  // '>>>=': 1,
+  // '&=': 1,
+  // '^=': 1,
+  // '|=': 1,
+  '||': 2,
+  '&&': 3,
+  // '|': 4,
+  // '^': 5,
+  // '&': 6,
+  '==': 7,
+  '!=': 7,
+  '===': 7,
+  '!==': 7,
+  '<': 8,
+  '>': 8,
+  '<=': 8,
+  '>=': 8,
+  // '<<': 9,
+  // '>>': 9,
+  // '>>>': 9,
+  '+': 10,
+  '-': 10,
+  '*': 11,
+  '/': 11,
+  '%': 11,
 }
 const MAX_BINARY_OPERATOR_LENGTH = 3
-const UNARY_OPERATORS = {
-  '-': 1,
-  '!': 1,
-  // '~': 1,
-  '+': 1,
-}
+const UNARY_OPERATORS = [
+  '-',
+  '!',
+  // '~',
+  '+',
+]
 const MAX_UNARY_OPERATOR_LENGTH = 1
+const UPDATE_OPERATOR_DECREMENT = '--'
+const UPDATE_OPERATOR_INCREMENT = '++'
 
+// Literal lookup.
 const LITERALS = {
   'true': true,
   'false': false,
@@ -81,15 +124,16 @@ const binaryPrecedence = (operationValue) =>
   BINARY_OPERATORS[operationValue] || 0
 
 const isIdentifierStart = (character) =>
-  (character >= UPPERCASE_A_CODE && character <= UPPERCASE_Z_CODE) ||
-  (character >= LOWERCASE_A_CODE && character <= LOWERCASE_Z_CODE) ||
-  (character >= 128 && !BINARY_OPERATORS[String.fromCharCode(character)])
+  character === DOLLAR_CODE
+  || (character >= UPPERCASE_A_CODE && character <= UPPERCASE_Z_CODE)
+  || character === UNDERSCORE_CODE
+  || (character >= LOWERCASE_A_CODE && character <= LOWERCASE_Z_CODE)
+  || (character >= 128 && !BINARY_OPERATORS[String.fromCharCode(character)])
 
 const isIdentifierPart = (character) =>
   isIdentifierStart(character) || isDecimalDigit(character)
 
-// export
-const parse = (expression) => {
+export const parse = (expression) => {
   let index = 0
 
   const throwError = (message) => {
@@ -99,14 +143,11 @@ const parse = (expression) => {
     throw error
   }
 
-  const getCharacter = () => expression.charAt(index)
-  const getCode = () => expression.charCodeAt(index)
-
   const gobbleArray = () => {
     index++
 
     return {
-      type: ARRAY_EXP,
+      type: ARRAY_EXPRESSION,
       elements: gobbleArguments(CLOSING_BRACKET_CODE)
     }
   }
@@ -118,7 +159,7 @@ const parse = (expression) => {
 
     while (index < expression.length) {
       gobbleSpaces()
-      let characterIndex = getCode()
+      let characterIndex = expression.charCodeAt(index)
 
       if (characterIndex === termination) {
         closed = true
@@ -127,7 +168,6 @@ const parse = (expression) => {
         if (termination === CLOSING_PARENTHESIS_CODE && separatorCount && separatorCount >= parameters.length) {
           throwError('Unexpected token ' + String.fromCharCode(termination))
         }
-
         break
       } else if (characterIndex === COMMA_CODE) {
         index++
@@ -137,7 +177,7 @@ const parse = (expression) => {
           if (termination === CLOSING_PARENTHESIS_CODE) {
             throwError('Unexpected token ,')
           } else if (termination === CLOSING_BRACKET_CODE) {
-            for (let arg = parameters.length; arg < separatorCount; arg++) {
+            for (let i = parameters.length; i < separatorCount; i++) {
               parameters.push(null)
             }
           }
@@ -163,29 +203,26 @@ const parse = (expression) => {
   }
 
   const gobbleBinaryExpression = () => {
-    let node, binaryOperation, precedence, stack, binaryOperationInfo, left, right, i, currentBinaryOperation
+    let node, operator, precedence, stack, binaryOperationInfo, left, right, i, currentBinaryOperation
 
     left = gobbleToken()
-    console.log('left', left) // TODO:
     if (!left) {
       return left
     }
 
-    binaryOperation = gobbleBinaryOperation()
-    console.log('binaryOperation', binaryOperation) // TODO:
-    if (!binaryOperation) {
+    operator = gobbleBinaryOperation()
+    if (!operator) {
       return left
     }
 
     binaryOperationInfo = {
-      value: binaryOperation,
-      precedence: binaryPrecedence(binaryOperation),
+      value: operator,
+      precedence: binaryPrecedence(operator),
     }
 
     right = gobbleToken()
-    console.log('right', right) // TODO:
     if (!right) {
-      throwError('Expected expression after ' + binaryOperation)
+      throwError('Expected expression after ' + operator)
     }
 
     stack = [
@@ -193,31 +230,32 @@ const parse = (expression) => {
       binaryOperationInfo,
       right,
     ]
-    console.log('stack', stack) // TODO:
 
-    while ((binaryOperation = gobbleBinaryOperation())) {
-      precedence = binaryPrecedence(binaryOperation)
+    while ((operator = gobbleBinaryOperation())) {
+      precedence = binaryPrecedence(operator)
 
       if (precedence === 0) {
-        index -= binaryOperation.length
+        index -= operator.length
         break
       }
 
       binaryOperationInfo = {
-        value: binaryOperation,
+        value: operator,
         precedence: precedence,
       }
 
-      currentBinaryOperation = binaryOperation
+      currentBinaryOperation = operator
 
-      const comparePrevious = prev => precedence <= prev.precedence
+      const comparePrevious = previous => precedence <= previous.precedence
       while ((stack.length > 2) && comparePrevious(stack[stack.length - 2])) {
         right = stack.pop()
-        binaryOperation = stack.pop().value
+        operator = stack.pop().value
         left = stack.pop()
         node = {
-          type: BINARY_EXP,
-          operator: binaryOperation,
+          type: ASSIGNMENT_OPERATORS.indexOf(operator) >= 0
+            ? ASSIGNMENT_EXPRESSION
+            : BINARY_EXPRESSION,
+          operator: operator,
           left,
           right
         }
@@ -237,9 +275,12 @@ const parse = (expression) => {
     node = stack[i]
 
     while (i > 1) {
+      operator = stack[i - 1].value
       node = {
-        type: BINARY_EXP,
-        operator: stack[i - 1].value,
+        type: ASSIGNMENT_OPERATORS.indexOf(operator) >= 0
+          ? ASSIGNMENT_EXPRESSION
+          : BINARY_EXPRESSION,
+        operator: operator,
         left: stack[i - 2],
         right: node
       }
@@ -256,7 +297,7 @@ const parse = (expression) => {
 
     while (toCheckLength > 0) {
       if (BINARY_OPERATORS.hasOwnProperty(toCheck) && (
-        !isIdentifierStart(getCode()) ||
+        !isIdentifierStart(expression.charCodeAt(index)) ||
         (index + toCheck.length < expression.length && !isIdentifierPart(expression.charCodeAt(index + toCheck.length)))
       )) {
         index += toCheckLength
@@ -268,8 +309,9 @@ const parse = (expression) => {
   }
 
   const gobbleExpression = () => {
-    const node = gobbleBinaryExpression()
+    let node = gobbleBinaryExpression()
     gobbleSpaces()
+    node = gobbleTernary(node)
     return node
   }
 
@@ -277,9 +319,12 @@ const parse = (expression) => {
     let nodes = [], characterIndex, node
 
     while (index < expression.length) {
-      characterIndex = getCode()
+      characterIndex = expression.charCodeAt(index)
 
-      if (characterIndex === SEMICOLON_CODE || characterIndex === COMMA_CODE) {
+      if (
+        characterIndex === SEMICOLON_CODE
+        || characterIndex === COMMA_CODE
+      ) {
         index++
       } else {
         node = gobbleExpression()
@@ -289,7 +334,7 @@ const parse = (expression) => {
           if (characterIndex === undefined) {
             break
           }
-          throwError('Unexpected "' + getCharacter() + '"')
+          throwError('Unexpected "' + expression.charAt(index) + '"')
         }
       }
     }
@@ -300,7 +345,7 @@ const parse = (expression) => {
   const gobbleGroup = () => {
     index++
     let nodes = gobbleExpressions(CLOSING_PARENTHESIS_CODE)
-    if (getCode() === CLOSING_PARENTHESIS_CODE) {
+    if (expression.charCodeAt(index) === CLOSING_PARENTHESIS_CODE) {
       index++
       if (nodes.length === 1) {
         return nodes[0]
@@ -308,7 +353,7 @@ const parse = (expression) => {
         return false
       }
       return {
-        type: SEQUENCE_EXP,
+        type: SEQUENCE_EXPRESSION,
         expressions: nodes,
       }
     }
@@ -316,16 +361,16 @@ const parse = (expression) => {
   }
 
   const gobbleIdentifier = () => {
-    let character = getCode(), start = index
+    let character = expression.charCodeAt(index), start = index
 
     if (isIdentifierStart(character)) {
       index++
     } else {
-      throwError('Unexpected ' + getCharacter())
+      throwError('Unexpected ' + expression.charAt(index))
     }
 
     while (index < expression.length) {
-      character = getCode()
+      character = expression.charCodeAt(index)
 
       if (isIdentifierPart(character)) {
         index++
@@ -342,41 +387,41 @@ const parse = (expression) => {
   const gobbleNumericLiteral = () => {
     let number = '', character, characterCode
 
-    while (isDecimalDigit(getCode())) {
+    while (isDecimalDigit(expression.charCodeAt(index))) {
       number += expression.charAt(index++)
     }
 
-    if (getCode() === PERIOD_CODE) {
+    if (expression.charCodeAt(index) === PERIOD_CODE) {
       number += expression.charAt(index++)
 
-      while (isDecimalDigit(getCode())) {
+      while (isDecimalDigit(expression.charCodeAt(index))) {
         number += expression.charAt(index++)
       }
     }
 
-    character = getCharacter()
+    character = expression.charAt(index)
 
     if (character === 'e' || character === 'E') {
       number += expression.charAt(index++)
-      character = getCharacter()
+      character = expression.charAt(index)
 
       if (character === '+' || character === '-') {
         number += expression.charAt(index++)
       }
 
-      while (isDecimalDigit(getCode())) {
+      while (isDecimalDigit(expression.charCodeAt(index))) {
         number += expression.charAt(index++)
       }
 
       if (!isDecimalDigit(expression.charCodeAt(index - 1))) {
-        throwError('Expected exponent (' + number + getCharacter() + ')')
+        throwError('Expected exponent (' + number + expression.charAt(index) + ')')
       }
     }
 
-    characterCode = getCode()
+    characterCode = expression.charCodeAt(index)
 
     if (isIdentifierStart(characterCode)) {
-      throwError('Variable names cannot start with a number (' + number + getCharacter() + ')')
+      throwError('Variable names cannot start with a number (' + number + expression.charAt(index) + ')')
     } else if (
       characterCode === PERIOD_CODE
       || (
@@ -394,8 +439,75 @@ const parse = (expression) => {
     }
   }
 
+  const gobbleObjectExpression = () => {
+    if (expression.charCodeAt(index) !== OPENING_BRACES_CODE) {
+      return
+    }
+    index++
+    const properties = []
+
+    while (!isNaN(expression.charCodeAt(index))) {
+      gobbleSpaces()
+      if (expression.charCodeAt(index) === CLOSING_BRACES_CODE) {
+        index++
+        return gobbleTokenProperty({
+          type: OBJECT_EXPRESSION,
+          properties,
+        })
+      }
+
+      const key = gobbleExpression()
+      if (!key) {
+        throwError('missing }')
+        return
+      }
+
+      gobbleSpaces();
+      if (
+        key.type === IDENTIFIER
+        && (
+          expression.charCodeAt(index) === COMMA_CODE
+          || expression.charCodeAt(index) === CLOSING_BRACES_CODE
+        )
+      ) {
+        properties.push({
+          type: PROPERTY,
+          computed: false,
+          key: key,
+          value: key,
+          shorthand: true,
+        })
+      } else if (expression.charCodeAt(index) === COLON_CODE) {
+        index++
+        const value = gobbleExpression()
+
+        if (!value) {
+          throwError('unexpected object property')
+        }
+        const computed = key.type === ARRAY_EXPRESSION
+        properties.push({
+          type: PROPERTY,
+          computed,
+          key: computed
+            ? key.elements[0]
+            : key,
+          value: value,
+          shorthand: false,
+        })
+        gobbleSpaces()
+      } else if (key) {
+        properties.push(key)
+      }
+
+      if (expression.charCodeAt(index) === COMMA_CODE) {
+        index++
+      }
+    }
+    throwError('missing }')
+  }
+
   const gobbleSpaces = () => {
-    let character = getCode()
+    let character = expression.charCodeAt(index)
     while (
       character === SPACE_CODE
       || character === TAB_CODE
@@ -465,12 +577,60 @@ const parse = (expression) => {
     }
   }
 
-  const gobbleToken = () => {
-    let character, toCheck, toCheckLength, node
+  const gobbleTernary = (node) => {
+    if (!node || expression.charCodeAt(index) !== QUESTION_MARK_CODE) {
+      return node
+    }
+    index++
+
+    const consequent = gobbleExpression()
+    if (!consequent) {
+      throwError('Expected expression');
+    }
 
     gobbleSpaces()
 
-    character = getCode()
+    if (!expression.charCodeAt(index) === COLON_CODE) {
+      throwError('Expected :')
+    }
+    index++
+
+    const alternate = gobbleExpression()
+    if (!alternate) {
+      throwError('Expected expression')
+    }
+
+    conditional = {
+      type: CONDITIONAL_EXPRESSION,
+      test: node,
+      consequent: consequent,
+      alternate: alternate,
+    }
+
+    if (node.operator && BINARY_OPERATORS[test.operator] <= 1) {
+      let newTest = test
+      while (newTest.right.operator && BINARY_OPERATORS[newTest.right.operator] <= 1) {
+        newTest = newTest.right
+      }
+      conditional.test = newTest.right
+      newTest.right = conditional
+      conditional = test
+    }
+
+    return conditional
+  }
+
+  const gobbleToken = () => {
+    let character, toCheck, toCheckLength, node
+
+    node = gobbleObjectExpression() || gobbleUpdatePrefixExpression()
+    if (node) {
+      return gobbleUpdateSuffixExpression(node)
+    }
+
+    gobbleSpaces()
+
+    character = expression.charCodeAt(index)
 
     if (isDecimalDigit(character) || character === PERIOD_CODE) {
       return gobbleNumericLiteral()
@@ -485,21 +645,21 @@ const parse = (expression) => {
       toCheckLength = toCheck.length
 
       while (toCheckLength > 0) {
-        if (UNARY_OPERATORS.hasOwnProperty(toCheck) && (
-          !isIdentifierStart(getCode()) ||
+        if (UNARY_OPERATORS.indexOf(toCheck) >= 0 && (
+          !isIdentifierStart(expression.charCodeAt(index)) ||
           (index + toCheck.length < expression.length && !isIdentifierPart(expression.charCodeAt(index + toCheck.length)))
         )) {
           index += toCheckLength
           const argument = gobbleToken()
           if (!argument) {
-            throwError('missing unaryOp argument')
+            throwError('Missing unary operation argument')
           }
-          return {
-            type: UNARY_EXP,
+          return gobbleUpdateSuffixExpression({
+            type: UNARY_EXPRESSION,
             operator: to_check,
             argument,
             prefix: true,
-          }
+          })
         }
 
         toCheck = toCheck.substr(0, --toCheckLength)
@@ -513,23 +673,21 @@ const parse = (expression) => {
             value: LITERALS[node.name],
             raw: node.name,
           }
-        } else if (node.name === 'this') {
-          node = {
-            type: THIS_EXP,
-          }
         }
       } else if (character === OPENING_PARENTHESIS_CODE) {
         node = gobbleGroup()
       }
     }
 
-    return gobbleTokenProperty(node)
+    return gobbleUpdateSuffixExpression(
+      gobbleTokenProperty(node)
+    )
   }
 
   const gobbleTokenProperty = (node) => {
     gobbleSpaces()
 
-    let character = getCode()
+    let character = expression.charCodeAt(index)
     while (
       character === PERIOD_CODE
       || character === OPENING_BRACKET_CODE
@@ -544,26 +702,26 @@ const parse = (expression) => {
         optional = true
         index += 2
         gobbleSpaces()
-        character = getCode()
+        character = expression.charCodeAt(index)
       }
       index++
 
       if (character === OPENING_BRACKET_CODE) {
         node = {
-          type: MEMBER_EXP,
+          type: MEMBER_EXPRESSION,
           computed: true,
           object: node,
           property: gobbleExpression()
         }
         gobbleSpaces()
-        character = getCode()
+        character = expression.charCodeAt(index)
         if (character !== CLOSING_BRACKET_CODE) {
           throwError('Unclosed [')
         }
         index++
       } else if (character === OPENING_PARENTHESIS_CODE) {
         node = {
-          type: CALL_EXP,
+          type: CALL_EXPRESSION,
           'arguments': gobbleArguments(CLOSING_PARENTHESIS_CODE),
           callee: node
         }
@@ -573,7 +731,7 @@ const parse = (expression) => {
         }
         gobbleSpaces()
         node = {
-          type: MEMBER_EXP,
+          type: MEMBER_EXPRESSION,
           computed: false,
           object: node,
           property: gobbleIdentifier(),
@@ -585,9 +743,62 @@ const parse = (expression) => {
       }
 
       gobbleSpaces()
-      character = getCode()
+      character = expression.charCodeAt(index)
     }
 
+    return node
+  }
+
+  const gobbleUpdatePrefixExpression = () => {
+    if (index + 1 >= expression.length) {
+      return
+    }
+
+    const characters = expression.substring(index, index + 2)
+    let operator = null
+    if (characters === UPDATE_OPERATOR_DECREMENT) {
+      operator = UPDATE_OPERATOR_DECREMENT
+    } else if (characters === UPDATE_OPERATOR_INCREMENT) {
+      operator = UPDATE_OPERATOR_INCREMENT
+    } else {
+      return
+    }
+
+    index += 2
+    node = {
+      type: UPDATE_EXPRESSION,
+      operator: operator,
+      argument: gobbleTokenProperty(gobbleIdentifier()),
+      prefix: true,
+    }
+    if (!node.argument || (node.argument.type !== IDENTIFIER && node.argument.type !== MEMBER_EXPRESSION)) {
+      this.throwError(`Unexpected ${env.node.operator}`);
+    }
+    return node
+  }
+
+  const gobbleUpdateSuffixExpression = (node) => {
+    if (!node || index + 1 >= expression.length) {
+      return node
+    }
+
+    const characters = expression.substring(index, index + 2)
+    let operator = null
+    if (characters === UPDATE_OPERATOR_DECREMENT) {
+      operator = UPDATE_OPERATOR_DECREMENT
+    } else if (characters === UPDATE_OPERATOR_INCREMENT) {
+      operator = UPDATE_OPERATOR_INCREMENT
+    } else {
+      return node
+    }
+
+    index += 2
+    node = {
+      type: UPDATE_EXPRESSION,
+      operator: operator,
+      argument: node,
+      prefix: false,
+    }
     return node
   }
 
@@ -600,11 +811,6 @@ const parse = (expression) => {
     }
 }
 
-[
-  // 'hello ? what : other',
-  'what == some',
-].forEach(expression => console.log(parse(expression)))
-
-// export default {
-//   parse: parse,
-// }
+export default {
+  parse: parse,
+}

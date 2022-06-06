@@ -320,10 +320,24 @@ export default class Doars extends EventDispatcher {
     /* Simple contexts */
 
     /**
+     * Get a simple context by name.
+     * @param {string} name
+     * @returns {any} The simple context if it exists.
+     */
+    this.getSimpleContext = (name) => this.hasSimpleContext(name) ? contextsBase[name] : null
+
+    /**
      * Get simple contexts.
      * @returns {Object} Stored simple contexts.
      */
     this.getSimpleContexts = () => Object.assign({}, contextsBase)
+
+    /**
+     * Get whether the context exists as part of the simple contexts.
+     * @param {string} name Name of the context.
+     * @returns {boolean} Whether the context exists.
+     */
+    this.hasSimpleContext = (name) => contextsBase.prototype.hasOwnProperty(contextsBase)
 
     /**
      * Add a value directly to the contexts without needing to use an object or having to deal with indices.

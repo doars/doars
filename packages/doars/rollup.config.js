@@ -59,11 +59,14 @@ const deepAssign = function (target, ...sources) {
 
 // Builds to make.
 const builds = [{
+  input: 'src/DoarsCall.js',
+  output: 'dst/doars-call.js',
+}, {
+  input: 'src/DoarsInterpret.js',
+  output: 'dst/doars-interpret.js',
+}, {
   input: 'src/DoarsExecute.js',
   output: 'dst/doars.js',
-}, {
-  input: 'src/DoarsEvaluate.js',
-  output: 'dst/doars-no-eval.js',
 }]
 // Create config for each path.
 const configFormats =

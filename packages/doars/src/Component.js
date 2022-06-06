@@ -27,12 +27,20 @@ export default class Component {
     const { prefix, processor } = library.getOptions()
 
     // Get the expression processor.
-    const processExpression =
-      typeof (processor) === 'function'
-        ? processor
-        : (library.constructor.evaluateExpression && expression === 'evaluate'
-          ? library.constructor.evaluateExpression
-          : library.constructor.executeExpression)
+    const processorType = typeof (processor)
+    let processExpression
+    if (processorType === 'function') {
+      processExpression = processor
+    } else if (processorType === 'string' && library.constructor[processor + 'Expression']) {
+      processExpression = library.constructor[processor + 'Expression']
+    } else {
+      console.warn('Doars: Expression processor not found. Using fallback instead.')
+      processExpression = library.constructor.executeExpression ?? library.constructor.interpretExpression ?? library.constructor.callExpression
+    }
+    if (!processExpression) {
+      console.error('Doars: No expression processor available. Process option: ', process)
+    }
+
     // Create a immutable object with the directive utilities.
     const directiveUtils = Object.freeze({
       morphTree: morphTree,
