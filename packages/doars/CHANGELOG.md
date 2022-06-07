@@ -4,8 +4,8 @@
 
 - Added additional modifiers to the on directive.
 - Added simple contexts to context creation.
-- Changed sync-state to context-agnostic sync directive.
-- TODO: Added evaluation option for usage with the Content Security Policy.
+- Changed sync-state to context agnostic sync directive.
+- Added call and interpret expression processing builds.
 
 ## 1.2.0
 
