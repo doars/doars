@@ -16,6 +16,7 @@
   ],
   "version": "1.0.3",
   "license": "MIT",
+  "type": "module",
   "main": "src/DoarsView.js",
   "browserMain": "src/DoarsView.js",
   "browser": "dst/doars-view.js",

@@ -42,7 +42,7 @@ export const deepAssign = (target, ...sources) => {
  * @param  {Array<String>} path Path to value.
  * @returns {Any} value at path.
  */
-export const get = (object, path) => {
+export const getDeeply = (object, path) => {
   let objectTemp = object
   let i = 0
   for (; i < path.length - 1; i++) {
@@ -66,7 +66,7 @@ export const isObject = (value) => {
  * @param {Array<String>} path Path to value.
  * @param {Any} value Value to set.
  */
-export const set = (object, path, value) => {
+export const setDeeply = (object, path, value) => {
   // Exit early if not an object.
   if (typeof (object) !== 'object') {
     return
@@ -86,7 +86,7 @@ export const set = (object, path, value) => {
 
 export default {
   deepAssign: deepAssign,
-  get: get,
+  getDeeply: getDeeply,
   isObject: isObject,
-  set: set,
+  setDeeply: setDeeply,
 }

@@ -12,6 +12,7 @@
   ],
   "version": "1.0.3",
   "license": "MIT",
+  "type": "module",
   "main": "src/DoarsUpdate.js",
   "browserMain": "src/DoarsUpdate.js",
   "browser": "dst/doars-update.js",

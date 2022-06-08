@@ -13,6 +13,7 @@
   ],
   "version": "1.0.4",
   "license": "MIT",
+  "type": "module",
   "main": "src/DoarsAlias.js",
   "browserMain": "src/DoarsAlias.js",
   "browser": "dst/doars-alias.js",

@@ -5,6 +5,7 @@
     ".docs/",
     "packages/*"
   ],
+  "type": "module",
   "scripts": {
     "docs:build": "yarn workspace @doars/docs run build",
     "docs:develop": "yarn workspace @doars/docs run develop",

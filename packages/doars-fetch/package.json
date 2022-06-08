@@ -12,6 +12,7 @@
   ],
   "version": "1.0.3",
   "license": "MIT",
+  "type": "module",
   "main": "src/DoarsFetch.js",
   "browserMain": "src/DoarsFetch.js",
   "browser": "dst/doars-fetch.js",

@@ -11,6 +11,7 @@
   ],
   "version": "1.0.0",
   "license": "MIT",
+  "type": "module",
   "homepage": "https://github.com/doars/doars/tree/main/packages/utils#readme",
   "repository": {
     "type": "git",
