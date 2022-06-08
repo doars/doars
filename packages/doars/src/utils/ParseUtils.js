@@ -120,43 +120,33 @@ const LITERALS = {
 const isDecimalDigit = (character) =>
   (character >= ZERO_CODE && character <= NINE_CODE)
 
-const binaryPrecedence = (operationValue) =>
-  BINARY_OPERATORS[operationValue] || 0
+const isIdentifierPart = (character) =>
+  isIdentifierStart(character) || isDecimalDigit(character)
 
 const isIdentifierStart = (character) =>
   character === DOLLAR_CODE
   || (character >= UPPERCASE_A_CODE && character <= UPPERCASE_Z_CODE)
   || character === UNDERSCORE_CODE
   || (character >= LOWERCASE_A_CODE && character <= LOWERCASE_Z_CODE)
-  || (character >= 128 && !BINARY_OPERATORS[String.fromCharCode(character)])
-
-const isIdentifierPart = (character) =>
-  isIdentifierStart(character) || isDecimalDigit(character)
+  || (character >= 128 && !BINARY_OPERATORS[String.fromCharCode.call(character)])
 
 export const parse = (expression) => {
   let index = 0
-
-  const throwError = (message) => {
-    const error = new Error(message + ' at character ' + index)
-    error.index = index
-    error.description = message
-    throw error
-  }
 
   const gobbleArray = () => {
     index++
 
     return {
       type: ARRAY_EXPRESSION,
-      elements: gobbleArguments(CLOSING_BRACKET_CODE)
+      elements: gobbleParameters(CLOSING_BRACKET_CODE)
     }
   }
 
-  const gobbleArguments = (termination) => {
+  const gobbleParameters = (termination) => {
     const parameters = []
     let closed = false
-    let separatorCount = 0
 
+    let separatorCount = 0
     while (index < expression.length) {
       gobbleSpaces()
       let characterIndex = expression.charCodeAt(index)
@@ -166,7 +156,7 @@ export const parse = (expression) => {
         index++
 
         if (termination === CLOSING_PARENTHESIS_CODE && separatorCount && separatorCount >= parameters.length) {
-          throwError('Unexpected token ' + String.fromCharCode(termination))
+          throw new Error('Unexpected token ' + String.fromCharCode(termination))
         }
         break
       } else if (characterIndex === COMMA_CODE) {
@@ -175,7 +165,7 @@ export const parse = (expression) => {
 
         if (separatorCount !== parameters.length) {
           if (termination === CLOSING_PARENTHESIS_CODE) {
-            throwError('Unexpected token ,')
+            throw new Error('Unexpected token ,')
           } else if (termination === CLOSING_BRACKET_CODE) {
             for (let i = parameters.length; i < separatorCount; i++) {
               parameters.push(null)
@@ -183,12 +173,12 @@ export const parse = (expression) => {
           }
         }
       } else if (parameters.length !== separatorCount && separatorCount !== 0) {
-        throwError('Expected comma')
+        throw new Error('Expected comma')
       } else {
         const node = gobbleExpression()
 
         if (!node || node.type === COMPOUND) {
-          throwError('Expected comma')
+          throw new Error('Expected comma')
         }
 
         parameters.push(node)
@@ -196,43 +186,42 @@ export const parse = (expression) => {
     }
 
     if (!closed) {
-      throwError('Expected ' + String.fromCharCode(termination))
+      throw new Error('Expected ' + String.fromCharCode(termination))
     }
 
     return parameters
   }
 
   const gobbleBinaryExpression = () => {
-    let node, operator, precedence, stack, binaryOperationInfo, left, right, i, currentBinaryOperation
-
-    left = gobbleToken()
+    let left = gobbleToken()
     if (!left) {
       return left
     }
 
-    operator = gobbleBinaryOperation()
+    let operator = gobbleBinaryOperation()
     if (!operator) {
       return left
     }
 
-    binaryOperationInfo = {
+    let binaryOperationInfo = {
       value: operator,
-      precedence: binaryPrecedence(operator),
+      precedence: BINARY_OPERATORS[operator] || 0,
     }
 
-    right = gobbleToken()
+    let right = gobbleToken()
     if (!right) {
-      throwError('Expected expression after ' + operator)
+      throw new Error('Expected expression after ' + operator)
     }
 
-    stack = [
+    const stack = [
       left,
       binaryOperationInfo,
       right,
     ]
 
+    let node
     while ((operator = gobbleBinaryOperation())) {
-      precedence = binaryPrecedence(operator)
+      const precedence = BINARY_OPERATORS[operator] || 0
 
       if (precedence === 0) {
         index -= operator.length
@@ -244,10 +233,8 @@ export const parse = (expression) => {
         precedence: precedence,
       }
 
-      currentBinaryOperation = operator
-
-      const comparePrevious = previous => precedence <= previous.precedence
-      while ((stack.length > 2) && comparePrevious(stack[stack.length - 2])) {
+      const currentBinaryOperation = operator
+      while (stack.length > 2 && stack[stack.length - 2] > precedence) {
         right = stack.pop()
         operator = stack.pop().value
         left = stack.pop()
@@ -257,7 +244,7 @@ export const parse = (expression) => {
             : BINARY_EXPRESSION,
           operator: operator,
           left,
-          right
+          right,
         }
         stack.push(node)
       }
@@ -265,13 +252,13 @@ export const parse = (expression) => {
       node = gobbleToken()
 
       if (!node) {
-        throwError('Expected expression after ' + currentBinaryOperation)
+        throw new Error('Expected expression after ' + currentBinaryOperation)
       }
 
       stack.push(binaryOperationInfo, node)
     }
 
-    i = stack.length - 1
+    let i = stack.length - 1
     node = stack[i]
 
     while (i > 1) {
@@ -282,7 +269,7 @@ export const parse = (expression) => {
           : BINARY_EXPRESSION,
         operator: operator,
         left: stack[i - 2],
-        right: node
+        right: node,
       }
       i -= 2
     }
@@ -315,49 +302,28 @@ export const parse = (expression) => {
     return node
   }
 
-  const gobbleExpressions = () => {
-    let nodes = [], characterIndex, node
-
+  const gobbleExpressions = (untilCharacterCode) => {
+    let nodes = []
     while (index < expression.length) {
-      characterIndex = expression.charCodeAt(index)
-
+      const characterIndex = expression.charCodeAt(index)
       if (
         characterIndex === SEMICOLON_CODE
         || characterIndex === COMMA_CODE
       ) {
         index++
       } else {
-        node = gobbleExpression()
+        const node = gobbleExpression()
         if (node) {
           nodes.push(node)
         } else if (index < expression.length) {
-          if (characterIndex === undefined) {
+          if (characterIndex === untilCharacterCode) {
             break
           }
-          throwError('Unexpected "' + expression.charAt(index) + '"')
+          throw new Error('Unexpected "' + expression.charAt(index) + '"')
         }
       }
     }
-
     return nodes
-  }
-
-  const gobbleGroup = () => {
-    index++
-    let nodes = gobbleExpressions(CLOSING_PARENTHESIS_CODE)
-    if (expression.charCodeAt(index) === CLOSING_PARENTHESIS_CODE) {
-      index++
-      if (nodes.length === 1) {
-        return nodes[0]
-      } else if (!nodes.length) {
-        return false
-      }
-      return {
-        type: SEQUENCE_EXPRESSION,
-        expressions: nodes,
-      }
-    }
-    throwError('Unclosed (')
   }
 
   const gobbleIdentifier = () => {
@@ -366,7 +332,7 @@ export const parse = (expression) => {
     if (isIdentifierStart(character)) {
       index++
     } else {
-      throwError('Unexpected ' + expression.charAt(index))
+      throw new Error('Unexpected ' + expression.charAt(index))
     }
 
     while (index < expression.length) {
@@ -385,22 +351,18 @@ export const parse = (expression) => {
   }
 
   const gobbleNumericLiteral = () => {
-    let number = '', character, characterCode
-
+    let number = ''
     while (isDecimalDigit(expression.charCodeAt(index))) {
       number += expression.charAt(index++)
     }
-
     if (expression.charCodeAt(index) === PERIOD_CODE) {
       number += expression.charAt(index++)
-
       while (isDecimalDigit(expression.charCodeAt(index))) {
         number += expression.charAt(index++)
       }
     }
 
-    character = expression.charAt(index)
-
+    let character = expression.charAt(index)
     if (character === 'e' || character === 'E') {
       number += expression.charAt(index++)
       character = expression.charAt(index)
@@ -414,14 +376,13 @@ export const parse = (expression) => {
       }
 
       if (!isDecimalDigit(expression.charCodeAt(index - 1))) {
-        throwError('Expected exponent (' + number + expression.charAt(index) + ')')
+        throw new Error('Expected exponent (' + number + expression.charAt(index) + ')')
       }
     }
 
-    characterCode = expression.charCodeAt(index)
-
+    const characterCode = expression.charCodeAt(index)
     if (isIdentifierStart(characterCode)) {
-      throwError('Variable names cannot start with a number (' + number + expression.charAt(index) + ')')
+      throw new Error('Variable names cannot start with a number (' + number + expression.charAt(index) + ')')
     } else if (
       characterCode === PERIOD_CODE
       || (
@@ -429,13 +390,13 @@ export const parse = (expression) => {
         && number.charCodeAt(0) === PERIOD_CODE
       )
     ) {
-      throwError('Unexpected period')
+      throw new Error('Unexpected period')
     }
 
     return {
       type: LITERAL,
       value: parseFloat(number),
-      raw: number
+      raw: number,
     }
   }
 
@@ -444,8 +405,8 @@ export const parse = (expression) => {
       return
     }
     index++
-    const properties = []
 
+    const properties = []
     while (!isNaN(expression.charCodeAt(index))) {
       gobbleSpaces()
       if (expression.charCodeAt(index) === CLOSING_BRACES_CODE) {
@@ -456,13 +417,12 @@ export const parse = (expression) => {
         })
       }
 
-      const key = gobbleExpression()
+      const key = gobbleToken()
       if (!key) {
-        throwError('missing }')
-        return
+        throw new Error('missing }')
       }
+      gobbleSpaces()
 
-      gobbleSpaces();
       if (
         key.type === IDENTIFIER
         && (
@@ -480,19 +440,19 @@ export const parse = (expression) => {
       } else if (expression.charCodeAt(index) === COLON_CODE) {
         index++
         const value = gobbleExpression()
-
         if (!value) {
-          throwError('unexpected object property')
+          throw new Error('unexpected object property')
         }
+
         const computed = key.type === ARRAY_EXPRESSION
         properties.push({
-          type: PROPERTY,
-          computed,
+          computed: computed,
           key: computed
             ? key.elements[0]
             : key,
-          value: value,
           shorthand: false,
+          type: PROPERTY,
+          value: value,
         })
         gobbleSpaces()
       } else if (key) {
@@ -503,7 +463,30 @@ export const parse = (expression) => {
         index++
       }
     }
-    throwError('missing }')
+    throw new Error('missing }')
+  }
+
+  const gobbleSequence = () => {
+    index++
+
+    const nodes = gobbleExpressions(CLOSING_PARENTHESIS_CODE)
+    if (expression.charCodeAt(index) === CLOSING_PARENTHESIS_CODE) {
+      index++
+
+      if (nodes.length === 1) {
+        return nodes[0]
+      }
+      if (!nodes.length) {
+        return false
+      }
+
+      return {
+        type: SEQUENCE_EXPRESSION,
+        expressions: nodes,
+      }
+    }
+
+    throw new Error('Unclosed (')
   }
 
   const gobbleSpaces = () => {
@@ -530,7 +513,8 @@ export const parse = (expression) => {
       if (character === quote) {
         closed = true
         break
-      } else if (character === '\\') {
+      }
+      if (character === '\\') {
         character = expression.charAt(index++)
 
         switch (character) {
@@ -567,7 +551,7 @@ export const parse = (expression) => {
     }
 
     if (!closed) {
-      throwError('Unclosed quote after "' + string + '"')
+      throw new Error('Unclosed quote after "' + string + '"')
     }
 
     return {
@@ -585,19 +569,19 @@ export const parse = (expression) => {
 
     const consequent = gobbleExpression()
     if (!consequent) {
-      throwError('Expected expression');
+      throw new Error('Expected expression');
     }
 
     gobbleSpaces()
 
     if (!expression.charCodeAt(index) === COLON_CODE) {
-      throwError('Expected :')
+      throw new Error('Expected :')
     }
     index++
 
     const alternate = gobbleExpression()
     if (!alternate) {
-      throwError('Expected expression')
+      throw new Error('Expected expression')
     }
 
     conditional = {
@@ -621,17 +605,13 @@ export const parse = (expression) => {
   }
 
   const gobbleToken = () => {
-    let character, toCheck, toCheckLength, node
-
-    node = gobbleObjectExpression() || gobbleUpdatePrefixExpression()
+    let node = gobbleObjectExpression() || gobbleUpdatePrefixExpression()
     if (node) {
       return gobbleUpdateSuffixExpression(node)
     }
-
     gobbleSpaces()
 
-    character = expression.charCodeAt(index)
-
+    const character = expression.charCodeAt(index)
     if (isDecimalDigit(character) || character === PERIOD_CODE) {
       return gobbleNumericLiteral()
     }
@@ -641,8 +621,8 @@ export const parse = (expression) => {
     } else if (character === OPENING_BRACKET_CODE) {
       node = gobbleArray()
     } else {
-      toCheck = expression.substring(index, index + MAX_UNARY_OPERATOR_LENGTH)
-      toCheckLength = toCheck.length
+      let toCheck = expression.substring(index, index + MAX_UNARY_OPERATOR_LENGTH)
+      let toCheckLength = toCheck.length
 
       while (toCheckLength > 0) {
         if (UNARY_OPERATORS.indexOf(toCheck) >= 0 && (
@@ -650,14 +630,14 @@ export const parse = (expression) => {
           (index + toCheck.length < expression.length && !isIdentifierPart(expression.charCodeAt(index + toCheck.length)))
         )) {
           index += toCheckLength
-          const argument = gobbleToken()
-          if (!argument) {
-            throwError('Missing unary operation argument')
+          const parameter = gobbleToken()
+          if (!parameter) {
+            throw new Error('Missing unary operation parameter')
           }
           return gobbleUpdateSuffixExpression({
             type: UNARY_EXPRESSION,
             operator: to_check,
-            argument,
+            parameter: parameter,
             prefix: true,
           })
         }
@@ -675,7 +655,7 @@ export const parse = (expression) => {
           }
         }
       } else if (character === OPENING_PARENTHESIS_CODE) {
-        node = gobbleGroup()
+        node = gobbleSequence()
       }
     }
 
@@ -711,19 +691,19 @@ export const parse = (expression) => {
           type: MEMBER_EXPRESSION,
           computed: true,
           object: node,
-          property: gobbleExpression()
+          property: gobbleExpression(),
         }
         gobbleSpaces()
         character = expression.charCodeAt(index)
         if (character !== CLOSING_BRACKET_CODE) {
-          throwError('Unclosed [')
+          throw new Error('Unclosed [')
         }
         index++
       } else if (character === OPENING_PARENTHESIS_CODE) {
         node = {
           type: CALL_EXPRESSION,
-          'arguments': gobbleArguments(CLOSING_PARENTHESIS_CODE),
-          callee: node
+          parameters: gobbleParameters(CLOSING_PARENTHESIS_CODE),
+          callee: node,
         }
       } else if (character === PERIOD_CODE || optional) {
         if (optional) {
@@ -765,14 +745,14 @@ export const parse = (expression) => {
     }
 
     index += 2
-    node = {
+    let node = {
       type: UPDATE_EXPRESSION,
       operator: operator,
-      argument: gobbleTokenProperty(gobbleIdentifier()),
+      parameter: gobbleTokenProperty(gobbleIdentifier()),
       prefix: true,
     }
-    if (!node.argument || (node.argument.type !== IDENTIFIER && node.argument.type !== MEMBER_EXPRESSION)) {
-      this.throwError(`Unexpected ${env.node.operator}`);
+    if (!node.parameter || (node.parameter.type !== IDENTIFIER && node.parameter.type !== MEMBER_EXPRESSION)) {
+      throw new Error(`Unexpected ${env.node.operator}`);
     }
     return node
   }
@@ -796,7 +776,7 @@ export const parse = (expression) => {
     node = {
       type: UPDATE_EXPRESSION,
       operator: operator,
-      argument: node,
+      parameter: node,
       prefix: false,
     }
     return node
@@ -807,7 +787,7 @@ export const parse = (expression) => {
     ? nodes[0]
     : {
       type: COMPOUND,
-      body: nodes
+      body: nodes,
     }
 }
 

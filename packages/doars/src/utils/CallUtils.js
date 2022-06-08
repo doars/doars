@@ -1,7 +1,9 @@
 import { createContexts } from './ContextUtils.js'
-import { get } from '@doars/utils/src/ObjectUtils.js'
+import { getDeeply } from '@doars/utils/src/ObjectUtils.js'
 
 const PATH_VALIDATOR = /^[a-z$_]+[0-9a-z$_]*(?:\.[a-z$_]+[0-9a-z$_]*)*$/is
+
+// TODO: This is not compatible with the directives that use the expression system to write to the state. Probably shouldn't be doing this anyway for security reasons since it is likely to container user input and therefore un sanitized.
 
 export const call = (
   component,
@@ -28,7 +30,7 @@ export const call = (
     console.error('Error encountered when executing an expression. Expression is not a valid dot separated path: ', expression)
     result = null
   } else {
-    result = get(contexts, expression)
+    result = getDeeply(contexts, expression)
     if (typeof (result) === 'function') {
       try {
         result = result(contexts)

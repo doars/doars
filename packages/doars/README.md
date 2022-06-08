@@ -502,7 +502,7 @@ Runs every time a value used changes. The directive's name is ignored so multipl
   <!-- Store the value of this input in the state. -->
   <input type="text" d-sync="$state.message" />
 
-<!-- Log the message to the console when it changes. -->
+  <!-- Log the message to the console when it changes. -->
   <div d-watch="console.log(message)"></div>
 </div>
 ```
@@ -524,7 +524,7 @@ List of contexts of child components.
 
 ```HTML
 <!-- Logs the first child component of the directive's component to the console. -->
-<div d-text="console.log($children[0])"></div>
+<div d-initialized="console.log($children[0])"></div>
 ```
 
 ### \$component
@@ -615,7 +615,8 @@ Call a function in context after the existing one has been revoked. Whereby the 
     $inContext(({ $state }) => {
       $state.value = result
     })
-  })"></div>
+  })
+"></div>
 ```
 
 ### \$nextTick
