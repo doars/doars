@@ -18,10 +18,12 @@ export const UNARY_EXPRESSION = 13
 export const UPDATE_EXPRESSION = 14
 
 // Character codes.
-const TAB_CODE = 9
-const LF_CODE = 10
-const CR_CODE = 13
-const SPACE_CODE = 32
+const SPACE_CODES = [
+  9, // Tab
+  10, // LF
+  13, // CR
+  32, // Space
+]
 const DOUBLE_QUOTE_CODE = 34 // "
 const DOLLAR_CODE = 36 // $
 const SINGLE_QUOTE_CODE = 39 // '
@@ -490,14 +492,8 @@ export const parse = (expression) => {
   }
 
   const gobbleSpaces = () => {
-    let character = expression.charCodeAt(index)
-    while (
-      character === SPACE_CODE
-      || character === TAB_CODE
-      || character === LF_CODE
-      || character === CR_CODE
-    ) {
-      character = expression.charCodeAt(++index)
+    while (SPACE_CODES.indexOf(expression.charCodeAt(index)) >= 0) {
+      index++
     }
   }
 

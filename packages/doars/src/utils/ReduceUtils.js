@@ -100,10 +100,8 @@ export const reduce = (
     case UPDATE_EXPRESSION:
       const updateResult = reduce(node.parameter, context)
       const updateValue = node.operator === '--' ? -1 : 1
-      if (!node.prefix) {
-        // TODO: Update in context by updateValue.
-      }
-      return updateResult + updateValue
+      // TODO: Update in context by updateValue.
+      return node.prefix ? updateResult + updateValue : updateResult
   }
 
   throw new Error('Unexpected node type "' + node.type + '".')
