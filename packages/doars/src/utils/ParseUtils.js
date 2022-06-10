@@ -24,29 +24,14 @@ const SPACE_CODES = [
   13, // CR
   32, // Space
 ]
-const DOUBLE_QUOTE_CODE = 34 // "
-const DOLLAR_CODE = 36 // $
-const SINGLE_QUOTE_CODE = 39 // '
 const OPENING_PARENTHESIS_CODE = 40 // (
 const CLOSING_PARENTHESIS_CODE = 41 // )
-const PLUS_CODE = 43 // +
 const COMMA_CODE = 44 // ,
-const MINUS_CODE = 45 // -
 const PERIOD_CODE = 46 // .
-const ZERO_CODE = 48 // 0
-const NINE_CODE = 57 // 9
 const COLON_CODE = 58 // :
-const SEMICOLON_CODE = 59 // ;
-const EQUAL_CODE = 61 // =
 const QUESTION_MARK_CODE = 63 // ?
-const UPPERCASE_A_CODE = 48 // A
-const UPPERCASE_Z_CODE = 57 // Z
 const OPENING_BRACKET_CODE = 91 // [
 const CLOSING_BRACKET_CODE = 93 // ]
-const UNDERSCORE_CODE = 95 // _
-const LOWERCASE_A_CODE = 97 // a
-const LOWERCASE_Z_CODE = 122 // z
-const OPENING_BRACES_CODE = 123 // {
 const CLOSING_BRACES_CODE = 125 // }
 
 // Operators.
@@ -95,20 +80,18 @@ const BINARY_OPERATORS = {
   // '<<': 9,
   // '>>': 9,
   // '>>>': 9,
-  '+': 10,
-  '-': 10,
   '*': 11,
   '/': 11,
   '%': 11,
+  '+': 10,
+  '-': 10,
 }
-const MAX_BINARY_OPERATOR_LENGTH = 3
 const UNARY_OPERATORS = [
   '-',
   '!',
   // '~',
   '+',
 ]
-const MAX_UNARY_OPERATOR_LENGTH = 1
 const UPDATE_OPERATOR_DECREMENT = '--'
 const UPDATE_OPERATOR_INCREMENT = '++'
 
@@ -120,17 +103,17 @@ const LITERALS = {
 }
 
 const isDecimalDigit = (character) =>
-  (character >= ZERO_CODE && character <= NINE_CODE)
+  (character >= 48 && character <= 57) // Between 0 and 9
 
 const isIdentifierPart = (character) =>
   isIdentifierStart(character) || isDecimalDigit(character)
 
 const isIdentifierStart = (character) =>
-  character === DOLLAR_CODE
-  || (character >= UPPERCASE_A_CODE && character <= UPPERCASE_Z_CODE)
-  || character === UNDERSCORE_CODE
-  || (character >= LOWERCASE_A_CODE && character <= LOWERCASE_Z_CODE)
-  || (character >= 128 && !BINARY_OPERATORS[String.fromCharCode.call(character)])
+  character === 36 // Dollar ($)
+  || (character >= 48 && character <= 57) // Between 0 and 9
+  || character === 95 // Underscore
+  || (character >= 65 && character <= 90) // Between A and Z
+  || (character >= 97 && character <= 122) // Between a and z
 
 export const parse = (expression) => {
   let index = 0
@@ -281,7 +264,7 @@ export const parse = (expression) => {
 
   const gobbleBinaryOperation = () => {
     gobbleSpaces()
-    let toCheck = expression.substring(index, index + MAX_BINARY_OPERATOR_LENGTH)
+    let toCheck = expression.substring(index, index + 3) // 3 = Maximum binary operator length.
     let toCheckLength = toCheck.length
 
     while (toCheckLength > 0) {
@@ -309,7 +292,7 @@ export const parse = (expression) => {
     while (index < expression.length) {
       const characterIndex = expression.charCodeAt(index)
       if (
-        characterIndex === SEMICOLON_CODE
+        characterIndex === 59 // Semicolon (;)
         || characterIndex === COMMA_CODE
       ) {
         index++
@@ -403,7 +386,8 @@ export const parse = (expression) => {
   }
 
   const gobbleObjectExpression = () => {
-    if (expression.charCodeAt(index) !== OPENING_BRACES_CODE) {
+    // Check if opening brace "{"
+    if (expression.charCodeAt(index) !== 123) {
       return
     }
     index++
@@ -580,21 +564,21 @@ export const parse = (expression) => {
       throw new Error('Expected expression')
     }
 
-    conditional = {
+    const conditional = {
       type: CONDITIONAL_EXPRESSION,
-      test: node,
+      condition: node,
       consequent: consequent,
       alternate: alternate,
     }
 
-    if (node.operator && BINARY_OPERATORS[test.operator] <= 1) {
-      let newTest = test
-      while (newTest.right.operator && BINARY_OPERATORS[newTest.right.operator] <= 1) {
-        newTest = newTest.right
+    if (node.operator && BINARY_OPERATORS[node.operator] <= 1) {
+      let newCondition = node
+      while (newCondition.right.operator && BINARY_OPERATORS[newCondition.right.operator] <= 1) {
+        newCondition = newCondition.right
       }
-      conditional.test = newTest.right
-      newTest.right = conditional
-      conditional = test
+      conditional.condition = newCondition.right
+      newCondition.right = conditional
+      conditional = node
     }
 
     return conditional
@@ -612,12 +596,12 @@ export const parse = (expression) => {
       return gobbleNumericLiteral()
     }
 
-    if (character === SINGLE_QUOTE_CODE || character === DOUBLE_QUOTE_CODE) {
+    if (character === 34 || character === 39) { // Double quote (") or single quote (')
       node = gobbleStringLiteral()
     } else if (character === OPENING_BRACKET_CODE) {
       node = gobbleArray()
     } else {
-      let toCheck = expression.substring(index, index + MAX_UNARY_OPERATOR_LENGTH)
+      let toCheck = expression.substring(index, index + 1) // 1 = Maximum unary operator length.
       let toCheckLength = toCheck.length
 
       while (toCheckLength > 0) {
@@ -632,9 +616,8 @@ export const parse = (expression) => {
           }
           return gobbleUpdateSuffixExpression({
             type: UNARY_EXPRESSION,
-            operator: to_check,
+            operator: toCheck,
             parameter: parameter,
-            prefix: true,
           })
         }
 
@@ -730,7 +713,7 @@ export const parse = (expression) => {
       return
     }
 
-    const characters = expression.substring(index, index + 2)
+    const characters = expression.substring(index, index + 2) // 2 = Maximum update expression length
     let operator = null
     if (characters === UPDATE_OPERATOR_DECREMENT) {
       operator = UPDATE_OPERATOR_DECREMENT

@@ -15,6 +15,25 @@ import {
   UPDATE_EXPRESSION
 } from './ParseUtils.js'
 
+const setToContext = (
+  node,
+  value,
+  context = {}
+) => {
+  switch (node.type) {
+    case IDENTIFIER:
+      return context[node.name] = value
+
+    case MEMBER_EXPRESSION:
+      console.warn('node', node)
+      console.warn('contexts', context)
+      // TODO:
+      return value
+  }
+
+  throw new Error('Unsupported assignment method.')
+}
+
 export const reduce = (
   node,
   context = {}
@@ -31,22 +50,75 @@ export const reduce = (
 
     case ARRAY_EXPRESSION:
       const arrayResults = []
-      for (const element of node.elements) {
-        arrayResults.push(reduce(element, context))
+      for (const arrayElement of node.elements) {
+        arrayResults.push(reduce(arrayElement, context))
       }
       return arrayResults
 
     case ASSIGNMENT_EXPRESSION:
-      // TODO:
-      console.warn('node', node)
-      console.warn('contexts', context)
-      throw new Error('Node type "' + node.type + '" not yet implemented.')
+      let assignmentValue = reduce(node.right, context)
+      // Modify value if not a direct assignment.
+      if (node.operator !== '=') {
+        const assignmentLeft = reduce(node.left, context)
+        switch (node.operator) {
+          case '*=':
+            assignmentValue = assignmentLeft * assignmentValue
+            break
+          case '**=':
+            assignmentValue = assignmentLeft ** assignmentValue
+            break
+          case '/=':
+            assignmentValue = assignmentLeft / assignmentValue
+            break
+          case '%=':
+            assignmentValue = assignmentLeft % assignmentValue
+            break
+          case '+=':
+            assignmentValue = assignmentLeft + assignmentValue
+            break
+          case '-=':
+            assignmentValue = assignmentLeft - assignmentValue
+            break
+        }
+      }
+      return setToContext(node.left, assignmentValue, context)
 
     case BINARY_EXPRESSION:
-      return Function('lhs, rhs', `return lhs ${node.operator} rhs`)(
-        reduce(node.left, context),
-        reduce(node.right, context),
-      ) // TODO: Remove Function call.
+      const binaryLeft = reduce(node.left, context)
+      const binaryRight = reduce(node.right, context)
+      switch (node.operator) {
+        case '||':
+          return binaryLeft || binaryRight
+        case '&&':
+          return binaryLeft && binaryRight
+        case '==':
+          return binaryLeft == binaryRight
+        case '!=':
+          return binaryLeft != binaryRight
+        case '===':
+          return binaryLeft === binaryRight
+        case '!==':
+          return binaryLeft !== binaryRight
+        case '<':
+          return binaryLeft < binaryRight
+        case '>':
+          return binaryLeft > binaryRight
+        case '<=':
+          return binaryLeft <= binaryRight
+        case '>=':
+          return binaryLeft >= binaryRight
+        case '-':
+          return binaryLeft - binaryRight
+        case '+':
+          return binaryLeft + binaryRight
+        case '*':
+          return binaryLeft * binaryRight
+        case '/':
+          return binaryLeft / binaryRight
+        case '%':
+          return binaryLeft % binaryRight
+      }
+      throw new Error('Unsupported operator: ' + node.operator)
 
     case CALL_EXPRESSION:
       const parameters = []
@@ -56,11 +128,9 @@ export const reduce = (
       return reduce(node.callee, context)(...parameters)
 
     case CONDITIONAL_EXPRESSION:
-      return Function('t, c, a', `return t ? c : a`)(
-        reduce(node.test, context),
-        reduce(node.consequent, context),
-        reduce(node.alternate, context),
-      ) // TODO: Remove Function call.
+      return reduce(node.condition, context)
+        ? reduce(node.consequent, context)
+        : reduce(node.alternate, context)
 
     case MEMBER_EXPRESSION:
       const memberKey =
@@ -75,32 +145,33 @@ export const reduce = (
 
     case OBJECT_EXPRESSION:
       const objectResult = {}
-      for (const property of node.properties) {
+      for (const objectProperty of node.properties) {
         // Expects each property to be of type PROPERTY.
         objectResult[
-          (property.computed || property.key.type !== IDENTIFIER) ? reduce(property.key, context) : property.key.name
-        ] = reduce(property.value, context)
+          (objectProperty.computed || objectProperty.key.type !== IDENTIFIER) ? reduce(objectProperty.key, context) : objectProperty.key.name
+        ] = reduce(objectProperty.value, context)
       }
       return objectResult
 
     case SEQUENCE_EXPRESSION:
-      // TODO:
-      console.warn('node', node)
-      console.warn('contexts', context)
-      throw new Error('Node type "' + node.type + '" not yet implemented.')
+      return node.expressions.map(node => reduce(node, context))
 
     case UNARY_EXPRESSION:
-      if (!node.prefix || node.parameter.type === UNARY_EXPRESSION) {
-        throw SyntaxError('Unexpected operator')
+      const unaryParameter = reduce(node.parameter, context)
+      switch (node.operator) {
+        case '!':
+          return !unaryParameter
+        case '-':
+          return - unaryParameter
+        case '+':
+          return + unaryParameter
       }
-      return Function('v', `return ${node.operator}v`)(
-        reduce(node.parameter, context)
-      ) // TODO: Remove Function call.
+      throw new Error('Unsupported operator: ' + node.operator)
 
     case UPDATE_EXPRESSION:
       const updateResult = reduce(node.parameter, context)
       const updateValue = node.operator === '--' ? -1 : 1
-      // TODO: Update in context by updateValue.
+      setToContext(node.left, updateResult + updateValue, context)
       return node.prefix ? updateResult + updateValue : updateResult
   }
 

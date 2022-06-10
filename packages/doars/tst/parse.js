@@ -1,10 +1,10 @@
 import { parse } from '../src/utils/ParseUtils.js'
 
 const tests = [
-  '{ hello: "world" }',
-  '{ "hello": "world" }',
-  '{ [hello]: "world" }',
+  '("hello")',
+  '(1 + 2)',
+  '(a + 2 == 3)',
 ]
 for (const code of tests) {
-  console.log(parse(code).properties[0])
+  console.log(parse(code))
 }

@@ -20,10 +20,41 @@ const tests = {
   // '{ "hello": "world" }': {},
   // '{ [hello]: "world" }': { hello: 'bye' },
 
-  // Sequence.
-  '("hello")': {},
-  '(1 + 2)': {},
-  '(a + 2 == 3)': { a: 1 },
+  // Parenthesis.
+  // '("Pass")': {},
+  // '(1 + 2)': {},
+
+  // Ternary.
+  // '1 === 2 ? "fail" : "pass"': {},
+
+  // Binary.
+  // 'null || 2': {}, // 2
+  // '1 != 2': {}, // true
+  // '1 === 2': {}, // false
+  // '1 > 2': {}, // false
+  // '1 % 2': {}, // 1
+  // '1 - 2': {}, // 1
+  // 'a + b': { a: 1, b: 2 }, // 3
+
+  // Unary.
+  // '-1': {},
+  // '+a': { a: 3 },
+  // '!true': {},
+  // '!false': {},
+  // '!!false': {},
+
+  // Sequences.
+
+  // Assignment.
+  // 'hello = 2': { hello: 1 }, // 2
+  // 'hello.world = 2': { hello: { world: 1 } }, // 2 TODO:
+  // 'hello[there] = 2': { hello: { world: 1 }, there: 'world' }, // 2 TODO:
+  // 'hello *= 2': { hello: 2 }, // 4
+  // 'hello **= 2': { hello: 2 }, // 4
+  // 'hello /= 2': { hello: 1 }, // 0.5
+  // 'hello %= 2': { hello: 1 }, // 1
+  // 'hello += 2': { hello: 1 }, // 3
+  // 'hello -= 2': { hello: 1 }, // -1
 
   // Update. TODO:
   // '--counter': { counter: 0 },
