@@ -47,8 +47,8 @@ const tests = {
 
   // Assignment.
   // 'hello = 2': { hello: 1 }, // 2
-  // 'hello.world = 2': { hello: { world: 1 } }, // 2 TODO:
-  // 'hello[there] = 2': { hello: { world: 1 }, there: 'world' }, // 2 TODO:
+  // 'hello.world = 2': { hello: { world: 1 } }, // 2
+  // 'hello[there] = 2': { hello: { world: 1 }, there: 'world' }, // 2
   // 'hello *= 2': { hello: 2 }, // 4
   // 'hello **= 2': { hello: 2 }, // 4
   // 'hello /= 2': { hello: 1 }, // 0.5
@@ -56,7 +56,7 @@ const tests = {
   // 'hello += 2': { hello: 1 }, // 3
   // 'hello -= 2': { hello: 1 }, // -1
 
-  // Update. TODO:
+  // Update.
   // '--counter': { counter: 0 },
   // 'counter--': { counter: 0 },
   // '++counter': { counter: 0 },
@@ -70,5 +70,5 @@ for (const code in tests) {
     parse(code),
     context
   )
-  console.log(result)
+  console.log(result, context)
 }

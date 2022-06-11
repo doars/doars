@@ -22,13 +22,19 @@ const setToContext = (
 ) => {
   switch (node.type) {
     case IDENTIFIER:
+      // Assign to
       return context[node.name] = value
 
     case MEMBER_EXPRESSION:
-      console.warn('node', node)
-      console.warn('contexts', context)
-      // TODO:
-      return value
+      const memberObject = reduce(node.object, context)
+      const memberProperty =
+        node.computed || node.property.type !== IDENTIFIER
+          ? reduce(node.property, context)
+          : node.property.name
+      if (typeof (value) === 'function') {
+        return value.bind(memberObject)
+      }
+      return memberObject[memberProperty] = value
   }
 
   throw new Error('Unsupported assignment method.')
@@ -133,15 +139,15 @@ export const reduce = (
         : reduce(node.alternate, context)
 
     case MEMBER_EXPRESSION:
-      const memberKey =
-        node.property.type === IDENTIFIER
-          ? node.property.name
-          : reduce(node.property, context)
-      const memberValue = reduce(node.object, context)
-      if (typeof (memberValue[memberKey]) === 'function') {
-        return memberValue[memberKey].bind(memberValue)
+      const memberObject = reduce(node.object, context)
+      const memberProperty =
+        node.computed || node.property.type !== IDENTIFIER
+          ? reduce(node.property, context)
+          : node.property.name
+      if (typeof (memberObject[memberProperty]) === 'function') {
+        return memberObject[memberProperty].bind(memberObject)
       }
-      return memberValue[memberKey]
+      return memberObject[memberProperty]
 
     case OBJECT_EXPRESSION:
       const objectResult = {}
