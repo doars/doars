@@ -1,0 +1,35 @@
+{
+  "author": {
+    "name": "Ron Dekker",
+    "website": "https://rondekker.com"
+  },
+  "name": "@doars/common",
+  "description": "Doars common classes and functions.",
+  "keywords": [
+    "doars",
+    "common"
+  ],
+  "version": "1.0.0",
+  "license": "MIT",
+  "type": "module",
+  "homepage": "https://github.com/doars/doars/tree/main/packages/common#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/doars/doars.git"
+  },
+  "bugs": {
+    "url": "https://github.com/doars/doars/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "lint": "eslint src/** --cache --fix --no-error-on-unmatched-pattern",
+    "release": "yarn run lint && yarn publish"
+  },
+  "files": [
+    "src",
+    "CHANGELOG.md",
+    "README.md"
+  ]
+}
