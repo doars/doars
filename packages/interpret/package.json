@@ -1,0 +1,36 @@
+{
+  "author": {
+    "name": "Ron Dekker",
+    "website": "https://rondekker.com"
+  },
+  "name": "@doars/interpret",
+  "description": "Simple javascript expression interpreter.",
+  "keywords": [
+    "doars",
+    "interpret"
+  ],
+  "version": "1.0.0",
+  "license": "MIT",
+  "type": "module",
+  "homepage": "https://github.com/doars/doars/tree/main/packages/interpret#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/doars/doars.git"
+  },
+  "bugs": {
+    "url": "https://github.com/doars/doars/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "lint": "eslint src/** --cache --fix --no-error-on-unmatched-pattern",
+    "release": "yarn run lint && yarn run test && yarn publish",
+    "test": "mocha ./tst/"
+  },
+  "files": [
+    "src",
+    "CHANGELOG.md",
+    "README.md"
+  ]
+}
