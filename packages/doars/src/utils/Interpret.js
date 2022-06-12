@@ -1,9 +1,9 @@
-import { createAutoContexts } from './ContextUtils.js'
+import { createAutoContexts } from './Context.js'
 import {
+  COMPOUND,
   parse,
-  COMPOUND
-} from './ParseUtils.js'
-import { reduce } from './ReduceUtils.js'
+  reduce,
+} from '@doars/interpret'
 
 export const interpret = (
   component,

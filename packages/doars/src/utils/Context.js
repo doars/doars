@@ -1,5 +1,5 @@
 // Import polyfill.
-import RevocableProxy from '@doars/utils/src/polyfills/RevocableProxy.js'
+import RevocableProxy from '@doars/common/src/polyfills/RevocableProxy.js'
 
 /**
  * Create an object with utility function.

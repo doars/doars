@@ -1,5 +1,5 @@
 // Import utils.
-import { isPromise } from '@doars/utils/src/PromiseUtils.js'
+import { isPromise } from '@doars/common/src/utils/Promise.js'
 
 const TAG_SELECT = 'SELECT'
 const CHECKED = 'checked'

@@ -33,7 +33,8 @@
     "dev": "yarn run develop",
     "develop": "NODE_ENV=development rollup -c -w",
     "lint": "eslint src/** --cache --fix --no-error-on-unmatched-pattern",
-    "release": "yarn run lint && yarn run build && yarn publish"
+    "release": "yarn run lint && yarn run test && yarn run build && yarn publish",
+    "test": ""
   },
   "files": [
     "dst",
@@ -42,6 +43,7 @@
     "README.md"
   ],
   "dependencies": {
-    "@doars/utils": "1.x"
+    "@doars/common": "1.x",
+    "@doars/interpret": "1.x"
   }
 }

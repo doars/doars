@@ -2,10 +2,10 @@
 import { FOR } from '../symbols.js'
 
 // Import utils.
-import { insertAfter } from '@doars/utils/src/ElementUtils.js'
-import { isPromise } from '@doars/utils/src/PromiseUtils.js'
-import { parseForExpression } from '@doars/utils/src/StringUtils.js'
-import { transitionIn, transitionOut } from '@doars/utils/src/TransitionUtils.js'
+import { insertAfter } from '@doars/common/src/utils/Element.js'
+import { isPromise } from '@doars/common/src/utils/Promise.js'
+import { parseForExpression } from '@doars/common/src/utils/String.js'
+import { transitionIn, transitionOut } from '@doars/common/src/utils/Transition.js'
 
 /**
  * Add values add object by name in given order.

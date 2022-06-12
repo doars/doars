@@ -1,5 +1,5 @@
 import Doars from './Doars.js'
-import { interpret } from './utils/InterpretUtils.js'
+import { interpret } from './utils/Interpret.js'
 
 Doars.interpretExpression = interpret
 

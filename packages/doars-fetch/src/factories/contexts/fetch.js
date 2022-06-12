@@ -1,6 +1,6 @@
 // Import utils.
-import { deepAssign } from '@doars/utils/src/ObjectUtils.js'
-import { parseResponse, responseType } from '../../utils/FetchUtils.js'
+import { deepAssign } from '@doars/common/src/utils/Object.js'
+import { parseResponse, responseType } from '../../utils/Fetch.js'
 
 export default ({ defaultInit }) => {
   return {

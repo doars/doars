@@ -2,8 +2,8 @@
 import { ROUTE } from '../symbols.js'
 
 // Import utils.
-import { closestRouter } from '../utils.js'
-import { insertAfter } from '@doars/utils/src/ElementUtils.js'
+import { closestRouter } from '../.js'
+import { insertAfter } from '@doars/common/src/utils/Element.js'
 
 export default {
   name: 'route',

@@ -1,5 +1,5 @@
 // Import proxy dispatcher.
-import ProxyDispatcher from '@doars/utils/src/events/ProxyDispatcher.js'
+import ProxyDispatcher from '@doars/common/src/events/ProxyDispatcher.js'
 
 export default class Updater {
   constructor(options, callback) {

@@ -2,10 +2,10 @@
 import createContextStore from './factories/contexts/store.js'
 
 // Import proxy dispatcher.
-import ProxyDispatcher from '@doars/utils/src/events/ProxyDispatcher.js'
+import ProxyDispatcher from '@doars/common/src/events/ProxyDispatcher.js'
 
 // Import utils.
-import { deepAssign } from '@doars/utils/src/ObjectUtils.js'
+import { deepAssign } from '@doars/common/src/utils/Object.js'
 
 export default class DoarsStore {
   /**

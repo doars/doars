@@ -7,7 +7,7 @@ import directiveRoute from './directives/route.js'
 import directiveRouteTo from './directives/routeTo.js'
 
 // Import utils.
-import { deepAssign } from '@doars/utils/src/ObjectUtils.js'
+import { deepAssign } from '@doars/common/src/utils/Object.js'
 
 export default class DoarsRouter {
   /**
