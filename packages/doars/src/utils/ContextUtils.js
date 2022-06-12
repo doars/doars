@@ -138,7 +138,36 @@ export const createContextsProxy = (component, attribute, update, extra = null) 
   }
 }
 
+export const createAutoContexts = (
+  component,
+  attribute,
+  extra = null
+) => {
+  // Collect update triggers.
+  const triggers = []
+  const update = (id, context) => {
+    triggers.push({
+      id: id,
+      path: context,
+    })
+  }
+
+  // Create function context.
+  let { contexts, destroy } = createContexts(component, attribute, update, extra)
+
+  return [contexts, () => {
+    // Invoke destroy.
+    destroy()
+
+    // Dispatch update triggers.
+    if (triggers.length > 0) {
+      component.getLibrary().update(triggers)
+    }
+  }]
+}
+
 export default {
+  createAutoContexts: createAutoContexts,
   createContexts: createContexts,
   createContextsProxy: createContextsProxy,
 }

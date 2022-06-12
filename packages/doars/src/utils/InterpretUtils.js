@@ -1,5 +1,8 @@
-import { createContexts } from './ContextUtils.js'
-import { parse } from './ParseUtils.js'
+import { createAutoContexts } from './ContextUtils.js'
+import {
+  parse,
+  COMPOUND
+} from './ParseUtils.js'
 import { reduce } from './ReduceUtils.js'
 
 export const interpret = (
@@ -14,35 +17,24 @@ export const interpret = (
     return: true,
   }, options)
 
-  // Collect update triggers.
-  const triggers = []
-  const update = (id, context) => {
-    triggers.push({
-      id: id,
-      path: context,
-    })
-  }
-
-  // Create function context.
-  let { contexts, destroy } = createContexts(component, attribute, update, extra)
+  // Create contexts.
+  const [contexts, destroyContexts] = createAutoContexts(component, attribute, update, extra)
 
   // Try to execute code.
   let result
   try {
-    // TODO: If options.return is true no compound node should be allowed. Instead throw an error.
-    result = reduce(parse(expression), contexts)
+    const expressionParsed = parse(expression)
+    if (options.return && expressionParsed.type === COMPOUND) {
+      throw new Error('Unable to return a compound expression of: "' + expression + '".')
+    }
+    result = reduce(expressionParsed, contexts)
   } catch (error) {
     console.error(error, 'Error encountered when executing the following expression: ', expression)
     result = null
   }
 
-  // Invoke destroy.
-  destroy()
-
-  // Dispatch update triggers.
-  if (triggers.length > 0) {
-    component.getLibrary().update(triggers)
-  }
+  // Cleanup contexts.
+  destroyContexts()
 
   return result
 }

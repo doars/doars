@@ -1,5 +1,7 @@
 // Import symbols.
 import { SYNC } from '../symbols.js'
+import { createAutoContexts } from '../utils/ContextUtils.js'
+import { getDeeply, setDeeply } from '@doars/utils/src/ObjectUtils.js'
 import { escapeHtml } from '@doars/utils/src/StringUtils.js'
 
 export default {
@@ -37,6 +39,7 @@ export default {
       console.warn('Doars: `sync` directive\'s value not a valid variable name: "' + value + '".')
       return
     }
+    value = value.split('.')
 
     if (isNew) {
       // Set handler that updates data based of node tag.
@@ -45,11 +48,9 @@ export default {
         case 'DIV':
           handler = () => {
             // Update value.
-            processExpression(
-              component,
-              attribute.clone(),
-              value + '=\'' + escapeHtml(element.innerText) + '\''
-            )
+            const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone())
+            setDeeply(contexts, value, escapeHtml(element.innerText))
+            destroyContexts()
           }
           break
 
@@ -57,102 +58,77 @@ export default {
           handler = () => {
             const attributeClone = attribute.clone()
             const elementValue = escapeHtml(element.value)
+            // Setup contexts.
+            const [contexts, destroyContexts] = createAutoContexts(component, attributeClone)
 
             if (element.type === 'checkbox') {
               // Get current value.
-              const dataValue = processExpression(
-                component,
-                attributeClone,
-                value
-              )
+              const dataValue = getDeeply(contexts, value)
 
               // Update value.
               if (element.checked) {
                 if (!dataValue) {
-                  processExpression(
-                    component,
-                    attributeClone,
-                    value + '=[\'' + elementValue + '\']'
-                  )
+                  setDeeply(contexts, value, [elementValue])
                 } if (!dataValue.includes(element.value)) {
-                  processExpression(
-                    component,
-                    attributeClone,
-                    value + '.push(\'' + elementValue + '\')'
-                  )
+                  dataValue.push(elementValue)
                 }
               } else if (dataValue) {
                 const index = dataValue.indexOf(element.value)
                 if (index >= 0) {
-                  processExpression(
-                    component,
-                    attributeClone,
-                    value + '.splice(' + index + ',1)'
-                  )
+                  dataValue.splice(index, 1)
                 }
               }
             } else if (element.type === 'radio') {
-              const dataValue = processExpression(component, attributeClone, value)
+              // Get current value.
+              const dataValue = getDeeply(contexts, value)
+
               if (element.checked) {
                 if (dataValue !== element.value) {
-                  processExpression(
-                    component,
-                    attributeClone,
-                    value + '=\'' + elementValue + '\''
-                  )
+                  setDeeply(contexts, value, elementValue)
                 }
               } else if (dataValue === element.value) {
-                processExpression(
-                  component,
-                  attributeClone,
-                  value + '=null'
-                )
+                setDeeply(contexts, value, null)
               }
             } else {
-              processExpression(
-                component,
-                attributeClone,
-                value + '=\'' + elementValue + '\''
-              )
-
+              setDeeply(contexts, value, elementValue)
             }
+
+            // Cleanup contexts.
+            destroyContexts()
           }
           break
 
         case 'TEXTAREA':
           handler = () => {
             // Update value.
-            processExpression(
-              component,
-              attribute.clone(),
-              value + '=\'' + escapeHtml(element.value) + '\''
-            )
+            const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone())
+            setDeeply(contexts, value, escapeHtml(element.innerText))
+            destroyContexts()
           }
           break
 
         case 'SELECT':
           handler = () => {
-            const attributeClone = attribute.clone()
+            // Create contexts.
+            const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone())
 
             if (element.multiple) {
-              const values = []
+              // Combine options.
+              const elementValues = []
               for (const option of element.selectedOptions) {
-                values.push(
+                elementValues.push(
                   escapeHtml(option.value)
                 )
               }
-              processExpression(
-                component,
-                attributeClone,
-                value + '=[\'' + values.join('\',\'') + '\']'
-              )
+              // Update value.
+              setDeeply(contexts, value, [elementValues.join('\',\'')])
             } else {
-              processExpression(
-                component,
-                attributeClone,
-                value + '=\'' + escapeHtml(element.selectedOptions[0].value) + '\''
-              )
+              // Update value.
+              setDeeply(contexts, value, escapeHtml(element.selectedOptions[0].value))
             }
+
+            // Cleanup contexts.
+            destroyContexts()
           }
           break
       }
