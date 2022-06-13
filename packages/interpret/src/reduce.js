@@ -14,7 +14,7 @@ import {
   SEQUENCE_EXPRESSION,
   UNARY_EXPRESSION,
   UPDATE_EXPRESSION,
-} from './Parse.js'
+} from './types.js'
 
 const setToContext = (
   node,

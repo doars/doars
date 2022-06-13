@@ -1,4 +1,10 @@
 import {
+  parse as _parse,
+} from './parse'
+import {
+  reduce as _reduce,
+} from './reduce'
+import {
   COMPOUND as _COMPOUND,
   IDENTIFIER as _IDENTIFIER,
   LITERAL as _LITERAL,
@@ -14,12 +20,7 @@ import {
   SEQUENCE_EXPRESSION as _SEQUENCE_EXPRESSION,
   UNARY_EXPRESSION as _UNARY_EXPRESSION,
   UPDATE_EXPRESSION as _UPDATE_EXPRESSION,
-
-  parse as _parse,
-} from './parse'
-import {
-  reduce as _reduce,
-} from './reduce'
+} from './types.js'
 
 export const COMPOUND = _COMPOUND
 export const IDENTIFIER = _IDENTIFIER
