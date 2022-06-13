@@ -1,46 +1,44 @@
 import {
   LITERAL,
-} from '../../src/utils/Parse.js'
-import InterpretTest from './InterpretTest.js'
+} from '../src/types.js'
+import test from './utils/test.js'
 
-(new InterpretTest('Literal', 'undefined', undefined, {
-  'raw': 'undefined',
-  'type': LITERAL,
-  'value': undefined,
-})).run();
+test('Literal', 'undefined', undefined, {
+  type: LITERAL,
+  value: undefined,
+})
 
-(new InterpretTest('Literal', 'null', null, {
-  'raw': 'null',
-  'type': LITERAL,
-  'value': null,
-})).run();
+test('Literal', 'null', null, {
+  type: LITERAL,
+  value: null,
+})
 
-(new InterpretTest('Literal', 'false', false, {
-  'raw': 'false',
-  'type': LITERAL,
-  'value': false,
-})).run();
+test('Literal', 'false', false, {
+  type: LITERAL,
+  value: false,
+})
 
-(new InterpretTest('Literal', 'true', true, {
-  'raw': 'true',
-  'type': LITERAL,
-  'value': true,
-})).run();
+test('Literal', 'true', true, {
+  type: LITERAL,
+  value: true,
+})
 
-(new InterpretTest('Literal', '1', 1, {
-  'raw': '1',
-  'type': LITERAL,
-  'value': 1,
-})).run();
+test('Literal', '1', 1, {
+  type: LITERAL,
+  value: 1,
+})
 
-(new InterpretTest('Literal', '1.2', 1.2, {
-  'raw': '1.2',
-  'type': LITERAL,
-  'value': 1.2,
-})).run();
+test('Literal', '1.2', 1.2, {
+  type: LITERAL,
+  value: 1.2,
+})
 
-(new InterpretTest('Literal', '"hello"', 'hello', {
-  'raw': '"hello"',
-  'type': LITERAL,
-  'value': 'hello',
-})).run();
+test('Literal', "'hello'", 'hello', {
+  type: LITERAL,
+  value: 'hello',
+})
+
+test('Literal', '"hello"', 'hello', {
+  type: LITERAL,
+  value: 'hello',
+})

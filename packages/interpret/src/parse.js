@@ -117,7 +117,7 @@ const isIdentifierStart = (character) =>
   || (character >= 65 && character <= 90) // Between A and Z
   || (character >= 97 && character <= 122) // Between a and z
 
-export const parse = (expression) => {
+export default (expression) => {
   let index = 0
 
   const gobbleArray = () => {
@@ -383,7 +383,7 @@ export const parse = (expression) => {
     return {
       type: LITERAL,
       value: parseFloat(number),
-      raw: number,
+      // raw: number,
     }
   }
 
@@ -539,7 +539,7 @@ export const parse = (expression) => {
     return {
       type: LITERAL,
       value: string,
-      raw: expression.substring(startIndex, index),
+      // raw: expression.substring(startIndex, index),
     }
   }
 
@@ -632,7 +632,7 @@ export const parse = (expression) => {
           node = {
             type: LITERAL,
             value: LITERALS[node.name],
-            raw: node.name,
+            // raw: node.name,
           }
         }
       } else if (character === OPENING_PARENTHESIS_CODE) {
@@ -764,14 +764,14 @@ export const parse = (expression) => {
   }
 
   const nodes = gobbleExpressions()
-  return nodes.length === 1
-    ? nodes[0]
-    : {
-      type: COMPOUND,
-      body: nodes,
-    }
-}
-
-export default {
-  parse: parse,
+  if (nodes.length === 0) {
+    return
+  }
+  if (nodes.length === 1) {
+    return nodes[0]
+  }
+  return {
+    type: COMPOUND,
+    body: nodes,
+  }
 }

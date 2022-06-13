@@ -41,10 +41,14 @@ const setToContext = (
   throw new Error('Unsupported assignment method.')
 }
 
-export const reduce = (
+const reduce = (
   node,
   context = {}
 ) => {
+  if (!node) {
+    return
+  }
+
   switch (node.type) {
     case COMPOUND:
       return node.body.map(node => reduce(node, context))
@@ -184,7 +188,4 @@ export const reduce = (
 
   throw new Error('Unexpected node type "' + node.type + '".')
 }
-
-export default {
-  reduce: reduce,
-}
+export default reduce

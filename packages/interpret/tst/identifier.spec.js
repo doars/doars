@@ -1,28 +1,28 @@
 import {
   IDENTIFIER,
-} from '../../src/utils/Parse.js'
-import InterpretTest from './InterpretTest.js'
+} from '../src/types.js'
+import test from './utils/test.js'
 
-(new InterpretTest('Identifier', 'hello', undefined, {
-  'name': 'hello',
-  'type': IDENTIFIER,
-})).run();
+test('Identifier', 'hello', undefined, {
+  name: 'hello',
+  type: IDENTIFIER,
+})
 
-(new InterpretTest('Identifier', '$hello', undefined, {
-  'name': '$hello',
-  'type': IDENTIFIER,
-})).run();
+test('Identifier', '$hello', undefined, {
+  name: '$hello',
+  type: IDENTIFIER,
+})
 
-(new InterpretTest('Identifier', '_hello', undefined, {
-  'name': '_hello',
-  'type': IDENTIFIER,
-})).run();
+test('Identifier', '_hello', undefined, {
+  name: '_hello',
+  type: IDENTIFIER,
+})
 
-(new InterpretTest('Identifier (context)', 'hello', 'there', {
-  'name': 'hello',
-  'type': IDENTIFIER,
+test('Identifier from context', 'hello', 'there', {
+  name: 'hello',
+  type: IDENTIFIER,
 }, {
   hello: 'there',
 }, {
   hello: 'there',
-})).run();
+})

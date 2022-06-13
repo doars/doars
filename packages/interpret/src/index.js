@@ -1,9 +1,5 @@
-import {
-  parse as _parse,
-} from './parse'
-import {
-  reduce as _reduce,
-} from './reduce'
+import _parse from './parse.js'
+import _reduce from './reduce.js'
 import {
   COMPOUND as _COMPOUND,
   IDENTIFIER as _IDENTIFIER,

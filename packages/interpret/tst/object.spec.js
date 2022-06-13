@@ -1,0 +1,130 @@
+import {
+  IDENTIFIER,
+  LITERAL,
+  PROPERTY,
+  OBJECT_EXPRESSION,
+  ARRAY_EXPRESSION,
+} from '../src/types.js'
+import test from './utils/test.js'
+
+test('Object', '{}', {}, {
+  properties: [],
+  type: OBJECT_EXPRESSION,
+})
+
+test('Object', '{ hello: "there" }', {
+  hello: 'there',
+}, {
+  properties: [{
+    computed: false,
+    key: {
+      name: 'hello',
+      type: IDENTIFIER,
+    },
+    shorthand: false,
+    type: PROPERTY,
+    value: {
+      type: LITERAL,
+      value: 'there',
+    },
+  }],
+  type: OBJECT_EXPRESSION,
+})
+
+test('Object', '{ hello: "there", general: "kenobi" }', {
+  hello: 'there',
+  general: 'kenobi',
+}, {
+  properties: [{
+    computed: false,
+    key: {
+      name: 'hello',
+      type: IDENTIFIER,
+    },
+    shorthand: false,
+    type: PROPERTY,
+    value: {
+      type: LITERAL,
+      value: 'there',
+    },
+  }, {
+    computed: false,
+    key: {
+      name: 'general',
+      type: IDENTIFIER,
+    },
+    shorthand: false,
+    type: PROPERTY,
+    value: {
+      type: LITERAL,
+      value: 'kenobi',
+    },
+  }],
+  type: OBJECT_EXPRESSION,
+})
+
+test('Object', '{ hello }', {
+  hello: 'there',
+}, {
+  properties: [{
+    computed: false,
+    key: {
+      name: 'hello',
+      type: IDENTIFIER,
+    },
+    shorthand: true,
+    type: PROPERTY,
+    value: {
+      name: 'hello',
+      type: IDENTIFIER,
+    },
+  }],
+  type: OBJECT_EXPRESSION,
+}, {
+  hello: 'there',
+}, {
+  hello: 'there',
+})
+
+// TODO: Allow objects in objects.
+// test('Object with object with object', '{ hello: { there: { general: "kenobi" } } }', {
+//   hello: {
+//     there: {
+//       general: 'kenobi',
+//     },
+//   },
+// }, {
+//   type: OBJECT_EXPRESSION,
+// })
+
+test('Object with array', '{ hello: ["there", "general", "kenobi"] }', {
+  hello: [
+    'there',
+    'general',
+    'kenobi',
+  ],
+}, {
+  properties: [{
+    computed: false,
+    key: {
+      name: 'hello',
+      type: IDENTIFIER,
+    },
+    shorthand: false,
+    type: PROPERTY,
+    value: {
+      elements: [{
+        type: LITERAL,
+        value: 'there',
+      }, {
+        type: LITERAL,
+        value: 'general',
+      }, {
+        type: LITERAL,
+        value: 'kenobi',
+      }],
+      type: ARRAY_EXPRESSION,
+    },
+  }],
+  type: OBJECT_EXPRESSION,
+})
