@@ -13,8 +13,21 @@ export default (
   nodesExpected,
 
   context = {},
-  contextExpected = {}
+  contextExpected = {},
+
+  options = {}
 ) => {
+  // Assign default options.
+  options = Object.assign({
+    expectCompound: false,
+  }, options)
+
+  // Auto wrap nodes and results if a single expression is tested.
+  if (!options.expectCompound) {
+    nodesExpected = [nodesExpected]
+    resultExpected = [resultExpected]
+  }
+
   describe(name + ': ' + expression, () => {
     // Parse the expression.
     const nodes = parse(expression)

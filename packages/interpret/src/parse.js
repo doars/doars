@@ -1,18 +1,16 @@
 // Based on jsep, v1.3.6, https://github.com/EricSmekens/jsep#readme).
 
 import {
-  COMPOUND,
-  IDENTIFIER,
-  LITERAL,
-  PROPERTY,
-
   ARRAY,
   ASSIGN,
   BINARY,
   CALL,
   CONDITION,
+  IDENTIFIER,
+  LITERAL,
   MEMBER,
   OBJECT,
+  PROPERTY,
   SEQUENCE,
   UNARY,
   UPDATE,
@@ -171,7 +169,7 @@ export default (expression) => {
       } else {
         const node = gobbleExpression()
 
-        if (!node || node.type === COMPOUND) {
+        if (!node) {
           throw new Error('Expected comma')
         }
 
@@ -492,7 +490,7 @@ export default (expression) => {
 
   const gobbleStringLiteral = () => {
     let string = ''
-    const startIndex = index
+    // const startIndex = index
     const quote = expression.charAt(index++)
     let closed = false
 
@@ -771,11 +769,5 @@ export default (expression) => {
   }
 
   const nodes = gobbleExpressions()
-  if (nodes.length === 0) {
-    return
-  }
-  return {
-    type: COMPOUND,
-    body: nodes,
-  }
+  return nodes.length === 0 ? undefined : nodes
 }

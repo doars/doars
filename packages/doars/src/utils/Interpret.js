@@ -1,6 +1,5 @@
 import { createAutoContexts } from './Context.js'
 import {
-  COMPOUND,
   parse,
   run,
 } from '@doars/interpret'
@@ -24,7 +23,7 @@ export const interpret = (
   let result
   try {
     const expressionParsed = parse(expression)
-    if (options.return && expressionParsed.type === COMPOUND) {
+    if (options.return && expressionParsed && expressionParsed.length > 1) {
       throw new Error('Unable to return a compound expression of: "' + expression + '".')
     }
     result = run(expressionParsed, contexts)
@@ -36,7 +35,11 @@ export const interpret = (
   // Cleanup contexts.
   destroyContexts()
 
-  return result
+  // Unwrap results.
+  if (options.return && result) {
+    result = result[0]
+    return result
+  }
 }
 
 export default {

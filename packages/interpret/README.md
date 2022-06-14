@@ -59,7 +59,7 @@ Exported functions:
   - `@param {Object} context` Context of the expression.
   - `@returns {Array}` results of the expression.
 
-The following node types are exported as variables: `ARRAY`, `ASSIGN`, `BINARY`, `CALL`, `COMPOUND`, `CONDITION`, `IDENTIFIER`, `LITERAL`, `MEMBER`, `OBJECT`, `PROPERTY`, `SEQUENCE`, `UNARY`, `UPDATE`.
+The following node types are exported as variables: `ARRAY`, `ASSIGN`, `BINARY`, `CALL`, `CONDITION`, `IDENTIFIER`, `LITERAL`, `MEMBER`, `OBJECT`, `PROPERTY`, `SEQUENCE`, `UNARY`, `UPDATE`.
 
 > `interpret` is a short hand for `run(parse(expression), context)`.
 

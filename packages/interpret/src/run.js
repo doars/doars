@@ -1,14 +1,11 @@
 import {
-  COMPOUND,
-  IDENTIFIER,
-  LITERAL,
-  PROPERTY,
-
   ARRAY,
   ASSIGN,
   BINARY,
   CALL,
   CONDITION,
+  IDENTIFIER,
+  LITERAL,
   MEMBER,
   OBJECT,
   SEQUENCE,
@@ -49,10 +46,11 @@ const run = (
     return
   }
 
-  switch (node.type) {
-    case COMPOUND:
-      return node.body.map(node => run(node, context))
+  if (Array.isArray(node)) {
+    return node.map(node => run(node, context))
+  }
 
+  switch (node.type) {
     case IDENTIFIER:
       return context[node.name]
 

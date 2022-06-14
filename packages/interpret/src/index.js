@@ -5,7 +5,6 @@ import {
   ASSIGN as _ASSIGN,
   BINARY as _BINARY,
   CALL as _CALL,
-  COMPOUND as _COMPOUND,
   CONDITION as _CONDITION,
   IDENTIFIER as _IDENTIFIER,
   LITERAL as _LITERAL,
@@ -27,7 +26,6 @@ export const ARRAY = _ARRAY
 export const ASSIGN = _ASSIGN
 export const BINARY = _BINARY
 export const CALL = _CALL
-export const COMPOUND = _COMPOUND
 export const CONDITION = _CONDITION
 export const IDENTIFIER = _IDENTIFIER
 export const LITERAL = _LITERAL
@@ -47,7 +45,6 @@ export default {
   ASSIGN: _ASSIGN,
   BINARY: _BINARY,
   CALL: _CALL,
-  COMPOUND: _COMPOUND,
   CONDITION: _CONDITION,
   IDENTIFIER: _IDENTIFIER,
   LITERAL: _LITERAL,

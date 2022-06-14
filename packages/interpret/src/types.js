@@ -2,7 +2,6 @@ export const ARRAY = 5
 export const ASSIGN = 6
 export const BINARY = 7
 export const CALL = 8
-export const COMPOUND = 1
 export const CONDITION = 9
 export const IDENTIFIER = 2
 export const LITERAL = 3
@@ -18,7 +17,6 @@ export default {
   ASSIGN: ASSIGN,
   BINARY: BINARY,
   CALL: CALL,
-  COMPOUND: COMPOUND,
   CONDITION: CONDITION,
   IDENTIFIER: IDENTIFIER,
   LITERAL: LITERAL,
