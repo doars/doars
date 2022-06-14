@@ -2,14 +2,14 @@ import {
   IDENTIFIER,
   LITERAL,
   PROPERTY,
-  OBJECT_EXPRESSION,
-  ARRAY_EXPRESSION,
+  ARRAY,
+  OBJECT,
 } from '../src/types.js'
 import test from './utils/test.js'
 
 test('Object', '{}', {}, {
   properties: [],
-  type: OBJECT_EXPRESSION,
+  type: OBJECT,
 })
 
 test('Object', '{ hello: "there" }', {
@@ -28,7 +28,7 @@ test('Object', '{ hello: "there" }', {
       value: 'there',
     },
   }],
-  type: OBJECT_EXPRESSION,
+  type: OBJECT,
 })
 
 test('Object', '{ hello: "there", general: "kenobi" }', {
@@ -60,7 +60,7 @@ test('Object', '{ hello: "there", general: "kenobi" }', {
       value: 'kenobi',
     },
   }],
-  type: OBJECT_EXPRESSION,
+  type: OBJECT,
 })
 
 test('Object', '{ hello }', {
@@ -79,7 +79,7 @@ test('Object', '{ hello }', {
       type: IDENTIFIER,
     },
   }],
-  type: OBJECT_EXPRESSION,
+  type: OBJECT,
 }, {
   hello: 'there',
 }, {
@@ -94,7 +94,7 @@ test('Object', '{ hello }', {
 //     },
 //   },
 // }, {
-//   type: OBJECT_EXPRESSION,
+//   type: OBJECT,
 // })
 
 test('Object with array', '{ hello: ["there", "general", "kenobi"] }', {
@@ -123,8 +123,50 @@ test('Object with array', '{ hello: ["there", "general", "kenobi"] }', {
         type: LITERAL,
         value: 'kenobi',
       }],
-      type: ARRAY_EXPRESSION,
+      type: ARRAY,
     },
   }],
-  type: OBJECT_EXPRESSION,
+  type: OBJECT,
+})
+
+test('Object with array', '{ hello: ["there", { general: "kenobi" }] }', {
+  hello: [
+    'there', {
+      general: 'kenobi',
+    },
+  ],
+}, {
+  properties: [{
+    computed: false,
+    key: {
+      name: 'hello',
+      type: IDENTIFIER,
+    },
+    shorthand: false,
+    type: PROPERTY,
+    value: {
+      elements: [{
+        type: LITERAL,
+        value: 'there',
+      }, {
+        properties: [
+          {
+            computed: false,
+            key: {
+              name: 'general',
+              type: IDENTIFIER,
+            },
+            shorthand: false,
+            type: PROPERTY,
+            value: {
+              type: LITERAL,
+              value: 'kenobi',
+            }
+          }],
+        type: OBJECT,
+      }],
+      type: ARRAY,
+    },
+  }],
+  type: OBJECT,
 })

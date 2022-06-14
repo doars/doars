@@ -3,14 +3,14 @@ import { assert } from 'chai'
 
 // Import code to test.
 import parse from '../../src/parse.js'
-import reduce from '../../src/reduce.js'
+import run from '../../src/run.js'
 
 export default (
   name,
   expression,
 
-  reducedExpected,
-  parsedExpected,
+  resultExpected,
+  nodesExpected,
 
   context = {},
   contextExpected = {}
@@ -19,18 +19,18 @@ export default (
     // Parse the expression.
     const nodes = parse(expression)
     // Verify parsed nodes.
-    if (parsedExpected !== undefined) {
+    if (nodesExpected !== undefined) {
       it('Parsing', () => {
-        assert.deepEqual(nodes, parsedExpected)
+        assert.deepEqual(nodes, nodesExpected)
       })
     }
 
-    // Reduce the parsed expression.
-    const result = reduce(nodes, context)
-    // Verify reduced result.
-    if (reducedExpected !== undefined) {
+    // run the parsed expression.
+    const result = run(nodes, context)
+    // Verify rund result.
+    if (resultExpected !== undefined) {
       it('Reducing', () => {
-        assert.deepEqual(result, reducedExpected)
+        assert.deepEqual(result, resultExpected)
       })
     }
     // Verify context mutation.

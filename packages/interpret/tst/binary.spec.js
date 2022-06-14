@@ -1,7 +1,7 @@
 import {
   IDENTIFIER,
   LITERAL,
-  BINARY_EXPRESSION,
+  BINARY,
 } from '../src/types.js'
 import test from './utils/test.js'
 
@@ -15,7 +15,7 @@ test('Binary', 'false || true', true, {
     type: LITERAL,
     value: true,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', 'false || false', false, {
@@ -28,7 +28,7 @@ test('Binary', 'false || false', false, {
     type: LITERAL,
     value: false,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', 'false && true', false, {
@@ -41,7 +41,7 @@ test('Binary', 'false && true', false, {
     type: LITERAL,
     value: true,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', 'true && true', true, {
@@ -54,7 +54,7 @@ test('Binary', 'true && true', true, {
     type: LITERAL,
     value: true,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', 'false == true', false, {
@@ -67,7 +67,7 @@ test('Binary', 'false == true', false, {
     type: LITERAL,
     value: true,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', 'true == true', true, {
@@ -80,7 +80,7 @@ test('Binary', 'true == true', true, {
     type: LITERAL,
     value: true,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', 'false != true', true, {
@@ -93,7 +93,7 @@ test('Binary', 'false != true', true, {
     type: LITERAL,
     value: true,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', 'true != true', false, {
@@ -106,7 +106,7 @@ test('Binary', 'true != true', false, {
     type: LITERAL,
     value: true,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', 'false === true', false, {
@@ -119,7 +119,7 @@ test('Binary', 'false === true', false, {
     type: LITERAL,
     value: true,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', 'true === true', true, {
@@ -132,7 +132,7 @@ test('Binary', 'true === true', true, {
     type: LITERAL,
     value: true,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', 'false !== true', true, {
@@ -145,7 +145,7 @@ test('Binary', 'false !== true', true, {
     type: LITERAL,
     value: true,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', 'true !== true', false, {
@@ -158,7 +158,7 @@ test('Binary', 'true !== true', false, {
     type: LITERAL,
     value: true,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', '0 < 1', true, {
@@ -171,7 +171,7 @@ test('Binary', '0 < 1', true, {
     type: LITERAL,
     value: 1,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', '0 < 0', false, {
@@ -184,7 +184,7 @@ test('Binary', '0 < 0', false, {
     type: LITERAL,
     value: 0,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', '1 < 0', false, {
@@ -197,7 +197,7 @@ test('Binary', '1 < 0', false, {
     type: LITERAL,
     value: 0,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', '0 > 1', false, {
@@ -210,7 +210,7 @@ test('Binary', '0 > 1', false, {
     type: LITERAL,
     value: 1,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', '0 > 0', false, {
@@ -223,7 +223,7 @@ test('Binary', '0 > 0', false, {
     type: LITERAL,
     value: 0,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', '1 > 0', true, {
@@ -236,7 +236,7 @@ test('Binary', '1 > 0', true, {
     type: LITERAL,
     value: 0,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', '0 <= 1', true, {
@@ -249,7 +249,7 @@ test('Binary', '0 <= 1', true, {
     type: LITERAL,
     value: 1,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', '0 <= 0', true, {
@@ -262,7 +262,7 @@ test('Binary', '0 <= 0', true, {
     type: LITERAL,
     value: 0,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', '1 <= 0', false, {
@@ -275,7 +275,7 @@ test('Binary', '1 <= 0', false, {
     type: LITERAL,
     value: 0,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', '0 >= 1', false, {
@@ -288,7 +288,7 @@ test('Binary', '0 >= 1', false, {
     type: LITERAL,
     value: 1,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', '0 >= 0', true, {
@@ -301,7 +301,7 @@ test('Binary', '0 >= 0', true, {
     type: LITERAL,
     value: 0,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', '1 >= 0', true, {
@@ -314,7 +314,7 @@ test('Binary', '1 >= 0', true, {
     type: LITERAL,
     value: 0,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', '2 * 4', 8, {
@@ -327,7 +327,7 @@ test('Binary', '2 * 4', 8, {
     type: LITERAL,
     value: 4,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', '2 / 4', 0.5, {
@@ -340,7 +340,7 @@ test('Binary', '2 / 4', 0.5, {
     type: LITERAL,
     value: 4,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', '4 % 2', 0, {
@@ -353,7 +353,7 @@ test('Binary', '4 % 2', 0, {
     type: LITERAL,
     value: 2,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', '4 % 3', 1, {
@@ -366,7 +366,7 @@ test('Binary', '4 % 3', 1, {
     type: LITERAL,
     value: 3,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', '2 + 4', 6, {
@@ -379,7 +379,7 @@ test('Binary', '2 + 4', 6, {
     type: LITERAL,
     value: 4,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary', '2 - 4', -2, {
@@ -392,7 +392,7 @@ test('Binary', '2 - 4', -2, {
     type: LITERAL,
     value: 4,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 })
 
 test('Binary with identifier', '2 - hello', -2, {
@@ -405,7 +405,7 @@ test('Binary with identifier', '2 - hello', -2, {
     'name': 'hello',
     type: IDENTIFIER,
   },
-  type: BINARY_EXPRESSION,
+  type: BINARY,
 }, {
   hello: 4,
 }, {

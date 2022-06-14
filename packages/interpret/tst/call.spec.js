@@ -2,10 +2,10 @@ import {
   IDENTIFIER,
   LITERAL,
   PROPERTY,
-  ARRAY_EXPRESSION,
-  CALL_EXPRESSION,
-  MEMBER_EXPRESSION,
-  OBJECT_EXPRESSION,
+  ARRAY,
+  CALL,
+  MEMBER,
+  OBJECT,
 } from '../src/types.js'
 import test from './utils/test.js'
 
@@ -18,7 +18,7 @@ test('Call', 'hello()', 'there', {
     type: IDENTIFIER,
   },
   parameters: [],
-  type: CALL_EXPRESSION,
+  type: CALL,
 }, {
   hello: callbackTemp,
 }, {
@@ -35,7 +35,7 @@ test('Call parameter', 'hello("there")', 'there', {
     type: LITERAL,
     value: 'there',
   }],
-  type: CALL_EXPRESSION,
+  type: CALL,
 }, {
   hello: callbackTemp,
 }, {
@@ -55,7 +55,7 @@ test('Call parameter', 'hello("general", "kenobi")', 'general kenobi', {
     type: LITERAL,
     value: 'kenobi',
   }],
-  type: CALL_EXPRESSION,
+  type: CALL,
 }, {
   hello: callbackTemp,
 }, {
@@ -74,10 +74,10 @@ test('Call parameter', 'hello.there()', 'general kenobi', {
       name: 'there',
       type: IDENTIFIER,
     },
-    type: MEMBER_EXPRESSION,
+    type: MEMBER,
   },
   parameters: [],
-  type: CALL_EXPRESSION,
+  type: CALL,
 }, {
   hello: {
     there: callbackTemp,
@@ -99,13 +99,13 @@ test('Call on array', '[1, 2].splice(1, 1)', [2], {
         type: LITERAL,
         value: 2,
       }],
-      type: ARRAY_EXPRESSION,
+      type: ARRAY,
     },
     property: {
       name: 'splice',
       type: IDENTIFIER,
     },
-    type: MEMBER_EXPRESSION,
+    type: MEMBER,
   },
   parameters: [{
     type: LITERAL,
@@ -114,7 +114,7 @@ test('Call on array', '[1, 2].splice(1, 1)', [2], {
     type: LITERAL,
     value: 1,
   }],
-  type: CALL_EXPRESSION,
+  type: CALL,
 })
 
 test('Call on object', '({ hello: "there" }).hasOwnProperty("hello")', true, {
@@ -134,17 +134,17 @@ test('Call on object', '({ hello: "there" }).hasOwnProperty("hello")', true, {
           value: 'there',
         },
       }],
-      type: OBJECT_EXPRESSION,
+      type: OBJECT,
     },
     property: {
       name: 'hasOwnProperty',
       type: 2,
     },
-    type: MEMBER_EXPRESSION,
+    type: MEMBER,
   },
   parameters: [{
     type: LITERAL,
     value: 'hello',
   }],
-  type: CALL_EXPRESSION,
+  type: CALL,
 })

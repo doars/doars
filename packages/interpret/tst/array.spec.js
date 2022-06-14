@@ -1,15 +1,15 @@
 import {
   IDENTIFIER,
   LITERAL,
-  ARRAY_EXPRESSION,
-  OBJECT_EXPRESSION,
+  ARRAY,
+  OBJECT,
   PROPERTY,
 } from '../src/types.js'
 import test from './utils/test.js'
 
 test('Array', '[]', [], {
   elements: [],
-  type: ARRAY_EXPRESSION,
+  type: ARRAY,
 })
 
 test('Array', '[null]', [null], {
@@ -17,7 +17,7 @@ test('Array', '[null]', [null], {
     type: LITERAL,
     value: null,
   }],
-  type: ARRAY_EXPRESSION,
+  type: ARRAY,
 })
 
 test('Array', '[1]', [1], {
@@ -25,7 +25,7 @@ test('Array', '[1]', [1], {
     type: LITERAL,
     value: 1,
   }],
-  type: ARRAY_EXPRESSION,
+  type: ARRAY,
 })
 
 test('Array', '[1, 2]', [1, 2], {
@@ -36,7 +36,7 @@ test('Array', '[1, 2]', [1, 2], {
     type: LITERAL,
     value: 2,
   }],
-  type: ARRAY_EXPRESSION,
+  type: ARRAY,
 })
 
 test('Array', '[hello]', ['world'], {
@@ -44,7 +44,7 @@ test('Array', '[hello]', ['world'], {
     name: 'hello',
     type: IDENTIFIER,
   }],
-  type: ARRAY_EXPRESSION,
+  type: ARRAY,
 }, {
   hello: 'world',
 }, {
@@ -59,7 +59,7 @@ test('Array', '[hello, there]', ['general', 'kenobi'], {
     name: 'there',
     type: IDENTIFIER,
   }],
-  type: ARRAY_EXPRESSION,
+  type: ARRAY,
 }, {
   hello: 'general',
   there: 'kenobi',
@@ -74,12 +74,12 @@ test('Array', '[[1], 2]', [[1], 2], {
       type: LITERAL,
       value: 1,
     }],
-    type: ARRAY_EXPRESSION,
+    type: ARRAY,
   }, {
     type: LITERAL,
     value: 2,
   }],
-  type: ARRAY_EXPRESSION,
+  type: ARRAY,
 })
 
 test('Array with object', '[{hello: "there"}]', [{
@@ -99,7 +99,7 @@ test('Array with object', '[{hello: "there"}]', [{
         value: 'there',
       },
     }],
-    type: OBJECT_EXPRESSION,
+    type: OBJECT,
   }],
-  type: ARRAY_EXPRESSION,
+  type: ARRAY,
 })

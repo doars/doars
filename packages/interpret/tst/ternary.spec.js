@@ -1,8 +1,8 @@
 import {
   IDENTIFIER,
   LITERAL,
-  BINARY_EXPRESSION,
-  CONDITION_EXPRESSION,
+  BINARY,
+  CONDITION,
 } from '../src/types.js'
 import test from './utils/test.js'
 
@@ -17,7 +17,7 @@ test('Ternary', 'false == false ? 1 : 2', 1, {
       type: LITERAL,
       value: false,
     },
-    type: BINARY_EXPRESSION,
+    type: BINARY,
   },
   consequent: {
     type: LITERAL,
@@ -27,7 +27,7 @@ test('Ternary', 'false == false ? 1 : 2', 1, {
     type: LITERAL,
     value: 2,
   },
-  type: CONDITION_EXPRESSION,
+  type: CONDITION,
 })
 
 test('Ternary', 'false == true ? 1 : 2', 2, {
@@ -41,7 +41,7 @@ test('Ternary', 'false == true ? 1 : 2', 2, {
       type: LITERAL,
       value: true,
     },
-    type: BINARY_EXPRESSION,
+    type: BINARY,
   },
   consequent: {
     type: LITERAL,
@@ -51,7 +51,7 @@ test('Ternary', 'false == true ? 1 : 2', 2, {
     type: LITERAL,
     value: 2,
   },
-  type: CONDITION_EXPRESSION,
+  type: CONDITION,
 })
 
 test('Ternary with identifier in conditional', 'false == hello ? 1 : 2', 2, {
@@ -65,7 +65,7 @@ test('Ternary with identifier in conditional', 'false == hello ? 1 : 2', 2, {
       name: 'hello',
       type: IDENTIFIER,
     },
-    type: BINARY_EXPRESSION,
+    type: BINARY,
   },
   consequent: {
     type: LITERAL,
@@ -75,7 +75,7 @@ test('Ternary with identifier in conditional', 'false == hello ? 1 : 2', 2, {
     type: LITERAL,
     value: 2,
   },
-  type: CONDITION_EXPRESSION,
+  type: CONDITION,
 }, {
   hello: true
 }, {
@@ -93,7 +93,7 @@ test('Ternary with identifier in alternate', 'false == true ? 1 : hello', 2, {
       type: LITERAL,
       value: true,
     },
-    type: BINARY_EXPRESSION,
+    type: BINARY,
   },
   consequent: {
     type: LITERAL,
@@ -103,7 +103,7 @@ test('Ternary with identifier in alternate', 'false == true ? 1 : hello', 2, {
     name: 'hello',
     type: IDENTIFIER,
   },
-  type: CONDITION_EXPRESSION,
+  type: CONDITION,
 }, {
   hello: 2
 }, {

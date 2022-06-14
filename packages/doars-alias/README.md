@@ -23,17 +23,17 @@ npm i @doars/doars @doars/doars-alias
 
 ```JavaScript
 // Import library.
-import Doars from "@doars/doars";
-import DoarsAlias from "@doars/doars-alias";
+import Doars from '@doars/doars'
+import DoarsAlias from '@doars/doars-alias'
 
 // Setup a library instance.
-const doars = new Doars();
+const doars = new Doars()
 
 // Setup the plugin.
-const doarsAlias = new DoarsAlias(doars /*, options */);
+const doarsAlias = new DoarsAlias(doars /*, options */)
 
 // Enable library.
-doars.enable();
+doars.enable()
 ```
 
 ### UMD build from jsDelivr
@@ -68,7 +68,7 @@ library.
 
 ```JavaScript
 // Setup a library instance.
-const doars = new Doars();
+const doars = new Doars()
 
 // Setup the plugin.
 const doarsAlias = new DoarsAlias(doars, {
@@ -85,10 +85,10 @@ const doarsAlias = new DoarsAlias(doars, {
   renameDirective: {
     reference: "ref",
   },
-});
+})
 
 // Enable library.
-doars.enable();
+doars.enable()
 ```
 
 ## API

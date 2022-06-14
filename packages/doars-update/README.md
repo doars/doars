@@ -23,17 +23,17 @@ npm i @doars/doars @doars/doars-update
 
 ```JavaScript
 // Import library.
-import Doars from "@doars/doars";
-import DoarsUpdate from "@doars/doars-update";
+import Doars from '@doars/doars'
+import DoarsUpdate from '@doars/doars-update'
 
 // Setup a library instance.
-const doars = new Doars();
+const doars = new Doars()
 
 // Setup the plugin.
-const doarsUpdate = new DoarsUpdate(doars /*, options */);
+const doarsUpdate = new DoarsUpdate(doars /*, options */)
 
 // Enable library.
-doars.enable();
+doars.enable()
 ```
 
 ### UMD build from jsDelivr

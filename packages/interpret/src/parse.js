@@ -6,16 +6,16 @@ import {
   LITERAL,
   PROPERTY,
 
-  ARRAY_EXPRESSION,
-  ASSIGN_EXPRESSION,
-  BINARY_EXPRESSION,
-  CALL_EXPRESSION,
-  CONDITION_EXPRESSION,
-  MEMBER_EXPRESSION,
-  OBJECT_EXPRESSION,
-  SEQUENCE_EXPRESSION,
-  UNARY_EXPRESSION,
-  UPDATE_EXPRESSION,
+  ARRAY,
+  ASSIGN,
+  BINARY,
+  CALL,
+  CONDITION,
+  MEMBER,
+  OBJECT,
+  SEQUENCE,
+  UNARY,
+  UPDATE,
 } from './types.js'
 
 // Character codes.
@@ -38,6 +38,9 @@ const CLOSING_BRACES_CODE = 125 // }
 // Operators.
 const ASSIGNMENT_OPERATORS = [
   '=',
+  '||=',
+  '&&=',
+  '??=',
   '*=',
   '**=',
   '/=',
@@ -53,6 +56,9 @@ const ASSIGNMENT_OPERATORS = [
 ]
 const BINARY_OPERATORS = {
   '=': 1,
+  '||=': 1,
+  '&&=': 1,
+  '??=': 1,
   '*=': 1,
   '**=': 1,
   '/=': 1,
@@ -67,25 +73,26 @@ const BINARY_OPERATORS = {
   // '|=': 1,
   '||': 2,
   '&&': 3,
-  // '|': 4,
-  // '^': 5,
-  // '&': 6,
-  '==': 7,
-  '!=': 7,
-  '===': 7,
-  '!==': 7,
-  '<': 8,
-  '>': 8,
-  '<=': 8,
-  '>=': 8,
-  // '<<': 9,
-  // '>>': 9,
-  // '>>>': 9,
+  '??': 4,
+  // '|': 5,
+  // '^': 6,
+  // '&': 7,
+  '==': 8,
+  '!=': 8,
+  '===': 8,
+  '!==': 8,
+  '<': 9,
+  '>': 9,
+  '<=': 9,
+  '>=': 9,
+  // '<<': 10,
+  // '>>': 10,
+  // '>>>': 10,
   '*': 11,
   '/': 11,
   '%': 11,
-  '+': 10,
-  '-': 10,
+  '+': 11,
+  '-': 11,
 }
 const UNARY_OPERATORS = [
   '-',
@@ -124,7 +131,7 @@ export default (expression) => {
     index++
 
     return {
-      type: ARRAY_EXPRESSION,
+      type: ARRAY,
       elements: gobbleParameters(CLOSING_BRACKET_CODE)
     }
   }
@@ -227,8 +234,8 @@ export default (expression) => {
         left = stack.pop()
         node = {
           type: ASSIGNMENT_OPERATORS.indexOf(operator) >= 0
-            ? ASSIGN_EXPRESSION
-            : BINARY_EXPRESSION,
+            ? ASSIGN
+            : BINARY,
           operator: operator,
           left,
           right,
@@ -252,8 +259,8 @@ export default (expression) => {
       operator = stack[i - 1].value
       node = {
         type: ASSIGNMENT_OPERATORS.indexOf(operator) >= 0
-          ? ASSIGN_EXPRESSION
-          : BINARY_EXPRESSION,
+          ? ASSIGN
+          : BINARY,
         operator: operator,
         left: stack[i - 2],
         right: node,
@@ -400,7 +407,7 @@ export default (expression) => {
       if (expression.charCodeAt(index) === CLOSING_BRACES_CODE) {
         index++
         return gobbleTokenProperty({
-          type: OBJECT_EXPRESSION,
+          type: OBJECT,
           properties,
         })
       }
@@ -432,7 +439,7 @@ export default (expression) => {
           throw new Error('unexpected object property')
         }
 
-        const computed = key.type === ARRAY_EXPRESSION
+        const computed = key.type === ARRAY
         properties.push({
           computed: computed,
           key: computed
@@ -469,7 +476,7 @@ export default (expression) => {
       }
 
       return {
-        type: SEQUENCE_EXPRESSION,
+        type: SEQUENCE,
         expressions: nodes,
       }
     }
@@ -567,7 +574,7 @@ export default (expression) => {
     }
 
     const conditional = {
-      type: CONDITION_EXPRESSION,
+      type: CONDITION,
       condition: node,
       consequent: consequent,
       alternate: alternate,
@@ -617,7 +624,7 @@ export default (expression) => {
             throw new Error('Missing unary operation parameter')
           }
           return gobbleUpdateSuffixExpression({
-            type: UNARY_EXPRESSION,
+            type: UNARY,
             operator: toCheck,
             parameter: parameter,
           })
@@ -669,7 +676,7 @@ export default (expression) => {
 
       if (character === OPENING_BRACKET_CODE) {
         node = {
-          type: MEMBER_EXPRESSION,
+          type: MEMBER,
           computed: true,
           object: node,
           property: gobbleExpression(),
@@ -682,7 +689,7 @@ export default (expression) => {
         index++
       } else if (character === OPENING_PARENTHESIS_CODE) {
         node = {
-          type: CALL_EXPRESSION,
+          type: CALL,
           parameters: gobbleParameters(CLOSING_PARENTHESIS_CODE),
           callee: node,
         }
@@ -692,7 +699,7 @@ export default (expression) => {
         }
         gobbleSpaces()
         node = {
-          type: MEMBER_EXPRESSION,
+          type: MEMBER,
           computed: false,
           object: node,
           property: gobbleIdentifier(),
@@ -727,12 +734,12 @@ export default (expression) => {
 
     index += 2
     let node = {
-      type: UPDATE_EXPRESSION,
+      type: UPDATE,
       operator: operator,
       parameter: gobbleTokenProperty(gobbleIdentifier()),
       prefix: true,
     }
-    if (!node.parameter || (node.parameter.type !== IDENTIFIER && node.parameter.type !== MEMBER_EXPRESSION)) {
+    if (!node.parameter || (node.parameter.type !== IDENTIFIER && node.parameter.type !== MEMBER)) {
       throw new Error(`Unexpected ${env.node.operator}`);
     }
     return node
@@ -755,7 +762,7 @@ export default (expression) => {
 
     index += 2
     node = {
-      type: UPDATE_EXPRESSION,
+      type: UPDATE,
       operator: operator,
       parameter: node,
       prefix: false,
@@ -766,9 +773,6 @@ export default (expression) => {
   const nodes = gobbleExpressions()
   if (nodes.length === 0) {
     return
-  }
-  if (nodes.length === 1) {
-    return nodes[0]
   }
   return {
     type: COMPOUND,

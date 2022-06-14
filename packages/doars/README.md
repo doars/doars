@@ -982,7 +982,7 @@ Take for example the `$element` context. All it needs to do is the return the el
 ```JavaScript
 export default {
   // The name of the context.
-  name: "$element",
+  name: '$element',
 
   // The function to process in order to create the context.
   create: (component, attribute) => {
@@ -1014,7 +1014,7 @@ export default {
   deconstruct: true,
 
   // The name of the context.
-  name: "$state",
+  name: '$state',
 
   // The function to process in order to create the context.
   create: (component, attribute, update, { RevocableProxy }) => {
@@ -1027,16 +1027,16 @@ export default {
 
     // Create event handlers that trigger an update if a property on the state is deleted or set, and mark a value as accessed if a value is retrieved.
     const onDelete = (target, path) =>
-      update(component.getId(), "$state." + path.join("."))
+      update(component.getId(), '$state.' + path.join('.'))
     const onGet = (target, path) =>
-      attribute.accessed(component.getId(), "$state." + path.join("."))
+      attribute.accessed(component.getId(), '$state.' + path.join('.'))
     const onSet = (target, path) =>
-      update(component.getId(), "$state." + path.join("."))
+      update(component.getId(), '$state.' + path.join('.'))
 
     // Add event listeners.
-    proxy.addEventListener("delete", onDelete)
-    proxy.addEventListener("get", onGet)
-    proxy.addEventListener("set", onSet)
+    proxy.addEventListener('delete', onDelete)
+    proxy.addEventListener('get', onGet)
+    proxy.addEventListener('set', onSet)
 
     // Wrap in a revocable proxy.
     const revocable = RevocableProxy(state, {})
@@ -1047,9 +1047,9 @@ export default {
 
       destroy: () => {
         // Remove event listeners.
-        proxy.removeEventListener("delete", onDelete)
-        proxy.removeEventListener("get", onGet)
-        proxy.removeEventListener("set", onSet)
+        proxy.removeEventListener('delete', onDelete)
+        proxy.removeEventListener('get', onGet)
+        proxy.removeEventListener('set', onSet)
 
         // Revoke access to state.
         revocable.revoke()

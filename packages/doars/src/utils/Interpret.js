@@ -2,7 +2,7 @@ import { createAutoContexts } from './Context.js'
 import {
   COMPOUND,
   parse,
-  reduce,
+  run,
 } from '@doars/interpret'
 
 export const interpret = (
@@ -27,7 +27,7 @@ export const interpret = (
     if (options.return && expressionParsed.type === COMPOUND) {
       throw new Error('Unable to return a compound expression of: "' + expression + '".')
     }
-    result = reduce(expressionParsed, contexts)
+    result = run(expressionParsed, contexts)
   } catch (error) {
     console.error(error, 'Error encountered when executing the following expression: ', expression)
     result = null

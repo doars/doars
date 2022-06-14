@@ -1,7 +1,7 @@
 import {
   IDENTIFIER,
   LITERAL,
-  MEMBER_EXPRESSION,
+  MEMBER,
 } from '../src/types.js'
 import test from './utils/test.js'
 
@@ -15,7 +15,7 @@ test('Member', 'hello.there', 'general kenobi', {
     name: 'there',
     type: IDENTIFIER,
   },
-  type: MEMBER_EXPRESSION,
+  type: MEMBER,
 }, {
   hello: {
     there: 'general kenobi',
@@ -38,13 +38,13 @@ test('Member', 'hello.there.general', 'kenobi', {
       name: 'there',
       type: IDENTIFIER,
     },
-    type: MEMBER_EXPRESSION,
+    type: MEMBER,
   },
   property: {
     name: 'general',
     type: IDENTIFIER,
   },
-  type: MEMBER_EXPRESSION,
+  type: MEMBER,
 }, {
   hello: {
     there: {
@@ -69,7 +69,7 @@ test('Member computed', 'hello["there"]', 'general kenobi', {
     type: LITERAL,
     value: 'there',
   },
-  type: MEMBER_EXPRESSION,
+  type: MEMBER,
 }, {
   hello: {
     there: 'general kenobi',
@@ -90,7 +90,7 @@ test('Member computed', 'hello[there]', 'kenobi', {
     name: 'there',
     type: IDENTIFIER,
   },
-  type: MEMBER_EXPRESSION,
+  type: MEMBER,
 }, {
   hello: {
     general: 'kenobi'

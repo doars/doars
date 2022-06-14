@@ -4,16 +4,16 @@ import {
   LITERAL,
   PROPERTY,
 
-  ARRAY_EXPRESSION,
-  ASSIGN_EXPRESSION,
-  BINARY_EXPRESSION,
-  CALL_EXPRESSION,
-  CONDITION_EXPRESSION,
-  MEMBER_EXPRESSION,
-  OBJECT_EXPRESSION,
-  SEQUENCE_EXPRESSION,
-  UNARY_EXPRESSION,
-  UPDATE_EXPRESSION,
+  ARRAY,
+  ASSIGN,
+  BINARY,
+  CALL,
+  CONDITION,
+  MEMBER,
+  OBJECT,
+  SEQUENCE,
+  UNARY,
+  UPDATE,
 } from './types.js'
 
 const setToContext = (
@@ -26,11 +26,11 @@ const setToContext = (
       // Assign to
       return context[node.name] = value
 
-    case MEMBER_EXPRESSION:
-      const memberObject = reduce(node.object, context)
+    case MEMBER:
+      const memberObject = run(node.object, context)
       const memberProperty =
         node.computed || node.property.type !== IDENTIFIER
-          ? reduce(node.property, context)
+          ? run(node.property, context)
           : node.property.name
       if (typeof (value) === 'function') {
         return value.bind(memberObject)
@@ -41,7 +41,7 @@ const setToContext = (
   throw new Error('Unsupported assignment method.')
 }
 
-const reduce = (
+const run = (
   node,
   context = {}
 ) => {
@@ -51,7 +51,7 @@ const reduce = (
 
   switch (node.type) {
     case COMPOUND:
-      return node.body.map(node => reduce(node, context))
+      return node.body.map(node => run(node, context))
 
     case IDENTIFIER:
       return context[node.name]
@@ -59,19 +59,34 @@ const reduce = (
     case LITERAL:
       return node.value
 
-    case ARRAY_EXPRESSION:
+    case ARRAY:
       const arrayResults = []
       for (const arrayElement of node.elements) {
-        arrayResults.push(reduce(arrayElement, context))
+        arrayResults.push(run(arrayElement, context))
       }
       return arrayResults
 
-    case ASSIGN_EXPRESSION:
-      let assignmentValue = reduce(node.right, context)
+    case ASSIGN:
+      let assignmentValue = run(node.right, context)
       // Modify value if not a direct assignment.
       if (node.operator !== '=') {
-        const assignmentLeft = reduce(node.left, context)
+        const assignmentLeft = run(node.left, context)
         switch (node.operator) {
+          case '||=':
+            if (assignmentLeft) {
+              return assignmentLeft
+            }
+            break
+          case '&&=':
+            if (!assignmentLeft) {
+              return assignmentLeft
+            }
+            break
+          case '??=':
+            if (assignmentLeft !== null && assignmentLeft !== undefined) {
+              return assignmentLeft
+            }
+            break
           case '*=':
             assignmentValue = assignmentLeft * assignmentValue
             break
@@ -94,14 +109,16 @@ const reduce = (
       }
       return setToContext(node.left, assignmentValue, context)
 
-    case BINARY_EXPRESSION:
-      const binaryLeft = reduce(node.left, context)
-      const binaryRight = reduce(node.right, context)
+    case BINARY:
+      const binaryLeft = run(node.left, context)
+      const binaryRight = run(node.right, context)
       switch (node.operator) {
         case '||':
           return binaryLeft || binaryRight
         case '&&':
           return binaryLeft && binaryRight
+        case '??':
+          return binaryLeft ?? binaryRight
         case '==':
           return binaryLeft == binaryRight
         case '!=':
@@ -131,44 +148,44 @@ const reduce = (
       }
       throw new Error('Unsupported operator: ' + node.operator)
 
-    case CALL_EXPRESSION:
+    case CALL:
       const parameters = []
       for (const parameter of node.parameters) {
-        parameters.push(reduce(parameter, context))
+        parameters.push(run(parameter, context))
       }
-      return reduce(node.callee, context)(...parameters)
+      return run(node.callee, context)(...parameters)
 
-    case CONDITION_EXPRESSION:
-      return reduce(node.condition, context)
-        ? reduce(node.consequent, context)
-        : reduce(node.alternate, context)
+    case CONDITION:
+      return run(node.condition, context)
+        ? run(node.consequent, context)
+        : run(node.alternate, context)
 
-    case MEMBER_EXPRESSION:
-      const memberObject = reduce(node.object, context)
+    case MEMBER:
+      const memberObject = run(node.object, context)
       const memberProperty =
         node.computed || node.property.type !== IDENTIFIER
-          ? reduce(node.property, context)
+          ? run(node.property, context)
           : node.property.name
       if (typeof (memberObject[memberProperty]) === 'function') {
         return memberObject[memberProperty].bind(memberObject)
       }
       return memberObject[memberProperty]
 
-    case OBJECT_EXPRESSION:
+    case OBJECT:
       const objectResult = {}
       for (const objectProperty of node.properties) {
         // Expects each property to be of type PROPERTY.
         objectResult[
-          (objectProperty.computed || objectProperty.key.type !== IDENTIFIER) ? reduce(objectProperty.key, context) : objectProperty.key.name
-        ] = reduce(objectProperty.value, context)
+          (objectProperty.computed || objectProperty.key.type !== IDENTIFIER) ? run(objectProperty.key, context) : objectProperty.key.name
+        ] = run(objectProperty.value, context)
       }
       return objectResult
 
-    case SEQUENCE_EXPRESSION:
-      return node.expressions.map(node => reduce(node, context))
+    case SEQUENCE:
+      return node.expressions.map(node => run(node, context))
 
-    case UNARY_EXPRESSION:
-      const unaryParameter = reduce(node.parameter, context)
+    case UNARY:
+      const unaryParameter = run(node.parameter, context)
       switch (node.operator) {
         case '!':
           return !unaryParameter
@@ -179,8 +196,8 @@ const reduce = (
       }
       throw new Error('Unsupported operator: ' + node.operator)
 
-    case UPDATE_EXPRESSION:
-      const updateResult = reduce(node.parameter, context)
+    case UPDATE:
+      const updateResult = run(node.parameter, context)
       const updateValue = node.operator === '--' ? -1 : 1
       setToContext(node.left, updateResult + updateValue, context)
       return node.prefix ? updateResult + updateValue : updateResult
@@ -188,4 +205,4 @@ const reduce = (
 
   throw new Error('Unexpected node type "' + node.type + '".')
 }
-export default reduce
+export default run

@@ -23,17 +23,17 @@ npm i @doars/doars @doars/doars-fetch
 
 ```JavaScript
 // Import library.
-import Doars from "@doars/doars";
-import DoarsFetch from "@doars/doars-fetch";
+import Doars from '@doars/doars'
+import DoarsFetch from '@doars/doars-fetch'
 
 // Setup a library instance.
-const doars = new Doars();
+const doars = new Doars()
 
 // Setup the plugin.
-const doarsFetch = new DoarsFetch(doars /*, options */);
+const doarsFetch = new DoarsFetch(doars /*, options */)
 
 // Enable library.
-doars.enable();
+doars.enable()
 ```
 
 ### UMD build from jsDelivr
