@@ -24,7 +24,7 @@ export const interpret = (
   try {
     const expressionParsed = parse(expression)
     if (options.return && expressionParsed && expressionParsed.length > 1) {
-      throw new Error('Unable to return a compound expression of: "' + expression + '".')
+      throw new Error('Unable to return a single value from a compound expression of: "' + expression + '".')
     }
     result = run(expressionParsed, contexts)
   } catch (error) {
