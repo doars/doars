@@ -1,9 +1,9 @@
 import {
+  ARRAY,
   IDENTIFIER,
   LITERAL,
-  PROPERTY,
-  ARRAY,
   OBJECT,
+  PROPERTY,
 } from '../src/types.js'
 import test from './utils/test.js'
 

@@ -197,7 +197,7 @@ const run = (
     case UPDATE:
       const updateResult = run(node.parameter, context)
       const updateValue = node.operator === '--' ? -1 : 1
-      setToContext(node.left, updateResult + updateValue, context)
+      setToContext(node.parameter, updateResult + updateValue, context)
       return node.prefix ? updateResult + updateValue : updateResult
   }
 

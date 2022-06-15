@@ -35,3 +35,13 @@ test('Compound', '"hello";"there"', ['hello', 'there'], [{
 }], {}, {}, {
   expectCompound: true
 })
+
+test('Compound', '"hello";"there";', ['hello', 'there'], [{
+  type: LITERAL,
+  value: 'hello',
+}, {
+  type: LITERAL,
+  value: 'there',
+}], {}, {}, {
+  expectCompound: true
+})

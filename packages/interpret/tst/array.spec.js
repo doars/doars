@@ -1,7 +1,7 @@
 import {
+  ARRAY,
   IDENTIFIER,
   LITERAL,
-  ARRAY,
   OBJECT,
   PROPERTY,
 } from '../src/types.js'

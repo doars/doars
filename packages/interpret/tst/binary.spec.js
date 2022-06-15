@@ -1,7 +1,7 @@
 import {
+  BINARY,
   IDENTIFIER,
   LITERAL,
-  BINARY,
 } from '../src/types.js'
 import test from './utils/test.js'
 
@@ -53,6 +53,58 @@ test('Binary', 'true && true', true, {
   right: {
     type: LITERAL,
     value: true,
+  },
+  type: BINARY,
+})
+
+test('Binary', 'null ?? true', true, {
+  left: {
+    type: LITERAL,
+    value: null,
+  },
+  operator: '??',
+  right: {
+    type: LITERAL,
+    value: true,
+  },
+  type: BINARY,
+})
+
+test('Binary', 'undefined ?? true', true, {
+  left: {
+    type: LITERAL,
+    value: undefined,
+  },
+  operator: '??',
+  right: {
+    type: LITERAL,
+    value: true,
+  },
+  type: BINARY,
+})
+
+test('Binary', 'false ?? true', false, {
+  left: {
+    type: LITERAL,
+    value: false,
+  },
+  operator: '??',
+  right: {
+    type: LITERAL,
+    value: true,
+  },
+  type: BINARY,
+})
+
+test('Binary', 'true ?? false', true, {
+  left: {
+    type: LITERAL,
+    value: true,
+  },
+  operator: '??',
+  right: {
+    type: LITERAL,
+    value: false,
   },
   type: BINARY,
 })

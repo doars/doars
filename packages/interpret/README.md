@@ -85,15 +85,15 @@ As well as several value definitions and most operators. See an overview below f
 
 ### Operators
 
-- Arithmetic: `2 * 3`, as well as `**`, `/`, `%`, `+`, and `-`.
-- Logical: `hello || there`, as well as `&&` and `??`.
-- Equality: `hello == there`, as well as `!=`, `===`, and `!==`.
-- Relation: `hello > there`, as well as `>`, `<=`, and `>=`.
-- Ternary: `true ? hello : there`.
-- Unary: `+1` as well as `-1` and `!hello`.
-- Update: `--hello` as well as `hello--`, `++hello` and `hello++`.
+- Arithmetic: `2 ** 3`, as well as `*`, `/`, `%`, `+`, and `-`.
+- Logical: `false || true`, as well as `&&` and `??`.
+- Equality: `true == false`, as well as `!=`, `===`, and `!==`.
+- Relation: `1 > 0`, as well as `>`, `<=`, and `>=`.
+- Ternary: `true ? 0 : 1`.
+- Unary: `+1` as well as `-1` and `!false`.
+- Decrement and increment: `--hello` as well as `hello--`, `++hello` and `hello++`.
 - Assignment: `hello = 'there'`.
-- Arithmetic assignment: `hello *= 'there'` as well as `**=`, `/=`, `%=`, `+=`, and `-=`.
+- Arithmetic assignment: `hello **= 2` as well as `*=`, `/=`, `%=`, `+=`, and `-=`.
 - Logical assignment: `hello ||= 'there'` as well as `&&=` and `??=`.
 
 ## Known issues

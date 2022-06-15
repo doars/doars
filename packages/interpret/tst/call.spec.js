@@ -1,11 +1,11 @@
 import {
-  IDENTIFIER,
-  LITERAL,
-  PROPERTY,
   ARRAY,
   CALL,
+  IDENTIFIER,
+  LITERAL,
   MEMBER,
   OBJECT,
+  PROPERTY,
 } from '../src/types.js'
 import test from './utils/test.js'
 
