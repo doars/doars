@@ -20,6 +20,7 @@ The core library, it manages the components and plugins as well as includes the 
 - [Contexts](#contexts)
 - [Simple contexts](#simple-contexts)
 - [Browser support](#browser-support)
+- [Expression processors](#expression-processors)
 - [Content Security Policy](#content-security-policy)
 - [API](#api)
   - [EventDispatcher](#eventdispatcher)
@@ -45,7 +46,7 @@ npm i @doars/doars
 // Import library.
 import Doars from "@doars/doars"
 
-// Setup a library instance.
+// Setup an instance.
 const doars = new Doars(/* options */)
 
 // Enable library.
@@ -58,10 +59,10 @@ Add the UMD build to the page from for example the jsDelivr CDN and enable the l
 
 ```HTML
 <!-- Import library. -->
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.umd.js"></script>
 <script type="application/javascript">
   document.addEventListener('DOMContentLoaded', () => {
-    // Setup a library instance.
+    // Setup an instance.
     const doars = new window.Doars(/* options */)
 
     // Enable library.
@@ -70,7 +71,7 @@ Add the UMD build to the page from for example the jsDelivr CDN and enable the l
 </script>
 ```
 
-> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.esm.js) and [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.iife.js) builds are also available via the jsDelivr CDN.
+> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.esm.js) and [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js) builds are also available via the jsDelivr CDN.
 
 ## Directives overview
 
@@ -120,11 +121,11 @@ A directive will only be read if it is part of a component. A component is defin
 
 Set an attribute's value or multiple attributes at once by returning an object. The directive's value should be function expression. If the directive is given a name the attribute with that name will be set to the value returned by the expression. Otherwise an object needs to be returned where the keys of the object are the attribute names and the value is set as the value of the attribute. Alternatively a promise can be returned resolving into an attribute value or object if attribute name and value pairs.
 
-#### Modifiers
+#### d-attribute modifiers
 
 - `{Boolean} selector = false` Return a CSS style selector instead of a specific value or object.
 
-#### Examples
+#### d-attribute examples
 
 ```HTML
 <!-- Only show if active is true. -->
@@ -163,7 +164,7 @@ Is removed after the component is initialized.
 
 Loop over a value and create elements based on a template. The directive's value gets split into two parts. The first part a list of variable names and the second part should be a function expression. The split happens at the `of` or `in` keyword. The variable names are the names under which the values of the function expression are made available on the [\$for context](#for). The function expression can return either a number, array, object, or promise resolving into a number, array, or object. Which variable name matches which value of the return type depends on the return type. For numbers only one variable will be set to the index of the iteration. For arrays the first variable is the value, and the second variable the index of the iteration. For objects the first variable is the key, the second variable is the value, and the third variable the index of the iteration. The directive can only be used on a [`template`](https://developer.mozilla.org/docs/Web/HTML/Element/template) element.
 
-#### Examples
+#### d-for examples
 
 ```HTML
 <!-- Create four items base of a number. Make the index of the item available on the $for context under the property named 'index'. -->
@@ -190,11 +191,11 @@ Loop over a value and create elements based on a template. The directive's value
 
 Set the inner html of the element. The directive's value should be a function expression returning the HTML to set, or a promise resolving into the HTML to set. The inner HTML is only updated if it differs from the current value.
 
-#### Modifiers
+#### d-html modifiers
 
 - `{Boolean} morph = false` Whether the existing and new element trees should compared and updated accordingly instead of fully overwriting the existing element tree.
 
-#### Examples
+#### d-html examples
 
 ```HTML
 <!-- Write a string to the inner html fo the element. -->
@@ -212,7 +213,7 @@ Set the inner html of the element. The directive's value should be a function ex
 
 Return whether the template should be added to the document. The directive's value should be a function expression. If the result is truthy then the element will added to the document otherwise. If the result was previously truthy and is not any more then the element added by the directive will be removed. Alternatively a promise can be returned. After it has been resolved its truthiness will be checked and the directive will update then. The directive can only be used on a [`template`](https://developer.mozilla.org/docs/Web/HTML/Element/template) element.
 
-#### Examples
+#### d-if examples
 
 ```HTML
 <!-- Adds the span tag to the document. -->
@@ -238,7 +239,7 @@ Return whether the template should be added to the document. The directive's val
 
 Ignore the element and its children from being processed.
 
-#### Examples
+#### d-ignore examples
 
 ```HTML
 <!-- The text directive will never run due to the ignore attribute on the same element. -->
@@ -258,7 +259,7 @@ Ignore the element and its children from being processed.
 
 Runs once when the component is initialized. The directive's value should be a function expression.
 
-#### Examples
+#### d-initialized examples
 
 ```HTML
 <!-- Logs initialized to the console when the element's component is initialized. -->
@@ -271,7 +272,7 @@ Listen to events on the document.
 
 The directive's name is the event name to listen to. When listen to the `keydown` or `keyup` events a hyphen after the event name can be used to specify which key to filter on. For example `d-on:keydown-h`, or `d-on:keyup-space`. The directive's value should be a function expression. It will processed when the event is triggered.
 
-#### Modifiers
+#### d-on modifiers
 
 - `{Number} buffer = null` Buffer multiple events together whereby the value is the amount of calls to bundle together. All events will be made available in an $events context and the most recent event is also available in the $event context. If set without a specific value then 5 will be used.
 - `{Boolean} capture = false` Whether the `capture` option needs to be enabled when listening to the event.
@@ -297,7 +298,7 @@ Only one of the following five modifiers can be used at a time `buffer`, `held` 
 
 Only one of the following three modifiers can be used at a time `document`, `outside`, or `window`.
 
-#### Examples
+#### d-on examples
 
 ```HTML
 <input d-on:change.debounce-250="updateSearchResults($event)" type="text" />
@@ -321,7 +322,7 @@ Only one of the following three modifiers can be used at a time `document`, `out
 
 Add the element to the component's references context. The directive's value should be the variable name under which to make the reference available in the [`$references`](#references) context.
 
-#### Examples
+#### d-reference examples
 
 ```HTML
 <!-- Make the element accessible under $references.myElement. -->
@@ -332,7 +333,7 @@ Add the element to the component's references context. The directive's value sho
 
 Set selected item of a select element or selectable input elements. Selectable input elements are input elements with the type `checkbox` or `radio`. The directive's value should be a function expression. The function expression should return the value of the item to select, an array of values to select if the `multiple` attribute is applied, an input element with the type `checkbox` is used, or a promising resolving into one the previously mentioned types.
 
-#### Examples
+#### d-select examples
 
 ```HTML
 <!-- Will select the second option only. -->
@@ -383,7 +384,7 @@ Set selected item of a select element or selectable input elements. Selectable i
 
 Return whether the element should be displayed. The directive's value should be a function expression. The directive applies the inline styling of `display: none` to the element if the directive's value returns a non truthy value (`false`, or `null`, etc.), otherwise the inline styling of `display: none` is removed. Alternatively a promise can be returned. After it has been resolved its truthiness will be checked and the directive will update then.
 
-#### Examples
+#### d-show examples
 
 ```HTML
 <div d-show="true">
@@ -403,7 +404,7 @@ Return whether the element should be displayed. The directive's value should be 
 
 Define a component and set its initial state. The directive's value should be a function expression returning an object. If no value is given an empty state of `{}` will be used.
 
-### Examples
+### d-state examples
 
 ```HTML
 <!-- Define a component. -->
@@ -426,7 +427,7 @@ Define a component and set its initial state. The directive's value should be a 
 
 Keep the value of an element in sync with a value in the state. It works on input, checkbox, radio, select, and text area elements, as wel as div's with the [content editable](https://developer.mozilla.org/docs/Web/Guide/HTML/Editable_content) attribute. The directive's value should be a dot separated path to a property on the state of the component.
 
-#### Examples
+#### d-sync examples
 
 ```HTML
 <input type="text" name="message" d-sync="$state.message" />
@@ -448,11 +449,11 @@ Keep the value of an element in sync with a value in the state. It works on inpu
 
 Set the inner text or text content of the element. The directive's value should be a function expression returning the text to set, or a promise resolving into the text to set. The inner text or text content is only updated if differs from the current value.
 
-#### Modifiers
+#### d-text modifiers
 
 - `{Boolean} content = false` Whether to write to `textContent` instead of `innerText`. See [the MDN docs for the differences between `innerText` and `textContent`](https://developer.mozilla.org/docs/Web/API/Node/textContent#differences_from_innertext).
 
-#### Examples
+#### d-text examples
 
 ```HTML
 <!-- Write a string to the inner text fo the element. -->
@@ -475,7 +476,7 @@ Change attributes on an element when being hidden or shown. The directive's name
 
 The duration of the transition depends on the transition duration or animation duration set on the element after the first frame.
 
-#### Modifiers
+#### d-transition modifiers
 
 One of the following modifiers can be applied. If both are applied the directive is ignored.
 
@@ -484,7 +485,7 @@ One of the following modifiers can be applied. If both are applied the directive
 
 Not using a modifier means the selector is applied during the entire transitioning period.
 
-#### Examples
+#### d-transition examples
 
 ```HTML
 <!-- When this element is made visible by the show directive. the first-frame and transition classes are applied then the next frame the first-frame class is removed. On the last frame of the transition the last-frame class is applied and then the next frame the transitioning and last-frame classes are removed. -->
@@ -495,7 +496,7 @@ Not using a modifier means the selector is applied during the entire transitioni
 
 Runs every time a value used changes. The directive's name is ignored so multiple watch directive's can be applied to the same element. The directive's value should be a function expression.
 
-#### Examples
+#### d-watch examples
 
 ```HTML
 <div d-state="{ message: null }">
@@ -517,6 +518,8 @@ List of contexts of child components.
 
 - Type: `Array<Object>`
 
+#### \$children examples
+
 ```HTML
 <!-- Sets the amount of child components of the directive's component to the innerText of the directive's element. -->
 <div d-text="$children.length"></div>
@@ -533,6 +536,8 @@ Component's root element.
 
 - Type: `HTMLElement`
 
+#### \$component examples
+
 ```HTML
 <!-- On initialization sets the id of the directive's component's element to 'myComponent'. -->
 <div d-initialized="$component.id = 'myComponent'"></div>
@@ -547,6 +552,8 @@ Dispatch custom event on the element.
   - `{String} name` Name of the event.
   - `{Object} detail = {}` Detail data of the event.
 
+#### \$dispatch examples
+
 ```HTML
 <!-- On click dispatches the 'beenClicked' event. -->
 <div d-on:click="$dispatch('beenClicked')"></div>
@@ -558,7 +565,7 @@ Directive's element.
 
 - Type: `HTMLElement`
 
-#### Examples
+#### \$element examples
 
 ```HTML
 <!-- On initialization sets the id of the directive's element to 'myElement'. -->
@@ -569,7 +576,7 @@ Directive's element.
 
 Get variables defined in the for directive. This context gets deconstruct automatically so when accessing the properties you do not need to prefix it with `$for`.
 
-#### Examples
+#### \$for examples
 
 ```HTML
 <!-- Loops over and adds the indices and values of the array to the page. -->
@@ -606,7 +613,7 @@ Call a function in context after the existing one has been revoked. Whereby the 
 - Parameters:
   - `{Function} callback` Callback to invoke.
 
-#### Examples
+#### \$inContext examples
 
 ```HTML
 <!-- On initialization runs an asynchronous method and sets the result on the state of the component. -->
@@ -627,7 +634,7 @@ Call a function after updates are done processing. Whereby the first parameter o
 - Parameters:
   - `{Function} callback` Callback to invoke.
 
-#### Examples
+#### \$nextTick examples
 
 ```HTML
 <!-- On initialization sets the initialized property on the component's state to true. -->
@@ -643,7 +650,7 @@ Context of parent component.
 
 - Type: `Object`
 
-#### Examples
+#### \$parent examples
 
 ```HTML
 <!-- On initialization sets the accessible property on the parent component's state to true. -->
@@ -656,7 +663,7 @@ List of referenced elements in the component.
 
 - Type: `Object<String, HTMLElement>`
 
-#### Examples
+#### \$references examples
 
 ```HTML
 <!-- On initialization logs the reference named 'otherElement' to the console. -->
@@ -670,7 +677,7 @@ Get component's state. This context gets deconstruct automatically so when acces
 
 - Type: `Object`
 
-#### Examples
+#### \$state examples
 
 ```HTML
 <!-- On initialization sets the property property on the component's state to true. -->
@@ -703,10 +710,10 @@ The simple contexts are used as the base to build the full context from. This me
 </div>
 
 <!-- Import library. -->
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.umd.js"></script>
 <script type="application/javascript">
   document.addEventListener('DOMContentLoaded', () => {
-    // Setup a library instance.
+    // Setup an instance.
     const doars = new window.Doars()
 
     // Set the simple contexts on the instance.
@@ -731,13 +738,100 @@ The simple contexts are used as the base to build the full context from. This me
 
 Internet Explorer and older versions of other browsers are not supported as the library heavily relies on [proxies](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Proxy) for its state management. See proxy browser compatibility on [MDN Web Docs](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Proxy#browser_compatibility) or the [can i use statistics](https://caniuse.com/proxy).
 
-## Content Security Policy
+## Expression processors
 
-The library uses the [Function constructor](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function) to execute expressions placed in the attributes of the web page. Which is more secure than using the `eval` function but still evaluates code read from a string.
+Some directives can return JavaScript expressions. The expressions are given to a function that processes it. There are three different processors provided by default each having a separate build. You can also specify a custom processor function using the options.
 
-Executing code using the function constructor is disallowed in certain environments using the [Content Security Policy](https://developer.mozilla.org/docs/Web/HTTP/CSP). Therefore the `unsafe-eval` option will need to be included in your policy in order to allow the execution of directives when using the CSP header.
+### Execute processor
 
-> TODO: Rewrite because of the alternative expression evaluation plans.
+The execute function uses the [`Function` constructor](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function) to process the expressions. Which is similar to the [`eval` function](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/eval) in that it is not very safe to use, nor recommended. This processor function does not work when a [Content Security Policy](https://developer.mozilla.org/docs/Web/HTTP/CSP) is set using the headers of the page request that does not allow for `unsafe-eval`. That being said it does allow you to run any expression you might want since it uses the JavaScript interpreter directly.
+
+```HTML
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.umd.js"></script>
+```
+
+```JavaScript
+import Doars from '@doars/doars'
+// Or the file directly.
+import Doars from '@doars/doars/src/DoarsExecute.js'
+```
+
+### Interpreter processor
+
+The interpret function uses a [custom interpreter](https://github.com/doars/doars/tree/main/packages/interpret#readme) that parses and runs the expression. The interpret does not support all JavaScript features, but any expression that it runs is also valid JavaScript. To see what features are supported see the interpreters [supported features](https://github.com/doars/doars/tree/main/packages/interpret#supported-features) section.
+
+Because the interpret processor does not use the `Function` constructor it is allowed when a [Content Security Policy](https://developer.mozilla.org/docs/Web/HTTP/CSP) is setup without the `unsafe-eval` option. However it is essentially a way to get around the policy and should not be used without taking the accompanying risks into consideration.
+
+```HTML
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars-interpret.umd.js"></script>
+```
+
+```JavaScript
+import Doars from '@doars/doars/src/DoarsInterpret.js'
+```
+
+### Call processor
+
+The call function is the simplest processor and also the most limiting one. Instead of trying to the evaluate the expression, instead it assumes the expression is a dot separated path to a value in the contexts. If the value at the path is a function it will run it and given the contexts object as a parameter. This means it also the most limiting build-in processor function, however in combination the [simple contexts](#simple-contexts) functions you can still accomplish anything you might want to do.
+
+Because the call processor does not try to run an arbitrary expression it is the most secure option out of all of the build-in.
+
+```HTML
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars-call.umd.js"></script>
+```
+
+```JavaScript
+import Doars from '@doars/doars/src/DoarsCall.js'
+```
+
+# Call processor examples
+
+```HTML
+<!-- Instead of -->
+<div d-state="{ message: 'Hello there!' }">
+  <button d-on:click="console.log('The element has been clicked!', $state.message)">
+    Log message
+  </button>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.umd.js"></script>
+<script type="application/javascript">
+  document.addEventListener('DOMContentLoaded', () => {
+    // Setup an instance.
+    const doars = new window.Doars()
+    // Enable library.
+    doars.enable()
+  })
+</script>
+
+<!-- You need to do -->
+<div d-state="createState">
+  <button d-on:click="handleButtonClick">
+    Log message
+  </button>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars-call.umd.js"></script>
+<script type="application/javascript">
+  document.addEventListener('DOMContentLoaded', () => {
+    // Setup an instance.
+    const doars = new window.Doars()
+
+    // Set the simple contexts on the instance.
+    doars.setSimpleContext('createState', () => {
+      // Return an object with our message.
+      return {
+        message: 'Hello there!'
+      }
+    })
+    doars.setSimpleContext('handleButtonClick', ({ $state }) => {
+      // Log the message to the console.
+      console.log('The element has been clicked!', $state.message)
+    })
+
+    // Enable library.
+    doars.enable()
+  })
+</script>
+```
 
 ## API
 

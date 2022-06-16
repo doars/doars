@@ -8,11 +8,11 @@
 
 # @doars/interpret
 
-Interpret a subset JavaScript expression without using the [`eval` function](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/eval) or [`Function` constructor](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function/Function). Allowing it to be used in combination with strict [Content Security Policy](https://developer.mozilla.org/docs/Web/HTTP/Headers/Content-Security-Policy).
+Interpret a subset JavaScript expression without using the [`eval` function](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/eval) or [`Function` constructor](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function/Function). Allowing it to be used in combination with a strict [Content Security Policy](https://developer.mozilla.org/docs/Web/HTTP/Headers/Content-Security-Policy) that does not contain the `unsafe-eval` option.
 
-The interpreter is written for the [@doars/doars library](doars.dev), but can be used for other purposes. The features it support are meant to be simple and not allow for much complexity similar to what a formulae in a spreadsheet can do.
+The interpreter is written for the [@doars/doars library](doars.dev), but can be used elsewhere as well. The features it support are meant to be simple and not allow for much complexity similar to what a formulae in a spreadsheet can do.
 
-Even though the library does not use the `eval` function or `Function` constructor security is still an importtent concern when interpreting any code. Do not provide any functions via the `context` parameter that could cause harm and it is not recommended to run any expression that might contain user input.
+Even though the library does not use the `eval` function or `Function` constructor security is still an importtent concern when interpreting any code. Do not provide any functions via the `context` parameter that could cause harm and it is not recommended to run any expression that might contain user input. So do take the accompanying risks into consideration before using this library.
 
 ## Install
 
@@ -61,7 +61,7 @@ Exported functions:
 
 The following node types are exported as variables: `ARRAY`, `ASSIGN`, `BINARY`, `CALL`, `CONDITION`, `IDENTIFIER`, `LITERAL`, `MEMBER`, `OBJECT`, `PROPERTY`, `SEQUENCE`, `UNARY`, `UPDATE`.
 
-> `interpret` is a short hand for `run(parse(expression), context)`.
+> `interpret` is simply a short hand for `run(parse(expression), context)`.
 
 ## Supported features
 
@@ -71,9 +71,9 @@ The interpret does not support all JavaScript features. However any expression v
 - Function calls: `hello()`, `hello(there)` and `hello('there', 'general', 'kenobi')`. Any functions need te be given via the context parameter when running the expression.
 - Multiple clauses: `hello(); world()`. The result of each expression is returned, hence the `interpret` and `run` functions always return an array.
 
-As well as several value definitions and most operators. See an overview below for more information.
+As well as several value types and most operators. See an overview below for more information.
 
-### Definitions
+### Value types
 
 - Null: `null`.
 - Undefined: `undefined`.

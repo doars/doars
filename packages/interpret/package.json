@@ -4,10 +4,12 @@
     "website": "https://rondekker.com"
   },
   "name": "@doars/interpret",
-  "description": "Simple javascript expression interpreter.",
+  "description": "Simple JavaScript expression interpreter.",
   "keywords": [
     "doars",
-    "interpret"
+    "expressions",
+    "interpret",
+    "JavaScript"
   ],
   "version": "1.0.0",
   "license": "MIT",
