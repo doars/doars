@@ -970,16 +970,23 @@ The following events are dispatched by the library and can be listened to by cal
   - `@param {Array<HTMLElements>} removedElements` List of removed components.
 - `contexts-added` When one or more contexts are added.
   - `@param {Doars} doars` Library instance.
-  - `@param {Array<HTMLElements>} addedContexts` List of added contexts.
+  - `@param {Object} addedContexts` List of added contexts.
 - `contexts-removed` When one or more contexts are removed.
   - `@param {Doars} doars` Library instance.
-  - `@param {Array<HTMLElements>} removedContexts` List of removed contexts.
+  - `@param {Object} removedContexts` List of removed contexts.
+- `simple-context-added` When a simple context is added.
+  - `@param {Doars} doars` Library instance.
+  - `@param {string} name` Name of simple context.
+  - `@param {any} value` Value of simple context.
+- `simple-context-removed` When a simple context is removed
+  - `@param {Doars} doars` Library instance.
+  - `@param {string} name` Name of simple context.
 - `directives-added` When one or more directives are added.
   - `@param {Doars} doars` Library instance.
-  - `@param {Array<HTMLElements>} addedDirectives` List of added directives.
+  - `@param {Object} addedDirectives` List of added directives.
 - `directives-removed` When one or more directives are removed.
   - `@param {Doars} doars` Library instance.
-  - `@param {Array<HTMLElements>} removedDirectives` List of removed directives.
+  - `@param {Object} removedDirectives` List of removed directives.
 
 ### Component
 
