@@ -3,7 +3,7 @@ import {
   IDENTIFIER,
   LITERAL,
 } from '../src/types.js'
-import test from './utils/test.js'
+import test from './utilities/test.js'
 
 test('Binary', 'false || true', true, {
   left: {

@@ -30,11 +30,12 @@
   },
   "scripts": {
     "build": "NODE_ENV=production rollup -c",
+    "cypress": "cypress open",
     "dev": "yarn run develop",
     "develop": "NODE_ENV=development rollup -c -w",
     "lint": "eslint src/** --cache --fix --no-error-on-unmatched-pattern",
     "release": "yarn run lint && yarn run test && yarn run build && yarn publish",
-    "test": ""
+    "test": "cypress run"
   },
   "files": [
     "dst",

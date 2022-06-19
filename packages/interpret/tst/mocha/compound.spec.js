@@ -1,7 +1,7 @@
 import {
   LITERAL,
 } from '../src/types.js'
-import test from './utils/test.js'
+import test from './utilities/test.js'
 
 test('Compound', '', undefined, undefined, {}, {}, {
   expectCompound: true

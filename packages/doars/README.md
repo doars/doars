@@ -21,7 +21,6 @@ The core library, it manages the components and plugins as well as includes the 
 - [Simple contexts](#simple-contexts)
 - [Browser support](#browser-support)
 - [Expression processors](#expression-processors)
-- [Content Security Policy](#content-security-policy)
 - [API](#api)
   - [EventDispatcher](#eventdispatcher)
   - [ProxyDispatcher](#proxydispatcher)

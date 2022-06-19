@@ -4,7 +4,7 @@ import {
   IDENTIFIER,
   LITERAL,
 } from '../src/types.js'
-import test from './utils/test.js'
+import test from './utilities/test.js'
 
 test('Ternary', 'false == false ? 1 : 2', 1, {
   condition: {

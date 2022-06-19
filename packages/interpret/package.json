@@ -28,7 +28,7 @@
   "scripts": {
     "lint": "eslint src/** --cache --fix --no-error-on-unmatched-pattern",
     "release": "yarn run lint && yarn run test && yarn publish",
-    "test": "mocha ./tst/"
+    "test": "mocha ./tst/mocha/"
   },
   "files": [
     "src",

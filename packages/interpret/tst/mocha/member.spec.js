@@ -3,7 +3,7 @@ import {
   LITERAL,
   MEMBER,
 } from '../src/types.js'
-import test from './utils/test.js'
+import test from './utilities/test.js'
 
 test('Member', 'hello.there', 'general kenobi', {
   computed: false,
