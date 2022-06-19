@@ -58,7 +58,7 @@ Add the UMD build to the page from for example the jsDelivr CDN and enable the l
 
 ```HTML
 <!-- Import library. -->
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>
 <script type="application/javascript">
   document.addEventListener('DOMContentLoaded', () => {
     // Setup an instance.
@@ -709,7 +709,7 @@ The simple contexts are used as the base to build the full context from. This me
 </div>
 
 <!-- Import library. -->
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>
 <script type="application/javascript">
   document.addEventListener('DOMContentLoaded', () => {
     // Setup an instance.
@@ -746,7 +746,7 @@ Some directives can return JavaScript expressions. The expressions are given to 
 The execute function uses the [`Function` constructor](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function) to process the expressions. Which is similar to the [`eval` function](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/eval) in that it is not very safe to use, nor recommended. This processor function does not work when a [Content Security Policy](https://developer.mozilla.org/docs/Web/HTTP/CSP) is set using the headers of the page request that does not allow for `unsafe-eval`. That being said it does allow you to run any expression you might want since it uses the JavaScript interpreter directly.
 
 ```HTML
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>
 ```
 
 ```JavaScript
@@ -762,7 +762,7 @@ The interpret function uses a [custom interpreter](https://github.com/doars/doar
 Because the interpret processor does not use the `Function` constructor it is allowed when a [Content Security Policy](https://developer.mozilla.org/docs/Web/HTTP/CSP) is setup without the `unsafe-eval` option. However it is essentially a way to get around the policy and should not be used without taking the accompanying risks into consideration.
 
 ```HTML
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars-interpret.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars-interpret.iife.js"></script>
 ```
 
 ```JavaScript
@@ -776,7 +776,7 @@ The call function is the simplest processor and also the most limiting one. Inst
 Because the call processor does not try to run an arbitrary expression it is the most secure option out of all of the build-in.
 
 ```HTML
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars-call.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars-call.iife.js"></script>
 ```
 
 ```JavaScript
@@ -792,7 +792,7 @@ import Doars from '@doars/doars/src/DoarsCall.js'
     Log message
   </button>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>
 <script type="application/javascript">
   document.addEventListener('DOMContentLoaded', () => {
     // Setup an instance.
@@ -808,7 +808,7 @@ import Doars from '@doars/doars/src/DoarsCall.js'
     Log message
   </button>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars-call.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars-call.iife.js"></script>
 <script type="application/javascript">
   document.addEventListener('DOMContentLoaded', () => {
     // Setup an instance.

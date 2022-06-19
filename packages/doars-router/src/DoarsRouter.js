@@ -19,7 +19,7 @@ export default class DoarsRouter {
     // Clone options.
     options = deepAssign({}, options)
 
-    // Set private variables.
+    // Store directives.
     let directiveRouter
 
     // Enable plugin when library is enabling.
@@ -35,8 +35,6 @@ export default class DoarsRouter {
       // Remove contexts and directives.
       library.removeContexts(contextRouter)
       library.removeDirectives(directiveRouter, directiveRoute, directiveRouteTo)
-
-      // Remove router.
       directiveRouter = null
     })
   }
