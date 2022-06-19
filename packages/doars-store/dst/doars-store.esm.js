@@ -1,584 +1,210 @@
-function _classCallCheck(instance, Constructor) {
-  if (!(instance instanceof Constructor)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-}
-
-function _defineProperties(target, props) {
-  for (var i = 0; i < props.length; i++) {
-    var descriptor = props[i];
-    descriptor.enumerable = descriptor.enumerable || false;
-    descriptor.configurable = true;
-    if ("value" in descriptor) descriptor.writable = true;
-    Object.defineProperty(target, descriptor.key, descriptor);
-  }
-}
-
-function _createClass(Constructor, protoProps, staticProps) {
-  if (protoProps) _defineProperties(Constructor.prototype, protoProps);
-  if (staticProps) _defineProperties(Constructor, staticProps);
-  Object.defineProperty(Constructor, "prototype", {
-    writable: false
-  });
-  return Constructor;
-}
-
-function _inherits(subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function");
-  }
-
-  subClass.prototype = Object.create(superClass && superClass.prototype, {
-    constructor: {
-      value: subClass,
-      writable: true,
-      configurable: true
-    }
-  });
-  Object.defineProperty(subClass, "prototype", {
-    writable: false
-  });
-  if (superClass) _setPrototypeOf(subClass, superClass);
-}
-
-function _getPrototypeOf(o) {
-  _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) {
-    return o.__proto__ || Object.getPrototypeOf(o);
-  };
-  return _getPrototypeOf(o);
-}
-
-function _setPrototypeOf(o, p) {
-  _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) {
-    o.__proto__ = p;
-    return o;
-  };
-  return _setPrototypeOf(o, p);
-}
-
-function _isNativeReflectConstruct() {
-  if (typeof Reflect === "undefined" || !Reflect.construct) return false;
-  if (Reflect.construct.sham) return false;
-  if (typeof Proxy === "function") return true;
-
-  try {
-    Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {}));
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
-
-function _assertThisInitialized(self) {
-  if (self === void 0) {
-    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-  }
-
-  return self;
-}
-
-function _possibleConstructorReturn(self, call) {
-  if (call && (typeof call === "object" || typeof call === "function")) {
-    return call;
-  } else if (call !== void 0) {
-    throw new TypeError("Derived constructors may only return object or undefined");
-  }
-
-  return _assertThisInitialized(self);
-}
-
-function _createSuper(Derived) {
-  var hasNativeReflectConstruct = _isNativeReflectConstruct();
-
-  return function _createSuperInternal() {
-    var Super = _getPrototypeOf(Derived),
-        result;
-
-    if (hasNativeReflectConstruct) {
-      var NewTarget = _getPrototypeOf(this).constructor;
-
-      result = Reflect.construct(Super, arguments, NewTarget);
-    } else {
-      result = Super.apply(this, arguments);
-    }
-
-    return _possibleConstructorReturn(this, result);
-  };
-}
-
-function _toConsumableArray(arr) {
-  return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
-}
-
-function _arrayWithoutHoles(arr) {
-  if (Array.isArray(arr)) return _arrayLikeToArray(arr);
-}
-
-function _iterableToArray(iter) {
-  if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
-}
-
-function _unsupportedIterableToArray(o, minLen) {
-  if (!o) return;
-  if (typeof o === "string") return _arrayLikeToArray(o, minLen);
-  var n = Object.prototype.toString.call(o).slice(8, -1);
-  if (n === "Object" && o.constructor) n = o.constructor.name;
-  if (n === "Map" || n === "Set") return Array.from(o);
-  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
-}
-
-function _arrayLikeToArray(arr, len) {
-  if (len == null || len > arr.length) len = arr.length;
-
-  for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
-
-  return arr2;
-}
-
-function _nonIterableSpread() {
-  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-}
-
-function _createForOfIteratorHelper(o, allowArrayLike) {
-  var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"];
-
-  if (!it) {
-    if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") {
-      if (it) o = it;
-      var i = 0;
-
-      var F = function () {};
-
-      return {
-        s: F,
-        n: function () {
-          if (i >= o.length) return {
-            done: true
-          };
-          return {
-            done: false,
-            value: o[i++]
-          };
-        },
-        e: function (e) {
-          throw e;
-        },
-        f: F
-      };
-    }
-
-    throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-  }
-
-  var normalCompletion = true,
-      didErr = false,
-      err;
-  return {
-    s: function () {
-      it = it.call(o);
-    },
-    n: function () {
-      var step = it.next();
-      normalCompletion = step.done;
-      return step;
-    },
-    e: function (e) {
-      didErr = true;
-      err = e;
-    },
-    f: function () {
-      try {
-        if (!normalCompletion && it.return != null) it.return();
-      } finally {
-        if (didErr) throw err;
-      }
-    }
-  };
-}
-
-var createContextStore = (function (options, id, store, proxy) {
+// src/factories/contexts/store.js
+var store_default = (options, id, store, proxy) => {
   return {
     deconstruct: !!options.deconstruct,
-    name: '$store',
-    create: function create(component, attribute, update, _ref) {
-      var RevocableProxy = _ref.RevocableProxy;
-
-      // Create event handlers.
-      var onDelete = function onDelete(target, path) {
-        return update(id, path.join('.'));
-      };
-
-      var onGet = function onGet(target, path) {
-        return attribute.accessed(id, path.join('.'));
-      };
-
-      var onSet = function onSet(target, path) {
-        return update(id, path.join('.'));
-      }; // Add event listeners.
-
-
-      proxy.addEventListener('delete', onDelete);
-      proxy.addEventListener('get', onGet);
-      proxy.addEventListener('set', onSet); // Wrap in a revocable proxy.
-
-      var revocable = RevocableProxy(store, {});
+    name: "$store",
+    create: (component, attribute, update, {
+      RevocableProxy
+    }) => {
+      const onDelete = (target, path) => update(id, path.join("."));
+      const onGet = (target, path) => attribute.accessed(id, path.join("."));
+      const onSet = (target, path) => update(id, path.join("."));
+      proxy.addEventListener("delete", onDelete);
+      proxy.addEventListener("get", onGet);
+      proxy.addEventListener("set", onSet);
+      const revocable = RevocableProxy(store, {});
       return {
         value: revocable.proxy,
-        // Remove event listeners.
-        destroy: function destroy() {
-          proxy.removeEventListener('delete', onDelete);
-          proxy.removeEventListener('get', onGet);
-          proxy.removeEventListener('set', onSet); // Revoke access to store.
-
+        destroy: () => {
+          proxy.removeEventListener("delete", onDelete);
+          proxy.removeEventListener("get", onGet);
+          proxy.removeEventListener("set", onSet);
           revocable.revoke();
         }
       };
     }
   };
-});
+};
 
-// List of methods to revoke access to.
-var REFLECTION_METHODS = ['apply', 'construct', 'defineProperty', 'deleteProperty', 'get', 'getOwnPropertyDescriptor', 'getPrototypeOf', 'isExtensible', 'ownKeys', 'preventExtensions', 'set', 'setPrototypeOf'];
-/**
- * Revocable proxy made using regular a proxy and a simple boolean.
- */
-
-var RevocableProxy = (function (target, handler) {
-  // Keep track of status.
-  var revoked = false; // Add revocable handlers for each given handlers.
-
-  var revocableHandler = {};
-
-  var _iterator = _createForOfIteratorHelper(REFLECTION_METHODS),
-      _step;
-
-  try {
-    var _loop = function _loop() {
-      var key = _step.value;
-
-      revocableHandler[key] = function () {
-        if (revoked) {
-          console.error('illegal operation attempted on a revoked proxy');
-          return;
-        }
-
-        if (key in handler) {
-          return handler[key].apply(handler, arguments);
-        }
-
-        return Reflect[key].apply(Reflect, arguments);
-      };
+// ../common/src/polyfills/RevocableProxy.js
+var REFLECTION_METHODS = ["apply", "construct", "defineProperty", "deleteProperty", "get", "getOwnPropertyDescriptor", "getPrototypeOf", "isExtensible", "ownKeys", "preventExtensions", "set", "setPrototypeOf"];
+var RevocableProxy_default = (target, handler) => {
+  let revoked = false;
+  const revocableHandler = {};
+  for (const key of REFLECTION_METHODS) {
+    revocableHandler[key] = (...parameters) => {
+      if (revoked) {
+        console.error("illegal operation attempted on a revoked proxy");
+        return;
+      }
+      if (key in handler) {
+        return handler[key](...parameters);
+      }
+      return Reflect[key](...parameters);
     };
-
-    for (_iterator.s(); !(_step = _iterator.n()).done;) {
-      _loop();
-    } // Return proxy and revoke method.
-
-  } catch (err) {
-    _iterator.e(err);
-  } finally {
-    _iterator.f();
   }
-
   return {
     proxy: new Proxy(target, revocableHandler),
-    revoke: function revoke() {
+    revoke: () => {
       revoked = true;
     }
   };
-});
+};
 
-var EventDispatcher = /*#__PURE__*/_createClass(
-/**
- * Create instance.
- */
-function EventDispatcher() {
-  _classCallCheck(this, EventDispatcher);
-
-  var events = {};
-  /**
-   * Add callback to event.
-   * @param {String} name Event name.
-   * @param {Function} callback Function to call on dispatch.
-   * @param {Object} options Callback options.
-   */
-
-  this.addEventListener = function (name, callback) {
-    var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-
-    // Check if event name exits and callback is not already present.
-    if (!(name in events)) {
-      events[name] = [];
-    } // Add to events.
-
-
-    events[name].push({
-      callback: callback,
-      options: options
-    });
-  };
-  /**
-   * Remove callback from event.
-   * @param {String} name Event name.
-   * @param {Function} callback Function that would be called.
-   */
-
-
-  this.removeEventListener = function (name, callback) {
-    // Check if event exists.
-    if (!Object.keys(events).includes(name)) {
-      return;
-    }
-
-    var eventData = events[name]; // Get index of callback in events.
-
-    var index = -1;
-
-    for (var i = 0; i < eventData.length; i++) {
-      if (eventData[i].callback === callback) {
-        index = i;
-        break;
+// ../common/src/events/EventDispatcher.js
+var EventDispatcher = class {
+  constructor() {
+    let events = {};
+    this.addEventListener = (name, callback, options = null) => {
+      if (!(name in events)) {
+        events[name] = [];
       }
-    }
-
-    if (index < 0) {
-      return;
-    } // Remove item from events.
-
-
-    eventData.splice(index, 1); // Remove event if list is empty.
-
-    if (Object.keys(eventData).length === 0) {
+      events[name].push({
+        callback,
+        options
+      });
+    };
+    this.removeEventListener = (name, callback) => {
+      if (!Object.keys(events).includes(name)) {
+        return;
+      }
+      const eventData = events[name];
+      let index = -1;
+      for (let i = 0; i < eventData.length; i++) {
+        if (eventData[i].callback === callback) {
+          index = i;
+          break;
+        }
+      }
+      if (index < 0) {
+        return;
+      }
+      eventData.splice(index, 1);
+      if (Object.keys(eventData).length === 0) {
+        delete events[name];
+      }
+    };
+    this.removeEventListeners = (name) => {
+      if (!name) {
+        return;
+      }
       delete events[name];
-    }
-  };
-  /**
-   * Remove listeners to an event.
-   * @param {String} name Event name.
-   */
+    };
+    this.removeAllEventListeners = () => {
+      events = {};
+    };
+    this.dispatchEvent = (name, parameters, options = null) => {
+      if (!events[name]) {
+        return;
+      }
+      const eventData = events[name];
+      for (let i = 0; i < eventData.length; i++) {
+        const event = options && options.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
+        if (event.options && event.options.once) {
+          eventData.splice(i, 1);
+        }
+        event.callback(...parameters);
+      }
+    };
+  }
+};
+var EventDispatcher_default = EventDispatcher;
 
-
-  this.removeEventListeners = function (name) {
-    if (!name) {
-      return;
-    } // Remove all handlers with the event name.
-
-
-    delete events[name];
-  };
-  /**
-   * Remove all listeners.
-   * @param {String} name Event name.
-   */
-
-
-  this.removeAllEventListeners = function () {
-    // Remove all listeners.
-    events = {};
-  };
-  /**
-   * Trigger event and dispatch data to listeners.
-   * @param {String} name Event name.
-   * @param {Array<Any>} parameters Event parameters to pass through.
-   * @param {Object} options Dispatch options.
-   */
-
-
-  this.dispatchEvent = function (name, parameters) {
-    var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-
-    // Check if event exists.
-    if (!events[name]) {
-      return;
-    } // Get events by trigger name.
-
-
-    var eventData = events[name]; // Dispatch a call to each event.
-
-    for (var i = 0; i < eventData.length; i++) {
-      var event = options && options.reverse ? eventData[eventData.length - (i + 1)] : eventData[i]; // If once is truthy then remove the callback.
-
-      if (event.options && event.options.once) {
-        eventData.splice(i, 1);
-      } // Execute callback.
-
-
-      event.callback.apply(event, _toConsumableArray(parameters));
-    }
-  };
-});
-
-var ProxyDispatcher = /*#__PURE__*/function (_EventDispatcher) {
-  _inherits(ProxyDispatcher, _EventDispatcher);
-
-  var _super = _createSuper(ProxyDispatcher);
-
-  function ProxyDispatcher() {
-    var _this;
-
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-    _classCallCheck(this, ProxyDispatcher);
-
-    _this = _super.call(this);
+// ../common/src/events/ProxyDispatcher.js
+var ProxyDispatcher = class extends EventDispatcher_default {
+  constructor(options = {}) {
+    super();
     options = Object.assign({
       delete: true,
       get: true,
       set: true
-    }, options); // Setup WeakMap for keep track of created proxies.
-
-    var map = new WeakMap();
-    /**
-     * Add object to start keeping track of it.
-     * @param {Object} target Object that is being kept track of.
-     * @param {Array<String>} path Path of object on optional parent object, used for recursion.
-     * @returns {Proxy} Object to access and mutate.
-     */
-
-    _this.add = function (target) {
-      var path = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-
-      // Exit early if proxy already exists.
+    }, options);
+    const map = /* @__PURE__ */ new WeakMap();
+    this.add = (target, path = []) => {
       if (map.has(target)) {
         return map.get(target);
-      } // Recursively create proxies for each property.
-
-
-      for (var key in target) {
-        if (target[key] && typeof target[key] === 'object') {
-          target[key] = _this.add(target[key], [].concat(_toConsumableArray(path), [key]));
+      }
+      for (const key in target) {
+        if (target[key] && typeof target[key] === "object") {
+          target[key] = this.add(target[key], [...path, key]);
         }
-      } // Create handler and add the handler for which a callback exits..
-
-
-      var handler = {};
-
+      }
+      const handler = {};
       if (options.delete) {
-        handler.deleteProperty = function (target, key) {
-          // Exit early successful if property doesn't exist.
-          if (!Reflect.has(target, key)) {
+        handler.deleteProperty = (target2, key) => {
+          if (!Reflect.has(target2, key)) {
             return true;
-          } // Remove proxy.
-
-
-          _this.remove(target, key); // Delete property.
-
-
-          var deleted = Reflect.deleteProperty(target, key); // Dispatch delete event.
-
+          }
+          this.remove(target2, key);
+          const deleted = Reflect.deleteProperty(target2, key);
           if (deleted) {
-            _this.dispatchEvent('delete', [target, Array.isArray(target) ? _toConsumableArray(path) : [].concat(_toConsumableArray(path), [key])]);
-          } // Return deleted.
-
-
+            this.dispatchEvent("delete", [target2, Array.isArray(target2) ? [...path] : [...path, key]]);
+          }
           return deleted;
         };
       }
-
       if (options.get) {
-        handler.get = function (target, key, receiver) {
-          // Dispatch get event.
+        handler.get = (target2, key, receiver) => {
           if (key !== Symbol.unscopables) {
-            _this.dispatchEvent('get', [target, [].concat(_toConsumableArray(path), [key]), receiver]);
-          } // Return value from object.
-
-
-          return Reflect.get(target, key, receiver);
+            this.dispatchEvent("get", [target2, [...path, key], receiver]);
+          }
+          return Reflect.get(target2, key, receiver);
         };
       }
-
       if (options.set) {
-        handler.set = function (target, key, value, receiver) {
-          // Exit early if not changed.
-          if (target[key] === value) {
+        handler.set = (target2, key, value, receiver) => {
+          if (target2[key] === value) {
             return true;
-          } // Add proxy if value is an object.
-
-
-          if (typeof value === 'object') {
-            value = _this.add(value, [].concat(_toConsumableArray(path), [key]));
-          } // Store value.
-
-
-          target[key] = value; // Dispatch set event. If the target is an array and a new item has been pushed then the length has also changed, therefore a more generalizable path will be dispatched.
-
-          _this.dispatchEvent('set', [target, Array.isArray(target) ? _toConsumableArray(path) : [].concat(_toConsumableArray(path), [key]), value, receiver]); // Return success.
-
-
+          }
+          if (typeof value === "object") {
+            value = this.add(value, [...path, key]);
+          }
+          target2[key] = value;
+          this.dispatchEvent("set", [target2, Array.isArray(target2) ? [...path] : [...path, key], value, receiver]);
           return true;
         };
-      } // Create proxy.
-
-
-      var revocable = RevocableProxy(target, handler); // Store target at proxy.
-
-      map.set(revocable, target); // Return proxy.
-
+      }
+      const revocable = RevocableProxy_default(target, handler);
+      map.set(revocable, target);
       return revocable.proxy;
     };
-    /**
-     * Remove object from being kept track of.
-     * @param {Object} target Object that is being kept track of.
-     */
-
-
-    _this.remove = function (target) {
-      // Remove target from the map.
+    this.remove = (target) => {
       if (!map.has(target)) {
         return;
       }
-
-      var revocable = map.get(target);
-      map.delete(revocable); // Recursively remove properties as well.
-
-      for (var property in revocable.proxy) {
-        if (typeof revocable.proxy[property] === 'object') {
-          _this.remove(revocable.proxy[property]);
+      const revocable = map.get(target);
+      map.delete(revocable);
+      for (const property in revocable.proxy) {
+        if (typeof revocable.proxy[property] === "object") {
+          this.remove(revocable.proxy[property]);
         }
-      } // Revoke proxy.
-
-
+      }
       revocable.revoke();
     };
-
-    return _this;
   }
+};
+var ProxyDispatcher_default = ProxyDispatcher;
 
-  return _createClass(ProxyDispatcher);
-}(EventDispatcher);
-
-/**
- * Deeply assign a series of objects properties together.
- * @param {Object} target Target object to merge to.
- * @param  {...Object} sources Objects to merge into the target.
- */
-var deepAssign = function deepAssign(target) {
-  for (var _len = arguments.length, sources = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-    sources[_key - 1] = arguments[_key];
-  }
-
+// ../common/src/utils/Object.js
+var deepAssign = (target, ...sources) => {
   if (!sources.length) {
     return target;
   }
-
-  var source = sources.shift();
-
+  const source = sources.shift();
   if (isObject(target) && isObject(source)) {
-    for (var key in source) {
+    for (const key in source) {
       if (isObject(source[key])) {
         if (!target[key]) {
           Object.assign(target, {
             [key]: {}
           });
         }
-
         deepAssign(target[key], source[key]);
       } else if (Array.isArray(source[key])) {
-        target[key] = source[key].map(function (value) {
+        target[key] = source[key].map((value) => {
           if (isObject(value)) {
             return deepAssign({}, value);
           }
-
           return value;
         });
       } else {
@@ -588,76 +214,48 @@ var deepAssign = function deepAssign(target) {
       }
     }
   }
-
-  return deepAssign.apply(void 0, [target].concat(sources));
+  return deepAssign(target, ...sources);
 };
-/**
- * Check whether the value is an object.
- * @param {Any} value Value of unknown type.
- * @returns Whether the value is an object.
- */
-
-var isObject = function isObject(value) {
-  return value && typeof value === 'object' && !Array.isArray(value);
+var isObject = (value) => {
+  return value && typeof value === "object" && !Array.isArray(value);
 };
 
-var DoarsStore = /*#__PURE__*/_createClass(
-/**
- * Create plugin instance.
- * @param {Doars} library Doars instance to add onto.
- * @param {Object} options The plugin options.
- * @param {Object} dataStore Initial store data.
- */
-function DoarsStore(library) {
-  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-  var dataStore = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-  _classCallCheck(this, DoarsStore);
-
-  // Clone options.
-  options = Object.assign({
-    deconstruct: false
-  }, options); // Set private variables.
-
-  var contextStore, dataStoreCopy, proxy, store; // Enable plugin when library is enabling.
-
-  library.addEventListener('enabling', function () {
-    // Create proxy.
-    dataStoreCopy = deepAssign({}, dataStore);
-    proxy = new ProxyDispatcher();
-    store = proxy.add(dataStoreCopy); // Create store id.
-
-    var id = Symbol('ID_STORE'); // Create contexts.
-
-    contextStore = createContextStore(options, id, store, proxy); // Get index of state and insert the context directly before it.
-
-    var existingContexts = library.getContexts();
-    var stateIndex = 0;
-
-    for (var i = existingContexts.length - 1; i >= 0; i--) {
-      var context = existingContexts[i];
-
-      if (context.name === '$state') {
-        stateIndex = i;
-        break;
+// src/DoarsStore.js
+var DoarsStore = class {
+  constructor(library, options = null, dataStore = {}) {
+    options = Object.assign({
+      deconstruct: false
+    }, options);
+    let contextStore, dataStoreCopy, proxy, store;
+    library.addEventListener("enabling", () => {
+      dataStoreCopy = deepAssign({}, dataStore);
+      proxy = new ProxyDispatcher_default();
+      store = proxy.add(dataStoreCopy);
+      const id = Symbol("ID_STORE");
+      contextStore = store_default(options, id, store, proxy);
+      const existingContexts = library.getContexts();
+      let stateIndex = 0;
+      for (let i = existingContexts.length - 1; i >= 0; i--) {
+        const context = existingContexts[i];
+        if (context.name === "$state") {
+          stateIndex = i;
+          break;
+        }
       }
-    }
-
-    library.addContexts(stateIndex, contextStore);
-  }); // Disable plugin when library is disabling.
-
-  library.addEventListener('disabling', function () {
-    // Remove contexts.
-    library.removeContexts(contextStore); // Reset references.
-
-    store = null;
-    proxy.remove(dataStoreCopy);
-    proxy = null;
-    dataStoreCopy = null;
-    directiveSyncStore = null;
-    contextStore = null;
-  });
-});
-
-export { DoarsStore as default };
+      library.addContexts(stateIndex, contextStore);
+    });
+    library.addEventListener("disabling", () => {
+      library.removeContexts(contextStore);
+      store = null;
+      proxy.remove(dataStoreCopy);
+      proxy = null;
+      dataStoreCopy = null;
+      directiveSyncStore = null;
+      contextStore = null;
+    });
+  }
+};
+export {
+  DoarsStore as default
+};
 //# sourceMappingURL=doars-store.esm.js.map

@@ -571,7 +571,7 @@ export default (expression) => {
       throw new Error('Expected expression')
     }
 
-    const conditional = {
+    let conditional = {
       type: CONDITION,
       condition: node,
       consequent: consequent,

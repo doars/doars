@@ -12,15 +12,15 @@ Write logic directly in your layout. Simply look at the HTML and read what it do
 
 ```HTML
 <!-- Add library to the document from a CDN. -->
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.iife.js"></script>
 <script>
   // Wait for the DOM to be interactive.
   document.addEventListener('DOMContentLoaded', () => {
     // Setup a library instance.
-    const doars = new window.Doars();
+    const doars = new window.Doars()
     // Enable library.
-    doars.enable();
-  });
+    doars.enable()
+  })
 </script>
 
 <!-- Define component with a list of messages. -->
@@ -36,7 +36,9 @@ Write logic directly in your layout. Simply look at the HTML and read what it do
   <input type="text" d-reference="input">
 
   <!-- On click add input value to the messages. -->
-  <button d-on:click="messages.push($references.input.value); $references.input.value = ''">Add</button>
+  <button d-on:click="messages.push($references.input.value); $references.input.value = ''">
+    Add
+  </button>
 </div>
 ```
 

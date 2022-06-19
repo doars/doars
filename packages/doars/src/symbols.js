@@ -4,8 +4,6 @@ export const COMPONENT = Symbol('COMPONENT')
 
 export const FOR = Symbol('FOR')
 
-export const IGNORE = Symbol('IGNORE')
-
 export const INITIALIZED = Symbol('INITIALIZED')
 
 export const ON = Symbol('ON')

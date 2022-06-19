@@ -14,6 +14,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "type": "module",
+  "main": "src/index.js",
   "homepage": "https://github.com/doars/doars/tree/main/packages/interpret#readme",
   "repository": {
     "type": "git",
@@ -26,6 +27,7 @@
     "access": "public"
   },
   "scripts": {
+    "build": "echo 'no building'",
     "lint": "eslint src/** --cache --fix --no-error-on-unmatched-pattern",
     "release": "yarn run lint && yarn run test && yarn publish",
     "test": "mocha ./tst/mocha/"

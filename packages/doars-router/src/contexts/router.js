@@ -5,7 +5,7 @@ import RevocableProxy from '@doars/common/src/polyfills/RevocableProxy.js'
 import { ROUTER } from '../symbols'
 
 // Import utils.
-import { closestRouter } from '../.js'
+import closestRouter from '../utils/closestRouter.js'
 
 export default {
   name: '$router',

@@ -24,8 +24,10 @@
     "access": "public"
   },
   "scripts": {
+    "build": "echo 'no building'",
     "lint": "eslint src/** --cache --fix --no-error-on-unmatched-pattern",
-    "release": "yarn run lint && yarn publish"
+    "release": "yarn run lint && yarn publish",
+    "test": "echo 'no testing'"
   },
   "files": [
     "src",

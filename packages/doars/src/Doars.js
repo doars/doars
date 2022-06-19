@@ -57,23 +57,21 @@ export default class Doars extends EventDispatcher {
       options.root = root = document.querySelector(root)
     }
     // Validate options.
-    if (process.env.NODE_ENV === 'development') {
-      if (!prefix) {
-        console.error('Doars: `prefix` option not set.')
-        return
-      }
-      if (typeof (prefix) !== 'string') {
-        console.error('Doars: `prefix` option must be of type string.')
-        return
-      }
-      if (!root) {
-        console.error('Doars: `root` option not set.')
-        return
-      }
-      if (typeof (root) !== 'object') {
-        console.error('Doars: `root` option must be a string or HTMLElement.')
-        return
-      }
+    if (!prefix) {
+      console.error('Doars: `prefix` option not set.')
+      return
+    }
+    if (typeof (prefix) !== 'string') {
+      console.error('Doars: `prefix` option must be of type string.')
+      return
+    }
+    if (!root) {
+      console.error('Doars: `root` option not set.')
+      return
+    }
+    if (typeof (root) !== 'object') {
+      console.error('Doars: `root` option must be a string or HTMLElement.')
+      return
     }
 
     // Create unique identifier.

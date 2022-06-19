@@ -1,63 +1,24 @@
-var DoarsFetch = (function () {
-  'use strict';
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  function _defineProperties(target, props) {
-    for (var i = 0; i < props.length; i++) {
-      var descriptor = props[i];
-      descriptor.enumerable = descriptor.enumerable || false;
-      descriptor.configurable = true;
-      if ("value" in descriptor) descriptor.writable = true;
-      Object.defineProperty(target, descriptor.key, descriptor);
-    }
-  }
-
-  function _createClass(Constructor, protoProps, staticProps) {
-    if (protoProps) _defineProperties(Constructor.prototype, protoProps);
-    if (staticProps) _defineProperties(Constructor, staticProps);
-    Object.defineProperty(Constructor, "prototype", {
-      writable: false
-    });
-    return Constructor;
-  }
-
-  /**
-   * Deeply assign a series of objects properties together.
-   * @param {Object} target Target object to merge to.
-   * @param  {...Object} sources Objects to merge into the target.
-   */
-  var deepAssign = function deepAssign(target) {
-    for (var _len = arguments.length, sources = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      sources[_key - 1] = arguments[_key];
-    }
-
+(() => {
+  // ../common/src/utils/Object.js
+  var deepAssign = (target, ...sources) => {
     if (!sources.length) {
       return target;
     }
-
-    var source = sources.shift();
-
+    const source = sources.shift();
     if (isObject(target) && isObject(source)) {
-      for (var key in source) {
+      for (const key in source) {
         if (isObject(source[key])) {
           if (!target[key]) {
             Object.assign(target, {
               [key]: {}
             });
           }
-
           deepAssign(target[key], source[key]);
         } else if (Array.isArray(source[key])) {
-          target[key] = source[key].map(function (value) {
+          target[key] = source[key].map((value) => {
             if (isObject(value)) {
               return deepAssign({}, value);
             }
-
             return value;
           });
         } else {
@@ -67,173 +28,124 @@ var DoarsFetch = (function () {
         }
       }
     }
-
-    return deepAssign.apply(void 0, [target].concat(sources));
+    return deepAssign(target, ...sources);
   };
-  /**
-   * Check whether the value is an object.
-   * @param {Any} value Value of unknown type.
-   * @returns Whether the value is an object.
-   */
-
-  var isObject = function isObject(value) {
-    return value && typeof value === 'object' && !Array.isArray(value);
+  var isObject = (value) => {
+    return value && typeof value === "object" && !Array.isArray(value);
   };
 
-  var parseResponse = function parseResponse(response, type) {
-    var promise;
-
+  // src/utils/FetchUtils.js
+  var parseResponse = (response, type) => {
+    let promise;
     switch (String.prototype.toLowerCase.call(type)) {
       default:
         console.warn('Unknown response type "' + type + '" used when using the $fetch context.');
         break;
-
-      case 'arraybuffer':
+      case "arraybuffer":
         promise = response.arrayBuffer();
         break;
-
-      case 'blob':
+      case "blob":
         promise = response.blob();
         break;
-
-      case 'formdata':
+      case "formdata":
         promise = response.formData();
         break;
-
-      case 'json':
+      case "json":
         promise = response.json();
         break;
-      // HTML and xml need to be converted to text before being able to be parsed.
-
-      case 'element':
-      case 'html':
-      case 'svg':
-      case 'text':
-      case 'xml':
+      case "element":
+      case "html":
+      case "svg":
+      case "text":
+      case "xml":
         promise = response.text();
         break;
     }
-
     if (!promise) {
       return null;
     }
-
-    return promise.then(function (response) {
+    return promise.then((response2) => {
       switch (type) {
-        // Convert from html to HTMLElement inside a document fragment.
-        case 'element':
-          var template = document.createElement('template');
-          template.innerHTML = response;
-          response = template.content.childNodes[0];
+        case "element":
+          const template = document.createElement("template");
+          template.innerHTML = response2;
+          response2 = template.content.childNodes[0];
           break;
-        // Parse some values via the DOM parser.
-
-        case 'html':
-          response = new DOMParser().parseFromString(response, 'text/html');
+        case "html":
+          response2 = new DOMParser().parseFromString(response2, "text/html");
           break;
-
-        case 'svg':
-          response = new DOMParser().parseFromString(response, 'image/svg+xml');
+        case "svg":
+          response2 = new DOMParser().parseFromString(response2, "image/svg+xml");
           break;
-
-        case 'xml':
-          response = new DOMParser().parseFromString(response, 'application/xml');
+        case "xml":
+          response2 = new DOMParser().parseFromString(response2, "application/xml");
           break;
       }
-
-      return response;
+      return response2;
     });
   };
-  var responseType = function responseType(response) {
-    switch (String.prototype.toLowerCase(response.headers.get('content-type'))) {
-      case 'text/html':
-        return 'html';
-
-      case 'application/json':
-      case 'application/ld+json':
-      case 'application/vnd.api+json':
-        return 'json';
-
-      case 'image/svg+xml':
-        return 'svg';
-
-      case 'text/plain':
-        return 'text';
-
-      case 'application/xml':
-      case 'text/xml':
-        return 'xml';
+  var responseType = (response) => {
+    switch (String.prototype.toLowerCase(response.headers.get("content-type"))) {
+      case "text/html":
+        return "html";
+      case "application/json":
+      case "application/ld+json":
+      case "application/vnd.api+json":
+        return "json";
+      case "image/svg+xml":
+        return "svg";
+      case "text/plain":
+        return "text";
+      case "application/xml":
+      case "text/xml":
+        return "xml";
     }
-
     return null;
   };
 
-  // Import utils.
-  var createFetchContext = (function (_ref) {
-    var defaultInit = _ref.defaultInit;
+  // src/factories/contexts/fetch.js
+  var fetch_default = ({
+    defaultInit
+  }) => {
     return {
-      name: '$fetch',
-      create: function create() {
+      name: "$fetch",
+      create: () => {
         return {
-          value: function value(url) {
-            var init = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-
-            // Apply default options to init.
+          value: (url, init = null) => {
             if (defaultInit) {
               init = deepAssign({}, defaultInit, init);
-            } // Extract optional return type.
-
-
-            var returnType = init.returnType ? init.returnType : null;
-            delete init.returnType; // Perform and process fetch request.
-
-            return fetch(url, init).then(function (response) {
-              // Automatically base return type on header.
-              if (returnType === 'auto' && response.headers.get('content-type')) {
+            }
+            let returnType = init.returnType ? init.returnType : null;
+            delete init.returnType;
+            return fetch(url, init).then((response) => {
+              if (returnType === "auto" && response.headers.get("content-type")) {
                 returnType = responseType(response);
-              } // Parse response based on return type.
-
-
+              }
               if (returnType) {
                 response = parseResponse(response, returnType);
               }
-
               return response;
             });
           }
         };
       }
     };
-  });
+  };
 
-  var DoarsFetch = /*#__PURE__*/_createClass(
-  /**
-   * Create plugin instance.
-   * @param {Doars} library Doars instance to add onto.
-   * @param {Object} options The plugin options.
-   */
-  function DoarsFetch(library) {
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-
-    _classCallCheck(this, DoarsFetch);
-
-    // Clone options.
-    options = Object.assign({
-      defaultInit: {}
-    }, options); // Create contexts.
-
-    var fetchContext = createFetchContext(options); // Enable plugin when library is enabling.
-
-    library.addEventListener('enabling', function () {
-      library.addContexts(0, fetchContext);
-    }); // Disable plugin when library is disabling.
-
-    library.addEventListener('disabling', function () {
-      library.removeContexts(fetchContext);
-    });
-  });
-
-  return DoarsFetch;
-
+  // src/DoarsFetch.js
+  var DoarsFetch = class {
+    constructor(library, options = null) {
+      options = Object.assign({
+        defaultInit: {}
+      }, options);
+      const fetchContext = fetch_default(options);
+      library.addEventListener("enabling", () => {
+        library.addContexts(0, fetchContext);
+      });
+      library.addEventListener("disabling", () => {
+        library.removeContexts(fetchContext);
+      });
+    }
+  };
 })();
 //# sourceMappingURL=doars-fetch.iife.js.map

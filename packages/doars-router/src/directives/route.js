@@ -2,7 +2,7 @@
 import { ROUTE } from '../symbols.js'
 
 // Import utils.
-import { closestRouter } from '../.js'
+import closestRouter from '../utils/closestRouter.js'
 import { insertAfter } from '@doars/common/src/utils/Element.js'
 
 export default {

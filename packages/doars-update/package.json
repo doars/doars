@@ -14,7 +14,6 @@
   "license": "MIT",
   "type": "module",
   "main": "src/DoarsUpdate.js",
-  "browserMain": "src/DoarsUpdate.js",
   "browser": "dst/doars-update.js",
   "homepage": "https://github.com/doars/doars/tree/main/packages/doars-update#readme",
   "repository": {
@@ -28,11 +27,13 @@
     "access": "public"
   },
   "scripts": {
-    "build": "NODE_ENV=production rollup -c",
+    "build": "NODE_ENV=production node esbuild.config.js",
+    "cypress": "cypress open",
     "dev": "yarn run develop",
-    "develop": "NODE_ENV=development rollup -c -w",
+    "develop": "NODE_ENV=development node esbuild.config.js",
     "lint": "eslint src/** --cache --fix --no-error-on-unmatched-pattern",
-    "release": "yarn run lint && yarn run build && yarn publish"
+    "release": "yarn run lint && yarn run test && yarn run build && yarn publish",
+    "test": "cypress run"
   },
   "files": [
     "dst",

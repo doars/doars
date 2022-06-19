@@ -25,10 +25,11 @@
   },
   "type": "module",
   "scripts": {
-    "build": "NODE_ENV=production hoast && NODE_ENV=production rollup -c './rollup.config.js'",
+    "build": "NODE_ENV=production hoast && NODE_ENV=production  node ./esbuild.config.js",
     "develop:hoast": "NODE_ENV=development NODE_OPTIONS='--experimental-loader=@hoast/hoast/loader.js' hoast --watch",
-    "develop:rollup": "NODE_ENV=development rollup -c './rollup.config.js' -w",
+    "develop:rollup": "NODE_ENV=development node ./esbuild.config.js",
     "lint": "eslint src/components/*.js src/utils/*.js --cache --fix --no-error-on-unmatched-pattern",
-    "serve": "serve ../docs/"
+    "serve": "serve ../docs/",
+    "test": "echo 'no testing'"
   }
 }

@@ -1,8 +1,5 @@
 import { createAutoContexts } from './Context.js'
-import {
-  parse,
-  run,
-} from '@doars/interpret'
+import { parse, run } from '@doars/interpret'
 
 export const interpret = (
   component,

@@ -60,11 +60,11 @@ export default function () {
           r('button', {
             class: 'flex-grow md:flex-grow-0',
             'onclick': () => {
-              window.copyToClipboard('https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.umd.js')
+              window.copyToClipboard('https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.iife.js')
             },
           }, [
             '&#160;',
-            r('code', 'https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.umd.js'),
+            r('code', 'https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.iife.js'),
             '&#160;&#160;',
             iconCopy,
           ]),
@@ -95,7 +95,7 @@ export default function () {
             '</div>',
             '',
             '<!-- Import library. -->',
-            '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.umd.js"></script>',
+            '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.iife.js"></script>',
             '<script>',
             '  document.addEventListener(\'DOMContentLoaded\', () => {',
             '    // Setup and enable the library.',
@@ -232,7 +232,7 @@ export default function () {
       section([
         r('h2', 'Small in size and quick to update!'),
 
-        r('p', 'Minified and gzipped the library is about <code><b>13kB</b></code>, and when the state or document changes only relevant directives are executed making updates fast.'),
+        r('p', 'Minified and compressed the library is less than <code><b>11kB</b></code>, and when the state or document changes only relevant directives are executed making updates fast.'),
       ]),
 
       section([
@@ -435,24 +435,6 @@ export default function () {
                 '  document.addEventListener(\'DOMContentLoaded\', () => {',
                 '    // Setup and enable the library.',
                 '    const doars = new Doars()',
-                '    doars.enable()',
-                '  })',
-                '</script>',
-              ]),
-            ]),
-          ),
-
-          card({}, 'UMD build from jsDelivr', 'Add the UMD build to the page from for example the jsDelivr CDN and enable the library.',
-            r('div', {
-              class: 'code-wrapper',
-            }, [
-              code({}, [
-                '<!-- Import library. -->',
-                '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.umd.js"></script>',
-                '<script>',
-                '  document.addEventListener(\'DOMContentLoaded\', () => {',
-                '    // Setup and enable the library.',
-                '    const doars = new window.Doars()',
                 '    doars.enable()',
                 '  })',
                 '</script>',

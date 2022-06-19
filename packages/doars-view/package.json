@@ -18,7 +18,6 @@
   "license": "MIT",
   "type": "module",
   "main": "src/DoarsView.js",
-  "browserMain": "src/DoarsView.js",
   "browser": "dst/doars-view.js",
   "homepage": "https://github.com/doars/doars/tree/main/packages/doars-view#readme",
   "repository": {
@@ -32,11 +31,13 @@
     "access": "public"
   },
   "scripts": {
-    "build": "NODE_ENV=production rollup -c",
+    "build": "NODE_ENV=production node esbuild.config.js",
+    "cypress": "cypress open",
     "dev": "yarn run develop",
-    "develop": "NODE_ENV=development rollup -c -w",
+    "develop": "NODE_ENV=development node esbuild.config.js",
     "lint": "eslint src/** --cache --fix --no-error-on-unmatched-pattern",
-    "release": "yarn run lint && yarn run build && yarn publish"
+    "release": "yarn run lint && yarn run test && yarn run build && yarn publish",
+    "test": "cypress run"
   },
   "files": [
     "dst",
