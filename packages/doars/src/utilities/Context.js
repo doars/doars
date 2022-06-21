@@ -3,9 +3,9 @@ import RevocableProxy from '@doars/common/src/polyfills/RevocableProxy.js'
 
 /**
  * Create an object with utility function.
- * @returns {Object} Utils.
+ * @returns {Object} Utilities.
  */
-const createContextUtils = () => {
+const createContextUtilities = () => {
   return {
     createContexts: createContexts,
     createContextsProxy: createContextsProxy,
@@ -39,7 +39,7 @@ export const createContexts = (component, attribute, update, extra = null) => {
     }
 
     // Get context result.
-    const result = creatableContext.create(component, attribute, update, createContextUtils())
+    const result = creatableContext.create(component, attribute, update, createContextUtilities())
     if (!result || !result.value) {
       continue
     }
@@ -72,7 +72,7 @@ export const createContexts = (component, attribute, update, extra = null) => {
     destroy: () => {
       // Call all destroy functions.
       for (const destroyFunction of destroyFunctions) {
-        destroyFunction(createContextUtils())
+        destroyFunction(createContextUtilities())
       }
     },
 

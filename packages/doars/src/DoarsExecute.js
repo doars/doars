@@ -1,5 +1,5 @@
 import Doars from './Doars.js'
-import { execute } from './utils/Execute.js'
+import { execute } from './utilities/Execute.js'
 
 Doars.executeExpression = execute
 

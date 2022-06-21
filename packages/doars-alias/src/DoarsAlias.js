@@ -1,5 +1,5 @@
-// Import utils.
-import { deepAssign } from '@doars/common/src/utils/Object.js'
+// Import utilities.
+import { deepAssign } from '@doars/common/src/utilities/Object.js'
 
 export default class DoarsAlias {
   /**

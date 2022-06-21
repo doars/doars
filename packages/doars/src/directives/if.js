@@ -1,6 +1,6 @@
-// Import utils.
-import { insertAfter } from '@doars/common/src/utils/Element.js'
-import { isPromise } from '@doars/common/src/utils/Promise.js'
+// Import utilities.
+import { insertAfter } from '@doars/common/src/utilities/Element.js'
+import { isPromise } from '@doars/common/src/utilities/Promise.js'
 
 export default {
   name: 'if',

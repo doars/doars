@@ -1,6 +1,6 @@
-// Import utils.
-import { decode } from '@doars/common/src/utils/Html.js'
-import { isPromise } from '@doars/common/src/utils/Promise.js'
+// Import utilities.
+import { decode } from '@doars/common/src/utilities/Html.js'
+import { isPromise } from '@doars/common/src/utilities/Promise.js'
 
 export default {
   name: 'html',

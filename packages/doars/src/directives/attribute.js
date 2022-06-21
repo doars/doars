@@ -1,7 +1,7 @@
-// Import utils.
-import { setAttribute, setAttributes } from '@doars/common/src/utils/Attribute.js'
-import { isPromise } from '@doars/common/src/utils/Promise.js'
-import { parseSelector } from '@doars/common/src/utils/String.js'
+// Import utilities.
+import { setAttribute, setAttributes } from '@doars/common/src/utilities/Attribute.js'
+import { isPromise } from '@doars/common/src/utilities/Promise.js'
+import { parseSelector } from '@doars/common/src/utilities/String.js'
 
 export default {
   name: 'attribute',

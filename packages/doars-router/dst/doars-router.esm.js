@@ -28,7 +28,7 @@ var ROUTE_TO = Symbol("ROUTE_TO");
 var ROUTER = Symbol("ROUTER");
 var ROUTE = Symbol("ROUTE");
 
-// src/utils/closestRouter.js
+// src/utilities/closestRouter.js
 var closestRouter_default = (element) => {
   if (!element.parentElement) {
     return;
@@ -544,7 +544,7 @@ var router_default2 = (routerOptions) => {
   };
 };
 
-// ../common/src/utils/Element.js
+// ../common/src/utilities/Element.js
 var insertAfter = (reference, node) => {
   if (reference.nextSibling) {
     reference.parentNode.insertBefore(node, reference.nextSibling);
@@ -686,7 +686,7 @@ var routeTo_default = {
   }
 };
 
-// ../common/src/utils/Object.js
+// ../common/src/utilities/Object.js
 var deepAssign = (target, ...sources) => {
   if (!sources.length) {
     return target;

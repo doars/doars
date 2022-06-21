@@ -1,5 +1,5 @@
 import Doars from './Doars.js'
-import { call } from './utils/Call.js'
+import { call } from './utilities/Call.js'
 
 Doars.callExpression = call
 

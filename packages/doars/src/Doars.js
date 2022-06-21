@@ -34,9 +34,9 @@ import directiveWatch from './directives/watch.js'
 // Import event dispatcher.
 import EventDispatcher from '@doars/common/src/events/EventDispatcher.js'
 
-// Import utils.
-import { closestComponent } from './utils/Component.js'
-import { walk } from '@doars/common/src/utils/Element.js'
+// Import utilities.
+import { closestComponent } from './utilities/Component.js'
+import { walk } from '@doars/common/src/utilities/Element.js'
 
 export default class Doars extends EventDispatcher {
   /**

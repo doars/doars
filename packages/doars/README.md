@@ -22,14 +22,11 @@ The core library, it manages the components and plugins as well as includes the 
 - [Browser support](#browser-support)
 - [Expression processors](#expression-processors)
 - [API](#api)
-  - [EventDispatcher](#eventdispatcher)
-  - [ProxyDispatcher](#proxydispatcher)
-  - [Doars](#doars)
-  - [Component](#component)
-  - [Attribute](#attribute)
 - [Writing contexts](#writing-contexts)
 - [Writing directives](#writing-directives)
 - [Writing plugins](#writing-plugins)
+- [Comparison](#comparison)
+- [Migrating](#migrating)
 
 ## Install
 
@@ -743,7 +740,7 @@ Some directives can return JavaScript expressions. The expressions are given to 
 
 ### Execute processor
 
-The execute function uses the [`Function` constructor](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function) to process the expressions. Which is similar to the [`eval` function](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/eval) in that it is not very safe to use, nor recommended. This processor function does not work when a [Content Security Policy](https://developer.mozilla.org/docs/Web/HTTP/CSP) is set using the headers of the page request that does not allow for `unsafe-eval`. That being said it does allow you to run any expression you might want since it uses the JavaScript interpreter directly.
+The execute function uses the [`Function` constructor](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function) to process the expressions. Which is similar to the [`eval` function](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/eval) in that it is not very safe to use, nor recommended. This processor function does not work when a [Content Security Policy](https://developer.mozilla.org/docs/Web/HTTP/CSP) is set that does not contain `unsafe-eval`. That being said this process method does allow for running any expression you might want, since it uses the JavaScript interpreter directly.
 
 ```HTML
 <script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>
@@ -755,11 +752,11 @@ import Doars from '@doars/doars'
 import Doars from '@doars/doars/src/DoarsExecute.js'
 ```
 
-### Interpreter processor
+### Interpret processor
 
-The interpret function uses a [custom interpreter](https://github.com/doars/doars/tree/main/packages/interpret#readme) that parses and runs the expression. The interpret does not support all JavaScript features, but any expression that it runs is also valid JavaScript. To see what features are supported see the interpreters [supported features](https://github.com/doars/doars/tree/main/packages/interpret#supported-features) section.
+The interpret function uses a [custom interpreter](https://github.com/doars/doars/tree/main/packages/interpret#readme) that parses and runs the expression. The interpret does not support all JavaScript features, but any expression that it runs is also valid JavaScript. To see what features are supported see the interpreter's [supported features](https://github.com/doars/doars/tree/main/packages/interpret#supported-features) section.
 
-Because the interpret processor does not use the `Function` constructor it is allowed when a [Content Security Policy](https://developer.mozilla.org/docs/Web/HTTP/CSP) is setup without the `unsafe-eval` option. However it is essentially a way to get around the policy and should not be used without taking the accompanying risks into consideration.
+Because the interpret processor does not use the `Function` constructor it can be used when a [Content Security Policy](https://developer.mozilla.org/docs/Web/HTTP/CSP) is setup without `unsafe-eval`. However the interpreter is essentially a way to get around the policy and should not be used without taking the accompanying risks into consideration.
 
 ```HTML
 <script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars-interpret.iife.js"></script>
@@ -783,7 +780,7 @@ Because the call processor does not try to run an arbitrary expression it is the
 import Doars from '@doars/doars/src/DoarsCall.js'
 ```
 
-# Call processor examples
+#### Call processor examples
 
 ```HTML
 <!-- Instead of -->
@@ -1168,3 +1165,29 @@ And there you have it, most of what you need to know about writing your own cust
 ## Writing plugins
 
 > TODO: See the [plugin packages](https://github.com/doars/doars/tree/main/packages) for now.
+
+## Comparison
+
+### Compared to CSR
+
+Client Side rendering
+
+TODO:
+
+### Compared to Alpine.js
+
+TODO:
+
+### Compared to htmx
+
+TODO:
+
+## Migrating
+
+### From 1 to 2
+
+TODO:
+
+### From AlpineJS
+
+TODO:

@@ -1,6 +1,6 @@
 // Based on choo's nanomorph, v5.4.3, https://github.com/choojs/nanomorph#readme).
 
-// Import utils.
+// Import utilities.
 import { copyAttributes } from './Attribute.js'
 import { fromString as ElementFromString, isSame as ElementIsSame } from './Element.js'
 

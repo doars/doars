@@ -186,7 +186,7 @@
   };
   var ProxyDispatcher_default = ProxyDispatcher;
 
-  // ../common/src/utils/Object.js
+  // ../common/src/utilities/Object.js
   var deepAssign = (target, ...sources) => {
     if (!sources.length) {
       return target;

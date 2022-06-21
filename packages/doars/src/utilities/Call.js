@@ -1,5 +1,5 @@
 import { createAutoContexts } from './Context.js'
-import { getDeeply } from '@doars/common/src/utils/Object.js'
+import { getDeeply } from '@doars/common/src/utilities/Object.js'
 
 const PATH_VALIDATOR = /^[a-z$_]+[0-9a-z$_]*(?:\.[a-z$_]+[0-9a-z$_]*)*$/is
 

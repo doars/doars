@@ -1,8 +1,8 @@
 // Import symbols.
 import { ROUTE_TO } from '../symbols.js'
 
-// Import utils.
-import closestRouter from '../utils/closestRouter.js'
+// Import utilities.
+import closestRouter from '../utilities/closestRouter.js'
 
 const CLICK = 'click'
 

@@ -1,4 +1,4 @@
-// Import utils.
+// Import utilities.
 import { parseSelector } from './String.js'
 import { addAttributes, removeAttributes } from './Attribute.js'
 

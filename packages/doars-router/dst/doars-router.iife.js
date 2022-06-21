@@ -29,7 +29,7 @@
   var ROUTER = Symbol("ROUTER");
   var ROUTE = Symbol("ROUTE");
 
-  // src/utils/closestRouter.js
+  // src/utilities/closestRouter.js
   var closestRouter_default = (element) => {
     if (!element.parentElement) {
       return;
@@ -545,7 +545,7 @@
     };
   };
 
-  // ../common/src/utils/Element.js
+  // ../common/src/utilities/Element.js
   var insertAfter = (reference, node) => {
     if (reference.nextSibling) {
       reference.parentNode.insertBefore(node, reference.nextSibling);
@@ -687,7 +687,7 @@
     }
   };
 
-  // ../common/src/utils/Object.js
+  // ../common/src/utilities/Object.js
   var deepAssign = (target, ...sources) => {
     if (!sources.length) {
       return target;

@@ -7,11 +7,11 @@ import Attribute from './Attribute.js'
 // Import proxy dispatcher.
 import ProxyDispatcher from '@doars/common/src/events/ProxyDispatcher.js'
 
-// Import utils.
-import { morphTree } from '@doars/common/src/utils/Morph.js'
-import { closestComponent } from './utils/Component.js'
-import { transition, transitionIn, transitionOut } from '@doars/common/src/utils/Transition.js'
-import { walk } from '@doars/common/src/utils/Element.js'
+// Import utilities.
+import { morphTree } from '@doars/common/src/utilities/Morph.js'
+import { closestComponent } from './utilities/Component.js'
+import { transition, transitionIn, transitionOut } from '@doars/common/src/utilities/Transition.js'
+import { walk } from '@doars/common/src/utilities/Element.js'
 
 export default class Component {
   /**
@@ -42,7 +42,7 @@ export default class Component {
     }
 
     // Create a immutable object with the directive utilities.
-    const directiveUtils = Object.freeze({
+    const directiveUtilities = Object.freeze({
       morphTree: morphTree,
       processExpression: processExpression,
       transition: transition,
@@ -205,7 +205,7 @@ export default class Component {
           // Clean up attribute if the directive has a destroy function.
           const directive = directives[attribute.getKey()]
           if (directive) {
-            directive.destroy(this, attribute, directiveUtils)
+            directive.destroy(this, attribute, directiveUtilities)
           }
 
           // Destroy the attribute.
@@ -330,7 +330,7 @@ export default class Component {
       // Attribute has been removed, call the destroy directive.
       const directive = directives[attribute.getKey()]
       if (directive && directive.destroy) {
-        directive.destroy(this, attribute, directiveUtils)
+        directive.destroy(this, attribute, directiveUtilities)
       }
 
       // Remove attribute from list.
@@ -389,7 +389,7 @@ export default class Component {
       // Process directive on attribute.
       const directive = directives[attribute.getDirective()]
       if (directive) {
-        directive.update(this, attribute, directiveUtils)
+        directive.update(this, attribute, directiveUtilities)
       }
     }
 

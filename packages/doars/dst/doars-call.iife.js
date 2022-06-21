@@ -68,7 +68,7 @@
   };
   var EventDispatcher_default = EventDispatcher;
 
-  // ../common/src/utils/String.js
+  // ../common/src/utilities/String.js
   var escapeHtml = (text) => {
     return text.replace(/\\/g, "\\\\").replace(/\'/g, "\\'").replace(/\"/g, '\\"').replace(/\n/g, "\\n");
   };
@@ -388,7 +388,7 @@
   };
   var ProxyDispatcher_default = ProxyDispatcher;
 
-  // ../common/src/utils/Attribute.js
+  // ../common/src/utilities/Attribute.js
   var addAttributes = (element, data) => {
     for (const name in data) {
       if (name === "class") {
@@ -509,7 +509,7 @@
     }
   };
 
-  // ../common/src/utils/Element.js
+  // ../common/src/utilities/Element.js
   var fromString = (string) => {
     const template = document.createElement("template");
     template.innerHTML = string;
@@ -559,7 +559,7 @@
     };
   };
 
-  // ../common/src/utils/Morph.js
+  // ../common/src/utilities/Morph.js
   var morphNode = (existingNode, newNode) => {
     const nodeType = newNode.nodeType;
     const nodeName = newNode.nodeName;
@@ -705,7 +705,7 @@
     }
   };
 
-  // src/utils/Component.js
+  // src/utilities/Component.js
   var closestComponent = (element) => {
     if (!element.parentElement) {
       return;
@@ -717,7 +717,7 @@
     return closestComponent(element);
   };
 
-  // ../common/src/utils/Transition.js
+  // ../common/src/utilities/Transition.js
   var TRANSITION_NAME = "-transition:";
   var transition = (type, component, element, callback = null) => {
     if (element.nodeType !== 1) {
@@ -854,7 +854,7 @@
       if (!processExpression) {
         console.error("Doars: No expression processor available. Process option: ", process);
       }
-      const directiveUtils = Object.freeze({
+      const directiveUtilities = Object.freeze({
         morphTree,
         processExpression,
         transition,
@@ -937,7 +937,7 @@
           for (const attribute of attributes) {
             const directive = directives[attribute.getKey()];
             if (directive) {
-              directive.destroy(this, attribute, directiveUtils);
+              directive.destroy(this, attribute, directiveUtilities);
             }
             attribute.destroy();
           }
@@ -1006,7 +1006,7 @@
         const directives = library.getDirectivesObject;
         const directive = directives[attribute.getKey()];
         if (directive && directive.destroy) {
-          directive.destroy(this, attribute, directiveUtils);
+          directive.destroy(this, attribute, directiveUtilities);
         }
         attributes.splice(indexInAttributes, 1);
         attribute.destroy();
@@ -1037,7 +1037,7 @@
         attribute.clearAccessed();
         const directive = directives[attribute.getDirective()];
         if (directive) {
-          directive.update(this, attribute, directiveUtils);
+          directive.update(this, attribute, directiveUtilities);
         }
       };
       this.updateAttributes = (attributes2) => {
@@ -1378,7 +1378,7 @@
     }
   };
 
-  // ../common/src/utils/Promise.js
+  // ../common/src/utilities/Promise.js
   var nativePromise = Function.prototype.toString.call(Function).replace("Function", "Promise").replace(/\(.*\)/, "()");
   var isPromise = (value) => {
     return value && Object.prototype.toString.call(value) === "[object Promise]";
@@ -1600,7 +1600,7 @@
     }
   };
 
-  // ../common/src/utils/Html.js
+  // ../common/src/utilities/Html.js
   var DECODE_LOOKUP = {
     "&amp;": "&",
     "&#38;": "&",
@@ -2247,8 +2247,8 @@
     }
   };
 
-  // src/utils/Context.js
-  var createContextUtils = () => {
+  // src/utilities/Context.js
+  var createContextUtilities = () => {
     return {
       createContexts,
       createContextsProxy,
@@ -2265,7 +2265,7 @@
       if (!creatableContext || !creatableContext.name) {
         continue;
       }
-      const result2 = creatableContext.create(component, attribute, update2, createContextUtils());
+      const result2 = creatableContext.create(component, attribute, update2, createContextUtilities());
       if (!result2 || !result2.value) {
         continue;
       }
@@ -2288,7 +2288,7 @@
       contexts,
       destroy: () => {
         for (const destroyFunction of destroyFunctions) {
-          destroyFunction(createContextUtils());
+          destroyFunction(createContextUtilities());
         }
       },
       after,
@@ -2345,7 +2345,7 @@
     }];
   };
 
-  // ../common/src/utils/Object.js
+  // ../common/src/utilities/Object.js
   var getDeeply = (object, path) => {
     let objectTemp = object;
     let i = 0;
@@ -3032,7 +3032,7 @@
     }
   };
 
-  // src/utils/Call.js
+  // src/utilities/Call.js
   var PATH_VALIDATOR = /^[a-z$_]+[0-9a-z$_]*(?:\.[a-z$_]+[0-9a-z$_]*)*$/is;
   var call = (component, attribute, expression, extra = null, options = null) => {
     const [contexts, destroyContexts] = createAutoContexts(component, attribute, update, extra);

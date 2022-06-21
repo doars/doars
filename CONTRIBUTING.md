@@ -15,6 +15,8 @@ Welcome and thank you for wanting to contribute! Following these guidelines help
   - [Sign off commits](#sign-off-commits)
 - [Reviewing pull requests](#reviewing-pull-requests)
 
+> TODO: Add section about tests.
+
 ## Security
 
 ### Supported versions

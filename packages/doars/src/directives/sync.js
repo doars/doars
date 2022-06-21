@@ -1,8 +1,8 @@
 // Import symbols.
 import { SYNC } from '../symbols.js'
-import { createAutoContexts } from '../utils/Context.js'
-import { getDeeply, setDeeply } from '@doars/common/src/utils/Object.js'
-import { escapeHtml } from '@doars/common/src/utils/String.js'
+import { createAutoContexts } from '../utilities/Context.js'
+import { getDeeply, setDeeply } from '@doars/common/src/utilities/Object.js'
+import { escapeHtml } from '@doars/common/src/utilities/String.js'
 
 export default {
   name: 'sync',

@@ -67,7 +67,7 @@ var EventDispatcher = class {
 };
 var EventDispatcher_default = EventDispatcher;
 
-// ../common/src/utils/String.js
+// ../common/src/utilities/String.js
 var escapeHtml = (text) => {
   return text.replace(/\\/g, "\\\\").replace(/\'/g, "\\'").replace(/\"/g, '\\"').replace(/\n/g, "\\n");
 };
@@ -387,7 +387,7 @@ var ProxyDispatcher = class extends EventDispatcher_default {
 };
 var ProxyDispatcher_default = ProxyDispatcher;
 
-// ../common/src/utils/Attribute.js
+// ../common/src/utilities/Attribute.js
 var addAttributes = (element, data) => {
   for (const name in data) {
     if (name === "class") {
@@ -508,7 +508,7 @@ var setAttributes = (element, data) => {
   }
 };
 
-// ../common/src/utils/Element.js
+// ../common/src/utilities/Element.js
 var fromString = (string) => {
   const template = document.createElement("template");
   template.innerHTML = string;
@@ -558,7 +558,7 @@ var walk = (element, filter) => {
   };
 };
 
-// ../common/src/utils/Morph.js
+// ../common/src/utilities/Morph.js
 var morphNode = (existingNode, newNode) => {
   const nodeType = newNode.nodeType;
   const nodeName = newNode.nodeName;
@@ -704,7 +704,7 @@ var updateChildren = (existingNode, newNode) => {
   }
 };
 
-// src/utils/Component.js
+// src/utilities/Component.js
 var closestComponent = (element) => {
   if (!element.parentElement) {
     return;
@@ -716,7 +716,7 @@ var closestComponent = (element) => {
   return closestComponent(element);
 };
 
-// ../common/src/utils/Transition.js
+// ../common/src/utilities/Transition.js
 var TRANSITION_NAME = "-transition:";
 var transition = (type, component, element, callback = null) => {
   if (element.nodeType !== 1) {
@@ -853,7 +853,7 @@ var Component = class {
     if (!processExpression) {
       console.error("Doars: No expression processor available. Process option: ", process);
     }
-    const directiveUtils = Object.freeze({
+    const directiveUtilities = Object.freeze({
       morphTree,
       processExpression,
       transition,
@@ -936,7 +936,7 @@ var Component = class {
         for (const attribute of attributes) {
           const directive = directives[attribute.getKey()];
           if (directive) {
-            directive.destroy(this, attribute, directiveUtils);
+            directive.destroy(this, attribute, directiveUtilities);
           }
           attribute.destroy();
         }
@@ -1005,7 +1005,7 @@ var Component = class {
       const directives = library.getDirectivesObject;
       const directive = directives[attribute.getKey()];
       if (directive && directive.destroy) {
-        directive.destroy(this, attribute, directiveUtils);
+        directive.destroy(this, attribute, directiveUtilities);
       }
       attributes.splice(indexInAttributes, 1);
       attribute.destroy();
@@ -1036,7 +1036,7 @@ var Component = class {
       attribute.clearAccessed();
       const directive = directives[attribute.getDirective()];
       if (directive) {
-        directive.update(this, attribute, directiveUtils);
+        directive.update(this, attribute, directiveUtilities);
       }
     };
     this.updateAttributes = (attributes2) => {
@@ -1377,7 +1377,7 @@ var state_default = {
   }
 };
 
-// ../common/src/utils/Promise.js
+// ../common/src/utilities/Promise.js
 var nativePromise = Function.prototype.toString.call(Function).replace("Function", "Promise").replace(/\(.*\)/, "()");
 var isPromise = (value) => {
   return value && Object.prototype.toString.call(value) === "[object Promise]";
@@ -1599,7 +1599,7 @@ var for_default2 = {
   }
 };
 
-// ../common/src/utils/Html.js
+// ../common/src/utilities/Html.js
 var DECODE_LOOKUP = {
   "&amp;": "&",
   "&#38;": "&",
@@ -2246,8 +2246,8 @@ var show_default = {
   }
 };
 
-// src/utils/Context.js
-var createContextUtils = () => {
+// src/utilities/Context.js
+var createContextUtilities = () => {
   return {
     createContexts,
     createContextsProxy,
@@ -2264,7 +2264,7 @@ var createContexts = (component, attribute, update, extra = null) => {
     if (!creatableContext || !creatableContext.name) {
       continue;
     }
-    const result = creatableContext.create(component, attribute, update, createContextUtils());
+    const result = creatableContext.create(component, attribute, update, createContextUtilities());
     if (!result || !result.value) {
       continue;
     }
@@ -2287,7 +2287,7 @@ var createContexts = (component, attribute, update, extra = null) => {
     contexts,
     destroy: () => {
       for (const destroyFunction of destroyFunctions) {
-        destroyFunction(createContextUtils());
+        destroyFunction(createContextUtilities());
       }
     },
     after,
@@ -2344,7 +2344,7 @@ var createAutoContexts = (component, attribute, extra = null) => {
   }];
 };
 
-// ../common/src/utils/Object.js
+// ../common/src/utilities/Object.js
 var getDeeply = (object, path) => {
   let objectTemp = object;
   let i = 0;
@@ -3031,7 +3031,7 @@ var Doars = class extends EventDispatcher_default {
   }
 };
 
-// src/utils/Execute.js
+// src/utilities/Execute.js
 var execute = (component, attribute, expression, extra = null, options = null) => {
   options = Object.assign({
     return: true

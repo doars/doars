@@ -1,4 +1,4 @@
-import { isPromise } from '@doars/common/src/utils/Promise.js'
+import { isPromise } from '@doars/common/src/utilities/Promise.js'
 
 export default {
   name: 'text',

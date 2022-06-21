@@ -6,9 +6,9 @@
 
 # Doars
 
-Build reactive web pages without leaving your HTML. Large font-end frameworks come at a big cost from compiling to loading. Doars is a declarative and light solution that scans the web page and processes the directives found as well as keep the state and content up to date.
+Build reactive websites without leaving your HTML. Most other font-end frameworks come at a cost from compiling to loading. Doars is a declarative and light solution that scans the webpage then processes the instructions found as well as keep the state and content up-to-date.
 
-Write logic directly in your layout. Simply look at the HTML and read what it does, not just what structure it has. You won't need to dig through other files since the functionality is written on the relevant element itself.
+You can write logic directly in your layout, as a result you have to simply look at the HTML to read what the elements do. You won't need to dig through other files because the functionality is written on the structure itself.
 
 ```HTML
 <!-- Add library to the document from a CDN. -->
@@ -42,9 +42,9 @@ Write logic directly in your layout. Simply look at the HTML and read what it do
 </div>
 ```
 
-But don't worry, the markup is still yours! We promise we won't take it away. You can still modify the document directly in code and we will do all the work to stay up to date.
+But don't worry, the markup is still yours! I promise I won't take it away. You can still modify the document directly in your own code and the library will do all the work to stay up to date.
 
-Use as much or as little as you want. Doars can easily be added to an existing project since this solution doesn't force you to adopt an application wide architecture. You only need to load the library onto the page and add instructions in the form of attributes to your layouts.
+Use as much or as little as you want. Doars can easily be added to an existing server side rendered or statically generated project because this solution doesn't force you to adopt an application wide architecture. You only need to load the library onto the page and add instructions in the form of attributes to your layouts.
 
 ## Packages
 
@@ -59,3 +59,11 @@ This mono-repository includes the core library as well as several plugins. See t
 | [@doars/doars-store](https://github.com/doars/doars/tree/main/packages/doars-store#readme)   | Plugin that adds a store context for global state management.                                                  |
 | [@doars/doars-update](https://github.com/doars/doars/tree/main/packages/doars-update#readme) | Plugin that adds an update loop context and directive.                                                         |
 | [@doars/doars-view](https://github.com/doars/doars/tree/main/packages/doars-view#readme)     | Plugin that adds a view directive for reacting to intersection changes.                                        |
+
+## Contributing
+
+If you are using the library and are running into an problem that you don't know how to solve, or would love to see a particular feature then feel free to [create an issue](./issues/new/choose). Or perhaps you want to make that cool feature, or help out in any other way. Then you are more then welcome! Read more about how to [contribute](./CONTRIBUTING.md).
+
+## In the wild
+
+If you are using Doars then please [let me know](https://rondekker.com#contact), I would love to hear about it!

@@ -1,5 +1,5 @@
 (() => {
-  // ../common/src/utils/Object.js
+  // ../common/src/utilities/Object.js
   var deepAssign = (target, ...sources) => {
     if (!sources.length) {
       return target;
@@ -34,7 +34,7 @@
     return value && typeof value === "object" && !Array.isArray(value);
   };
 
-  // src/utils/FetchUtils.js
+  // src/utilities/Fetch.js
   var parseResponse = (response, type) => {
     let promise;
     switch (String.prototype.toLowerCase.call(type)) {
@@ -132,18 +132,49 @@
     };
   };
 
+  // src/symbols.js
+  var FETCH = Symbol("FETCH");
+
+  // src/factories/directives/fetch.js
+  var fetch_default2 = ({
+    defaultInit,
+    encodingConverters
+  }) => {
+    return {
+      name: "fetch",
+      update: (component, attribute, {
+        processExpression
+      }) => {
+      }
+    };
+  };
+
   // src/DoarsFetch.js
   var DoarsFetch = class {
     constructor(library, options = null) {
       options = Object.assign({
-        defaultInit: {}
+        defaultInit: {},
+        encodingConverters: {
+          "application/json": () => {
+          },
+          "application/x-www-form-urlencoded": () => {
+          },
+          "multipart/formdata": () => {
+          }
+        }
       }, options);
-      const fetchContext = fetch_default(options);
+      let fetchContext, fetchDirective;
       library.addEventListener("enabling", () => {
+        fetchContext = fetch_default(options);
         library.addContexts(0, fetchContext);
+        fetchDirective = fetch_default2(options);
+        library.addDirectives(-1, fetchDirective);
       });
       library.addEventListener("disabling", () => {
         library.removeContexts(fetchContext);
+        fetchContext = null;
+        library.removeDirective(fetchDirective);
+        fetchDirective = null;
       });
     }
   };
