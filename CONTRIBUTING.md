@@ -10,12 +10,18 @@ Welcome and thank you for wanting to contribute! Following these guidelines help
   - [Reporting a vulnerability](#reporting-a-vulnerability)
 - [Issues](#issues)
 - [Creating pull requests](#creating-pull-requests)
-  - [Follow styling](#follow-styling)
+  - [Follow style guide](#follow-style-guide)
   - [Write documentation](#write-documentation)
+  - [Write examples](#write-examples)
+  - [Write tests](#write-tests)
   - [Sign off commits](#sign-off-commits)
 - [Reviewing pull requests](#reviewing-pull-requests)
-
-> TODO: Add section about tests.
+- [Architecture](#architecture)
+  - [Repository architecture](#repository-architecture)
+  - [Doars architecture](#doars-architecture)
+  - [Context architecture](#context-architecture)
+  - [Directive architecture](#directive-architecture)
+  - [Plugin architecture](#plugin-architecture)
 
 ## Security
 
@@ -62,13 +68,13 @@ To create a pull request first fork the repository, make and and commit your cha
 
 When making changes make sure you do everything listed below.
 
-- Follow styling.
+- Follow style guide.
 - Write documentation.
 - Sign off commits.
 
-### Follow styling
+### Follow style-guide
 
-There is no specific styling guide to use. There are however two which can automatically be enforced by [EditorConfig](https://editorconfig.org) and [ESLint](https://eslint.org) using the `.editorconfig` and `.eslintrc.js` file respectively. Therefore you are recommend to install a plugin to automate this process. See [EditorConfig's download section](https://editorconfig.org/#download) for a list of editor extensions. Depending on your preferences you can enable the format / lint on save option in several editors as well.
+There is no specific style guide to use. There are however two which can automatically be enforced by [EditorConfig](https://editorconfig.org) and [ESLint](https://eslint.org) using the `.editorconfig` and `.eslintrc.js` file respectively. Therefore you are recommend to install a plugin to automate this process. See [EditorConfig's download section](https://editorconfig.org/#download) for a list of editor extensions. Depending on your preferences you can enable the format / lint on save option in several editors as well.
 
 ### Write documentation
 
@@ -88,10 +94,33 @@ Ensure your commits are signed off on at the end of your commit message, like so
 
 Before a pull request is allowed to be merged into the master branch at least one other contributor has to review and approve the changes made.
 
-- Changes follow styling.
+- Changes follow style guide.
 - Linter runs successfully.
-- Tests are up to date.
-- Tests runs successfully.
-- Documentation is up to date.
-- Examples are up to date.
+- Documentation is up-to-date and correct.
+- Examples are up-to-date and run successfully.
+- Tests are up to date and run successfully.
 - Commits are signed off.
+
+## Architecture
+
+TODO:
+
+### Repository architecture
+
+TODO:
+
+### Doars architecture
+
+TODO:
+
+### Context architecture
+
+TODO:
+
+### Directive architecture
+
+TODO:
+
+### Plugin architecture
+
+TODO:

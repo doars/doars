@@ -4,13 +4,13 @@ import esbuild from 'esbuild'
 import path from 'path'
 
 const logFileSize = async (filePath) => {
-  let size = await brotliSize.file(filePath)
-  if (!size || size <= 0) {
-    size = 'NaN'
-  } else {
-    size = (size / 1024).toFixed(2) + 'kB'
-  }
-  console.log(size + ' is ' + path.basename(filePath) + ' when using brotli compression!')
+  brotliSize.file(filePath)
+    .then((size) => {
+      size = (size / 1024).toFixed(2) + 'kB'
+      console.log(size + ' is ' + path.basename(filePath) + ' when using brotli compression!')
+    }).catch(() => {
+      console.log('Unable to determine file size of ' + path.basename(filePath))
+    })
 }
 
 export default (file, formats = null, options = {}) => {
@@ -88,10 +88,12 @@ export default (file, formats = null, options = {}) => {
     esbuild
       .build(buildOptions)
       .then(() => {
+        // Log file size for production builds.
         if (format.minify) {
           logFileSize(filePath)
         }
       })
+      // Exit on error.
       .catch(() => process.exit(1))
   }
 }

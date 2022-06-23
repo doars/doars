@@ -25,7 +25,7 @@ The core library, it manages the components and plugins as well as includes the 
 - [Writing contexts](#writing-contexts)
 - [Writing directives](#writing-directives)
 - [Writing plugins](#writing-plugins)
-- [Comparison](#comparison)
+- [Comparing](#comparing)
 - [Migrating](#migrating)
 
 ## Install
@@ -1166,11 +1166,11 @@ And there you have it, most of what you need to know about writing your own cust
 
 > TODO: See the [plugin packages](https://github.com/doars/doars/tree/main/packages) for now.
 
-## Comparison
+## Comparing
 
 ### Compared to CSR
 
-Client Side rendering
+Client Side Rendering
 
 TODO:
 
