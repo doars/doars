@@ -60,11 +60,11 @@ export default function () {
           r('button', {
             class: 'flex-grow md:flex-grow-0',
             'onclick': () => {
-              window.copyToClipboard('https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.iife.js')
+              window.copyToClipboard('https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js')
             },
           }, [
             '&#160;',
-            r('code', 'https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.iife.js'),
+            r('code', 'https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js'),
             '&#160;&#160;',
             iconCopy,
           ]),
@@ -95,7 +95,7 @@ export default function () {
             '</div>',
             '',
             '<!-- Import library. -->',
-            '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.iife.js"></script>',
+            '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>',
             '<script>',
             '  document.addEventListener(\'DOMContentLoaded\', () => {',
             '    // Setup and enable the library.',
@@ -182,7 +182,7 @@ export default function () {
             '<button onclick="increment()">Increment</button>',
             '',
             '<!-- Import library. -->',
-            '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.iife.js"></script>',
+            '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>',
             '<script>',
             '  // Increment count and set to text directive.',
             '  let count = 0',
@@ -414,7 +414,7 @@ export default function () {
               code({}, [
                 '<script type="module">',
                 '  // Import library.',
-                '  import doars from \'https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.esm.js\'',
+                '  import doars from \'https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.esm.js\'',
                 '',
                 '  // Setup and enable the library.',
                 '  const doars = new Doars()',
@@ -430,7 +430,7 @@ export default function () {
             }, [
               code({}, [
                 '<!-- Import library. -->',
-                '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.iife.js"></script>',
+                '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>',
                 '<script>',
                 '  document.addEventListener(\'DOMContentLoaded\', () => {',
                 '    // Setup and enable the library.',

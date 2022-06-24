@@ -42,7 +42,7 @@ You can write logic directly in your layout, as a result you have to simply look
 </div>
 ```
 
-But don't worry, the markup is still yours! I promise I won't take it away. You can still modify the document directly in your own code and the library will do all the work to stay up to date.
+But don't worry, the markup is still yours! We promise we won't take it away. You can still modify the document directly in your own code and the library will do all the work to stay up to date.
 
 Use as much or as little as you want. Doars can easily be added to an existing server side rendered or statically generated project because this solution doesn't force you to adopt an application wide architecture. You only need to load the library onto the page and add instructions in the form of attributes to your layouts.
 
