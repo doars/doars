@@ -50,7 +50,7 @@ export default class Doars extends EventDispatcher {
     let { prefix, root } = options = Object.assign({
       prefix: 'd',
       processor: 'execute',
-      root: document.body.firstElementChild,
+      root: document.body,
     }, options)
     // If root is a string assume it is a selector.
     if (typeof (root) === 'string') {
@@ -591,6 +591,8 @@ export default class Doars extends EventDispatcher {
       if (Object.getOwnPropertySymbols(triggers).length === 0) {
         return
       }
+
+      this.dispatchEvent('updating', [this])
 
       // Set as updating.
       isUpdating = true

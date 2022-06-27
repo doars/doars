@@ -155,7 +155,9 @@ export default {
 
       // Process iterable based on type.
       const iterableType = typeof (iterable)
-      if (iterableType === 'number') {
+      if (iterable === null || iterable === undefined) {
+        length = 0
+      } else if (iterableType === 'number') {
         for (let index = 0; index < iterable; index++) {
           // Setup variables for context.
           const variables = createVariables(expression.variables, index)

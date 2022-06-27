@@ -11,10 +11,11 @@ export const call = (
   options = null
 ) => {
   // Create contexts.
-  const [contexts, destroyContexts] = createAutoContexts(component, attribute, update, extra)
+  const [contexts, destroyContexts] = createAutoContexts(component, attribute, extra)
 
-  // Get result from
+  // Get result from the expression.
   expression = expression.trim()
+  let result
   if (!PATH_VALIDATOR.test(expression)) {
     console.error('Error encountered when executing an expression. Expression is not a valid dot separated path: ', expression)
     result = null

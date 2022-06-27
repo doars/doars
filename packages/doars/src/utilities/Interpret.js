@@ -14,9 +14,9 @@ export const interpret = (
   }, options)
 
   // Create contexts.
-  const [contexts, destroyContexts] = createAutoContexts(component, attribute, update, extra)
+  const [contexts, destroyContexts] = createAutoContexts(component, attribute, extra)
 
-  // Try to execute code.
+  // Get result from the expression.
   let result
   try {
     const expressionParsed = parse(expression)
