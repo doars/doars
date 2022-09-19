@@ -178,5 +178,8 @@
       });
     }
   };
+
+  // src/DoarsFetch.iife.js
+  window.DoarsFetch = DoarsFetch;
 })();
 //# sourceMappingURL=doars-fetch.iife.js.map

@@ -3,7 +3,7 @@ import {
   CONDITION,
   IDENTIFIER,
   LITERAL,
-} from '../src/types.js'
+} from '../../src/types.js'
 import test from './utilities/test.js'
 
 test('Ternary', 'false == false ? 1 : 2', 1, {

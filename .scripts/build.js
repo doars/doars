@@ -13,29 +13,19 @@ const logFileSize = async (filePath) => {
     })
 }
 
-export default (file, formats = null, options = {}) => {
-  // Ensure formats are set.
-  if (!formats) {
-    formats = [{
-      format: 'esm',
-      minify: false,
-    }, {
-      format: 'iife',
-      minify: false,
-    }]
-    // For production builds add the minified files as well.
-    if (process.env.NODE_ENV === 'production') {
-      formats.push({
-        format: 'esm',
+export default (files, options = {}) => {
+  // For production builds add the minified files as well.
+  if (process.env.NODE_ENV === 'production') {
+    let filesClone = [...files]
+    for (const file of files) {
+      filesClone.push(Object.assign({
         minify: true,
-      }, {
-        format: 'iife',
-        minify: true,
-      })
+      }, file))
     }
+    files = filesClone
   }
 
-  for (const format of formats) {
+  for (const file of files) {
     // Ensure build targets are set.
     let buildTargets = {
       chrome: '49',
@@ -69,15 +59,16 @@ export default (file, formats = null, options = {}) => {
       ],
 
       watch: process.env.NODE_ENV === 'development',
-    }, format)
+    }, file)
 
     // Setup file paths.
-    buildOptions.entryPoints = [file.in]
-    buildOptions.outfile = file.out
+    if (!Array.isArray(buildOptions.entryPoints)) {
+      buildOptions.entryPoints = [buildOptions.entryPoints]
+    }
 
     // Construct target file path.
-    const suffixes = [format.format]
-    if (format.minify) {
+    const suffixes = [file.format]
+    if (file.minify) {
       suffixes.push('min')
     }
     let filePath = buildOptions.outfile.split('.')
@@ -89,7 +80,7 @@ export default (file, formats = null, options = {}) => {
       .build(buildOptions)
       .then(() => {
         // Log file size for production builds.
-        if (format.minify) {
+        if (file.minify) {
           logFileSize(filePath)
         }
       })

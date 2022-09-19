@@ -1,7 +1,7 @@
 import {
   IDENTIFIER,
   UPDATE,
-} from '../src/types.js'
+} from '../../src/types.js'
 import test from './utilities/test.js'
 
 test('Update', '++hello', 2, {

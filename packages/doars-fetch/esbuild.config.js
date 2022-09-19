@@ -1,9 +1,14 @@
-import build from '../../scripts/build.js'
+import build from '../../.scripts/build.js'
 
-build({
-  in: 'src/DoarsFetch.js',
-  out: 'dst/doars-fetch.js',
-}, null, {
+build([{
+  entryPoints: 'src/DoarsFetch.js',
+  format: 'esm',
+  outfile: 'dst/doars-fetch.js',
+}, {
+  format: 'iife',
+  entryPoints: 'src/DoarsFetch.iife.js',
+  outfile: 'dst/doars-fetch.js',
+}], {
   targets: {
     chrome: '49',
     edge: '14',

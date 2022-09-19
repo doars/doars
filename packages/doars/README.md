@@ -25,8 +25,6 @@ The core library, it manages the components and plugins as well as includes the 
 - [Writing contexts](#writing-contexts)
 - [Writing directives](#writing-directives)
 - [Writing plugins](#writing-plugins)
-- [Comparing](#comparing)
-- [Migrating](#migrating)
 
 ## Install
 
@@ -1165,29 +1163,3 @@ And there you have it, most of what you need to know about writing your own cust
 ## Writing plugins
 
 > TODO: See the [plugin packages](https://github.com/doars/doars/tree/main/packages) for now.
-
-## Comparing
-
-### Compared to CSR
-
-Client Side Rendering
-
-TODO:
-
-### Compared to Alpine.js
-
-TODO:
-
-### Compared to htmx
-
-TODO:
-
-## Migrating
-
-### From 1 to 2
-
-TODO:
-
-### From AlpineJS
-
-TODO:

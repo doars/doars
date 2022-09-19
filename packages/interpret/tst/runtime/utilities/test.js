@@ -2,8 +2,8 @@
 import { assert } from 'chai'
 
 // Import code to test.
-import parse from '../../src/parse.js'
-import run from '../../src/run.js'
+import parse from '../../../src/parse.js'
+import run from '../../../src/run.js'
 
 export default (
   name,

@@ -256,5 +256,8 @@
       });
     }
   };
+
+  // src/DoarsStore.iife.js
+  window.DoarsStore = DoarsStore;
 })();
 //# sourceMappingURL=doars-store.iife.js.map

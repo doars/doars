@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doars interpret iife min example</title>
+  </head>
+
+  <body>
+    <div d-state></div>
+
+    <script src="/packages/doars/dst/doars-interpret.iife.min.js"></script>
+    <script>
+      // Wait for the DOM to be interactive.
+      document.addEventListener('DOMContentLoaded', () => {
+        // Setup a library instance.
+        const doars = new window.Doars({
+          processor: 'interpret',
+        })
+
+        // Log enabled.
+        doars.addEventListener('enabled', () => {
+          console.log('Enabled!')
+        })
+
+        // Enable library.
+        doars.enable()
+      })
+    </script>
+  </body>
+
+</html>

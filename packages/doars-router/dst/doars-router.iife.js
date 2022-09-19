@@ -739,5 +739,8 @@
       });
     }
   };
+
+  // src/DoarsRouter.iife.js
+  window.DoarsRouter = DoarsRouter;
 })();
 //# sourceMappingURL=doars-router.iife.js.map

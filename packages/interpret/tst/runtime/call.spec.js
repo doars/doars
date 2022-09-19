@@ -6,7 +6,7 @@ import {
   MEMBER,
   OBJECT,
   PROPERTY,
-} from '../src/types.js'
+} from '../../src/types.js'
 import test from './utilities/test.js'
 
 let callbackTemp

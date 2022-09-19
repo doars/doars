@@ -2,7 +2,7 @@ import {
   IDENTIFIER,
   LITERAL,
   UNARY,
-} from '../src/types.js'
+} from '../../src/types.js'
 import test from './utilities/test.js'
 
 test('Unary', '+1', 1, {

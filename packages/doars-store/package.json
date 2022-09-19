@@ -28,12 +28,12 @@
   },
   "scripts": {
     "build": "NODE_ENV=production node esbuild.config.js",
-    "cypress": "cypress open",
-    "dev": "yarn run develop",
     "develop": "NODE_ENV=development node esbuild.config.js",
     "lint": "eslint src/** --cache --fix --no-error-on-unmatched-pattern",
     "release": "yarn run lint && yarn run test && yarn run build && yarn publish",
-    "test": "cypress run"
+    "test": "yarn run test:browser && yarn run test:runtime",
+    "test:browser": "echo 'todo'",
+    "test:runtime": "echo 'todo'"
   },
   "files": [
     "dst",

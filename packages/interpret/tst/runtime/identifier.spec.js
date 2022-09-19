@@ -1,6 +1,6 @@
 import {
   IDENTIFIER,
-} from '../src/types.js'
+} from '../../src/types.js'
 import test from './utilities/test.js'
 
 test('Identifier', 'hello', undefined, {

@@ -1,6 +1,11 @@
-import build from '../../scripts/build.js'
+import build from '../../.scripts/build.js'
 
-build({
-  in: 'src/DoarsAlias.js',
-  out: 'dst/doars-alias.js',
-})
+build([{
+  entryPoints: 'src/DoarsAlias.js',
+  format: 'esm',
+  outfile: 'dst/doars-alias.js',
+}, {
+  format: 'iife',
+  entryPoints: 'src/DoarsAlias.iife.js',
+  outfile: 'dst/doars-alias.js',
+}])

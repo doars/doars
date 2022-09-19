@@ -4,7 +4,7 @@ import {
   LITERAL,
   OBJECT,
   PROPERTY,
-} from '../src/types.js'
+} from '../../src/types.js'
 import test from './utilities/test.js'
 
 test('Array', '[]', [], {

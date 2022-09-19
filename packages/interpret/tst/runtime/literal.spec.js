@@ -1,6 +1,6 @@
 import {
   LITERAL,
-} from '../src/types.js'
+} from '../../src/types.js'
 import test from './utilities/test.js'
 
 test('Literal', 'undefined', undefined, {

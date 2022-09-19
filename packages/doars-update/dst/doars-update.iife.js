@@ -349,5 +349,8 @@
       });
     }
   };
+
+  // src/DoarsUpdate.iife.js
+  window.DoarsUpdate = DoarsUpdate;
 })();
 //# sourceMappingURL=doars-update.iife.js.map

@@ -1,6 +1,11 @@
-import build from '../../scripts/build.js'
+import build from '../../.scripts/build.js'
 
-build({
-  in: 'src/DoarsRouter.js',
-  out: 'dst/doars-router.js',
-})
+build([{
+  entryPoints: 'src/DoarsRouter.js',
+  format: 'esm',
+  outfile: 'dst/doars-router.js',
+}, {
+  format: 'iife',
+  entryPoints: 'src/DoarsRouter.iife.js',
+  outfile: 'dst/doars-router.js',
+}])

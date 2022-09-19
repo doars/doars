@@ -167,7 +167,7 @@ export default class Component {
       const value = element.attributes[componentName].value
 
       // Process expression for generating the state using a mock attribute.
-      data = processExpression(this, new Attribute(this, element, null, value), value)
+      data = value ? processExpression(this, new Attribute(this, element, null, value), value) : {}
       if (data === null) {
         data = {}
       } else if (typeof (data) !== 'object' || Array.isArray(data)) {

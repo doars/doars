@@ -7,25 +7,29 @@
   ],
   "type": "module",
   "scripts": {
+    "build": "yarn workspaces run build",
     "docs:build": "yarn workspace @doars/docs run build",
     "docs:develop": "yarn workspace @doars/docs run develop",
     "lint": "yarn workspaces run lint",
-    "serve": "serve"
+    "test": "yarn workspaces run test",
+    "test:browser": "yarn workspaces run test:browser",
+    "test:runtime": "yarn workspaces run test:runtime"
   },
   "devDependencies": {
-    "@babel/core": "^7.18.5",
-    "@babel/preset-env": "^7.18.2",
-    "brotli-size": "^4.0.0",
-    "chai": "^4.3.6",
-    "playwright": "^1.22.2",
-    "esbuild": "^0.14.46",
-    "esbuild-plugin-babel": "^0.2.3",
-    "eslint-config-standard": "^17.0.0",
-    "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^6.0.0",
-    "eslint": "^8.18.0",
-    "mocha": "^10.0.0"
+    "@babel/core": "7.19.x",
+    "@babel/preset-env": "7.19.x",
+    "@playwright/test": "1.25.x",
+    "brotli-size": "4.0.x",
+    "chai": "4.3.x",
+    "esbuild": "0.15.x",
+    "esbuild-plugin-babel": "0.2.x",
+    "eslint": "8.23.x",
+    "eslint-config-standard": "17.0.x",
+    "eslint-plugin-import": "2.26.x",
+    "eslint-plugin-n": "15.0.x",
+    "eslint-plugin-node": "11.1.x",
+    "eslint-plugin-promise": "6.0.x",
+    "mocha": "10.0.x"
   },
   "dependencies": {}
 }

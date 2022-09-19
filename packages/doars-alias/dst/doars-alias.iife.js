@@ -177,5 +177,8 @@
       });
     }
   };
+
+  // src/DoarsAlias.iife.js
+  window.DoarsAlias = DoarsAlias;
 })();
 //# sourceMappingURL=doars-alias.iife.js.map

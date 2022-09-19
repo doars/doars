@@ -24,10 +24,13 @@
     "access": "public"
   },
   "scripts": {
-    "build": "echo 'no building'",
+    "build": "echo 'no production builds'",
+    "develop": "echo 'no development builds'",
     "lint": "eslint src/** --cache --fix --no-error-on-unmatched-pattern",
     "release": "yarn run lint && yarn publish",
-    "test": "echo 'no testing'"
+    "test": "yarn run test:browser && yarn run test:runtime",
+    "test:browser": "echo 'todo'",
+    "test:runtime": "echo 'todo'"
   },
   "files": [
     "src",

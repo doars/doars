@@ -912,7 +912,7 @@
         isInitialized = true;
         const componentName = prefix + "-state";
         const value = element.attributes[componentName].value;
-        data = processExpression(this, new Attribute(this, element, null, value), value);
+        data = value ? processExpression(this, new Attribute(this, element, null, value), value) : {};
         if (data === null) {
           data = {};
         } else if (typeof data !== "object" || Array.isArray(data)) {
@@ -1379,7 +1379,9 @@
   };
 
   // ../common/src/utilities/Promise.js
-  var nativePromise = Function.prototype.toString.call(Function).replace("Function", "Promise").replace(/\(.*\)/, "()");
+  var nativePromise = Function.prototype.toString.call(
+    Function
+  ).replace("Function", "Promise").replace(/\(.*\)/, "()");
   var isPromise = (value) => {
     return value && Object.prototype.toString.call(value) === "[object Promise]";
   };
@@ -1521,7 +1523,9 @@
         const data2 = attribute.getData();
         const elements = data2.elements ? data2.elements : [];
         const iterableType = typeof iterable;
-        if (iterableType === "number") {
+        if (iterable === null || iterable === void 0) {
+          length = 0;
+        } else if (iterableType === "number") {
           for (let index = 0; index < iterable; index++) {
             const variables = createVariables(expression.variables, index);
             setAfter(component, update, template, elements, index - 1, iterable, variables);
@@ -1535,30 +1539,30 @@
           }
           removeAfter(component, elements, iterable.length);
         } else {
-          let isArray, length;
+          let isArray, length2;
           try {
             const values = [...iterable];
             isArray = true;
-            length = values.length;
+            length2 = values.length;
           } catch {
           }
           if (isArray) {
-            for (let index = 0; index < length; index++) {
+            for (let index = 0; index < length2; index++) {
               const value = iterable[index];
               const variables = createVariables(expression.variables, value, index);
               setAfter(component, update, template, elements, index - 1, value, variables);
             }
           } else {
             const keys = Object.keys(iterable);
-            length = keys.length;
-            for (let index = 0; index < length; index++) {
+            length2 = keys.length;
+            for (let index = 0; index < length2; index++) {
               const key = keys[index];
               const value = iterable[key];
               const variables = createVariables(expression.variables, key, value, index);
               setAfter(component, update, template, elements, index - 1, value, variables);
             }
           }
-          removeAfter(component, elements, length);
+          removeAfter(component, elements, length2);
         }
         if (Object.getOwnPropertySymbols(triggers).length > 0) {
           component.update(triggers);
@@ -2578,7 +2582,7 @@
       } = options = Object.assign({
         prefix: "d",
         processor: "execute",
-        root: document.body.firstElementChild
+        root: document.body
       }, options);
       if (typeof root === "string") {
         options.root = root = document.querySelector(root);
@@ -2866,6 +2870,7 @@
         if (Object.getOwnPropertySymbols(triggers).length === 0) {
           return;
         }
+        this.dispatchEvent("updating", [this]);
         isUpdating = true;
         _triggers = triggers;
         triggers = {};
@@ -3070,5 +3075,8 @@
   // src/DoarsExecute.js
   Doars.executeExpression = execute;
   var DoarsExecute_default = Doars;
+
+  // src/DoarsExecute.iife.js
+  window.Doars = DoarsExecute_default;
 })();
 //# sourceMappingURL=doars.iife.js.map

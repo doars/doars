@@ -175,5 +175,8 @@
       });
     }
   };
+
+  // src/DoarsView.iife.js
+  window.DoarsView = DoarsView;
 })();
 //# sourceMappingURL=doars-view.iife.js.map

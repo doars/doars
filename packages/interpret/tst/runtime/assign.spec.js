@@ -2,7 +2,7 @@ import {
   ASSIGN,
   IDENTIFIER,
   LITERAL,
-} from '../src/types.js'
+} from '../../src/types.js'
 import test from './utilities/test.js'
 
 test('Assign', 'hello = "world"', 'world', {

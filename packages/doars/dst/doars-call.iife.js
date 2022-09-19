@@ -76,15 +76,15 @@
     return text.replace(/-(\w)/g, (match, character) => character.toUpperCase());
   };
   var parseAttributeModifiers = (modifiers) => {
-    const result2 = {};
+    const result = {};
     for (const modifier of modifiers) {
       const hyphenIndex = modifier.indexOf("-");
       if (hyphenIndex < 0) {
-        result2[modifier] = true;
+        result[modifier] = true;
         continue;
       }
       if (hyphenIndex === 0) {
-        result2[modifier.substring(1)] = false;
+        result[modifier.substring(1)] = false;
         continue;
       }
       const key = modifier.substring(0, hyphenIndex);
@@ -116,9 +116,9 @@
             break;
         }
       }
-      result2[key] = value;
+      result[key] = value;
     }
-    return result2;
+    return result;
   };
   var parseAttributeName = (prefix, name) => {
     name = name.match(new RegExp("^" + prefix + "-([a-z][0-9a-z-]{1,}):?([a-z][0-9a-z-]*)?(\\..*]*)?$", "i"));
@@ -912,7 +912,7 @@
         isInitialized = true;
         const componentName = prefix + "-state";
         const value = element.attributes[componentName].value;
-        data = processExpression(this, new Attribute(this, element, null, value), value);
+        data = value ? processExpression(this, new Attribute(this, element, null, value), value) : {};
         if (data === null) {
           data = {};
         } else if (typeof data !== "object" || Array.isArray(data)) {
@@ -1097,7 +1097,7 @@
   // src/contexts/children.js
   var children_default = {
     name: "$children",
-    create: (component, attribute, update2, {
+    create: (component, attribute, update, {
       createContextsProxy: createContextsProxy2,
       RevocableProxy
     }) => {
@@ -1105,7 +1105,7 @@
       const revocable = RevocableProxy(component.getChildren(), {
         get: (target, key, receiver) => {
           if (!children) {
-            children = target.map((child2) => createContextsProxy2(child2, attribute, update2));
+            children = target.map((child2) => createContextsProxy2(child2, attribute, update));
             attribute.accessed(component.getId(), "children");
           }
           if (isNaN(key)) {
@@ -1168,7 +1168,7 @@
   var for_default = {
     deconstruct: true,
     name: "$for",
-    create: (component, attribute, update2, {
+    create: (component, attribute, update, {
       RevocableProxy
     }) => {
       if (component !== attribute.getComponent()) {
@@ -1211,7 +1211,7 @@
   // src/contexts/inContext.js
   var inContext_default = {
     name: "$inContext",
-    create: (component, attribute, update2, {
+    create: (component, attribute, update, {
       createContexts: createContexts2
     }) => {
       return {
@@ -1227,12 +1227,12 @@
             contexts,
             destroy: destroy3
           } = createContexts2(component, attribute, contextUpdate, {});
-          const result2 = callback(contexts);
+          const result = callback(contexts);
           destroy3();
           if (triggers.length > 0) {
             component.getLibrary().update(triggers);
           }
-          return result2;
+          return result;
         }
       };
     }
@@ -1241,7 +1241,7 @@
   // src/contexts/nextTick.js
   var nextTick_default = {
     name: "$nextTick",
-    create: (component, attribute, update2, {
+    create: (component, attribute, update, {
       createContexts: createContexts2
     }) => {
       let callbacks;
@@ -1258,7 +1258,7 @@
           const {
             contexts,
             destroy: destroy3
-          } = createContexts2(component, attribute, update2, {});
+          } = createContexts2(component, attribute, update, {});
           for (const callback of callbacks) {
             callback(contexts);
           }
@@ -1285,7 +1285,7 @@
   // src/contexts/parent.js
   var parent_default = {
     name: "$parent",
-    create: (component, attribute, update2, {
+    create: (component, attribute, update, {
       createContextsProxy: createContextsProxy2
     }) => {
       const parent = component.getParent();
@@ -1298,7 +1298,7 @@
       const {
         contexts,
         destroy: destroy3
-      } = createContextsProxy2(parent, attribute, update2);
+      } = createContextsProxy2(parent, attribute, update);
       return {
         value: contexts,
         destroy: destroy3
@@ -1309,7 +1309,7 @@
   // src/contexts/references.js
   var references_default = {
     name: "$references",
-    create: (component, attribute, update2, {
+    create: (component, attribute, update, {
       RevocableProxy
     }) => {
       if (!component[REFERENCES]) {
@@ -1351,7 +1351,7 @@
   var state_default = {
     deconstruct: true,
     name: "$state",
-    create: (component, attribute, update2, {
+    create: (component, attribute, update, {
       RevocableProxy
     }) => {
       const proxy = component.getProxy();
@@ -1359,9 +1359,9 @@
       if (!proxy || !state) {
         return;
       }
-      const onDelete = (target, path) => update2(component.getId(), "$state." + path.join("."));
+      const onDelete = (target, path) => update(component.getId(), "$state." + path.join("."));
       const onGet = (target, path) => attribute.accessed(component.getId(), "$state." + path.join("."));
-      const onSet = (target, path) => update2(component.getId(), "$state." + path.join("."));
+      const onSet = (target, path) => update(component.getId(), "$state." + path.join("."));
       proxy.addEventListener("delete", onDelete);
       proxy.addEventListener("get", onGet);
       proxy.addEventListener("set", onSet);
@@ -1379,7 +1379,9 @@
   };
 
   // ../common/src/utilities/Promise.js
-  var nativePromise = Function.prototype.toString.call(Function).replace("Function", "Promise").replace(/\(.*\)/, "()");
+  var nativePromise = Function.prototype.toString.call(
+    Function
+  ).replace("Function", "Promise").replace(/\(.*\)/, "()");
   var isPromise = (value) => {
     return value && Object.prototype.toString.call(value) === "[object Promise]";
   };
@@ -1413,17 +1415,17 @@
         }
         setAttribute(element, key, value);
       };
-      const result2 = processExpression(component, attribute, attribute.getValue());
-      attribute.setData(result2);
-      if (isPromise(result2)) {
-        Promise.resolve(result2).then((resultResolved) => {
-          if (attribute.getData() !== result2) {
+      const result = processExpression(component, attribute, attribute.getValue());
+      attribute.setData(result);
+      if (isPromise(result)) {
+        Promise.resolve(result).then((resultResolved) => {
+          if (attribute.getData() !== result) {
             return;
           }
           set(resultResolved);
         });
       } else {
-        set(result2);
+        set(result);
       }
     }
   };
@@ -1461,7 +1463,7 @@
     }
     return indexInSiblings(elements, value, index);
   };
-  var setAfter = (component, update2, template, elements, index, value, variables) => {
+  var setAfter = (component, update, template, elements, index, value, variables) => {
     const existingIndex = indexInSiblings(elements, value, index);
     if (existingIndex >= 0) {
       if (existingIndex === index + 1) {
@@ -1469,7 +1471,7 @@
       }
       const element2 = elements[existingIndex];
       insertAfter(elements[index] ? elements[index] : template, element2);
-      update2(element2[FOR].id);
+      update(element2[FOR].id);
       return;
     }
     let element = document.importNode(template.content, true);
@@ -1512,7 +1514,7 @@
         return;
       }
       const triggers = {};
-      const update2 = (id) => {
+      const update = (id) => {
         if (!triggers[id]) {
           triggers[id] = ["$for"];
         }
@@ -1521,44 +1523,46 @@
         const data2 = attribute.getData();
         const elements = data2.elements ? data2.elements : [];
         const iterableType = typeof iterable;
-        if (iterableType === "number") {
+        if (iterable === null || iterable === void 0) {
+          length = 0;
+        } else if (iterableType === "number") {
           for (let index = 0; index < iterable; index++) {
             const variables = createVariables(expression.variables, index);
-            setAfter(component, update2, template, elements, index - 1, iterable, variables);
+            setAfter(component, update, template, elements, index - 1, iterable, variables);
           }
           removeAfter(component, elements, iterable);
         } else if (iterableType === "string") {
           for (let index = 0; index < iterable.length; index++) {
             const value = iterable[index];
             const variables = createVariables(expression.variables, value, index);
-            setAfter(component, update2, template, elements, index - 1, value, variables);
+            setAfter(component, update, template, elements, index - 1, value, variables);
           }
           removeAfter(component, elements, iterable.length);
         } else {
-          let isArray, length;
+          let isArray, length2;
           try {
             const values = [...iterable];
             isArray = true;
-            length = values.length;
+            length2 = values.length;
           } catch {
           }
           if (isArray) {
-            for (let index = 0; index < length; index++) {
+            for (let index = 0; index < length2; index++) {
               const value = iterable[index];
               const variables = createVariables(expression.variables, value, index);
-              setAfter(component, update2, template, elements, index - 1, value, variables);
+              setAfter(component, update, template, elements, index - 1, value, variables);
             }
           } else {
             const keys = Object.keys(iterable);
-            length = keys.length;
-            for (let index = 0; index < length; index++) {
+            length2 = keys.length;
+            for (let index = 0; index < length2; index++) {
               const key = keys[index];
               const value = iterable[key];
               const variables = createVariables(expression.variables, key, value, index);
-              setAfter(component, update2, template, elements, index - 1, value, variables);
+              setAfter(component, update, template, elements, index - 1, value, variables);
             }
           }
-          removeAfter(component, elements, length);
+          removeAfter(component, elements, length2);
         }
         if (Object.getOwnPropertySymbols(triggers).length > 0) {
           component.update(triggers);
@@ -1567,25 +1571,25 @@
           elements
         }));
       };
-      let result2;
+      let result;
       if (!isNaN(expression.iterable)) {
-        result2 = Number(expression.iterable);
+        result = Number(expression.iterable);
       } else {
-        result2 = processExpression(component, attribute, expression.iterable);
+        result = processExpression(component, attribute, expression.iterable);
       }
       const data = attribute.getData();
       attribute.setData(Object.assign({}, data, {
-        result: result2
+        result
       }));
-      if (isPromise(result2)) {
-        Promise.resolve(result2).then((resultResolved) => {
-          if (attribute.getData().result !== result2) {
+      if (isPromise(result)) {
+        Promise.resolve(result).then((resultResolved) => {
+          if (attribute.getData().result !== result) {
             return;
           }
           set(resultResolved);
         });
       } else {
-        set(result2);
+        set(result);
       }
     },
     destroy: (component, attribute) => {
@@ -1666,17 +1670,17 @@
         }
         console.error("Doars/directives/html: Unknown type returned to directive!");
       };
-      const result2 = processExpression(component, attribute, attribute.getValue());
-      attribute.setData(result2);
-      if (isPromise(result2)) {
-        Promise.resolve(result2).then((resultResolved) => {
-          if (attribute.getData() !== result2) {
+      const result = processExpression(component, attribute, attribute.getValue());
+      attribute.setData(result);
+      if (isPromise(result)) {
+        Promise.resolve(result).then((resultResolved) => {
+          if (attribute.getData() !== result) {
             return;
           }
           set(resultResolved);
         });
       } else {
-        set(result2);
+        set(result);
       }
     }
   };
@@ -1698,11 +1702,11 @@
         console.warn("Doars: `if` directive must have a single child node.");
         return;
       }
-      const set = (result3) => {
+      const set = (result2) => {
         const data2 = attribute.getData();
         let element = data2.element;
         let transition2 = data2.transition;
-        if (!result3) {
+        if (!result2) {
           if (element) {
             if (transition2) {
               transition2();
@@ -1725,20 +1729,20 @@
           transition: transition2
         }));
       };
-      const result2 = processExpression(component, attribute, attribute.getValue());
+      const result = processExpression(component, attribute, attribute.getValue());
       const data = attribute.getData();
       attribute.setData(Object.assign({}, data, {
-        result: result2
+        result
       }));
-      if (isPromise(result2)) {
-        Promise.resolve(result2).then((result3) => {
-          if (attribute.getData().result !== result3) {
+      if (isPromise(result)) {
+        Promise.resolve(result).then((result2) => {
+          if (attribute.getData().result !== result2) {
             return;
           }
-          set(result3);
+          set(result2);
         });
       } else {
-        set(result2);
+        set(result);
       }
     },
     destroy: (component, attribute, {
@@ -2184,17 +2188,17 @@
           }
         }
       };
-      const result2 = processExpression(component, attribute, attribute.getValue());
-      attribute.setData(result2);
-      if (isPromise(result2)) {
-        Promise.resolve(result2).then((resultResolved) => {
-          if (attribute.getData() !== result2) {
+      const result = processExpression(component, attribute, attribute.getValue());
+      attribute.setData(result);
+      if (isPromise(result)) {
+        Promise.resolve(result).then((resultResolved) => {
+          if (attribute.getData() !== result) {
             return;
           }
           set(resultResolved);
         });
       } else {
-        set(result2);
+        set(result);
       }
     }
   };
@@ -2226,21 +2230,21 @@
           transition: transition2
         }));
       };
-      const result2 = processExpression(component, attribute, attribute.getValue());
+      const result = processExpression(component, attribute, attribute.getValue());
       const data = attribute.getData();
-      if (isPromise(result2)) {
+      if (isPromise(result)) {
         attribute.setData(Object.assign({}, data, {
-          result: result2
+          result
         }));
-        Promise.resolve(result2).then((resultResolved) => {
-          if (attribute.getData().result !== result2) {
+        Promise.resolve(result).then((resultResolved) => {
+          if (attribute.getData().result !== result) {
             return;
           }
           set(resultResolved);
         });
-      } else if (!data || data.result !== result2) {
+      } else if (!data || data.result !== result) {
         attribute.setData(Object.assign({}, data, {
-          result: result2
+          result
         }));
         set();
       }
@@ -2255,7 +2259,7 @@
       RevocableProxy: RevocableProxy_default
     };
   };
-  var createContexts = (component, attribute, update2, extra = null) => {
+  var createContexts = (component, attribute, update, extra = null) => {
     const library = component.getLibrary();
     const contexts = library.getSimpleContexts();
     let after = "", before = "", deconstructed = [];
@@ -2265,19 +2269,19 @@
       if (!creatableContext || !creatableContext.name) {
         continue;
       }
-      const result2 = creatableContext.create(component, attribute, update2, createContextUtilities());
-      if (!result2 || !result2.value) {
+      const result = creatableContext.create(component, attribute, update, createContextUtilities());
+      if (!result || !result.value) {
         continue;
       }
-      if (result2.destroy && typeof result2.destroy === "function") {
-        destroyFunctions.push(result2.destroy);
+      if (result.destroy && typeof result.destroy === "function") {
+        destroyFunctions.push(result.destroy);
       }
-      if (creatableContext.deconstruct && typeof result2.value === "object") {
+      if (creatableContext.deconstruct && typeof result.value === "object") {
         deconstructed.push(creatableContext.name);
         before += "with(" + creatableContext.name + ") { ";
         after += " }";
       }
-      contexts[creatableContext.name] = result2.value;
+      contexts[creatableContext.name] = result.value;
     }
     if (typeof extra === "object") {
       for (const name in extra) {
@@ -2296,12 +2300,12 @@
       deconstructed
     };
   };
-  var createContextsProxy = (component, attribute, update2, extra = null) => {
+  var createContextsProxy = (component, attribute, update, extra = null) => {
     let data = null;
     const revocable = RevocableProxy_default({}, {
       get: (target, property) => {
         if (!data) {
-          data = createContexts(component, attribute, update2, extra);
+          data = createContexts(component, attribute, update, extra);
         }
         if (property in data.contexts) {
           attribute.accessed(component.getId(), property);
@@ -2327,7 +2331,7 @@
   };
   var createAutoContexts = (component, attribute, extra = null) => {
     const triggers = [];
-    const update2 = (id, context) => {
+    const update = (id, context) => {
       triggers.push({
         id,
         path: context
@@ -2336,7 +2340,7 @@
     let {
       contexts,
       destroy: destroy3
-    } = createContexts(component, attribute, update2, extra);
+    } = createContexts(component, attribute, update, extra);
     return [contexts, () => {
       destroy3();
       if (triggers.length > 0) {
@@ -2540,17 +2544,17 @@
           element.innerText = text;
         }
       };
-      const result2 = processExpression(component, attribute, attribute.getValue());
-      attribute.setData(result2);
-      if (isPromise(result2)) {
-        Promise.resolve(result2).then((resultResolved) => {
-          if (attribute.getData() !== result2) {
+      const result = processExpression(component, attribute, attribute.getValue());
+      attribute.setData(result);
+      if (isPromise(result)) {
+        Promise.resolve(result).then((resultResolved) => {
+          if (attribute.getData() !== result) {
             return;
           }
           set(resultResolved);
         });
       } else {
-        set(result2);
+        set(result);
       }
     }
   };
@@ -2578,7 +2582,7 @@
       } = options = Object.assign({
         prefix: "d",
         processor: "execute",
-        root: document.body.firstElementChild
+        root: document.body
       }, options);
       if (typeof root === "string") {
         options.root = root = document.querySelector(root);
@@ -2866,6 +2870,7 @@
         if (Object.getOwnPropertySymbols(triggers).length === 0) {
           return;
         }
+        this.dispatchEvent("updating", [this]);
         isUpdating = true;
         _triggers = triggers;
         triggers = {};
@@ -3035,8 +3040,9 @@
   // src/utilities/Call.js
   var PATH_VALIDATOR = /^[a-z$_]+[0-9a-z$_]*(?:\.[a-z$_]+[0-9a-z$_]*)*$/is;
   var call = (component, attribute, expression, extra = null, options = null) => {
-    const [contexts, destroyContexts] = createAutoContexts(component, attribute, update, extra);
+    const [contexts, destroyContexts] = createAutoContexts(component, attribute, extra);
     expression = expression.trim();
+    let result;
     if (!PATH_VALIDATOR.test(expression)) {
       console.error("Error encountered when executing an expression. Expression is not a valid dot separated path: ", expression);
       result = null;
@@ -3057,5 +3063,8 @@
   // src/DoarsCall.js
   Doars.callExpression = call;
   var DoarsCall_default = Doars;
+
+  // src/DoarsCall.iife.js
+  window.Doars = DoarsCall_default;
 })();
 //# sourceMappingURL=doars-call.iife.js.map

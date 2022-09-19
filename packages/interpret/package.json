@@ -27,10 +27,13 @@
     "access": "public"
   },
   "scripts": {
-    "build": "echo 'no building'",
+    "build": "echo 'no production builds'",
+    "dev": "echo 'no development builds'",
     "lint": "eslint src/** --cache --fix --no-error-on-unmatched-pattern",
     "release": "yarn run lint && yarn run test && yarn publish",
-    "test": "mocha ./tst/mocha/"
+    "test": "yarn run test:browser && yarn run test:runtime",
+    "test:browser": "echo 'no browser tests'",
+    "test:runtime": "mocha ./tst/runtime/"
   },
   "files": [
     "src",

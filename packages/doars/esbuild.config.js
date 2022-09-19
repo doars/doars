@@ -1,16 +1,27 @@
-import build from '../../scripts/build.js'
+import build from '../../.scripts/build.js'
 
-const files = [{
-  in: 'src/DoarsCall.js',
-  out: 'dst/doars-call.js',
+build([{
+  entryPoints: 'src/DoarsCall.js',
+  format: 'esm',
+  outfile: 'dst/doars-call.js',
 }, {
-  in: 'src/DoarsExecute.js',
-  out: 'dst/doars.js',
+  format: 'iife',
+  entryPoints: 'src/DoarsCall.iife.js',
+  outfile: 'dst/doars-call.js',
 }, {
-  in: 'src/DoarsInterpret.js',
-  out: 'dst/doars-interpret.js',
-}]
-
-for (const file of files) {
-  build(file)
-}
+  format: 'esm',
+  entryPoints: 'src/DoarsExecute.js',
+  outfile: 'dst/doars.js',
+}, {
+  format: 'iife',
+  entryPoints: 'src/DoarsExecute.iife.js',
+  outfile: 'dst/doars.js',
+}, {
+  format: 'esm',
+  entryPoints: 'src/DoarsInterpret.js',
+  outfile: 'dst/doars-interpret.js',
+}, {
+  format: 'iife',
+  entryPoints: 'src/DoarsInterpret.iife.js',
+  outfile: 'dst/doars-interpret.js',
+}])
