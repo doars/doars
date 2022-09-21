@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+
+  <body>
+    <div>
+      <div>
+        <span>Results</span>
+
+        <ul data-results></ul>
+      </div>
+
+      <div d-state="{ data: null }">
+        <button d-on:click="run">
+          Run
+        </button>
+        <button d-on:click="clear">
+          Clear
+        </button>
+
+        <ul>
+          <template d-for="value in data">
+            <li d-text="value"></li>
+          </template>
+        </ul>
+      </div>
+    </div>
+
+    <script type="module">
+      // Import library.
+      import Doars from '../../packages/doars/dst/doars-call.esm.js'
+
+      // Set helper methods.
+      const adjectives = [
+        'adorable',
+        'big',
+        'brave',
+        'calm',
+        'clever',
+        'clumsy',
+        'confused',
+        'cute',
+        'elegant',
+        'excited',
+        'fast',
+        'frantic',
+        'friendly',
+        'grumpy',
+        'handsome',
+        'happy',
+        'hilarious',
+        'jolly',
+        'kind',
+        'massive',
+        'muddy',
+        'nice',
+        'odd',
+        'playful',
+        'puzzled',
+        'silly',
+        'sleepy',
+        'small',
+        'smart',
+        'strong',
+        'tiny',
+        'tired',
+      ]
+      const nouns = [
+        'Australian Shepherd',
+        'Bloodhound',
+        'Boxer',
+        'Brittany',
+        'Chihuahua',
+        'Border Collie',
+        'Collie',
+        'Corgi',
+        'Dachshund',
+        'Dalmatian',
+        'German Shepherd',
+        'Golder Retriever',
+        'Siberian Husky',
+        'Keeshond',
+        'Labrador Retriever',
+        'Maltese',
+        'Mastiff',
+        'Newfoundland',
+        'Pincher',
+        'Pomeranian',
+        'Poodle',
+        'Ridgeback',
+        'Rottweiler',
+        'Samoyed',
+        'Shih tzu',
+        'Siba Akita',
+        'Siba Inu',
+        'Spaniel',
+        'St. Bernard',
+        'Scottish Terrier',
+        'Boston Terrier',
+        'Great Dane',
+      ]
+      console.log(adjectives.length)
+      console.log(nouns.length)
+      const getRandomNumber = (min = 0, max = 1) => Math.floor(Math.random() * (max - min) + min)
+      const getRandomItem = (set) => set[getRandomNumber(0, set.length)]
+
+      // Setup library.
+      const doars = new Doars()
+
+      // Add function to context that returns a random set of data.
+      const getRandomData = (count = 1000) => {
+        let data = []
+        for (let i = 0; i < count; i++) {
+          data.push(getRandomItem(adjectives) + ' and ' + getRandomItem(adjectives) + ' ' + getRandomItem(nouns))
+        }
+        return data
+      }
+
+      // Add function to contact that measures time until next update event.
+      const runTimer = () => {
+        // Store start time.
+        const startTime = performance.now()
+        doars.addEventListener('updated', () => {
+          // Calculate delta time.
+          const result = performance.now() - startTime
+          // Add time to results list.
+          const resultElement = document.createElement('li')
+          resultElement.innerText = result + 'ms'
+          document.querySelector('[data-results]')
+            .appendChild(resultElement)
+        }, { once: true })
+      }
+
+      // Add run contexts that sets the data to a random list.
+      doars.setSimpleContext('run', ({ $state }) => {
+        runTimer()
+        $state.data = getRandomData()
+      })
+
+      // Add run contexts that sets the data to an empty list.
+      doars.setSimpleContext('clear', ({ $state }) => {
+        runTimer()
+        $state.data = []
+      })
+
+      // Enable library.
+      doars.enable()
+    </script>
+  </body>
+
+</html>
