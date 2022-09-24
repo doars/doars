@@ -25,7 +25,8 @@ export const call = (
       try {
         result = result(contexts)
       } catch (error) {
-        console.error(error, 'Error encountered when calling function on context matching: ', expression)
+        console.error('ExpressionError in:', expression, '\n' + error.name + ': ' + error.message)
+        result = null
       }
     }
   }

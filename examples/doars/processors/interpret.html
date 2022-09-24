@@ -21,6 +21,9 @@
           processor: 'interpret',
         })
 
+        // Set the simple contexts on the instance.
+        doars.setSimpleContext('console', console)
+
         // Enable library.
         doars.enable()
       })

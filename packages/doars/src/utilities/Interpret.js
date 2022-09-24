@@ -25,7 +25,7 @@ export const interpret = (
     }
     result = run(expressionParsed, contexts)
   } catch (error) {
-    console.error(error, 'Error encountered when executing the following expression: ', expression)
+    console.error('ExpressionError in:', expression, '\n' + error.name + ': ' + error.message)
     result = null
   }
 

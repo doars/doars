@@ -3061,7 +3061,7 @@ var execute = (component, attribute, expression, extra = null, options = null) =
   try {
     result = new Function(...Object.keys(contexts), before + expression + after)(...Object.values(contexts));
   } catch (error) {
-    console.error(error, "Error encountered when executing the following expression: ", expression);
+    console.error("ExpressionError in:", expression, "\n" + error.name + ": " + error.message);
     result = null;
   }
   destroy3();
