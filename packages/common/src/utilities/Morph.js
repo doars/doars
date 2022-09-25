@@ -2,7 +2,10 @@
 
 // Import utilities.
 import { copyAttributes } from './Attribute.js'
-import { fromString as ElementFromString, isSame as ElementIsSame } from './Element.js'
+import {
+  fromString as ElementFromString,
+  isSame as ElementIsSame,
+} from './Element.js'
 
 /**
  * Diff elements and apply the resulting patch to the existing node.
@@ -54,7 +57,7 @@ export const morphTree = (existingTree, newTree, options) => {
     throw new Error('New tree should be an object.')
   }
 
-  // Check if outer or inner html should be updated. Always update children if root node is a document fragment.
+  // Check if outer or inner html should be updated. Always update children only if root node is a document fragment.
   if ((options && options.childrenOnly) || newTree.nodeType === 11) {
     updateChildren(existingTree, newTree)
     return existingTree

@@ -1,0 +1,49 @@
+{
+  "author": {
+    "name": "Ron Dekker",
+    "website": "https://rondekker.com"
+  },
+  "name": "@doars/doars-morph",
+  "packagename": "DoarsMorph",
+  "description": "Doars plugin that adds a morph context with set of directives to control it.",
+  "keywords": [
+    "doars",
+    "dom",
+    "html",
+    "morph"
+  ],
+  "version": "2.0.0",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/DoarsMorph.js",
+  "browser": "dst/doars-morph.js",
+  "homepage": "https://github.com/doars/doars/tree/main/packages/doars-morph#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/doars/doars.git"
+  },
+  "bugs": {
+    "url": "https://github.com/doars/doars/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "NODE_ENV=production node esbuild.config.js",
+    "develop": "NODE_ENV=development node esbuild.config.js",
+    "lint": "eslint src/** --cache --fix --no-error-on-unmatched-pattern",
+    "release": "yarn run lint && yarn run test && yarn run build && yarn publish",
+    "test": "yarn run test:browser && yarn run test:runtime",
+    "test:browser": "echo 'todo'",
+    "test:runtime": "echo 'todo'"
+  },
+  "files": [
+    "dst",
+    "src",
+    "CHANGELOG.md",
+    "README.md"
+  ],
+  "dependencies": {
+    "@doars/common": "1.x"
+  }
+}
