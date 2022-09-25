@@ -8,7 +8,6 @@ import Attribute from './Attribute.js'
 import ProxyDispatcher from '@doars/common/src/events/ProxyDispatcher.js'
 
 // Import utilities.
-import { morphTree } from '@doars/common/src/utilities/Morph.js'
 import { closestComponent } from './utilities/Component.js'
 import { transition, transitionIn, transitionOut } from '@doars/common/src/utilities/Transition.js'
 import { walk } from '@doars/common/src/utilities/Element.js'
@@ -43,7 +42,6 @@ export default class Component {
 
     // Create a immutable object with the directive utilities.
     const directiveUtilities = Object.freeze({
-      morphTree: morphTree,
       processExpression: processExpression,
       transition: transition,
       transitionIn: transitionIn,
