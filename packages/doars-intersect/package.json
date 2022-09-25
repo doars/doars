@@ -3,23 +3,23 @@
     "name": "Ron Dekker",
     "website": "https://rondekker.com"
   },
-  "name": "@doars/doars-view",
-  "packagename": "DoarsView",
-  "description": "Doars plugin that adds a view directive for reacting to intersection changes.",
+  "name": "@doars/doars-intersect",
+  "packagename": "DoarsIntersect",
+  "description": "Doars plugin that adds a intersect directive for reacting to intersection changes.",
   "keywords": [
     "doars",
-    "view",
-    "viewport",
     "intersect",
     "intersection",
-    "observer"
+    "observer",
+    "view",
+    "viewport"
   ],
-  "version": "1.0.3",
+  "version": "2.0.0",
   "license": "MIT",
   "type": "module",
-  "main": "src/DoarsView.js",
-  "browser": "dst/doars-view.js",
-  "homepage": "https://github.com/doars/doars/tree/main/packages/doars-view#readme",
+  "main": "src/DoarsIntersect.js",
+  "browser": "dst/doars-intersect.js",
+  "homepage": "https://github.com/doars/doars/tree/main/packages/doars-intersect#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/doars/doars.git"

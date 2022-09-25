@@ -1,32 +1,32 @@
 (() => {
   // src/symbols.js
-  var VIEW = Symbol("VIEW");
+  var INTERSECT = Symbol("VIEW");
 
-  // src/factories/directives/view.js
+  // src/factories/directives/intersect.js
   var EXECUTION_MODIFIERS = {
     NONE: 0,
     BUFFER: 1,
     DEBOUNCE: 2,
     THROTTLE: 3
   };
-  var view_default = (observer) => {
+  var intersect_default = (observer) => {
     return {
-      name: "view",
+      name: "intersect",
       update: (component, attribute, {
         processExpression
       }) => {
         const element = attribute.getElement();
         const key = attribute.getKey();
         const value = attribute.getValue();
-        if (attribute[VIEW]) {
-          if (attribute[VIEW].value === value) {
+        if (attribute[INTERSECT]) {
+          if (attribute[INTERSECT].value === value) {
             return;
           }
-          observer.remove(element, attribute[VIEW].handler);
-          if (attribute[VIEW].timeout) {
-            clearTimeout(attribute[VIEW].timeout);
+          observer.remove(element, attribute[INTERSECT].handler);
+          if (attribute[INTERSECT].timeout) {
+            clearTimeout(attribute[INTERSECT].timeout);
           }
-          delete attribute[VIEW];
+          delete attribute[INTERSECT];
         }
         const modifiers = attribute.getModifiers();
         let executionModifier = EXECUTION_MODIFIERS.NONE;
@@ -47,15 +47,15 @@
           }
         }
         const handler = (event) => {
-          const isChanged = attribute[VIEW].isIntersecting !== event.isIntersecting;
+          const isChanged = attribute[INTERSECT].isIntersecting !== event.isIntersecting;
           if (!isChanged) {
             return;
           }
-          attribute[VIEW].isIntersecting = event.isIntersecting;
+          attribute[INTERSECT].isIntersecting = event.isIntersecting;
           if (key === "enter" && !event.isIntersecting || key === "leave" && event.isIntersecting) {
-            if (attribute[VIEW].timeout) {
-              clearTimeout(attribute[VIEW].timeout);
-              attribute[VIEW].timeout = null;
+            if (attribute[INTERSECT].timeout) {
+              clearTimeout(attribute[INTERSECT].timeout);
+              attribute[INTERSECT].timeout = null;
             }
             return;
           }
@@ -65,56 +65,56 @@
             }, {
               return: false
             });
-            attribute[VIEW].buffer = [];
+            attribute[INTERSECT].buffer = [];
           };
-          attribute[VIEW].buffer.push(event);
+          attribute[INTERSECT].buffer.push(event);
           if (executionModifier === EXECUTION_MODIFIERS.BUFFER) {
-            if (attribute[VIEW].buffer.length < modifiers.buffer) {
+            if (attribute[INTERSECT].buffer.length < modifiers.buffer) {
               return;
             }
             execute();
           } else if (executionModifier === EXECUTION_MODIFIERS.BUFFER) {
-            if (attribute[VIEW].timeout) {
-              clearTimeout(attribute[VIEW].timeout);
-              attribute[VIEW].timeout = null;
+            if (attribute[INTERSECT].timeout) {
+              clearTimeout(attribute[INTERSECT].timeout);
+              attribute[INTERSECT].timeout = null;
             }
-            attribute[VIEW].timeout = setTimeout(execute, modifiers.debounce);
+            attribute[INTERSECT].timeout = setTimeout(execute, modifiers.debounce);
           } else if (executionModifier === EXECUTION_MODIFIERS.THROTTLE) {
             const now = window.performance.now();
-            if (attribute[VIEW].lastExecution && now - attribute[VIEW].lastExecution < modifiers.throttle) {
+            if (attribute[INTERSECT].lastExecution && now - attribute[INTERSECT].lastExecution < modifiers.throttle) {
               return;
             }
             execute();
-            attribute[VIEW].lastExecution = now;
+            attribute[INTERSECT].lastExecution = now;
           } else {
             execute();
           }
         };
         observer.add(element, handler);
-        attribute[VIEW] = {
+        attribute[INTERSECT] = {
           buffer: [],
           handler,
           isIntersecting: false,
-          timeout: attribute[VIEW] ? attribute[VIEW].timeout : null,
+          timeout: attribute[INTERSECT] ? attribute[INTERSECT].timeout : null,
           value
         };
       },
       destroy: (component, attribute) => {
-        if (!attribute[VIEW]) {
+        if (!attribute[INTERSECT]) {
           return;
         }
         const element = attribute.getElement();
-        observer.remove(element, attribute[VIEW].handler);
-        if (attribute[VIEW].timeout) {
-          clearTimeout(attribute[VIEW].timeout);
+        observer.remove(element, attribute[INTERSECT].handler);
+        if (attribute[INTERSECT].timeout) {
+          clearTimeout(attribute[INTERSECT].timeout);
         }
-        delete attribute[VIEW];
+        delete attribute[INTERSECT];
       }
     };
   };
 
-  // src/ViewObserver.js
-  var ViewObserver = class {
+  // src/IntersectionObserver.js
+  var IntersectionObserver = class {
     constructor(options = null) {
       options = Object.assign({
         root: null,
@@ -154,29 +154,43 @@
     }
   };
 
-  // src/DoarsView.js
-  var DoarsView = class {
-    constructor(library, options = null) {
-      options = Object.assign({}, options);
-      let directiveView, observer;
-      library.addEventListener("enabling", () => {
-        const _options = Object.assign({}, options);
-        if (!_options.root) {
-          _options.root = library.getOptions().root;
-        }
-        observer = new ViewObserver(options);
-        directiveView = view_default(observer);
-        library.addDirectives(-1, directiveView);
-      });
-      library.addEventListener("disabling", () => {
-        library.removeDirectives(directiveView);
-        directiveView = null;
-        observer = null;
-      });
-    }
-  };
+  // src/DoarsIntersect.js
+  function DoarsIntersect_default(library, options = null) {
+    options = Object.assign({}, options);
+    let isEnabled = false;
+    let directiveView, intersectionObserver;
+    const onEnable = function() {
+      const _options = Object.assign({}, options);
+      if (!_options.root) {
+        _options.root = library.getOptions().root;
+      }
+      intersectionObserver = new IntersectionObserver(options);
+      directiveView = intersect_default(intersectionObserver);
+      library.addDirectives(-1, directiveView);
+    };
+    const onDisable = function() {
+      library.removeDirectives(directiveView);
+      directiveView = null;
+      intersectionObserver = null;
+    };
+    this.disable = function() {
+      if (!library.getEnabled() && isEnabled) {
+        isEnabled = false;
+        library.removeEventListener("enabling", onEnable);
+        library.removeEventListener("disabling", onDisable);
+      }
+    };
+    this.enable = function() {
+      if (!isEnabled) {
+        isEnabled = true;
+        library.addEventListener("enabling", onEnable);
+        library.addEventListener("disabling", onDisable);
+      }
+    };
+    this.enable();
+  }
 
-  // src/DoarsView.iife.js
-  window.DoarsView = DoarsView;
+  // src/DoarsIntersect.iife.js
+  window.DoarsIntersect = DoarsIntersect_default;
 })();
-//# sourceMappingURL=doars-view.iife.js.map
+//# sourceMappingURL=doars-intersect.iife.js.map

@@ -1,5 +1,5 @@
 // Import symbols.
-import { VIEW } from '../../symbols.js'
+import { INTERSECT } from '../../symbols.js'
 
 // Declare constants.
 const EXECUTION_MODIFIERS = {
@@ -11,7 +11,7 @@ const EXECUTION_MODIFIERS = {
 
 export default (observer) => {
   return {
-    name: 'view',
+    name: 'intersect',
 
     update: (component, attribute, { processExpression }) => {
       // Deconstruct attribute.
@@ -20,20 +20,20 @@ export default (observer) => {
       const value = attribute.getValue()
 
       // Check if existing handler exists.
-      if (attribute[VIEW]) {
+      if (attribute[INTERSECT]) {
         // Exit early if value has not changed.
-        if (attribute[VIEW].value === value) {
+        if (attribute[INTERSECT].value === value) {
           return
         }
 
         // Stop observing the element.
-        observer.remove(element, attribute[VIEW].handler)
+        observer.remove(element, attribute[INTERSECT].handler)
         // Clear any ongoing timeouts.
-        if (attribute[VIEW].timeout) {
-          clearTimeout(attribute[VIEW].timeout)
+        if (attribute[INTERSECT].timeout) {
+          clearTimeout(attribute[INTERSECT].timeout)
         }
         // Delete directive data.
-        delete attribute[VIEW]
+        delete attribute[INTERSECT]
       }
 
       // Deconstruct attribute.
@@ -61,20 +61,20 @@ export default (observer) => {
       // Create intersection handler.
       const handler = (event) => {
         // Check if intersection has changed.
-        const isChanged = attribute[VIEW].isIntersecting !== event.isIntersecting
+        const isChanged = attribute[INTERSECT].isIntersecting !== event.isIntersecting
         if (!isChanged) {
           return
         }
 
         // Update state in attribute data.
-        attribute[VIEW].isIntersecting = event.isIntersecting
+        attribute[INTERSECT].isIntersecting = event.isIntersecting
 
         // Exit early if expression should not be executed.
         if ((key === 'enter' && !event.isIntersecting) || (key === 'leave' && event.isIntersecting)) {
           // Clear existing timeout.
-          if (attribute[VIEW].timeout) {
-            clearTimeout(attribute[VIEW].timeout)
-            attribute[VIEW].timeout = null
+          if (attribute[INTERSECT].timeout) {
+            clearTimeout(attribute[INTERSECT].timeout)
+            attribute[INTERSECT].timeout = null
           }
           return
         }
@@ -86,42 +86,42 @@ export default (observer) => {
           }, { return: false })
 
           // Reset the buffer.
-          attribute[VIEW].buffer = []
+          attribute[INTERSECT].buffer = []
         }
 
         // Store event in buffer.
-        attribute[VIEW].buffer.push(event)
+        attribute[INTERSECT].buffer.push(event)
 
         // Check if we need to apply an execution modifier.
         if (executionModifier === EXECUTION_MODIFIERS.BUFFER) {
           // Exit early if buffer is not full.
-          if (attribute[VIEW].buffer.length < modifiers.buffer) {
+          if (attribute[INTERSECT].buffer.length < modifiers.buffer) {
             return
           }
 
           execute()
         } else if (executionModifier === EXECUTION_MODIFIERS.BUFFER) {
           // Clear existing timeout.
-          if (attribute[VIEW].timeout) {
-            clearTimeout(attribute[VIEW].timeout)
-            attribute[VIEW].timeout = null
+          if (attribute[INTERSECT].timeout) {
+            clearTimeout(attribute[INTERSECT].timeout)
+            attribute[INTERSECT].timeout = null
           }
 
           // Setup timeout and execute expression when it finishes.
-          attribute[VIEW].timeout = setTimeout(execute, modifiers.debounce)
+          attribute[INTERSECT].timeout = setTimeout(execute, modifiers.debounce)
         } else if (executionModifier === EXECUTION_MODIFIERS.THROTTLE) {
           // Get current time in milliseconds.
           const now = window.performance.now()
 
           // Exit early if throttle time has not passed.
-          if (attribute[VIEW].lastExecution && now - attribute[VIEW].lastExecution < modifiers.throttle) {
+          if (attribute[INTERSECT].lastExecution && now - attribute[INTERSECT].lastExecution < modifiers.throttle) {
             return
           }
 
           execute()
 
           // Store new latest execution time.
-          attribute[VIEW].lastExecution = now
+          attribute[INTERSECT].lastExecution = now
         } else {
           // Execute expression.
           execute()
@@ -132,18 +132,18 @@ export default (observer) => {
       observer.add(element, handler)
 
       // Store handler.
-      attribute[VIEW] = {
+      attribute[INTERSECT] = {
         buffer: [],
         handler: handler,
         isIntersecting: false,
-        timeout: attribute[VIEW] ? attribute[VIEW].timeout : null,
+        timeout: attribute[INTERSECT] ? attribute[INTERSECT].timeout : null,
         value: value,
       }
     },
 
     destroy: (component, attribute) => {
       // Check if a handler exists.
-      if (!attribute[VIEW]) {
+      if (!attribute[INTERSECT]) {
         return
       }
 
@@ -151,13 +151,13 @@ export default (observer) => {
       const element = attribute.getElement()
 
       // Stop observing the element.
-      observer.remove(element, attribute[VIEW].handler)
+      observer.remove(element, attribute[INTERSECT].handler)
       // Clear any ongoing timeouts.
-      if (attribute[VIEW].timeout) {
-        clearTimeout(attribute[VIEW].timeout)
+      if (attribute[INTERSECT].timeout) {
+        clearTimeout(attribute[INTERSECT].timeout)
       }
       // Delete directive data.
-      delete attribute[VIEW]
+      delete attribute[INTERSECT]
     },
   }
 }
