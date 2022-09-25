@@ -723,24 +723,37 @@
   };
 
   // src/DoarsRouter.js
-  var DoarsRouter = class {
-    constructor(library, options = null) {
-      options = deepAssign({}, options);
-      let directiveRouter;
-      library.addEventListener("enabling", () => {
-        library.addContexts(0, router_default);
-        directiveRouter = router_default2(options);
-        library.addDirectives(-1, directiveRouter, route_default, routeTo_default);
-      });
-      library.addEventListener("disabling", () => {
-        library.removeContexts(router_default);
-        library.removeDirectives(directiveRouter, route_default, routeTo_default);
-        directiveRouter = null;
-      });
-    }
-  };
+  function DoarsRouter_default(library, options = null) {
+    options = deepAssign({}, options);
+    let isEnabled = false;
+    const onEnable = function() {
+      library.addContexts(0, router_default);
+      directiveRouter = router_default2(options);
+      library.addDirectives(-1, directiveRouter, route_default, routeTo_default);
+    };
+    const onDisable = function() {
+      library.removeContexts(router_default);
+      library.removeDirectives(directiveRouter, route_default, routeTo_default);
+      directiveRouter = null;
+    };
+    this.disable = function() {
+      if (!library.getEnabled() && isEnabled) {
+        isEnabled = false;
+        library.removeEventListener("enabling", onEnable);
+        library.removeEventListener("disabling", onDisable);
+      }
+    };
+    this.enable = function() {
+      if (!isEnabled) {
+        isEnabled = true;
+        library.addEventListener("enabling", onEnable);
+        library.addEventListener("disabling", onDisable);
+      }
+    };
+    this.enable();
+  }
 
   // src/DoarsRouter.iife.js
-  window.DoarsRouter = DoarsRouter;
+  window.DoarsRouter = DoarsRouter_default;
 })();
 //# sourceMappingURL=doars-router.iife.js.map

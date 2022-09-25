@@ -7,7 +7,8 @@
 - Changed `sync-state` to context agnostic `sync` directive.
 - Added `call` and `interpret` expression processors.
 - Switched to building the distributed build with `esbuild`.
-- Split utilities off to separate `common` package.
+- Split utilities off into a separate `common` package.
+- Split `morph` modifier from `html` directive off into a separate `morph` plugin.
 
 ## 1.2.0
 

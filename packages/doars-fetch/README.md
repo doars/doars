@@ -30,15 +30,15 @@ import DoarsFetch from '@doars/doars-fetch'
 const doars = new Doars()
 
 // Setup the plugin.
-const doarsFetch = new DoarsFetch(doars /*, options */)
+const doarsFetch = DoarsFetch(doars /*, options */)
 
 // Enable library.
 doars.enable()
 ```
 
-### UMD build from jsDelivr
+### IIFE build from jsDelivr
 
-Add the UMD build to the page from for example the jsDelivr CDN and enable the
+Add the IIFE build to the page from for example the jsDelivr CDN and enable the
 library.
 
 ```HTML

@@ -150,36 +150,50 @@
   };
 
   // src/DoarsFetch.js
-  var DoarsFetch = class {
-    constructor(library, options = null) {
-      options = Object.assign({
-        defaultInit: {},
-        encodingConverters: {
-          "application/json": () => {
-          },
-          "application/x-www-form-urlencoded": () => {
-          },
-          "multipart/formdata": () => {
-          }
+  function DoarsFetch_default(library, options = null) {
+    options = Object.assign({
+      defaultInit: {},
+      encodingConverters: {
+        "application/json": () => {
+        },
+        "application/x-www-form-urlencoded": () => {
+        },
+        "multipart/formdata": () => {
         }
-      }, options);
-      let fetchContext, fetchDirective;
-      library.addEventListener("enabling", () => {
-        fetchContext = fetch_default(options);
-        library.addContexts(0, fetchContext);
-        fetchDirective = fetch_default2(options);
-        library.addDirectives(-1, fetchDirective);
-      });
-      library.addEventListener("disabling", () => {
-        library.removeContexts(fetchContext);
-        fetchContext = null;
-        library.removeDirective(fetchDirective);
-        fetchDirective = null;
-      });
-    }
-  };
+      }
+    }, options);
+    let isEnabled = false;
+    let fetchContext, fetchDirective;
+    const onEnable = function() {
+      fetchContext = fetch_default(options);
+      library.addContexts(0, fetchContext);
+      fetchDirective = fetch_default2(options);
+      library.addDirectives(-1, fetchDirective);
+    };
+    const onDisable = function() {
+      library.removeContexts(fetchContext);
+      fetchContext = null;
+      library.removeDirective(fetchDirective);
+      fetchDirective = null;
+    };
+    this.disable = function() {
+      if (!library.getEnabled() && isEnabled) {
+        isEnabled = false;
+        library.removeEventListener("enabling", onEnable);
+        library.removeEventListener("disabling", onDisable);
+      }
+    };
+    this.enable = function() {
+      if (!isEnabled) {
+        isEnabled = true;
+        library.addEventListener("enabling", onEnable);
+        library.addEventListener("disabling", onDisable);
+      }
+    };
+    this.enable();
+  }
 
   // src/DoarsFetch.iife.js
-  window.DoarsFetch = DoarsFetch;
+  window.DoarsFetch = DoarsFetch_default;
 })();
 //# sourceMappingURL=doars-fetch.iife.js.map

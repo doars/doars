@@ -222,42 +222,56 @@
   };
 
   // src/DoarsStore.js
-  var DoarsStore = class {
-    constructor(library, options = null, dataStore = {}) {
-      options = Object.assign({
-        deconstruct: false
-      }, options);
-      let contextStore, dataStoreCopy, proxy, store;
-      library.addEventListener("enabling", () => {
-        dataStoreCopy = deepAssign({}, dataStore);
-        proxy = new ProxyDispatcher_default();
-        store = proxy.add(dataStoreCopy);
-        const id = Symbol("ID_STORE");
-        contextStore = store_default(options, id, store, proxy);
-        const existingContexts = library.getContexts();
-        let stateIndex = 0;
-        for (let i = existingContexts.length - 1; i >= 0; i--) {
-          const context = existingContexts[i];
-          if (context.name === "$state") {
-            stateIndex = i;
-            break;
-          }
+  function DoarsStore_default(library, options = null, dataStore = {}) {
+    options = Object.assign({
+      deconstruct: false
+    }, options);
+    let isEnabled = false;
+    let contextStore, dataStoreCopy, proxy, store;
+    const onEnable = function() {
+      dataStoreCopy = deepAssign({}, dataStore);
+      proxy = new ProxyDispatcher_default();
+      store = proxy.add(dataStoreCopy);
+      const id = Symbol("ID_STORE");
+      contextStore = store_default(options, id, store, proxy);
+      const existingContexts = library.getContexts();
+      let stateIndex = 0;
+      for (let i = existingContexts.length - 1; i >= 0; i--) {
+        const context = existingContexts[i];
+        if (context.name === "$state") {
+          stateIndex = i;
+          break;
         }
-        library.addContexts(stateIndex, contextStore);
-      });
-      library.addEventListener("disabling", () => {
-        library.removeContexts(contextStore);
-        store = null;
-        proxy.remove(dataStoreCopy);
-        proxy = null;
-        dataStoreCopy = null;
-        directiveSyncStore = null;
-        contextStore = null;
-      });
-    }
-  };
+      }
+      library.addContexts(stateIndex, contextStore);
+    };
+    const onDisable = function() {
+      library.removeContexts(contextStore);
+      store = null;
+      proxy.remove(dataStoreCopy);
+      proxy = null;
+      dataStoreCopy = null;
+      directiveSyncStore = null;
+      contextStore = null;
+    };
+    this.disable = function() {
+      if (!library.getEnabled() && isEnabled) {
+        isEnabled = false;
+        library.removeEventListener("enabling", onEnable);
+        library.removeEventListener("disabling", onDisable);
+      }
+    };
+    this.enable = function() {
+      if (!isEnabled) {
+        isEnabled = true;
+        library.addEventListener("enabling", onEnable);
+        library.addEventListener("disabling", onDisable);
+      }
+    };
+    this.enable();
+  }
 
   // src/DoarsStore.iife.js
-  window.DoarsStore = DoarsStore;
+  window.DoarsStore = DoarsStore_default;
 })();
 //# sourceMappingURL=doars-store.iife.js.map

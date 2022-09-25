@@ -30,15 +30,15 @@ import DoarsRouter from '@doars/doars-router'
 const doars = new Doars()
 
 // Setup the plugin.
-const doarsRouter = new DoarsRouter(doars /*, options */)
+const doarsRouter = DoarsRouter(doars /*, options */)
 
 // Enable library.
 doars.enable()
 ```
 
-### UMD build from jsDelivr
+### IIFE build from jsDelivr
 
-Add the UMD build to the page from for example the jsDelivr CDN and enable the
+Add the IIFE build to the page from for example the jsDelivr CDN and enable the
 library.
 
 ```HTML

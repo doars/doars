@@ -30,15 +30,15 @@ import DoarsStore from '@doars/doars-store'
 const doars = new Doars()
 
 // Setup the plugin.
-const doarsStore = new DoarsStore(doars /*, options, data */)
+const doarsStore = DoarsStore(doars /*, options, data */)
 
 // Enable library.
 doars.enable()
 ```
 
-### UMD build from jsDelivr
+### IIFE build from jsDelivr
 
-Add the UMD build to the page from for example the jsDelivr CDN and enable the
+Add the IIFE build to the page from for example the jsDelivr CDN and enable the
 library.
 
 ```HTML

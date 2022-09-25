@@ -47,9 +47,9 @@ const doars = new Doars(/* options */)
 doars.enable()
 ```
 
-### UMD build from jsDelivr
+### IIFE build from jsDelivr
 
-Add the UMD build to the page from for example the jsDelivr CDN and enable the library.
+Add the IIFE build to the page from for example the jsDelivr CDN and enable the library.
 
 ```HTML
 <!-- Import library. -->

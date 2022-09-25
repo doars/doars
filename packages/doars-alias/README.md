@@ -36,9 +36,9 @@ const doarsAlias = new DoarsAlias(doars /*, options */)
 doars.enable()
 ```
 
-### UMD build from jsDelivr
+### IIFE build from jsDelivr
 
-Add the UMD build to the page from for example the jsDelivr CDN and enable the
+Add the IIFE build to the page from for example the jsDelivr CDN and enable the
 library.
 
 ```HTML
@@ -51,7 +51,7 @@ library.
     const doars = new window.Doars()
 
     // Setup the plugin.
-    const doarsAlias = new window.DoarsAlias(doars /*, options */)
+    const doarsAlias = window.DoarsAlias(doars /*, options */)
 
     // Enable library.
     doars.enable()

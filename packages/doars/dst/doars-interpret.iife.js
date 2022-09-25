@@ -388,6 +388,18 @@
   };
   var ProxyDispatcher_default = ProxyDispatcher;
 
+  // src/utilities/Component.js
+  var closestComponent = (element) => {
+    if (!element.parentElement) {
+      return;
+    }
+    element = element.parentElement;
+    if (element[COMPONENT]) {
+      return element[COMPONENT];
+    }
+    return closestComponent(element);
+  };
+
   // ../common/src/utilities/Attribute.js
   var addAttributes = (element, data) => {
     for (const name in data) {
@@ -398,58 +410,6 @@
         continue;
       }
       element.setAttribute(name, data[name]);
-    }
-  };
-  var copyAttributes = (existingNode, newNode) => {
-    const existingAttributes = existingNode.attributes;
-    const newAttributes = newNode.attributes;
-    let attributeNamespaceURI = null;
-    let attributeValue = null;
-    let fromValue = null;
-    let attributeName = null;
-    let attribute = null;
-    for (let i = newAttributes.length - 1; i >= 0; --i) {
-      attribute = newAttributes[i];
-      attributeName = attribute.name;
-      attributeNamespaceURI = attribute.namespaceURI;
-      attributeValue = attribute.value;
-      if (attributeNamespaceURI) {
-        attributeName = attribute.localName || attributeName;
-        fromValue = existingNode.getAttributeNS(attributeNamespaceURI, attributeName);
-        if (fromValue !== attributeValue) {
-          existingNode.setAttributeNS(attributeNamespaceURI, attributeName, attributeValue);
-        }
-      } else {
-        if (!existingNode.hasAttribute(attributeName)) {
-          existingNode.setAttribute(attributeName, attributeValue);
-        } else {
-          fromValue = existingNode.getAttribute(attributeName);
-          if (fromValue !== attributeValue) {
-            if (attributeValue === "null" || attributeValue === "undefined") {
-              existingNode.removeAttribute(attributeName);
-            } else {
-              existingNode.setAttribute(attributeName, attributeValue);
-            }
-          }
-        }
-      }
-    }
-    for (let j = existingAttributes.length - 1; j >= 0; --j) {
-      attribute = existingAttributes[j];
-      if (attribute.specified !== false) {
-        attributeName = attribute.name;
-        attributeNamespaceURI = attribute.namespaceURI;
-        if (attributeNamespaceURI) {
-          attributeName = attribute.localName || attributeName;
-          if (!newNode.hasAttributeNS(attributeNamespaceURI, attributeName)) {
-            existingNode.removeAttributeNS(attributeNamespaceURI, attributeName);
-          }
-        } else {
-          if (!newNode.hasAttributeNS(null, attributeName)) {
-            existingNode.removeAttribute(attributeName);
-          }
-        }
-      }
     }
   };
   var removeAttributes = (element, data) => {
@@ -507,214 +467,6 @@
     for (const name in data) {
       setAttribute(element, name, data[name]);
     }
-  };
-
-  // ../common/src/utilities/Element.js
-  var fromString = (string) => {
-    const template = document.createElement("template");
-    template.innerHTML = string;
-    return template.content.childNodes[0];
-  };
-  var insertAfter = (reference, node) => {
-    if (reference.nextSibling) {
-      reference.parentNode.insertBefore(node, reference.nextSibling);
-    } else {
-      reference.parentNode.appendChild(node);
-    }
-  };
-  var isSame = (a, b) => {
-    if (a.isSameNode) {
-      return a.isSameNode(b);
-    }
-    if (a.tagName !== b.tagName) {
-      return false;
-    }
-    if (a.type === 3) {
-      return a.nodeValue === b.nodeValue;
-    }
-    return false;
-  };
-  var walk = (element, filter) => {
-    let index = -1;
-    let iterator = null;
-    return () => {
-      if (index >= 0 && iterator) {
-        const child2 = iterator();
-        if (child2) {
-          return child2;
-        }
-      }
-      let child = null;
-      do {
-        index++;
-        if (index >= element.childElementCount) {
-          return null;
-        }
-        child = element.children[index];
-      } while (!filter(child));
-      if (child.childElementCount) {
-        iterator = walk(child, filter);
-      }
-      return child;
-    };
-  };
-
-  // ../common/src/utilities/Morph.js
-  var morphNode = (existingNode, newNode) => {
-    const nodeType = newNode.nodeType;
-    const nodeName = newNode.nodeName;
-    if (nodeType === 1) {
-      copyAttributes(existingNode, newNode);
-    }
-    if (nodeType === 3 || nodeType === 8) {
-      if (existingNode.nodeValue !== newNode.nodeValue) {
-        existingNode.nodeValue = newNode.nodeValue;
-      }
-    }
-    if (nodeName === "INPUT") {
-      updateInput(existingNode, newNode);
-    } else if (nodeName === "OPTION") {
-      updateAttribute(existingNode, newNode, "selected");
-    } else if (nodeName === "TEXTAREA") {
-      updateTextarea(existingNode, newNode);
-    }
-  };
-  var morphTree = (existingTree, newTree, options) => {
-    if (typeof existingTree !== "object") {
-      throw new Error("Existing tree should be an object.");
-    }
-    if (typeof newTree === "string") {
-      newTree = fromString(newTree);
-    } else if (typeof newTree !== "object") {
-      throw new Error("New tree should be an object.");
-    }
-    if (options && options.childrenOnly || newTree.nodeType === 11) {
-      updateChildren(existingTree, newTree);
-      return existingTree;
-    }
-    return updateTree(existingTree, newTree);
-  };
-  var updateInput = (existingNode, newNode) => {
-    const newValue = newNode.value;
-    const existingValue = existingNode.value;
-    updateAttribute(existingNode, newNode, "checked");
-    updateAttribute(existingNode, newNode, "disabled");
-    if (existingNode.indeterminate !== newNode.indeterminate) {
-      existingNode.indeterminate = newNode.indeterminate;
-    }
-    if (existingNode.type === "file") {
-      return;
-    }
-    if (existingValue !== newValue) {
-      existingNode.setAttribute("value", newValue);
-      existingNode.value = newValue;
-    }
-    if (newValue === "null") {
-      existingNode.value = "";
-      existingNode.removeAttribute("value");
-    }
-    if (!newNode.hasAttributeNS(null, "value")) {
-      existingNode.removeAttribute("value");
-    } else if (existingNode.type === "range") {
-      existingNode.value = newValue;
-    }
-  };
-  var updateTextarea = (existingNode, newNode) => {
-    const newValue = newNode.value;
-    if (existingNode.value !== newValue) {
-      existingNode.value = newValue;
-    }
-    if (existingNode.firstChild && existingNode.firstChild.nodeValue !== newValue) {
-      if (existingNode.firstChild.nodeValue === existingNode.placeholder && newValue === "") {
-        return;
-      }
-      existingNode.firstChild.nodeValue = newValue;
-    }
-  };
-  var updateAttribute = (existingNode, newNode, name) => {
-    if (existingNode[name] !== newNode[name]) {
-      existingNode[name] = newNode[name];
-      if (newNode[name]) {
-        existingNode.setAttribute(name, "");
-      } else {
-        existingNode.removeAttribute(name);
-      }
-    }
-  };
-  var updateTree = (existingTree, newTree) => {
-    if (!existingTree) {
-      return newTree;
-    }
-    if (!newTree) {
-      return null;
-    }
-    if (existingTree.isSameNode && existingTree.isSameNode(newTree)) {
-      return existingTree;
-    }
-    if (existingTree.tagName !== newTree.tagName) {
-      return newTree;
-    }
-    morphNode(existingTree, newTree);
-    updateChildren(existingTree, newTree);
-    return existingTree;
-  };
-  var updateChildren = (existingNode, newNode) => {
-    let existingChild, newChild, morphed, existingMatch;
-    let offset = 0;
-    for (let i = 0; ; i++) {
-      existingChild = existingNode.childNodes[i];
-      newChild = newNode.childNodes[i - offset];
-      if (!existingChild && !newChild) {
-        break;
-      } else if (!newChild) {
-        existingNode.removeChild(existingChild);
-        i--;
-      } else if (!existingChild) {
-        existingNode.appendChild(newChild);
-        offset++;
-      } else if (isSame(existingChild, newChild)) {
-        morphed = updateTree(existingChild, newChild);
-        if (morphed !== existingChild) {
-          existingNode.replaceChild(morphed, existingChild);
-          offset++;
-        }
-      } else {
-        existingMatch = null;
-        for (let j = i; j < existingNode.childNodes.length; j++) {
-          if (isSame(existingNode.childNodes[j], newChild)) {
-            existingMatch = existingNode.childNodes[j];
-            break;
-          }
-        }
-        if (existingMatch) {
-          morphed = updateTree(existingMatch, newChild);
-          if (morphed !== existingMatch)
-            offset++;
-          existingNode.insertBefore(morphed, existingChild);
-        } else if (!newChild.id && !existingChild.id) {
-          morphed = updateTree(existingChild, newChild);
-          if (morphed !== existingChild) {
-            existingNode.replaceChild(morphed, existingChild);
-            offset++;
-          }
-        } else {
-          existingNode.insertBefore(newChild, existingChild);
-          offset++;
-        }
-      }
-    }
-  };
-
-  // src/utilities/Component.js
-  var closestComponent = (element) => {
-    if (!element.parentElement) {
-      return;
-    }
-    element = element.parentElement;
-    if (element[COMPONENT]) {
-      return element[COMPONENT];
-    }
-    return closestComponent(element);
   };
 
   // ../common/src/utilities/Transition.js
@@ -833,6 +585,39 @@
     return transition("out", component, element, callback);
   };
 
+  // ../common/src/utilities/Element.js
+  var insertAfter = (reference, node) => {
+    if (reference.nextSibling) {
+      reference.parentNode.insertBefore(node, reference.nextSibling);
+    } else {
+      reference.parentNode.appendChild(node);
+    }
+  };
+  var walk = (element, filter) => {
+    let index = -1;
+    let iterator = null;
+    return () => {
+      if (index >= 0 && iterator) {
+        const child2 = iterator();
+        if (child2) {
+          return child2;
+        }
+      }
+      let child = null;
+      do {
+        index++;
+        if (index >= element.childElementCount) {
+          return null;
+        }
+        child = element.children[index];
+      } while (!filter(child));
+      if (child.childElementCount) {
+        iterator = walk(child, filter);
+      }
+      return child;
+    };
+  };
+
   // src/Component.js
   var Component = class {
     constructor(library, element) {
@@ -855,7 +640,6 @@
         console.error("Doars: No expression processor available. Process option: ", process);
       }
       const directiveUtilities = Object.freeze({
-        morphTree,
         processExpression,
         transition,
         transitionIn,
@@ -1631,29 +1415,13 @@
   var html_default = {
     name: "html",
     update: (component, attribute, {
-      processExpression,
-      morphTree: morphTree2
+      processExpression
     }) => {
       const element = attribute.getElement();
       const modifiers = attribute.getModifiers();
       const set = (html) => {
         if (modifiers.decode && typeof html === "string") {
           html = decode(html);
-        }
-        if (modifiers.morph) {
-          if (element.children.length === 0) {
-            element.appendChild(document.createElement("div"));
-          } else if (element.children.length > 1) {
-            for (let i = element.children.length - 1; i >= 1; i--) {
-              element.children[i].remove();
-            }
-          }
-          const root = morphTree2(element.children[0], html);
-          if (!element.children[0].isSameNode(root)) {
-            element.children[0].remove();
-            element.appendChild(root);
-          }
-          return;
         }
         if (html instanceof HTMLElement) {
           for (const child of element.children) {
@@ -3348,7 +3116,7 @@
         }
         const key = gobbleToken();
         if (!key) {
-          throw new Error("missing }");
+          throw new Error("Missing }");
         }
         gobbleSpaces();
         if (key.type === IDENTIFIER && (expression.charCodeAt(index) === COMMA_CODE || expression.charCodeAt(index) === CLOSING_BRACES_CODE)) {
@@ -3361,9 +3129,10 @@
           });
         } else if (expression.charCodeAt(index) === COLON_CODE) {
           index++;
+          gobbleSpaces();
           const value = gobbleExpression();
           if (!value) {
-            throw new Error("unexpected object property");
+            throw new Error("Unexpected object property");
           }
           const computed = key.type === ARRAY;
           properties.push({
@@ -3381,7 +3150,7 @@
           index++;
         }
       }
-      throw new Error("missing }");
+      throw new Error("Missing }");
     };
     const gobbleSequence = () => {
       index++;
@@ -3608,7 +3377,7 @@
         prefix: true
       };
       if (!node.parameter || node.parameter.type !== IDENTIFIER && node.parameter.type !== MEMBER) {
-        throw new Error(`Unexpected ${env.node.operator}`);
+        throw new Error("Unexpected " + env.node.operator);
       }
       return node;
     };

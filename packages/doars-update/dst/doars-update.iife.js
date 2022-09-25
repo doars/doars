@@ -311,46 +311,60 @@
   };
 
   // src/DoarsUpdate.js
-  var DoarsUpdate = class {
-    constructor(library, options = null) {
-      options = Object.assign({}, options);
-      let contextUpdate, directiveUpdate, updater;
-      library.addEventListener("enabling", () => {
-        const [_directiveUpdate, update] = createUpdate_default2(options);
-        directiveUpdate = _directiveUpdate;
-        library.addDirectives(-1, directiveUpdate);
-        updater = new Updater(options, () => {
-          update();
-          library.update([{
-            id: updater.getId(),
-            path: "current"
-          }, {
-            id: updater.getId(),
-            path: "delta"
-          }, {
-            id: updater.getId(),
-            path: "last"
-          }, {
-            id: updater.getId(),
-            path: "passed"
-          }]);
-        });
-        contextUpdate = createUpdate_default(updater);
-        library.addContexts(0, contextUpdate);
-        updater.enable();
+  function DoarsUpdate_default(library, options = null) {
+    options = Object.assign({}, options);
+    let isEnabled = false;
+    let contextUpdate, directiveUpdate, updater;
+    const onEnable = function() {
+      const [_directiveUpdate, update] = createUpdate_default2(options);
+      directiveUpdate = _directiveUpdate;
+      library.addDirectives(-1, directiveUpdate);
+      updater = new Updater(options, () => {
+        update();
+        library.update([{
+          id: updater.getId(),
+          path: "current"
+        }, {
+          id: updater.getId(),
+          path: "delta"
+        }, {
+          id: updater.getId(),
+          path: "last"
+        }, {
+          id: updater.getId(),
+          path: "passed"
+        }]);
       });
-      library.addEventListener("disabling", () => {
-        library.removeContexts(contextUpdate);
-        library.removeDirectives(directiveUpdate);
-        updater.disable();
-        contextUpdate = null;
-        directiveUpdate = null;
-        updater = null;
-      });
-    }
-  };
+      contextUpdate = createUpdate_default(updater);
+      library.addContexts(0, contextUpdate);
+      updater.enable();
+    };
+    const onDisable = function() {
+      library.removeContexts(contextUpdate);
+      library.removeDirectives(directiveUpdate);
+      updater.disable();
+      contextUpdate = null;
+      directiveUpdate = null;
+      updater = null;
+    };
+    this.disable = function() {
+      if (!library.getEnabled() && isEnabled) {
+        isEnabled = false;
+        library.removeEventListener("enabling", onEnable);
+        library.removeEventListener("disabling", onDisable);
+      }
+    };
+    this.enable = function() {
+      if (!isEnabled) {
+        isEnabled = true;
+        library.addEventListener("enabling", onEnable);
+        library.addEventListener("disabling", onDisable);
+      }
+    };
+    this.enable();
+  }
 
   // src/DoarsUpdate.iife.js
-  window.DoarsUpdate = DoarsUpdate;
+  window.DoarsUpdate = DoarsUpdate_default;
 })();
 //# sourceMappingURL=doars-update.iife.js.map
