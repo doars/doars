@@ -412,7 +412,7 @@ export default (expression) => {
 
       const key = gobbleToken()
       if (!key) {
-        throw new Error('missing }')
+        throw new Error('Missing }')
       }
       gobbleSpaces()
 
@@ -432,9 +432,10 @@ export default (expression) => {
         })
       } else if (expression.charCodeAt(index) === COLON_CODE) {
         index++
+        gobbleSpaces()
         const value = gobbleExpression()
         if (!value) {
-          throw new Error('unexpected object property')
+          throw new Error('Unexpected object property')
         }
 
         const computed = key.type === ARRAY
@@ -456,7 +457,7 @@ export default (expression) => {
         index++
       }
     }
-    throw new Error('missing }')
+    throw new Error('Missing }')
   }
 
   const gobbleSequence = () => {
@@ -738,7 +739,7 @@ export default (expression) => {
       prefix: true,
     }
     if (!node.parameter || (node.parameter.type !== IDENTIFIER && node.parameter.type !== MEMBER)) {
-      throw new Error(`Unexpected ${env.node.operator}`);
+      throw new Error('Unexpected ' + env.node.operator);
     }
     return node
   }

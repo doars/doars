@@ -86,16 +86,58 @@ test('Object', '{ hello }', {
   hello: 'there',
 })
 
-// TODO: Allow objects in objects.
-// test('Object with object with object', '{ hello: { there: { general: "kenobi" } } }', {
-//   hello: {
-//     there: {
-//       general: 'kenobi',
-//     },
-//   },
-// }, {
-//   type: OBJECT,
-// })
+test('Object with object with object', '{ hello: { there: { general: "kenobi" } } }', {
+  hello: {
+    there: {
+      general: 'kenobi',
+    },
+  },
+}, {
+  properties: [
+    {
+      computed: false,
+      key: {
+        name: 'hello',
+        type: IDENTIFIER,
+      },
+      shorthand: false,
+      type: PROPERTY,
+      value: {
+        properties: [
+          {
+            computed: false,
+            key: {
+              name: 'there',
+              type: IDENTIFIER,
+            },
+            shorthand: false,
+            type: PROPERTY,
+            value: {
+              properties: [
+                {
+                  computed: false,
+                  key: {
+                    name: 'general',
+                    type: IDENTIFIER,
+                  },
+                  shorthand: false,
+                  type: PROPERTY,
+                  value: {
+                    type: LITERAL,
+                    value: 'kenobi',
+                  },
+                },
+              ],
+              type: OBJECT,
+            },
+          },
+        ],
+        type: OBJECT,
+      },
+    },
+  ],
+  type: OBJECT,
+})
 
 test('Object with array', '{ hello: ["there", "general", "kenobi"] }', {
   hello: [
