@@ -221,7 +221,9 @@ var updateChildren = (existingNode, newNode) => {
 var morph_default = {
   name: "$morph",
   create: () => {
-    return morphTree;
+    return {
+      value: morphTree
+    };
   }
 };
 

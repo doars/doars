@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doars intersect directive element example</title>
+  </head>
+
+  <body>
+    <div d-state d-morph="createElement()">
+      <div>
+        Before
+      </div>
+    </div>
+
+    <script src="/packages/doars/dst/doars.iife.js"></script>
+    <script src="/packages/doars-morph/dst/doars-morph.iife.js"></script>
+    <script>
+      // Wait for the DOM to be interactive.
+      document.addEventListener('DOMContentLoaded', () => {
+        // Setup a library instance.
+        const doars = new window.Doars()
+
+        // Add plugin.
+        window.DoarsMorph(doars)
+
+        doars.setSimpleContext('createElement', function () {
+          const element = document.createElement('div');
+          element.innerText = 'After'
+          return element
+        });
+
+        // Enable library.
+        doars.enable()
+      })
+    </script>
+  </body>
+
+</html>

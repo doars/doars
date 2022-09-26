@@ -4,6 +4,8 @@ export default {
   name: '$morph',
 
   create: () => {
-    return morphTree
+    return {
+      value: morphTree,
+    }
   }
 }
