@@ -183,25 +183,30 @@ Loop over a value and create elements based on a template. The directive's value
 
 ### d-html
 
-Set the inner html of the element. The directive's value should be a function expression returning the HTML to set, or a promise resolving into the HTML to set. The inner HTML is only updated if it differs from the current value.
+Set the inner HTML of the element. The directive's value should be a function expression returning the HTML to set, or a promise resolving into the HTML to set. The inner HTML is only updated if it differs from the current value.
 
 #### d-html modifiers
 
-- `{Boolean} morph = false` Whether the existing and new element trees should compared and updated accordingly instead of fully overwriting the existing element tree.
+- `{Boolean} decode = false` If the returned type is a string the value will's special HTML characters will be decoded. For example `&gt;` will become `>`.
 
 #### d-html examples
 
 ```HTML
-<!-- Write a string to the inner html fo the element. -->
-<div d-html="'<h1>Afterwards</h1>'"></div>
+<!-- Write a string to the inner HTML of the element. -->
+<div d-html="'<h1>Hello world!</h1>'"></div>
 ```
 
 ```HTML
-<!-- Write a value from the state to the inner html fo the element. -->
+<!-- Decodes the special HTML characters before writing the string to the inner HTML of the element. -->
+<div d-html.decode="'&lt;h1&gt;Hello world!&lt;/h1&gt;'"></div>
+```
+
+```HTML
+<!-- Write a value from the state to the inner HTML of the element. -->
 <div d-html="$state.message"></div>
 ```
 
-> The inner html is only updated if it is different from the current inner html.
+> The inner HTML is only updated if it is different from the current inner HTML.
 
 ### d-if
 

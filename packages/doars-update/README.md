@@ -147,3 +147,4 @@ Get information about the most recent update iteration. The context is an
 | `@doars/doars-update` version | `@doars/doars` version |
 | ----------------------------- | ---------------------- |
 | `1.x`                         | `1.x`                  |
+| `2.x`                         | `2.x`                  |

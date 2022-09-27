@@ -132,3 +132,4 @@ Call fetch function.
 | `@doars/doars-fetch` version | `@doars/doars` version |
 | ---------------------------- | ---------------------- |
 | `1.x`                        | `1.x`                  |
+| `2.x`                        | `2.x`                  |
