@@ -1,8 +1,9 @@
 # CHANGELOG.md
 
-# 2.0.0
+## 2.0.0
 
-- Update with @doars/doars.
+- Changed from constructor to function.
+- Switched to using `@doars/common`.
 
 ## 1.0.5
 

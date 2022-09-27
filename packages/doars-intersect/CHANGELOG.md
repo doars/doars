@@ -3,6 +3,7 @@
 ## 2.0.0
 
 - Renamed `doars-view` to `doars-intersect`.
+- Changed from constructor to function.
 
 ## 1.0.3
 
