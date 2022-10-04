@@ -1,5 +1,5 @@
 // Import symbols.
-import { FETCH } from '../../symbols.js'
+// import { FETCH } from '../../symbols.js'
 
 export default ({ defaultInit, encodingConverters }) => {
   return {

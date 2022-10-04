@@ -23,6 +23,7 @@ export default function (
 
   // Set private variables.
   let isEnabled = false
+  let directiveRouter
 
   const onEnable = function () {
     // Add contexts and directives.

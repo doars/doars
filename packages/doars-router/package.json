@@ -44,6 +44,6 @@
   ],
   "dependencies": {
     "@doars/common": "1.x",
-    "path-to-regexp": "^6.2.1"
+    "path-to-regexp": "6.x"
   }
 }

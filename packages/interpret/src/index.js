@@ -13,7 +13,7 @@ import {
   PROPERTY as _PROPERTY,
   SEQUENCE as _SEQUENCE,
   UNARY as _UNARY,
-  UPDATE as _UPDATE,
+  UPDATE as _UPDATE
 } from './types.js'
 
 export const interpret = (expression, context) => {
@@ -37,7 +37,7 @@ export const UNARY = _UNARY
 export const UPDATE = _UPDATE
 
 export default {
-  interpret: interpret,
+  interpret,
   parse: _parse,
   run: _run,
 

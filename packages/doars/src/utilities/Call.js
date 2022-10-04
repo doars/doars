@@ -38,5 +38,5 @@ export const call = (
 }
 
 export default {
-  call: call,
+  call,
 }

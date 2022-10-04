@@ -20,5 +20,5 @@ export const closestComponent = (element) => {
 }
 
 export default {
-  closestComponent: closestComponent,
+  closestComponent,
 }

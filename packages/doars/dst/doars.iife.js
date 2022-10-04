@@ -70,7 +70,7 @@
 
   // ../common/src/utilities/String.js
   var escapeHtml = (text) => {
-    return text.replace(/\\/g, "\\\\").replace(/\'/g, "\\'").replace(/\"/g, '\\"').replace(/\n/g, "\\n");
+    return text.replace(/\\/g, "\\\\").replace(/\\'/g, "\\'").replace(/\\"/g, '\\"').replace(/\n/g, "\\n");
   };
   var kebabToCamel = (text) => {
     return text.replace(/-(\w)/g, (match, character) => character.toUpperCase());
@@ -1307,46 +1307,46 @@
         const data2 = attribute.getData();
         const elements = data2.elements ? data2.elements : [];
         const iterableType = typeof iterable;
-        if (iterable === null || iterable === void 0) {
-          length = 0;
-        } else if (iterableType === "number") {
-          for (let index = 0; index < iterable; index++) {
-            const variables = createVariables(expression.variables, index);
-            setAfter(component, update, template, elements, index - 1, iterable, variables);
-          }
-          removeAfter(component, elements, iterable);
-        } else if (iterableType === "string") {
-          for (let index = 0; index < iterable.length; index++) {
-            const value = iterable[index];
-            const variables = createVariables(expression.variables, value, index);
-            setAfter(component, update, template, elements, index - 1, value, variables);
-          }
-          removeAfter(component, elements, iterable.length);
-        } else {
-          let isArray, length2;
-          try {
-            const values = [...iterable];
-            isArray = true;
-            length2 = values.length;
-          } catch {
-          }
-          if (isArray) {
-            for (let index = 0; index < length2; index++) {
+        if (iterable !== null && iterable !== void 0) {
+          if (iterableType === "number") {
+            for (let index = 0; index < iterable; index++) {
+              const variables = createVariables(expression.variables, index);
+              setAfter(component, update, template, elements, index - 1, iterable, variables);
+            }
+            removeAfter(component, elements, iterable);
+          } else if (iterableType === "string") {
+            for (let index = 0; index < iterable.length; index++) {
               const value = iterable[index];
               const variables = createVariables(expression.variables, value, index);
               setAfter(component, update, template, elements, index - 1, value, variables);
             }
+            removeAfter(component, elements, iterable.length);
           } else {
-            const keys = Object.keys(iterable);
-            length2 = keys.length;
-            for (let index = 0; index < length2; index++) {
-              const key = keys[index];
-              const value = iterable[key];
-              const variables = createVariables(expression.variables, key, value, index);
-              setAfter(component, update, template, elements, index - 1, value, variables);
+            let isArray, length;
+            try {
+              const values = [...iterable];
+              isArray = true;
+              length = values.length;
+            } catch {
             }
+            if (isArray) {
+              for (let index = 0; index < length; index++) {
+                const value = iterable[index];
+                const variables = createVariables(expression.variables, value, index);
+                setAfter(component, update, template, elements, index - 1, value, variables);
+              }
+            } else {
+              const keys = Object.keys(iterable);
+              length = keys.length;
+              for (let index = 0; index < length; index++) {
+                const key = keys[index];
+                const value = iterable[key];
+                const variables = createVariables(expression.variables, key, value, index);
+                setAfter(component, update, template, elements, index - 1, value, variables);
+              }
+            }
+            removeAfter(component, elements, length);
           }
-          removeAfter(component, elements, length2);
         }
         if (Object.getOwnPropertySymbols(triggers).length > 0) {
           component.update(triggers);
@@ -2030,7 +2030,8 @@
   var createContexts = (component, attribute, update, extra = null) => {
     const library = component.getLibrary();
     const contexts = library.getSimpleContexts();
-    let after = "", before = "", deconstructed = [];
+    const deconstructed = [];
+    let after = "", before = "";
     const creatableContexts = library.getContexts();
     const destroyFunctions = [];
     for (const creatableContext of creatableContexts) {
@@ -2105,7 +2106,7 @@
         path: context
       });
     };
-    let {
+    const {
       contexts,
       destroy: destroy3
     } = createContexts(component, attribute, update, extra);
@@ -2512,7 +2513,7 @@
           this.dispatchEvent("simple-context-removed", [this, name]);
           return true;
         }
-        if (!name.match("^([a-zA-Z_$][a-zA-Zd_$]*)$")) {
+        if (!name.match("^([a-zA-Z_$][a-zA-Z\\d_$]*)$")) {
           console.warn('Doars: name of a bind can not start with a "$".');
           return false;
         }

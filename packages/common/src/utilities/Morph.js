@@ -4,7 +4,7 @@
 import { copyAttributes } from './Attribute.js'
 import {
   fromString as ElementFromString,
-  isSame as ElementIsSame,
+  isSame as ElementIsSame
 } from './Element.js'
 
 /**
@@ -252,6 +252,6 @@ const updateChildren = (existingNode, newNode) => {
 }
 
 export default {
-  morphNode: morphNode,
-  morphTree: morphTree,
+  morphNode,
+  morphTree,
 }

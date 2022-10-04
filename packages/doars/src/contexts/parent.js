@@ -17,7 +17,7 @@ export default {
     return {
       value: contexts,
 
-      destroy: destroy,
+      destroy,
     }
   },
 }

@@ -13,7 +13,7 @@ import {
   PROPERTY,
   SEQUENCE,
   UNARY,
-  UPDATE,
+  UPDATE
 } from './types.js'
 
 // Character codes.
@@ -103,10 +103,10 @@ const UPDATE_OPERATOR_INCREMENT = '++'
 
 // Literal lookup.
 const LITERALS = {
-  'true': true,
-  'false': false,
-  'null': null,
-  'undefined': undefined,
+  true: true,
+  false: false,
+  null: null,
+  undefined,
 }
 
 const isDecimalDigit = (character) =>
@@ -116,11 +116,11 @@ const isIdentifierPart = (character) =>
   isIdentifierStart(character) || isDecimalDigit(character)
 
 const isIdentifierStart = (character) =>
-  character === 36 // Dollar ($)
-  || (character >= 48 && character <= 57) // Between 0 and 9
-  || character === 95 // Underscore
-  || (character >= 65 && character <= 90) // Between A and Z
-  || (character >= 97 && character <= 122) // Between a and z
+  character === 36 || // Dollar ($)
+  (character >= 48 && character <= 57) || // Between 0 and 9
+  character === 95 || // Underscore
+  (character >= 65 && character <= 90) || // Between A and Z
+  (character >= 97 && character <= 122) // Between a and z
 
 export default (expression) => {
   let index = 0
@@ -130,7 +130,7 @@ export default (expression) => {
 
     return {
       type: ARRAY,
-      elements: gobbleParameters(CLOSING_BRACKET_CODE)
+      elements: gobbleParameters(CLOSING_BRACKET_CODE),
     }
   }
 
@@ -141,7 +141,7 @@ export default (expression) => {
     let separatorCount = 0
     while (index < expression.length) {
       gobbleSpaces()
-      let characterIndex = expression.charCodeAt(index)
+      const characterIndex = expression.charCodeAt(index)
 
       if (characterIndex === termination) {
         closed = true
@@ -222,7 +222,7 @@ export default (expression) => {
 
       binaryOperationInfo = {
         value: operator,
-        precedence: precedence,
+        precedence,
       }
 
       const currentBinaryOperation = operator
@@ -234,7 +234,7 @@ export default (expression) => {
           type: ASSIGNMENT_OPERATORS.indexOf(operator) >= 0
             ? ASSIGN
             : BINARY,
-          operator: operator,
+          operator,
           left,
           right,
         }
@@ -259,7 +259,7 @@ export default (expression) => {
         type: ASSIGNMENT_OPERATORS.indexOf(operator) >= 0
           ? ASSIGN
           : BINARY,
-        operator: operator,
+        operator,
         left: stack[i - 2],
         right: node,
       }
@@ -275,7 +275,7 @@ export default (expression) => {
     let toCheckLength = toCheck.length
 
     while (toCheckLength > 0) {
-      if (BINARY_OPERATORS.hasOwnProperty(toCheck) && (
+      if (Object.prototype.hasOwnProperty.call(BINARY_OPERATORS, toCheck) && (
         !isIdentifierStart(expression.charCodeAt(index)) ||
         (index + toCheck.length < expression.length && !isIdentifierPart(expression.charCodeAt(index + toCheck.length)))
       )) {
@@ -295,12 +295,12 @@ export default (expression) => {
   }
 
   const gobbleExpressions = (untilCharacterCode) => {
-    let nodes = []
+    const nodes = []
     while (index < expression.length) {
       const characterIndex = expression.charCodeAt(index)
       if (
-        characterIndex === 59 // Semicolon (;)
-        || characterIndex === COMMA_CODE
+        characterIndex === 59 || // Semicolon (;)
+        characterIndex === COMMA_CODE
       ) {
         index++
       } else {
@@ -319,7 +319,8 @@ export default (expression) => {
   }
 
   const gobbleIdentifier = () => {
-    let character = expression.charCodeAt(index), start = index
+    let character = expression.charCodeAt(index)
+    const start = index
 
     if (isIdentifierStart(character)) {
       index++
@@ -376,10 +377,10 @@ export default (expression) => {
     if (isIdentifierStart(characterCode)) {
       throw new Error('Variable names cannot start with a number (' + number + expression.charAt(index) + ')')
     } else if (
-      characterCode === PERIOD_CODE
-      || (
-        number.length === 1
-        && number.charCodeAt(0) === PERIOD_CODE
+      characterCode === PERIOD_CODE ||
+      (
+        number.length === 1 &&
+        number.charCodeAt(0) === PERIOD_CODE
       )
     ) {
       throw new Error('Unexpected period')
@@ -417,16 +418,16 @@ export default (expression) => {
       gobbleSpaces()
 
       if (
-        key.type === IDENTIFIER
-        && (
-          expression.charCodeAt(index) === COMMA_CODE
-          || expression.charCodeAt(index) === CLOSING_BRACES_CODE
+        key.type === IDENTIFIER &&
+        (
+          expression.charCodeAt(index) === COMMA_CODE ||
+          expression.charCodeAt(index) === CLOSING_BRACES_CODE
         )
       ) {
         properties.push({
           type: PROPERTY,
           computed: false,
-          key: key,
+          key,
           value: key,
           shorthand: true,
         })
@@ -440,13 +441,13 @@ export default (expression) => {
 
         const computed = key.type === ARRAY
         properties.push({
-          computed: computed,
+          computed,
           key: computed
             ? key.elements[0]
             : key,
           shorthand: false,
           type: PROPERTY,
-          value: value,
+          value,
         })
         gobbleSpaces()
       } else if (key) {
@@ -557,7 +558,7 @@ export default (expression) => {
 
     const consequent = gobbleExpression()
     if (!consequent) {
-      throw new Error('Expected expression');
+      throw new Error('Expected expression')
     }
 
     gobbleSpaces()
@@ -575,8 +576,8 @@ export default (expression) => {
     let conditional = {
       type: CONDITION,
       condition: node,
-      consequent: consequent,
-      alternate: alternate,
+      consequent,
+      alternate,
     }
 
     if (node.operator && BINARY_OPERATORS[node.operator] <= 1) {
@@ -625,7 +626,7 @@ export default (expression) => {
           return gobbleUpdateSuffixExpression({
             type: UNARY,
             operator: toCheck,
-            parameter: parameter,
+            parameter,
           })
         }
 
@@ -634,7 +635,7 @@ export default (expression) => {
 
       if (isIdentifierStart(character)) {
         node = gobbleIdentifier()
-        if (LITERALS.hasOwnProperty(node.name)) {
+        if (Object.prototype.hasOwnProperty.call(LITERALS, node.name)) {
           node = {
             type: LITERAL,
             value: LITERALS[node.name],
@@ -656,10 +657,10 @@ export default (expression) => {
 
     let character = expression.charCodeAt(index)
     while (
-      character === PERIOD_CODE
-      || character === OPENING_BRACKET_CODE
-      || character === OPENING_PARENTHESIS_CODE
-      || character === QUESTION_MARK_CODE
+      character === PERIOD_CODE ||
+      character === OPENING_BRACKET_CODE ||
+      character === OPENING_PARENTHESIS_CODE ||
+      character === QUESTION_MARK_CODE
     ) {
       let optional
       if (character === QUESTION_MARK_CODE) {
@@ -732,14 +733,14 @@ export default (expression) => {
     }
 
     index += 2
-    let node = {
+    const node = {
       type: UPDATE,
-      operator: operator,
+      operator,
       parameter: gobbleTokenProperty(gobbleIdentifier()),
       prefix: true,
     }
     if (!node.parameter || (node.parameter.type !== IDENTIFIER && node.parameter.type !== MEMBER)) {
-      throw new Error('Unexpected ' + env.node.operator);
+      throw new Error('Unexpected ' + node.operator)
     }
     return node
   }
@@ -762,7 +763,7 @@ export default (expression) => {
     index += 2
     node = {
       type: UPDATE,
-      operator: operator,
+      operator,
       parameter: node,
       prefix: false,
     }

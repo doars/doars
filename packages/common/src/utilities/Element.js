@@ -84,8 +84,8 @@ export const walk = (element, filter) => {
 }
 
 export default {
-  fromString: fromString,
-  insertAfter: insertAfter,
-  isSame: isSame,
-  walk: walk,
+  fromString,
+  insertAfter,
+  isSame,
+  walk,
 }

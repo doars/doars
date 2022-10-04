@@ -251,7 +251,6 @@
       proxy.remove(dataStoreCopy);
       proxy = null;
       dataStoreCopy = null;
-      directiveSyncStore = null;
       contextStore = null;
     };
     this.disable = function() {

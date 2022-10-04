@@ -19,8 +19,8 @@ class EventDispatcher {
 
       // Add to events.
       events[name].push({
-        callback: callback,
-        options: options,
+        callback,
+        options,
       })
     }
 

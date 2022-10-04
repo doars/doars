@@ -12,6 +12,6 @@ export const isPromise = (value) => {
 }
 
 export default {
-  isPromise: isPromise,
-  isNativePromise: isNativePromise,
+  isPromise,
+  isNativePromise,
 }

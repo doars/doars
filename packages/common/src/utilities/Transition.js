@@ -195,7 +195,7 @@ export const transitionOut = (component, element, callback) => {
 }
 
 export default {
-  transition: transition,
-  transitionIn: transitionIn,
-  transitionOut: transitionOut,
+  transition,
+  transitionIn,
+  transitionOut,
 }

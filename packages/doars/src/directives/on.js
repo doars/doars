@@ -385,10 +385,10 @@ export default {
     // Store listener data on the component.
     attribute[ON] = {
       buffer: [],
-      handler: handler,
-      target: target,
+      handler,
+      target,
       timeout: attribute[ON] ? attribute[ON].timeout : undefined,
-      value: value,
+      value,
       prevent: false,
     }
   },

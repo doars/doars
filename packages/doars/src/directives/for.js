@@ -87,8 +87,8 @@ const setAfter = (component, update, template, elements, index, value, variables
   // Store data.
   element[FOR] = {
     id: Symbol('ID_FOR'),
-    value: value,
-    variables: variables,
+    value,
+    variables,
   }
 
   // Store reference.
@@ -155,44 +155,20 @@ export default {
 
       // Process iterable based on type.
       const iterableType = typeof (iterable)
-      if (iterable === null || iterable === undefined) {
-        length = 0
-      } else if (iterableType === 'number') {
-        for (let index = 0; index < iterable; index++) {
-          // Setup variables for context.
-          const variables = createVariables(expression.variables, index)
+      if (iterable !== null && iterable !== undefined) {
+        if (iterableType === 'number') {
+          for (let index = 0; index < iterable; index++) {
+            // Setup variables for context.
+            const variables = createVariables(expression.variables, index)
 
-          // Add element based on data after previously iterated value.
-          setAfter(component, update, template, elements, index - 1, iterable, variables)
-        }
+            // Add element based on data after previously iterated value.
+            setAfter(component, update, template, elements, index - 1, iterable, variables)
+          }
 
-        // Remove old values.
-        removeAfter(component, elements, iterable)
-      } else if (iterableType === 'string') {
-        for (let index = 0; index < iterable.length; index++) {
-          // Get value at index.
-          const value = iterable[index]
-
-          // Setup variables for context.
-          const variables = createVariables(expression.variables, value, index)
-
-          // Add element based on data after previously iterated value.
-          setAfter(component, update, template, elements, index - 1, value, variables)
-        }
-
-        // Remove old values.
-        removeAfter(component, elements, iterable.length)
-      } else {
-        // We can't rely on Array.isArray since it might be a proxy, therefore we try to convert it to an array.
-        let isArray, length
-        try {
-          const values = [...iterable]
-          isArray = true
-          length = values.length
-        } catch { }
-
-        if (isArray) {
-          for (let index = 0; index < length; index++) {
+          // Remove old values.
+          removeAfter(component, elements, iterable)
+        } else if (iterableType === 'string') {
+          for (let index = 0; index < iterable.length; index++) {
             // Get value at index.
             const value = iterable[index]
 
@@ -202,25 +178,49 @@ export default {
             // Add element based on data after previously iterated value.
             setAfter(component, update, template, elements, index - 1, value, variables)
           }
+
+          // Remove old values.
+          removeAfter(component, elements, iterable.length)
         } else {
-          const keys = Object.keys(iterable)
-          length = keys.length
+          // We can't rely on Array.isArray since it might be a proxy, therefore we try to convert it to an array.
+          let isArray, length
+          try {
+            const values = [...iterable]
+            isArray = true
+            length = values.length
+          } catch { }
 
-          for (let index = 0; index < length; index++) {
-            // Get value at index.
-            const key = keys[index]
-            const value = iterable[key]
+          if (isArray) {
+            for (let index = 0; index < length; index++) {
+              // Get value at index.
+              const value = iterable[index]
 
-            // Setup variables for context.
-            const variables = createVariables(expression.variables, key, value, index)
+              // Setup variables for context.
+              const variables = createVariables(expression.variables, value, index)
 
-            // Add element based on data after previously iterated value.
-            setAfter(component, update, template, elements, index - 1, value, variables)
+              // Add element based on data after previously iterated value.
+              setAfter(component, update, template, elements, index - 1, value, variables)
+            }
+          } else {
+            const keys = Object.keys(iterable)
+            length = keys.length
+
+            for (let index = 0; index < length; index++) {
+              // Get value at index.
+              const key = keys[index]
+              const value = iterable[key]
+
+              // Setup variables for context.
+              const variables = createVariables(expression.variables, key, value, index)
+
+              // Add element based on data after previously iterated value.
+              setAfter(component, update, template, elements, index - 1, value, variables)
+            }
           }
-        }
 
-        // Remove old values.
-        removeAfter(component, elements, length)
+          // Remove old values.
+          removeAfter(component, elements, length)
+        }
       }
 
       // Dispatch triggers.
@@ -231,7 +231,7 @@ export default {
       // Store results.
       attribute.setData(
         Object.assign({}, data, {
-          elements: elements,
+          elements,
         })
       )
     }
@@ -252,7 +252,7 @@ export default {
     // Store results.
     attribute.setData(
       Object.assign({}, data, {
-        result: result,
+        result,
       })
     )
 

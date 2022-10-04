@@ -42,10 +42,10 @@ export default class Component {
 
     // Create a immutable object with the directive utilities.
     const directiveUtilities = Object.freeze({
-      processExpression: processExpression,
-      transition: transition,
-      transitionIn: transitionIn,
-      transitionOut: transitionOut,
+      processExpression,
+      transition,
+      transitionIn,
+      transitionOut,
     })
 
     // create private variables.
@@ -244,7 +244,7 @@ export default class Component {
 
         // Add children update trigger.
         triggers.push({
-          id: id,
+          id,
           path: 'children',
         })
       }
@@ -262,7 +262,7 @@ export default class Component {
 
         // Add parent update trigger.
         triggers.push({
-          id: id,
+          id,
           path: 'parent',
         })
       }
@@ -274,8 +274,8 @@ export default class Component {
 
       // Dispatch event.
       dispatchEvent('destroyed', {
-        element: element,
-        id: id,
+        element,
+        id,
       })
     }
 
@@ -401,9 +401,9 @@ export default class Component {
           // Dispatch updated event anyway.
           hasUpdated = true
           dispatchEvent('updated', {
-            attributes: attributes,
-            element: element,
-            id: id,
+            attributes,
+            element,
+            id,
           })
         }
         return
@@ -416,9 +416,9 @@ export default class Component {
       // Dispatch updated event.
       hasUpdated = true
       dispatchEvent('updated', {
-        attributes: attributes,
-        element: element,
-        id: id,
+        attributes,
+        element,
+        id,
       })
     }
 
@@ -450,8 +450,8 @@ export default class Component {
         hasUpdated = true
         dispatchEvent('updated', {
           attributes: updatedAttributes,
-          element: element,
-          id: id,
+          element,
+          id,
         })
       }
     }
@@ -463,7 +463,7 @@ export default class Component {
     const dispatchEvent = (name, detail) => {
       element.dispatchEvent(
         new CustomEvent(prefix + '-' + name, {
-          detail: detail,
+          detail,
           bubbles: true,
         })
       )

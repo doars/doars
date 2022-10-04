@@ -85,8 +85,8 @@ export const setDeeply = (object, path, value) => {
 }
 
 export default {
-  deepAssign: deepAssign,
-  getDeeply: getDeeply,
-  isObject: isObject,
-  setDeeply: setDeeply,
+  deepAssign,
+  getDeeply,
+  isObject,
+  setDeeply,
 }

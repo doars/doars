@@ -40,5 +40,5 @@ export const interpret = (
 }
 
 export default {
-  interpret: interpret,
+  interpret,
 }

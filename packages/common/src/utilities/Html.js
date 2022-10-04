@@ -42,6 +42,6 @@ export const encode = (string) => {
 }
 
 export default {
-  decode: decode,
-  encode: encode,
+  decode,
+  encode,
 }

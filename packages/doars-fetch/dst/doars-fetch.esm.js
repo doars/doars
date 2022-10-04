@@ -131,23 +131,6 @@ var fetch_default = ({
   };
 };
 
-// src/symbols.js
-var FETCH = Symbol("FETCH");
-
-// src/factories/directives/fetch.js
-var fetch_default2 = ({
-  defaultInit,
-  encodingConverters
-}) => {
-  return {
-    name: "fetch",
-    update: (component, attribute, {
-      processExpression
-    }) => {
-    }
-  };
-};
-
 // src/DoarsFetch.js
 function DoarsFetch_default(library, options = null) {
   options = Object.assign({
@@ -162,18 +145,14 @@ function DoarsFetch_default(library, options = null) {
     }
   }, options);
   let isEnabled = false;
-  let fetchContext, fetchDirective;
+  let fetchContext;
   const onEnable = function() {
     fetchContext = fetch_default(options);
     library.addContexts(0, fetchContext);
-    fetchDirective = fetch_default2(options);
-    library.addDirectives(-1, fetchDirective);
   };
   const onDisable = function() {
     library.removeContexts(fetchContext);
     fetchContext = null;
-    library.removeDirective(fetchDirective);
-    fetchDirective = null;
   };
   this.disable = function() {
     if (!library.getEnabled() && isEnabled) {

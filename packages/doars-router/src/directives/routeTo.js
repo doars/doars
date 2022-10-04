@@ -50,8 +50,8 @@ export default {
 
     // Store listener data on the component.
     attribute[ROUTE_TO] = {
-      handler: handler,
-      value: value,
+      handler,
+      value,
     }
   },
 

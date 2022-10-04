@@ -250,7 +250,6 @@ function DoarsStore_default(library, options = null, dataStore = {}) {
     proxy.remove(dataStoreCopy);
     proxy = null;
     dataStoreCopy = null;
-    directiveSyncStore = null;
     contextStore = null;
   };
   this.disable = function() {

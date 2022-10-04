@@ -42,9 +42,9 @@ export default (options) => {
 
       // Add item at index in list.
       items.splice(index, 0, {
-        attribute: attribute,
-        component: component,
-        order: order,
+        attribute,
+        component,
+        order,
       })
     },
 

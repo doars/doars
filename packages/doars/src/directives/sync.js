@@ -17,10 +17,10 @@ export default {
     if (isNew) {
       // Check if placed on a valid tag.
       if (
-        !(element.tagName === 'DIV' && element.hasAttribute('contenteditable'))
-        && element.tagName !== 'INPUT'
-        && element.tagName !== 'SELECT'
-        && element.tagName !== 'TEXTAREA'
+        !(element.tagName === 'DIV' && element.hasAttribute('contenteditable')) &&
+        element.tagName !== 'INPUT' &&
+        element.tagName !== 'SELECT' &&
+        element.tagName !== 'TEXTAREA'
       ) {
         console.warn('Doars: `sync` directive must be placed on an `<input>`, `<select>`, `<textarea>` tag, or a content editable `div`.')
         return
@@ -224,5 +224,5 @@ export default {
 
     // Remove data from attribute.
     delete attribute[SYNC]
-  }
+  },
 }

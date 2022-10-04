@@ -30,7 +30,7 @@
   var ROUTE = Symbol("ROUTE");
 
   // src/utilities/closestRouter.js
-  var closestRouter_default = (element) => {
+  var closestRouter = (element) => {
     if (!element.parentElement) {
       return;
     }
@@ -40,6 +40,7 @@
     }
     return closestRouter(element);
   };
+  var closestRouter_default = closestRouter;
 
   // src/contexts/router.js
   var router_default = {
@@ -726,6 +727,7 @@
   function DoarsRouter_default(library, options = null) {
     options = deepAssign({}, options);
     let isEnabled = false;
+    let directiveRouter;
     const onEnable = function() {
       library.addContexts(0, router_default);
       directiveRouter = router_default2(options);

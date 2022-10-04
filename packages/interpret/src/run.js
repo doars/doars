@@ -10,7 +10,7 @@ import {
   OBJECT,
   SEQUENCE,
   UNARY,
-  UPDATE,
+  UPDATE
 } from './types.js'
 
 const setToContext = (
@@ -21,7 +21,8 @@ const setToContext = (
   switch (node.type) {
     case IDENTIFIER:
       // Assign to
-      return context[node.name] = value
+      context[node.name] = value
+      return value
 
     case MEMBER:
       const memberObject = run(node.object, context)
@@ -32,7 +33,8 @@ const setToContext = (
       if (typeof (value) === 'function') {
         return value.bind(memberObject)
       }
-      return memberObject[memberProperty] = value
+      memberObject[memberProperty] = value
+      return value
   }
 
   throw new Error('Unsupported assignment method.')
@@ -118,8 +120,10 @@ const run = (
         case '??':
           return binaryLeft ?? binaryRight
         case '==':
+          // eslint-disable-next-line eqeqeq
           return binaryLeft == binaryRight
         case '!=':
+          // eslint-disable-next-line eqeqeq
           return binaryLeft != binaryRight
         case '===':
           return binaryLeft === binaryRight
@@ -188,9 +192,9 @@ const run = (
         case '!':
           return !unaryParameter
         case '-':
-          return - unaryParameter
+          return -unaryParameter
         case '+':
-          return + unaryParameter
+          return +unaryParameter
       }
       throw new Error('Unsupported operator: ' + node.operator)
 

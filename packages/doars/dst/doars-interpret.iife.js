@@ -70,7 +70,7 @@
 
   // ../common/src/utilities/String.js
   var escapeHtml = (text) => {
-    return text.replace(/\\/g, "\\\\").replace(/\'/g, "\\'").replace(/\"/g, '\\"').replace(/\n/g, "\\n");
+    return text.replace(/\\/g, "\\\\").replace(/\\'/g, "\\'").replace(/\\"/g, '\\"').replace(/\n/g, "\\n");
   };
   var kebabToCamel = (text) => {
     return text.replace(/-(\w)/g, (match, character) => character.toUpperCase());
@@ -1307,46 +1307,46 @@
         const data2 = attribute.getData();
         const elements = data2.elements ? data2.elements : [];
         const iterableType = typeof iterable;
-        if (iterable === null || iterable === void 0) {
-          length = 0;
-        } else if (iterableType === "number") {
-          for (let index = 0; index < iterable; index++) {
-            const variables = createVariables(expression.variables, index);
-            setAfter(component, update, template, elements, index - 1, iterable, variables);
-          }
-          removeAfter(component, elements, iterable);
-        } else if (iterableType === "string") {
-          for (let index = 0; index < iterable.length; index++) {
-            const value = iterable[index];
-            const variables = createVariables(expression.variables, value, index);
-            setAfter(component, update, template, elements, index - 1, value, variables);
-          }
-          removeAfter(component, elements, iterable.length);
-        } else {
-          let isArray, length2;
-          try {
-            const values = [...iterable];
-            isArray = true;
-            length2 = values.length;
-          } catch {
-          }
-          if (isArray) {
-            for (let index = 0; index < length2; index++) {
+        if (iterable !== null && iterable !== void 0) {
+          if (iterableType === "number") {
+            for (let index = 0; index < iterable; index++) {
+              const variables = createVariables(expression.variables, index);
+              setAfter(component, update, template, elements, index - 1, iterable, variables);
+            }
+            removeAfter(component, elements, iterable);
+          } else if (iterableType === "string") {
+            for (let index = 0; index < iterable.length; index++) {
               const value = iterable[index];
               const variables = createVariables(expression.variables, value, index);
               setAfter(component, update, template, elements, index - 1, value, variables);
             }
+            removeAfter(component, elements, iterable.length);
           } else {
-            const keys = Object.keys(iterable);
-            length2 = keys.length;
-            for (let index = 0; index < length2; index++) {
-              const key = keys[index];
-              const value = iterable[key];
-              const variables = createVariables(expression.variables, key, value, index);
-              setAfter(component, update, template, elements, index - 1, value, variables);
+            let isArray, length;
+            try {
+              const values = [...iterable];
+              isArray = true;
+              length = values.length;
+            } catch {
             }
+            if (isArray) {
+              for (let index = 0; index < length; index++) {
+                const value = iterable[index];
+                const variables = createVariables(expression.variables, value, index);
+                setAfter(component, update, template, elements, index - 1, value, variables);
+              }
+            } else {
+              const keys = Object.keys(iterable);
+              length = keys.length;
+              for (let index = 0; index < length; index++) {
+                const key = keys[index];
+                const value = iterable[key];
+                const variables = createVariables(expression.variables, key, value, index);
+                setAfter(component, update, template, elements, index - 1, value, variables);
+              }
+            }
+            removeAfter(component, elements, length);
           }
-          removeAfter(component, elements, length2);
         }
         if (Object.getOwnPropertySymbols(triggers).length > 0) {
           component.update(triggers);
@@ -2030,7 +2030,8 @@
   var createContexts = (component, attribute, update, extra = null) => {
     const library = component.getLibrary();
     const contexts = library.getSimpleContexts();
-    let after = "", before = "", deconstructed = [];
+    const deconstructed = [];
+    let after = "", before = "";
     const creatableContexts = library.getContexts();
     const destroyFunctions = [];
     for (const creatableContext of creatableContexts) {
@@ -2105,7 +2106,7 @@
         path: context
       });
     };
-    let {
+    const {
       contexts,
       destroy: destroy3
     } = createContexts(component, attribute, update, extra);
@@ -2512,7 +2513,7 @@
           this.dispatchEvent("simple-context-removed", [this, name]);
           return true;
         }
-        if (!name.match("^([a-zA-Z_$][a-zA-Zd_$]*)$")) {
+        if (!name.match("^([a-zA-Z_$][a-zA-Z\\d_$]*)$")) {
           console.warn('Doars: name of a bind can not start with a "$".');
           return false;
         }
@@ -2884,10 +2885,10 @@
   var UPDATE_OPERATOR_DECREMENT = "--";
   var UPDATE_OPERATOR_INCREMENT = "++";
   var LITERALS = {
-    "true": true,
-    "false": false,
-    "null": null,
-    "undefined": void 0
+    true: true,
+    false: false,
+    null: null,
+    undefined: void 0
   };
   var isDecimalDigit = (character) => character >= 48 && character <= 57;
   var isIdentifierPart = (character) => isIdentifierStart(character) || isDecimalDigit(character);
@@ -2907,7 +2908,7 @@
       let separatorCount = 0;
       while (index < expression.length) {
         gobbleSpaces();
-        let characterIndex = expression.charCodeAt(index);
+        const characterIndex = expression.charCodeAt(index);
         if (characterIndex === termination) {
           closed = true;
           index++;
@@ -3009,7 +3010,7 @@
       let toCheck = expression.substring(index, index + 3);
       let toCheckLength = toCheck.length;
       while (toCheckLength > 0) {
-        if (BINARY_OPERATORS.hasOwnProperty(toCheck) && (!isIdentifierStart(expression.charCodeAt(index)) || index + toCheck.length < expression.length && !isIdentifierPart(expression.charCodeAt(index + toCheck.length)))) {
+        if (Object.prototype.hasOwnProperty.call(BINARY_OPERATORS, toCheck) && (!isIdentifierStart(expression.charCodeAt(index)) || index + toCheck.length < expression.length && !isIdentifierPart(expression.charCodeAt(index + toCheck.length)))) {
           index += toCheckLength;
           return toCheck;
         }
@@ -3024,7 +3025,7 @@
       return node;
     };
     const gobbleExpressions = (untilCharacterCode) => {
-      let nodes2 = [];
+      const nodes2 = [];
       while (index < expression.length) {
         const characterIndex = expression.charCodeAt(index);
         if (characterIndex === 59 || characterIndex === COMMA_CODE) {
@@ -3044,7 +3045,8 @@
       return nodes2;
     };
     const gobbleIdentifier = () => {
-      let character = expression.charCodeAt(index), start = index;
+      let character = expression.charCodeAt(index);
+      const start = index;
       if (isIdentifierStart(character)) {
         index++;
       } else {
@@ -3290,7 +3292,7 @@
         }
         if (isIdentifierStart(character)) {
           node = gobbleIdentifier();
-          if (LITERALS.hasOwnProperty(node.name)) {
+          if (Object.prototype.hasOwnProperty.call(LITERALS, node.name)) {
             node = {
               type: LITERAL,
               value: LITERALS[node.name]
@@ -3370,14 +3372,14 @@
         return;
       }
       index += 2;
-      let node = {
+      const node = {
         type: UPDATE,
         operator,
         parameter: gobbleTokenProperty(gobbleIdentifier()),
         prefix: true
       };
       if (!node.parameter || node.parameter.type !== IDENTIFIER && node.parameter.type !== MEMBER) {
-        throw new Error("Unexpected " + env.node.operator);
+        throw new Error("Unexpected " + node.operator);
       }
       return node;
     };
@@ -3411,14 +3413,16 @@
   var setToContext = (node, value, context = {}) => {
     switch (node.type) {
       case IDENTIFIER:
-        return context[node.name] = value;
+        context[node.name] = value;
+        return value;
       case MEMBER:
         const memberObject = run(node.object, context);
         const memberProperty = node.computed || node.property.type !== IDENTIFIER ? run(node.property, context) : node.property.name;
         if (typeof value === "function") {
           return value.bind(memberObject);
         }
-        return memberObject[memberProperty] = value;
+        memberObject[memberProperty] = value;
+        return value;
     }
     throw new Error("Unsupported assignment method.");
   };

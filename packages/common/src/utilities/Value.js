@@ -1,5 +1,6 @@
 export const isDeeply = (valueA, valueB) => {
   const typeA = typeof (valueA)
+  // eslint-disable-next-line valid-typeof
   if (typeA !== typeof (valueB)) {
     return false
   }
@@ -26,8 +27,7 @@ export const isDeeply = (valueA, valueB) => {
           return false
         }
 
-        const type = typeof (valueA[key])
-        if (type !== typeof (valueB)) {
+        if (typeof (valueA[key]) !== typeof (valueB)) {
           return false
         }
 
@@ -44,5 +44,5 @@ export const isDeeply = (valueA, valueB) => {
 }
 
 export default {
-  isDeeply: isDeeply,
+  isDeeply,
 }

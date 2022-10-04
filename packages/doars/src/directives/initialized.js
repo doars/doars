@@ -65,10 +65,10 @@ export default {
 
     // Store listener data on the component.
     attribute[INITIALIZED] = {
-      handler: handler,
-      value: value,
+      handler,
+      value,
     }
   },
 
-  destroy: destroy,
+  destroy,
 }

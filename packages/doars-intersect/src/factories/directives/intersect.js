@@ -134,10 +134,10 @@ export default (observer) => {
       // Store handler.
       attribute[INTERSECT] = {
         buffer: [],
-        handler: handler,
+        handler,
         isIntersecting: false,
         timeout: attribute[INTERSECT] ? attribute[INTERSECT].timeout : null,
-        value: value,
+        value,
       }
     },
 

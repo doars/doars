@@ -19,7 +19,7 @@ export const execute = (component, attribute, expression, extra = null, options 
   const triggers = []
   const update = (id, context) => {
     triggers.push({
-      id: id,
+      id,
       path: context,
     })
   }
@@ -53,5 +53,5 @@ export const execute = (component, attribute, expression, extra = null, options 
 }
 
 export default {
-  execute: execute,
+  execute,
 }

@@ -31,7 +31,7 @@ export default {
       // Store new transition.
       attribute.setData(
         Object.assign({}, data, {
-          transition: transition,
+          transition,
         })
       )
     }
@@ -47,7 +47,7 @@ export default {
       // Store results.
       attribute.setData(
         Object.assign({}, data, {
-          result: result,
+          result,
         })
       )
 
@@ -64,7 +64,7 @@ export default {
       // Store results.
       attribute.setData(
         Object.assign({}, data, {
-          result: result,
+          result,
         })
       )
 

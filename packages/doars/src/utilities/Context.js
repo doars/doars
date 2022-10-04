@@ -7,9 +7,9 @@ import RevocableProxy from '@doars/common/src/polyfills/RevocableProxy.js'
  */
 const createContextUtilities = () => {
   return {
-    createContexts: createContexts,
-    createContextsProxy: createContextsProxy,
-    RevocableProxy: RevocableProxy,
+    createContexts,
+    createContextsProxy,
+    RevocableProxy,
   }
 }
 
@@ -28,7 +28,8 @@ export const createContexts = (component, attribute, update, extra = null) => {
   // Start with the simple contexts.
   const contexts = library.getSimpleContexts()
 
-  let after = '', before = '', deconstructed = []
+  const deconstructed = []
+  let after = '', before = ''
   // Iterate over all contexts.
   const creatableContexts = library.getContexts()
   // Store destroy functions.
@@ -68,7 +69,7 @@ export const createContexts = (component, attribute, update, extra = null) => {
   }
 
   return {
-    contexts: contexts,
+    contexts,
     destroy: () => {
       // Call all destroy functions.
       for (const destroyFunction of destroyFunctions) {
@@ -76,9 +77,9 @@ export const createContexts = (component, attribute, update, extra = null) => {
       }
     },
 
-    after: after,
-    before: before,
-    deconstructed: deconstructed,
+    after,
+    before,
+    deconstructed,
   }
 }
 
@@ -147,13 +148,13 @@ export const createAutoContexts = (
   const triggers = []
   const update = (id, context) => {
     triggers.push({
-      id: id,
+      id,
       path: context,
     })
   }
 
   // Create function context.
-  let { contexts, destroy } = createContexts(component, attribute, update, extra)
+  const { contexts, destroy } = createContexts(component, attribute, update, extra)
 
   return [contexts, () => {
     // Invoke destroy.
@@ -167,7 +168,7 @@ export const createAutoContexts = (
 }
 
 export default {
-  createAutoContexts: createAutoContexts,
-  createContexts: createContexts,
-  createContextsProxy: createContextsProxy,
+  createAutoContexts,
+  createContexts,
+  createContextsProxy,
 }

@@ -6,8 +6,8 @@
 export const escapeHtml = (text) => {
   return text
     .replace(/\\/g, '\\\\')
-    .replace(/\'/g, '\\\'')
-    .replace(/\"/g, '\\"')
+    .replace(/\\'/g, '\\\'')
+    .replace(/\\"/g, '\\"')
     .replace(/\n/g, '\\n')
 }
 
@@ -211,10 +211,10 @@ export const parseSelector = (selector) => {
 }
 
 export default {
-  escapeHtml: escapeHtml,
-  kebabToCamel: kebabToCamel,
-  parseAttributeModifiers: parseAttributeModifiers,
-  parseAttributeName: parseAttributeName,
-  parseForExpression: parseForExpression,
-  parseSelector: parseSelector,
+  escapeHtml,
+  kebabToCamel,
+  parseAttributeModifiers,
+  parseAttributeName,
+  parseForExpression,
+  parseSelector,
 }

@@ -63,8 +63,8 @@ export default {
       // Store results.
       attribute.setData(
         Object.assign({}, data, {
-          element: element,
-          transition: transition,
+          element,
+          transition,
         })
       )
     }
@@ -78,7 +78,7 @@ export default {
     // Store results.
     attribute.setData(
       Object.assign({}, data, {
-        result: result,
+        result,
       })
     )
 

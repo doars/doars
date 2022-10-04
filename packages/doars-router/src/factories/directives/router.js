@@ -45,7 +45,7 @@ export default (routerOptions) => {
       const library = component.getLibrary()
 
       // Trigger update due to changed router.
-      library.update([{ id: id, path: '' }])
+      library.update([{ id, path: '' }])
     },
   }
 }

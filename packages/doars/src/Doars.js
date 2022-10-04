@@ -340,7 +340,7 @@ export default class Doars extends EventDispatcher {
       }
 
       // Validate name.
-      if (!name.match('^([a-zA-Z_$][a-zA-Z\d_$]*)$')) {
+      if (!name.match('^([a-zA-Z_$][a-zA-Z\\d_$]*)$')) {
         console.warn('Doars: name of a bind can not start with a "$".')
         return false
       }

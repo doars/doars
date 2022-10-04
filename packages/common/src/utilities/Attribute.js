@@ -180,8 +180,8 @@ export const setAttributes = (element, data) => {
 }
 
 export default {
-  addAttributes: addAttributes,
-  copyAttributes: copyAttributes,
-  removeAttributes: removeAttributes,
-  setAttribute: setAttribute,
+  addAttributes,
+  copyAttributes,
+  removeAttributes,
+  setAttribute,
 }

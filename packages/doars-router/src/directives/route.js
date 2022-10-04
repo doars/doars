@@ -31,7 +31,7 @@ export default {
 
       // Setup route data.
       attribute[ROUTE] = {
-        setup: setup,
+        setup,
       }
 
       // Deconstruct attribute.

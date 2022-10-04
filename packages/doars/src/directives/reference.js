@@ -66,7 +66,7 @@ export default {
 
     // Store reference.
     component[REFERENCES][attributeId] = {
-      element: element,
+      element,
       name: value,
     }
 
@@ -77,5 +77,5 @@ export default {
     library.update([{ id: componentId, path: '$references.' + value }])
   },
 
-  destroy: destroy,
+  destroy,
 }
