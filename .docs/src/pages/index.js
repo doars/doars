@@ -460,8 +460,8 @@ export default function () {
           }, '@doars/doars-store', 'Adds a store context for global state management.'),
 
           card({
-            href: 'https://github.com/doars/doars/tree/main/packages/doars-view#readme',
-          }, '@doars/doars-view', 'Adds a view directive for reacting to intersection changes.'),
+            href: 'https://github.com/doars/doars/tree/main/packages/doars-intersect#readme',
+          }, '@doars/doars-intersect', 'Adds an intersect directive for reacting to intersection changes.'),
 
           card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars-router#readme',
