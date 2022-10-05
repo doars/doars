@@ -1,8 +1,8 @@
-// Import utils.
-import { deepAssign } from '@doars/doars/src/utils/ObjectUtils.js'
-import { parseResponse, responseType } from '../../utils/FetchUtils.js'
+// Import utilities.
+import { deepAssign } from '@doars/common/src/utilities/Object.js'
+import { parseResponse, responseType } from '../../utilities/Fetch.js'
 
-export default (options) => {
+export default ({ defaultInit }) => {
   return {
     name: '$fetch',
 
@@ -10,12 +10,12 @@ export default (options) => {
       return {
         value: (url, init = null) => {
           // Apply default options to init.
-          if (options.defaultInit) {
-            init = deepAssign(options.defaultInit, init)
+          if (defaultInit) {
+            init = deepAssign({}, defaultInit, init)
           }
 
           // Extract optional return type.
-          let returnType = init.returnType ?? null
+          let returnType = init.returnType ? init.returnType : null
           delete init.returnType
 
           // Perform and process fetch request.

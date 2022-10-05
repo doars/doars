@@ -23,35 +23,35 @@ npm i @doars/doars @doars/doars-alias
 
 ```JavaScript
 // Import library.
-import Doars from "@doars/doars";
-import DoarsAlias from "@doars/doars-alias";
+import Doars from '@doars/doars'
+import DoarsAlias from '@doars/doars-alias'
 
 // Setup a library instance.
-const doars = new Doars();
+const doars = new Doars()
 
 // Setup the plugin.
-const doarsAlias = new DoarsAlias(doars /*, options */);
+const doarsAlias = new DoarsAlias(doars /*, options */)
 
 // Enable library.
-doars.enable();
+doars.enable()
 ```
 
-### UMD build from jsDelivr
+### IIFE build from jsDelivr
 
-Add the UMD build to the page from for example the jsDelivr CDN and enable the
+Add the IIFE build to the page from for example the jsDelivr CDN and enable the
 library.
 
 ```HTML
 <!-- Import library. -->
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars-alias@1/dst/doars-alias.umd.js"></script>
-<script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars-alias@1/dst/doars-alias.iife.js"></script>
+<script type="application/javascript">
   document.addEventListener('DOMContentLoaded', () => {
     // Setup a library instance.
     const doars = new window.Doars()
 
     // Setup the plugin.
-    const doarsAlias = new window.DoarsAlias(doars /*, options */)
+    const doarsAlias = window.DoarsAlias(doars /*, options */)
 
     // Enable library.
     doars.enable()
@@ -68,7 +68,7 @@ library.
 
 ```JavaScript
 // Setup a library instance.
-const doars = new Doars();
+const doars = new Doars()
 
 // Setup the plugin.
 const doarsAlias = new DoarsAlias(doars, {
@@ -85,10 +85,10 @@ const doarsAlias = new DoarsAlias(doars, {
   renameDirective: {
     reference: "ref",
   },
-});
+})
 
 // Enable library.
-doars.enable();
+doars.enable()
 ```
 
 ## API
@@ -113,3 +113,10 @@ doars.enable();
 
 > Where `[name]` is the current name of the context or directive that should be
 > aliased or renamed.
+
+## Compatible versions
+
+| `@doars/doars-alias` version | `@doars/doars` version |
+| ---------------------------- | ---------------------- |
+| `1.x`                        | `1.x`                  |
+| `2.x`                        | `2.x`                  |

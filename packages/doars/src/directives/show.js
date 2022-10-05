@@ -1,10 +1,10 @@
-// Import utils.
-import { isPromise } from '../utils/PromiseUtils.js'
+// Import utilities.
+import { isPromise } from '@doars/common/src/utilities/Promise.js'
 
 export default {
   name: 'show',
 
-  update: (component, attribute, { executeExpression, transitionIn, transitionOut }) => {
+  update: (component, attribute, { processExpression, transitionIn, transitionOut }) => {
     // Deconstruct attribute.
     const element = attribute.getElement()
 
@@ -31,13 +31,13 @@ export default {
       // Store new transition.
       attribute.setData(
         Object.assign({}, data, {
-          transition: transition,
+          transition,
         })
       )
     }
 
     // Execute attribute value.
-    const result = executeExpression(component, attribute, attribute.getValue())
+    const result = processExpression(component, attribute, attribute.getValue())
 
     // Get stored data.
     const data = attribute.getData()
@@ -47,7 +47,7 @@ export default {
       // Store results.
       attribute.setData(
         Object.assign({}, data, {
-          result: result,
+          result,
         })
       )
 
@@ -64,7 +64,7 @@ export default {
       // Store results.
       attribute.setData(
         Object.assign({}, data, {
-          result: result,
+          result,
         })
       )
 

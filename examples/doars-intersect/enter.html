@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doars intersect enter example</title>
+  </head>
+
+  <body>
+    <div d-state="{}">
+      <div style="height: 110vh"></div>
+
+      <div style="height: 2em; width: 100%; background-color: #000;"
+        d-intersect:enter="console.log('Intersection enter!')">
+      </div>
+
+      <div style="height: 110vh"></div>
+    </div>
+
+    <script src="/packages/doars/dst/doars.iife.js"></script>
+    <script src="/packages/doars-intersect/dst/doars-intersect.iife.js"></script>
+    <script>
+      // Wait for the DOM to be interactive.
+      document.addEventListener('DOMContentLoaded', () => {
+        // Setup a library instance.
+        const doars = new window.Doars()
+
+        // Add plugin.
+        window.DoarsIntersect(doars)
+
+        // Enable library.
+        doars.enable()
+      })
+    </script>
+  </body>
+
+</html>

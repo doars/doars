@@ -1,11 +1,11 @@
-// Import utils.
-import { decode } from '../utils/HtmlUtils.js'
-import { isPromise } from '../utils/PromiseUtils.js'
+// Import utilities.
+import { decode } from '@doars/common/src/utilities/Html.js'
+import { isPromise } from '@doars/common/src/utilities/Promise.js'
 
 export default {
   name: 'html',
 
-  update: (component, attribute, { executeExpression, morphTree }) => {
+  update: (component, attribute, { processExpression }) => {
     // Deconstruct attribute.
     const element = attribute.getElement()
     const modifiers = attribute.getModifiers()
@@ -14,26 +14,6 @@ export default {
       // Decode string.
       if (modifiers.decode && typeof (html) === 'string') {
         html = decode(html)
-      }
-
-      // Morph if morph modifier is set.
-      if (modifiers.morph) {
-        // Ensure element only has one child.
-        if (element.children.length === 0) {
-          element.appendChild(document.createElement('div'))
-        } else if (element.children.length > 1) {
-          for (let i = element.children.length - 1; i >= 1; i--) {
-            element.children[i].remove()
-          }
-        }
-
-        // Morph first child to given element tree.
-        const root = morphTree(element.children[0], html)
-        if (!element.children[0].isSameNode(root)) {
-          element.children[0].remove()
-          element.appendChild(root)
-        }
-        return
       }
 
       // Clone and set html as only child for HTMLElements.
@@ -58,7 +38,7 @@ export default {
     }
 
     // Execute value and retrieve result.
-    const result = executeExpression(component, attribute, attribute.getValue())
+    const result = processExpression(component, attribute, attribute.getValue())
 
     // Store results.
     attribute.setData(result)

@@ -1,9 +1,9 @@
 // Import symbols.
 import { ROUTE } from '../symbols.js'
 
-// Import utils.
-import { closestRouter } from '../utils.js'
-import { insertAfter } from '@doars/doars/src/utils/ElementUtils.js'
+// Import utilities.
+import closestRouter from '../utilities/closestRouter.js'
+import { insertAfter } from '@doars/common/src/utilities/Element.js'
 
 export default {
   name: 'route',
@@ -31,7 +31,7 @@ export default {
 
       // Setup route data.
       attribute[ROUTE] = {
-        setup: setup,
+        setup,
       }
 
       // Deconstruct attribute.

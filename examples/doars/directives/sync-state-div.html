@@ -9,12 +9,12 @@
 
   <body>
     <div d-state="{ message: 'After' }">
-      <div contenteditable="true" d-sync-state="message">Initial</div>
+      <div contenteditable="true" d-sync:state="message">Initial</div>
 
       <div d-text="message">Initial</div>
     </div>
 
-    <script src="/packages/doars/dst/doars.umd.js"></script>
+    <script src="/packages/doars/dst/doars.iife.js"></script>
     <script>
       // Wait for the DOM to be interactive.
       document.addEventListener('DOMContentLoaded', () => {

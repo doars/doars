@@ -1,12 +1,12 @@
-// Import utils.
-import { setAttribute, setAttributes } from '../utils/AttributeUtils.js'
-import { isPromise } from '../utils/PromiseUtils.js'
-import { parseSelector } from '../utils/StringUtils.js'
+// Import utilities.
+import { setAttribute, setAttributes } from '@doars/common/src/utilities/Attribute.js'
+import { isPromise } from '@doars/common/src/utilities/Promise.js'
+import { parseSelector } from '@doars/common/src/utilities/String.js'
 
 export default {
   name: 'attribute',
 
-  update: (component, attribute, { executeExpression }) => {
+  update: (component, attribute, { processExpression }) => {
     // Deconstruct attribute.
     const element = attribute.getElement()
     const modifiers = attribute.getModifiers()
@@ -42,7 +42,7 @@ export default {
     }
 
     // Execute attribute value.
-    const result = executeExpression(component, attribute, attribute.getValue())
+    const result = processExpression(component, attribute, attribute.getValue())
 
     // Store results.
     attribute.setData(result)

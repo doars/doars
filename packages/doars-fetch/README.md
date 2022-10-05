@@ -23,29 +23,29 @@ npm i @doars/doars @doars/doars-fetch
 
 ```JavaScript
 // Import library.
-import Doars from "@doars/doars";
-import DoarsFetch from "@doars/doars-fetch";
+import Doars from '@doars/doars'
+import DoarsFetch from '@doars/doars-fetch'
 
 // Setup a library instance.
-const doars = new Doars();
+const doars = new Doars()
 
 // Setup the plugin.
-const doarsFetch = new DoarsFetch(doars /*, options */);
+const doarsFetch = DoarsFetch(doars /*, options */)
 
 // Enable library.
-doars.enable();
+doars.enable()
 ```
 
-### UMD build from jsDelivr
+### IIFE build from jsDelivr
 
-Add the UMD build to the page from for example the jsDelivr CDN and enable the
+Add the IIFE build to the page from for example the jsDelivr CDN and enable the
 library.
 
 ```HTML
 <!-- Import library. -->
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars-fetch@1/dst/doars-fetch.umd.js"></script>
-<script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars-fetch@1/dst/doars-fetch.iife.js"></script>
+<script type="application/javascript">
   document.addEventListener('DOMContentLoaded', () => {
     // Setup a library instance.
     const doars = new window.Doars()
@@ -70,7 +70,7 @@ The following
 [contexts](https://github.com/doars/doars/tree/main/packages/doars#contexts) are
 added by the plugin.
 
-### $fetch
+### \$fetch
 
 Call fetch function.
 
@@ -126,3 +126,10 @@ Call fetch function.
 
 - `{Object} defaultInit = {}` Default init to use, the init object provided when
   calling fetch will be merged with this default.
+
+## Compatible versions
+
+| `@doars/doars-fetch` version | `@doars/doars` version |
+| ---------------------------- | ---------------------- |
+| `1.x`                        | `1.x`                  |
+| `2.x`                        | `2.x`                  |

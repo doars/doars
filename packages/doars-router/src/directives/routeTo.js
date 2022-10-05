@@ -1,8 +1,10 @@
 // Import symbols.
 import { ROUTE_TO } from '../symbols.js'
 
-// Import utils.
-import { closestRouter } from '../utils.js'
+// Import utilities.
+import closestRouter from '../utilities/closestRouter.js'
+
+const CLICK = 'click'
 
 export default {
   name: 'route-to',
@@ -20,7 +22,7 @@ export default {
       }
 
       // Remove existing listeners so we don't listen twice.
-      attribute[ROUTE_TO].target.removeEventListener('click', attribute[ROUTE_TO].handler)
+      attribute[ROUTE_TO].target.removeEventListener(CLICK, attribute[ROUTE_TO].handler)
     }
 
     const handler = (event) => {
@@ -44,12 +46,12 @@ export default {
     }
 
     // Listen to click and keyboard events.
-    element.addEventListener('click', handler)
+    element.addEventListener(CLICK, handler)
 
     // Store listener data on the component.
     attribute[ROUTE_TO] = {
-      handler: handler,
-      value: value,
+      handler,
+      value,
     }
   },
 
@@ -60,7 +62,7 @@ export default {
 
     const element = attribute.getElement()
 
-    element.removeEventListener('click', attribute[ROUTE_TO].handler)
+    element.removeEventListener(CLICK, attribute[ROUTE_TO].handler)
 
     delete attribute[ROUTE_TO]
   },

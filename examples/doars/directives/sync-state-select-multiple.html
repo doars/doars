@@ -9,7 +9,7 @@
 
   <body>
     <div d-state="{ selected: ['before', 'before2'] }">
-      <select d-sync-state="selected" multiple>
+      <select d-sync:state="selected" multiple>
         <option value="initial" selected>Initial</option>
         <option value="before">Before</option>
         <option value="before2">Before2</option>
@@ -19,7 +19,7 @@
       <div d-text="selected.join(', ')">initial</div>
     </div>
 
-    <script src="/packages/doars/dst/doars.umd.js"></script>
+    <script src="/packages/doars/dst/doars.iife.js"></script>
     <script>
       // Wait for the DOM to be interactive.
       document.addEventListener('DOMContentLoaded', () => {

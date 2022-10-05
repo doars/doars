@@ -60,11 +60,11 @@ export default function () {
           r('button', {
             class: 'flex-grow md:flex-grow-0',
             'onclick': () => {
-              window.copyToClipboard('https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.umd.js')
+              window.copyToClipboard('https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js')
             },
           }, [
             '&#160;',
-            r('code', 'https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.umd.js'),
+            r('code', 'https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js'),
             '&#160;&#160;',
             iconCopy,
           ]),
@@ -95,7 +95,7 @@ export default function () {
             '</div>',
             '',
             '<!-- Import library. -->',
-            '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.umd.js"></script>',
+            '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>',
             '<script>',
             '  document.addEventListener(\'DOMContentLoaded\', () => {',
             '    // Setup and enable the library.',
@@ -182,7 +182,7 @@ export default function () {
             '<button onclick="increment()">Increment</button>',
             '',
             '<!-- Import library. -->',
-            '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.iife.js"></script>',
+            '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>',
             '<script>',
             '  // Increment count and set to text directive.',
             '  let count = 0',
@@ -232,7 +232,7 @@ export default function () {
       section([
         r('h2', 'Small in size and quick to update!'),
 
-        r('p', 'Minified and gzipped the library is about <code><b>12 kB</b></code>, and when the state or document changes only relevant directives are executed making updates fast.'),
+        r('p', 'Minified and compressed the library is less than <code><b>10kB</b></code>, and when the state or document changes only relevant directives are executed making updates fast.'),
       ]),
 
       section([
@@ -414,7 +414,7 @@ export default function () {
               code({}, [
                 '<script type="module">',
                 '  // Import library.',
-                '  import doars from \'https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.esm.js\'',
+                '  import doars from \'https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.esm.js\'',
                 '',
                 '  // Setup and enable the library.',
                 '  const doars = new Doars()',
@@ -430,29 +430,11 @@ export default function () {
             }, [
               code({}, [
                 '<!-- Import library. -->',
-                '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.iife.js"></script>',
+                '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>',
                 '<script>',
                 '  document.addEventListener(\'DOMContentLoaded\', () => {',
                 '    // Setup and enable the library.',
                 '    const doars = new Doars()',
-                '    doars.enable()',
-                '  })',
-                '</script>',
-              ]),
-            ]),
-          ),
-
-          card({}, 'UMD build from jsDelivr', 'Add the UMD build to the page from for example the jsDelivr CDN and enable the library.',
-            r('div', {
-              class: 'code-wrapper',
-            }, [
-              code({}, [
-                '<!-- Import library. -->',
-                '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.umd.js"></script>',
-                '<script>',
-                '  document.addEventListener(\'DOMContentLoaded\', () => {',
-                '    // Setup and enable the library.',
-                '    const doars = new window.Doars()',
                 '    doars.enable()',
                 '  })',
                 '</script>',
@@ -478,8 +460,8 @@ export default function () {
           }, '@doars/doars-store', 'Adds a store context for global state management.'),
 
           card({
-            href: 'https://github.com/doars/doars/tree/main/packages/doars-view#readme',
-          }, '@doars/doars-view', 'Adds a view directive for reacting to intersection changes.'),
+            href: 'https://github.com/doars/doars/tree/main/packages/doars-intersect#readme',
+          }, '@doars/doars-intersect', 'Adds an intersect directive for reacting to intersection changes.'),
 
           card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars-router#readme',

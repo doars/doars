@@ -27,16 +27,16 @@ import directiveOn from './directives/on.js'
 import directiveReference from './directives/reference.js'
 import directiveSelect from './directives/select.js'
 import directiveShow from './directives/show.js'
-import directiveSyncState from './directives/syncState.js'
+import directiveSync from './directives/sync.js'
 import directiveText from './directives/text.js'
 import directiveWatch from './directives/watch.js'
 
 // Import event dispatcher.
-import EventDispatcher from './events/EventDispatcher.js'
+import EventDispatcher from '@doars/common/src/events/EventDispatcher.js'
 
-// Import utils.
-import { closestComponent } from './utils/ComponentUtils.js'
-import { walk } from './utils/ElementUtils.js'
+// Import utilities.
+import { closestComponent } from './utilities/Component.js'
+import { walk } from '@doars/common/src/utilities/Element.js'
 
 export default class Doars extends EventDispatcher {
   /**
@@ -49,30 +49,29 @@ export default class Doars extends EventDispatcher {
     // Deconstruct options.
     let { prefix, root } = options = Object.assign({
       prefix: 'd',
-      root: document.body.firstElementChild,
+      processor: 'execute',
+      root: document.body,
     }, options)
     // If root is a string assume it is a selector.
     if (typeof (root) === 'string') {
       options.root = root = document.querySelector(root)
     }
     // Validate options.
-    if (process.env.NODE_ENV === 'development') {
-      if (!prefix) {
-        console.error('Doars: `prefix` option not set.')
-        return
-      }
-      if (typeof (prefix) !== 'string') {
-        console.error('Doars: `prefix` option must be of type string.')
-        return
-      }
-      if (!root) {
-        console.error('Doars: `root` option not set.')
-        return
-      }
-      if (typeof (root) !== 'object') {
-        console.error('Doars: `root` option must be a string or HTMLElement.')
-        return
-      }
+    if (!prefix) {
+      console.error('Doars: `prefix` option not set.')
+      return
+    }
+    if (typeof (prefix) !== 'string') {
+      console.error('Doars: `prefix` option must be of type string.')
+      return
+    }
+    if (!root) {
+      console.error('Doars: `root` option not set.')
+      return
+    }
+    if (typeof (root) !== 'object') {
+      console.error('Doars: `root` option must be a string or HTMLElement.')
+      return
     }
 
     // Create unique identifier.
@@ -82,7 +81,7 @@ export default class Doars extends EventDispatcher {
     let isEnabled = false, isUpdating = false, mutations, observer, triggers
 
     const components = []
-    const contexts = [
+    const contextsBase = {}, contexts = [
       contextChildren,
       contextComponent,
       contextElement,
@@ -113,18 +112,10 @@ export default class Doars extends EventDispatcher {
       directiveOn,
       directiveSelect,
       directiveShow,
-      directiveSyncState,
+      directiveSync,
       directiveWatch,
     ]
     let directivesNames, directivesObject, directivesRegexp
-
-    /**
-     * Whether this is currently enabled.
-     * @returns {Boolean} Whether the library is enabled.
-     */
-    this.getEnabled = () => {
-      return isEnabled
-    }
 
     /**
      * Get the unique identifier.
@@ -140,6 +131,16 @@ export default class Doars extends EventDispatcher {
      */
     this.getOptions = () => {
       return Object.assign({}, options)
+    }
+
+    /* State */
+
+    /**
+     * Whether this is currently enabled.
+     * @returns {Boolean} Whether the library is enabled.
+     */
+    this.getEnabled = () => {
+      return isEnabled
     }
 
     /**
@@ -235,6 +236,8 @@ export default class Doars extends EventDispatcher {
       return this
     }
 
+    /* Components */
+
     /**
      * Add components to instance.
      * @param  {...HTMLElement} elements Elements to add as components.
@@ -312,13 +315,52 @@ export default class Doars extends EventDispatcher {
       return results
     }
 
+    /* Simple contexts */
+
+    /**
+     * Get simple contexts.
+     * @returns {Object} Stored simple contexts.
+     */
+    this.getSimpleContexts = () => Object.assign({}, contextsBase)
+
+    /**
+     * Add a value directly to the contexts without needing to use an object or having to deal with indices.
+     * @param {String} name Property name under which to add the context.
+     * @param {Any} value The value to add, null removes the context.
+     * @returns {Boolean} Whether the value was successfully set.
+     */
+    this.setSimpleContext = (name, value = null) => {
+      // Delete context if value is null.
+      if (value === null) {
+        delete contextsBase[name]
+
+        // Dispatch event.
+        this.dispatchEvent('simple-context-removed', [this, name])
+        return true
+      }
+
+      // Validate name.
+      if (!name.match('^([a-zA-Z_$][a-zA-Z\\d_$]*)$')) {
+        console.warn('Doars: name of a bind can not start with a "$".')
+        return false
+      }
+
+      // Store value on contexts base.
+      contextsBase[name] = value
+
+      // Dispatch event.
+      this.dispatchEvent('simple-context-added', [this, name, value])
+
+      return true
+    }
+
+    /* Contexts */
+
     /**
      * Get list contexts.
      * @returns {Array<Object>} List of contexts.
      */
-    this.getContexts = () => {
-      return [...contexts]
-    }
+    this.getContexts = () => [...contexts]
 
     /**
      * Add contexts at the index. *Can only be called when NOT enabled.*
@@ -403,34 +445,26 @@ export default class Doars extends EventDispatcher {
      * Get list directives.
      * @returns {Array<Object>} List of directives.
      */
-    this.getDirectives = () => {
-      return [...directives]
-    }
+    this.getDirectives = () => [...directives]
 
     /**
      * Get list of directive names.
      * @returns {Array<String>} List of directive names.
      */
-    this.getDirectivesNames = () => {
-      return [...directivesNames]
-    }
+    this.getDirectivesNames = () => [...directivesNames]
 
     /**
      * Get object of directives with the directive name as key.
      * @returns {Object} Object of directives.
      */
-    this.getDirectivesObject = () => {
-      return Object.assign({}, directivesObject)
-    }
+    this.getDirectivesObject = () => Object.assign({}, directivesObject)
 
     /**
      * Check whether a name matches that of a directive.
      * @param {String} attributeName Name of the attribute to match.
      * @returns {Boolean} Whether the name matches that of a directive.
      */
-    this.isDirectiveName = (attributeName) => {
-      return directivesRegexp.test(attributeName)
-    }
+    this.isDirectiveName = (attributeName) => directivesRegexp.test(attributeName)
 
     /**
      * Add directives at the index. *Can only be called when NOT enabled.*
@@ -515,6 +549,8 @@ export default class Doars extends EventDispatcher {
       return results
     }
 
+    /* Update */
+
     /**
      * Update directives based on triggers. *Can only be called when enabled.*
      * @param {Array<Object>} _triggers List of triggers to update with.
@@ -555,6 +591,8 @@ export default class Doars extends EventDispatcher {
       if (Object.getOwnPropertySymbols(triggers).length === 0) {
         return
       }
+
+      this.dispatchEvent('updating', [this])
 
       // Set as updating.
       isUpdating = true

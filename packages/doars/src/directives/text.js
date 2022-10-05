@@ -1,9 +1,9 @@
-import { isPromise } from '../utils/PromiseUtils.js'
+import { isPromise } from '@doars/common/src/utilities/Promise.js'
 
 export default {
   name: 'text',
 
-  update: (component, attribute, { executeExpression }) => {
+  update: (component, attribute, { processExpression }) => {
     // Deconstruct attribute.
     const element = attribute.getElement()
     const modifiers = attribute.getModifiers()
@@ -20,7 +20,7 @@ export default {
     }
 
     // Execute value and retrieve result.
-    const result = executeExpression(component, attribute, attribute.getValue())
+    const result = processExpression(component, attribute, attribute.getValue())
 
     // Store results.
     attribute.setData(result)

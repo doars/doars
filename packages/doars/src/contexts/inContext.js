@@ -8,7 +8,7 @@ export default {
         const triggers = []
         const contextUpdate = (id, context) => {
           triggers.push({
-            id: id,
+            id,
             path: context,
           })
         }

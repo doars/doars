@@ -1,11 +1,11 @@
-// Import utils.
-import { insertAfter } from '../utils/ElementUtils.js'
-import { isPromise } from '../utils/PromiseUtils.js'
+// Import utilities.
+import { insertAfter } from '@doars/common/src/utilities/Element.js'
+import { isPromise } from '@doars/common/src/utilities/Promise.js'
 
 export default {
   name: 'if',
 
-  update: (component, attribute, { executeExpression, transitionIn, transitionOut }) => {
+  update: (component, attribute, { processExpression, transitionIn, transitionOut }) => {
     // Deconstruct attribute.
     const template = attribute.getElement()
 
@@ -63,14 +63,14 @@ export default {
       // Store results.
       attribute.setData(
         Object.assign({}, data, {
-          element: element,
-          transition: transition,
+          element,
+          transition,
         })
       )
     }
 
     // Execute expression.
-    const result = executeExpression(component, attribute, attribute.getValue())
+    const result = processExpression(component, attribute, attribute.getValue())
 
     // Get stored data.
     const data = attribute.getData()
@@ -78,7 +78,7 @@ export default {
     // Store results.
     attribute.setData(
       Object.assign({}, data, {
-        result: result,
+        result,
       })
     )
 

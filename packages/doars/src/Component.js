@@ -5,24 +5,12 @@ import { COMPONENT } from './symbols.js'
 import Attribute from './Attribute.js'
 
 // Import proxy dispatcher.
-import ProxyDispatcher from './events/ProxyDispatcher.js'
+import ProxyDispatcher from '@doars/common/src/events/ProxyDispatcher.js'
 
-// Import utils.
-import { morphNode, morphTree } from './utils/MorphUtils.js'
-import { closestComponent } from './utils/ComponentUtils.js'
-import { executeExpression } from './utils/ExpressionUtils.js'
-import { transition, transitionIn, transitionOut } from './utils/TransitionUtils.js'
-import { walk } from './utils/ElementUtils.js'
-
-// Create an object with utility function.
-const DIRECTIVE_UTILS = Object.freeze({
-  executeExpression: executeExpression,
-  morphNode: morphNode,
-  morphTree: morphTree,
-  transition: transition,
-  transitionIn: transitionIn,
-  transitionOut: transitionOut,
-})
+// Import utilities.
+import { closestComponent } from './utilities/Component.js'
+import { transition, transitionIn, transitionOut } from '@doars/common/src/utilities/Transition.js'
+import { walk } from '@doars/common/src/utilities/Element.js'
 
 export default class Component {
   /**
@@ -35,7 +23,30 @@ export default class Component {
     const id = Symbol('ID_COMPONENT')
 
     // Deconstruct library options.
-    const { prefix } = library.getOptions()
+    const { prefix, processor } = library.getOptions()
+
+    // Get the expression processor.
+    const processorType = typeof (processor)
+    let processExpression
+    if (processorType === 'function') {
+      processExpression = processor
+    } else if (processorType === 'string' && library.constructor[processor + 'Expression']) {
+      processExpression = library.constructor[processor + 'Expression']
+    } else {
+      console.warn('Doars: Expression processor not found. Using fallback instead.')
+      processExpression = library.constructor.executeExpression ?? library.constructor.interpretExpression ?? library.constructor.callExpression
+    }
+    if (!processExpression) {
+      console.error('Doars: No expression processor available. Process option: ', process)
+    }
+
+    // Create a immutable object with the directive utilities.
+    const directiveUtilities = Object.freeze({
+      processExpression,
+      transition,
+      transitionIn,
+      transitionOut,
+    })
 
     // create private variables.
     let attributes = [], hasUpdated = false, isInitialized = false, data, proxy, state
@@ -153,9 +164,11 @@ export default class Component {
       const componentName = prefix + '-state'
       const value = element.attributes[componentName].value
 
-      // Execute expression for generating the state using a mock attribute.
-      data = executeExpression(this, new Attribute(this, element, null, value), value) ?? {}
-      if (Array.isArray(data) || typeof (data) !== 'object') {
+      // Process expression for generating the state using a mock attribute.
+      data = value ? processExpression(this, new Attribute(this, element, null, value), value) : {}
+      if (data === null) {
+        data = {}
+      } else if (typeof (data) !== 'object' || Array.isArray(data)) {
         console.error('Doars: component tag must return an object!')
         return
       }
@@ -190,7 +203,7 @@ export default class Component {
           // Clean up attribute if the directive has a destroy function.
           const directive = directives[attribute.getKey()]
           if (directive) {
-            directive.destroy(this, attribute, DIRECTIVE_UTILS)
+            directive.destroy(this, attribute, directiveUtilities)
           }
 
           // Destroy the attribute.
@@ -231,7 +244,7 @@ export default class Component {
 
         // Add children update trigger.
         triggers.push({
-          id: id,
+          id,
           path: 'children',
         })
       }
@@ -249,7 +262,7 @@ export default class Component {
 
         // Add parent update trigger.
         triggers.push({
-          id: id,
+          id,
           path: 'parent',
         })
       }
@@ -261,8 +274,8 @@ export default class Component {
 
       // Dispatch event.
       dispatchEvent('destroyed', {
-        element: element,
-        id: id,
+        element,
+        id,
       })
     }
 
@@ -315,7 +328,7 @@ export default class Component {
       // Attribute has been removed, call the destroy directive.
       const directive = directives[attribute.getKey()]
       if (directive && directive.destroy) {
-        directive.destroy(this, attribute, DIRECTIVE_UTILS)
+        directive.destroy(this, attribute, directiveUtilities)
       }
 
       // Remove attribute from list.
@@ -371,10 +384,10 @@ export default class Component {
       // Clear accessed.
       attribute.clearAccessed()
 
-      // Execute directive on attribute.
+      // Process directive on attribute.
       const directive = directives[attribute.getDirective()]
       if (directive) {
-        directive.update(this, attribute, DIRECTIVE_UTILS)
+        directive.update(this, attribute, directiveUtilities)
       }
     }
 
@@ -388,9 +401,9 @@ export default class Component {
           // Dispatch updated event anyway.
           hasUpdated = true
           dispatchEvent('updated', {
-            attributes: attributes,
-            element: element,
-            id: id,
+            attributes,
+            element,
+            id,
           })
         }
         return
@@ -403,9 +416,9 @@ export default class Component {
       // Dispatch updated event.
       hasUpdated = true
       dispatchEvent('updated', {
-        attributes: attributes,
-        element: element,
-        id: id,
+        attributes,
+        element,
+        id,
       })
     }
 
@@ -437,8 +450,8 @@ export default class Component {
         hasUpdated = true
         dispatchEvent('updated', {
           attributes: updatedAttributes,
-          element: element,
-          id: id,
+          element,
+          id,
         })
       }
     }
@@ -450,7 +463,7 @@ export default class Component {
     const dispatchEvent = (name, detail) => {
       element.dispatchEvent(
         new CustomEvent(prefix + '-' + name, {
-          detail: detail,
+          detail,
           bubbles: true,
         })
       )

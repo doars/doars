@@ -23,29 +23,29 @@ npm i @doars/doars @doars/doars-router
 
 ```JavaScript
 // Import library.
-import Doars from "@doars/doars";
-import DoarsRouter from "@doars/doars-router";
+import Doars from '@doars/doars'
+import DoarsRouter from '@doars/doars-router'
 
 // Setup a library instance.
-const doars = new Doars();
+const doars = new Doars()
 
 // Setup the plugin.
-const doarsRouter = new DoarsRouter(doars /*, options */);
+const doarsRouter = DoarsRouter(doars /*, options */)
 
 // Enable library.
-doars.enable();
+doars.enable()
 ```
 
-### UMD build from jsDelivr
+### IIFE build from jsDelivr
 
-Add the UMD build to the page from for example the jsDelivr CDN and enable the
+Add the IIFE build to the page from for example the jsDelivr CDN and enable the
 library.
 
 ```HTML
 <!-- Import library. -->
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars-router@1/dst/doars-router.umd.js"></script>
-<script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars-router@1/dst/doars-router.iife.js"></script>
+<script type="application/javascript">
   document.addEventListener('DOMContentLoaded', () => {
     // Setup a library instance.
     const doars = new window.Doars()
@@ -145,7 +145,7 @@ The following
 [contexts](https://github.com/doars/doars/tree/main/packages/doars#contexts) are
 added by the plugin.
 
-### $router
+### \$router
 
 Access the closest [Router](#router) instance. The closest router is retrieved
 by going up in the document tree looking for a [`d-router`](#d-router)
@@ -226,3 +226,10 @@ instance.
 - `removed` When an existing route is unregistered.
   - `@param {Router} router` Router instance.
   - `@param {String} route` Removed route.
+
+## Compatible versions
+
+| `@doars/doars-router` version | `@doars/doars` version |
+| ----------------------------- | ---------------------- |
+| `1.x`                         | `1.x`                  |
+| `2.x`                         | `2.x`                  |

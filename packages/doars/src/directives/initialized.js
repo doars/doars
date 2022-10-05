@@ -21,7 +21,7 @@ const destroy = (component, attribute) => {
 export default {
   name: 'initialized',
 
-  update: (component, attribute, { executeExpression }) => {
+  update: (component, attribute, { processExpression }) => {
     // Deconstruct component.
     const element = component.getElement()
 
@@ -50,7 +50,7 @@ export default {
       }
 
       // Execute value using a copy of the attribute since this attribute does not need to update based on what it accesses.
-      executeExpression(component, attribute.clone(), value, {}, {
+      processExpression(component, attribute.clone(), value, {}, {
         return: false,
       })
 
@@ -65,10 +65,10 @@ export default {
 
     // Store listener data on the component.
     attribute[INITIALIZED] = {
-      handler: handler,
-      value: value,
+      handler,
+      value,
     }
   },
 
-  destroy: destroy,
+  destroy,
 }

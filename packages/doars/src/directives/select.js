@@ -1,23 +1,28 @@
-// Import utils.
-import { isPromise } from '../utils/PromiseUtils.js'
+// Import utilities.
+import { isPromise } from '@doars/common/src/utilities/Promise.js'
+
+const TAG_SELECT = 'SELECT'
+const CHECKED = 'checked'
+const SELECTED = 'selected'
+const TYPE_CHECKBOX = 'checkbox'
 
 export default {
   name: 'select',
 
-  update: (component, attribute, { executeExpression }) => {
+  update: (component, attribute, { processExpression }) => {
     // Deconstruct attribute.
     const element = attribute.getElement()
 
     // Check if placed on a select tag.
     const type = element.getAttribute('type')
-    if (element.tagName !== 'SELECT' && !(element.tagName === 'INPUT' && (type === 'checkbox' || type === 'radio'))) {
+    if (element.tagName !== TAG_SELECT && !(element.tagName === 'INPUT' && (type === TYPE_CHECKBOX || type === 'radio'))) {
       console.warn('Doars: `select` directive must be placed on a `select` tag or `input` of type checkbox or radio.')
       return
     }
 
     const set = (data) => {
       // Iterate over the select options.
-      if (element.tagName === 'SELECT') {
+      if (element.tagName === TAG_SELECT) {
         for (const option of Array.from(element.options)) {
           // Update option if the selected value has changed.
           const select = Array.isArray(data) ? data.includes(option.value) : data === option.value
@@ -27,21 +32,21 @@ export default {
 
             // Update option's attribute.
             if (select) {
-              option.setAttribute('selected', '')
+              option.setAttribute(SELECTED, '')
             } else {
-              option.removeAttribute('selected')
+              option.removeAttribute(SELECTED)
             }
           }
         }
-      } else if (type === 'checkbox') {
+      } else if (type === TYPE_CHECKBOX) {
         // Update option if the checked value has changed.
         const checked = data.includes(element.value)
         if (element.checked !== checked) {
           // Update checked attribute.
           if (checked) {
-            element.setAttribute('checked', '')
+            element.setAttribute(CHECKED, '')
           } else {
-            element.removeAttribute('checked')
+            element.removeAttribute(CHECKED)
           }
         }
       } else {
@@ -50,16 +55,16 @@ export default {
         if (element.checked !== checked) {
           // Update checked attribute.
           if (checked) {
-            element.setAttribute('checked', '')
+            element.setAttribute(CHECKED, '')
           } else {
-            element.removeAttribute('checked')
+            element.removeAttribute(CHECKED)
           }
         }
       }
     }
 
     // Execute attribute value.
-    const result = executeExpression(component, attribute, attribute.getValue())
+    const result = processExpression(component, attribute, attribute.getValue())
 
     // Store results.
     attribute.setData(result)

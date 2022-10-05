@@ -106,6 +106,6 @@ export const escapeHtmlCharacters = function (string) {
 }
 
 export default {
-  anyToString: anyToString,
-  escapeHtmlCharacters: escapeHtmlCharacters,
+  anyToString,
+  escapeHtmlCharacters,
 }

@@ -14,8 +14,8 @@
       <div d-initialized="console.log($elementOther)"></div>
     </div>
 
-    <script src="/packages/doars/dst/doars.umd.js"></script>
-    <script src="/packages/doars-alias/dst/doars-alias.umd.js"></script>
+    <script src="/packages/doars/dst/doars.iife.js"></script>
+    <script src="/packages/doars-alias/dst/doars-alias.iife.js"></script>
     <script>
       // Wait for the DOM to be interactive.
       document.addEventListener('DOMContentLoaded', () => {
@@ -23,7 +23,7 @@
         const doars = new window.Doars()
 
         // Add plugin.
-        new window.DoarsAlias(doars, {
+        window.DoarsAlias(doars, {
           aliasContexts: {
             $element: [
               '$elementAlt',

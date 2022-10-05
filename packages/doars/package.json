@@ -13,11 +13,10 @@
     "front-end",
     "reactive"
   ],
-  "version": "1.2.0",
+  "version": "2.0.0",
   "license": "MIT",
-  "main": "src/Doars.js",
-  "browserMain": "src/Doars.js",
-  "browser": "dst/doars.js",
+  "type": "module",
+  "main": "src/DoarsExecute.js",
   "homepage": "https://github.com/doars/doars#readme",
   "repository": {
     "type": "git",
@@ -30,16 +29,22 @@
     "access": "public"
   },
   "scripts": {
-    "build": "NODE_ENV=production rollup -c",
-    "dev": "yarn run develop",
-    "develop": "NODE_ENV=development rollup -c -w",
+    "build": "NODE_ENV=production node esbuild.config.js",
+    "develop": "NODE_ENV=development node esbuild.config.js",
     "lint": "eslint src/** --cache --fix --no-error-on-unmatched-pattern",
-    "release": "yarn run lint && yarn run build && yarn publish"
+    "release": "yarn run lint && yarn run test && yarn run build && yarn publish",
+    "test": "yarn run test:browser && yarn run test:runtime",
+    "test:browser": "echo 'todo'",
+    "test:runtime": "echo 'todo'"
   },
   "files": [
     "dst",
     "src",
     "CHANGELOG.md",
     "README.md"
-  ]
+  ],
+  "dependencies": {
+    "@doars/common": "1.x",
+    "@doars/interpret": "1.x"
+  }
 }

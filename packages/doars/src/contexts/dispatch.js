@@ -8,7 +8,7 @@ export default {
         // Dispatch the event after the elements have updated.
         component.getElement().dispatchEvent(
           new CustomEvent(name, {
-            detail: detail,
+            detail,
             bubbles: true,
           })
         )

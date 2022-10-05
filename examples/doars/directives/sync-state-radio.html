@@ -9,14 +9,14 @@
 
   <body>
     <div d-state="{ selected: 'before' }">
-      <input type="radio" d-sync-state="selected" value="initial" checked>
-      <input type="radio" d-sync-state="selected" value="before">
-      <input type="radio" d-sync-state="selected" value="after">
+      <input type="radio" d-sync:state="selected" value="initial" checked>
+      <input type="radio" d-sync:state="selected" value="before">
+      <input type="radio" d-sync:state="selected" value="after">
 
       <div d-text="selected">Initial</div>
     </div>
 
-    <script src="/packages/doars/dst/doars.umd.js"></script>
+    <script src="/packages/doars/dst/doars.iife.js"></script>
     <script>
       // Wait for the DOM to be interactive.
       document.addEventListener('DOMContentLoaded', () => {

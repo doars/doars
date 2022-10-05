@@ -10,10 +10,10 @@
     "doars",
     "store"
   ],
-  "version": "1.1.0",
+  "version": "2.0.0",
   "license": "MIT",
+  "type": "module",
   "main": "src/DoarsStore.js",
-  "browserMain": "src/DoarsStore.js",
   "browser": "dst/doars-store.js",
   "homepage": "https://github.com/doars/doars/tree/main/packages/doars-store#readme",
   "repository": {
@@ -27,11 +27,13 @@
     "access": "public"
   },
   "scripts": {
-    "build": "NODE_ENV=production rollup -c",
-    "dev": "yarn run develop",
-    "develop": "NODE_ENV=development rollup -c -w",
+    "build": "NODE_ENV=production node esbuild.config.js",
+    "develop": "NODE_ENV=development node esbuild.config.js",
     "lint": "eslint src/** --cache --fix --no-error-on-unmatched-pattern",
-    "release": "yarn run lint && yarn run build && yarn publish"
+    "release": "yarn run lint && yarn run test && yarn run build && yarn publish",
+    "test": "yarn run test:browser && yarn run test:runtime",
+    "test:browser": "echo 'todo'",
+    "test:runtime": "echo 'todo'"
   },
   "files": [
     "dst",
@@ -40,6 +42,6 @@
     "README.md"
   ],
   "dependencies": {
-    "@doars/doars": "1.x"
+    "@doars/common": "1.x"
   }
 }

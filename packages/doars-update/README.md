@@ -23,29 +23,29 @@ npm i @doars/doars @doars/doars-update
 
 ```JavaScript
 // Import library.
-import Doars from "@doars/doars";
-import DoarsUpdate from "@doars/doars-update";
+import Doars from '@doars/doars'
+import DoarsUpdate from '@doars/doars-update'
 
 // Setup a library instance.
-const doars = new Doars();
+const doars = new Doars()
 
 // Setup the plugin.
-const doarsUpdate = new DoarsUpdate(doars /*, options */);
+const doarsUpdate = DoarsUpdate(doars /*, options */)
 
 // Enable library.
-doars.enable();
+doars.enable()
 ```
 
-### UMD build from jsDelivr
+### IIFE build from jsDelivr
 
-Add the UMD build to the page from for example the jsDelivr CDN and enable the
+Add the IIFE build to the page from for example the jsDelivr CDN and enable the
 library.
 
 ```HTML
 <!-- Import library. -->
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars-update@1/dst/doars-update.umd.js"></script>
-<script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars-update@1/dst/doars-update.iife.js"></script>
+<script type="application/javascript">
   document.addEventListener('DOMContentLoaded', () => {
     // Setup a library instance.
     const doars = new window.Doars()
@@ -99,7 +99,7 @@ The following
 [contexts](https://github.com/doars/doars/tree/main/packages/doars#contexts) are
 added by the plugin.
 
-### $update
+### \$update
 
 Get information about the most recent update iteration. The context is an
 `Object` that contains the following properties.
@@ -141,3 +141,10 @@ Get information about the most recent update iteration. The context is an
   directive.
 - `{Number} stepMinimum = 0` Minimum amount of time in milliseconds between
   updates.
+
+## Compatible versions
+
+| `@doars/doars-update` version | `@doars/doars` version |
+| ----------------------------- | ---------------------- |
+| `1.x`                         | `1.x`                  |
+| `2.x`                         | `2.x`                  |
