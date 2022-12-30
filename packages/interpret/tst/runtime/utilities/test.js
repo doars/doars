@@ -1,5 +1,6 @@
 // Import testing framework.
 import { assert } from 'chai'
+import { describe, it } from 'mocha'
 
 // Import code to test.
 import parse from '../../../src/parse.js'

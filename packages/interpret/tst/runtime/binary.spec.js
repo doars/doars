@@ -1,7 +1,7 @@
 import {
   BINARY,
   IDENTIFIER,
-  LITERAL,
+  LITERAL
 } from '../../src/types.js'
 import test from './utilities/test.js'
 
@@ -454,7 +454,7 @@ test('Binary with identifier', '2 - hello', -2, {
   },
   operator: '-',
   right: {
-    'name': 'hello',
+    name: 'hello',
     type: IDENTIFIER,
   },
   type: BINARY,

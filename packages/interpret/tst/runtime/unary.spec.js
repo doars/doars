@@ -1,7 +1,7 @@
 import {
   IDENTIFIER,
   LITERAL,
-  UNARY,
+  UNARY
 } from '../../src/types.js'
 import test from './utilities/test.js'
 
@@ -79,4 +79,3 @@ test('Unary', '!hello', true, {
 }, {
   hello: false,
 })
-

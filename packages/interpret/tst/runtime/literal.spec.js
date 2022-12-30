@@ -1,5 +1,5 @@
 import {
-  LITERAL,
+  LITERAL
 } from '../../src/types.js'
 import test from './utilities/test.js'
 
@@ -33,7 +33,7 @@ test('Literal', '1.2', 1.2, {
   value: 1.2,
 })
 
-test('Literal', "'hello'", 'hello', {
+test('Literal', '\'hello\'', 'hello', {
   type: LITERAL,
   value: 'hello',
 })

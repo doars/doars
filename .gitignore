@@ -28,7 +28,3 @@ node_modules/
 
 # Gzipped builds.
 *.js.gz
-
-# Ignore screenshots and videos
-cypress/screenshots/
-cypress/videos/

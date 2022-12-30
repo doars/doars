@@ -5,7 +5,7 @@ import {
   LITERAL,
   MEMBER,
   OBJECT,
-  PROPERTY,
+  PROPERTY
 } from '../../src/types.js'
 import test from './utilities/test.js'
 
