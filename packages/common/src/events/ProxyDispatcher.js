@@ -82,7 +82,7 @@ class ProxyDispatcher extends EventDispatcher {
           }
 
           // Add proxy if value is an object.
-          if (typeof value === 'object') {
+          if (value && typeof value === 'object') {
             value = this.add(value, [...path, key])
           }
           // Store value.

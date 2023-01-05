@@ -44,7 +44,7 @@
     "README.md"
   ],
   "dependencies": {
-    "@doars/common": "1.x",
-    "@doars/interpret": "1.x"
+    "@doars/common": "1.0.x",
+    "@doars/interpret": "1.0.x"
   }
 }
