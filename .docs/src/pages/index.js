@@ -34,7 +34,7 @@ export default function () {
         }, logo()),
 
         r('h1', 'Build reactive web pages without leaving your HTML.'),
-        r('p', 'Large font-end frameworks come at a big cost from compiling to loading. Doars is a declarative and light solution that scans the web page and processes the directives found as well as keep the state and content up to date.'),
+        r('p', 'Ditch the hassle with other frameworks. Doars is a declarative and simple solution that scans the web page and processes the directives found as well as keep the state and content up to date for you.'),
 
         r('div', {
           class: 'bar',
