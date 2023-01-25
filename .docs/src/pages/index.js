@@ -34,7 +34,7 @@ export default function () {
         }, logo()),
 
         r('h1', 'Build reactive web pages without leaving your HTML.'),
-        r('p', 'Large font-end frameworks come at a big cost from compiling to loading. Doars is a declarative and light solution that scans the web page and processes the directives found as well as keep the state and content up to date.'),
+        r('p', 'Ditch the hassle with other frameworks. Doars is a declarative and simple solution that scans the web page and processes the directives found as well as keep the state and content up to date for you.'),
 
         r('div', {
           class: 'bar',
@@ -232,7 +232,7 @@ export default function () {
       section([
         r('h2', 'Small in size and quick to update!'),
 
-        r('p', 'Minified and compressed the library is less than <code><b>10kB</b></code>, and when the state or document changes only relevant directives are executed making updates fast.'),
+        r('p', 'Minified and compressed the library is <code><b>9kB</b></code>, and when the state or document changes only relevant directives are executed making updates fast.'),
       ]),
 
       section([

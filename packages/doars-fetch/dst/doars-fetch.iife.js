@@ -104,9 +104,7 @@
   };
 
   // src/factories/contexts/fetch.js
-  var fetch_default = ({
-    defaultInit
-  }) => {
+  var fetch_default = ({ defaultInit }) => {
     return {
       name: "$fetch",
       create: () => {

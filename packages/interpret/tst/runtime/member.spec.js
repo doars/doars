@@ -1,7 +1,7 @@
 import {
   IDENTIFIER,
   LITERAL,
-  MEMBER,
+  MEMBER
 } from '../../src/types.js'
 import test from './utilities/test.js'
 
@@ -93,12 +93,12 @@ test('Member computed', 'hello[there]', 'kenobi', {
   type: MEMBER,
 }, {
   hello: {
-    general: 'kenobi'
+    general: 'kenobi',
   },
   there: 'general',
 }, {
   hello: {
-    general: 'kenobi'
+    general: 'kenobi',
   },
   there: 'general',
 })

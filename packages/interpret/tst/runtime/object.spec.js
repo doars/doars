@@ -3,7 +3,7 @@ import {
   IDENTIFIER,
   LITERAL,
   OBJECT,
-  PROPERTY,
+  PROPERTY
 } from '../../src/types.js'
 import test from './utilities/test.js'
 
@@ -203,7 +203,7 @@ test('Object with array', '{ hello: ["there", { general: "kenobi" }] }', {
             value: {
               type: LITERAL,
               value: 'kenobi',
-            }
+            },
           }],
         type: OBJECT,
       }],

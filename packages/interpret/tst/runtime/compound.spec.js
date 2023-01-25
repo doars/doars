@@ -1,29 +1,29 @@
 import {
-  LITERAL,
+  LITERAL
 } from '../../src/types.js'
 import test from './utilities/test.js'
 
 test('Compound', '', undefined, undefined, {}, {}, {
-  expectCompound: true
+  expectCompound: true,
 })
 
 test('Compound', ';', undefined, undefined, {}, {}, {
-  expectCompound: true
+  expectCompound: true,
 })
 
 test('Compound', ';;', undefined, undefined, {}, {}, {
-  expectCompound: true
+  expectCompound: true,
 })
 
 test('Compound', ';;;', undefined, undefined, {}, {}, {
-  expectCompound: true
+  expectCompound: true,
 })
 
 test('Compound', '"hello";', ['hello'], [{
   type: LITERAL,
   value: 'hello',
 }], {}, {}, {
-  expectCompound: true
+  expectCompound: true,
 })
 
 test('Compound', '"hello";"there"', ['hello', 'there'], [{
@@ -33,7 +33,7 @@ test('Compound', '"hello";"there"', ['hello', 'there'], [{
   type: LITERAL,
   value: 'there',
 }], {}, {}, {
-  expectCompound: true
+  expectCompound: true,
 })
 
 test('Compound', '"hello";"there";', ['hello', 'there'], [{
@@ -43,5 +43,5 @@ test('Compound', '"hello";"there";', ['hello', 'there'], [{
   type: LITERAL,
   value: 'there',
 }], {}, {}, {
-  expectCompound: true
+  expectCompound: true,
 })

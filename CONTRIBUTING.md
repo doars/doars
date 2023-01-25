@@ -16,12 +16,12 @@ Welcome and thank you for wanting to contribute! Following these guidelines help
   - [Write tests](#write-tests)
   - [Sign off commits](#sign-off-commits)
 - [Reviewing pull requests](#reviewing-pull-requests)
-- [Architecture](#architecture)
+<!-- - [Architecture](#architecture)
   - [Repository architecture](#repository-architecture)
   - [Doars architecture](#doars-architecture)
   - [Context architecture](#context-architecture)
   - [Directive architecture](#directive-architecture)
-  - [Plugin architecture](#plugin-architecture)
+  - [Plugin architecture](#plugin-architecture) -->
 
 ## Security
 
@@ -101,7 +101,7 @@ Before a pull request is allowed to be merged into the master branch at least on
 - Tests are up to date and run successfully.
 - Commits are signed off.
 
-## Architecture
+<!-- ## Architecture
 
 TODO:
 
@@ -123,4 +123,4 @@ TODO:
 
 ### Plugin architecture
 
-TODO:
+TODO: -->

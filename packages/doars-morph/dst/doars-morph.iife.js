@@ -254,6 +254,7 @@
   // ../common/src/utilities/Promise.js
   var nativePromise = Function.prototype.toString.call(
     Function
+    /* A native object */
   ).replace("Function", "Promise").replace(/\(.*\)/, "()");
   var isPromise = (value) => {
     return value && Object.prototype.toString.call(value) === "[object Promise]";
@@ -262,9 +263,7 @@
   // src/directives/morph.js
   var morph_default2 = {
     name: "morph",
-    update: (component, attribute, {
-      processExpression
-    }) => {
+    update: (component, attribute, { processExpression }) => {
       const element = attribute.getElement();
       const modifiers = attribute.getModifiers();
       const set = (html) => {

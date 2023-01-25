@@ -1,4 +1,6 @@
 (() => {
+  var __pow = Math.pow;
+
   // src/symbols.js
   var ATTRIBUTES = Symbol("ATTRIBUTES");
   var COMPONENT = Symbol("COMPONENT");
@@ -11,6 +13,9 @@
 
   // ../common/src/events/EventDispatcher.js
   var EventDispatcher = class {
+    /**
+     * Create instance.
+     */
     constructor() {
       let events = {};
       this.addEventListener = (name, callback, options = null) => {
@@ -145,6 +150,7 @@
     return {
       iterable: match[2].trim(),
       variables: [...variables]
+      // Convert it to an array instead of a regular expression match.
     };
   };
   var parseSelector = (selector) => {
@@ -182,6 +188,14 @@
 
   // src/Attribute.js
   var Attribute = class extends EventDispatcher_default {
+    /**
+     * Create instance.
+     * @param {Component} component Component instance.
+     * @param {HTMLElement} element Element.
+     * @param {String} name Attribute name (with library prefix removed).
+     * @param {String} value Attribute value.
+     * @param {Boolean} isClone Whether this will be a clone of an existing attribute.
+     */
     constructor(component, element, name, value, isClone = false) {
       super();
       const id = Symbol("ID_ATTRIBUTE");
@@ -289,7 +303,20 @@
   };
 
   // ../common/src/polyfills/RevocableProxy.js
-  var REFLECTION_METHODS = ["apply", "construct", "defineProperty", "deleteProperty", "get", "getOwnPropertyDescriptor", "getPrototypeOf", "isExtensible", "ownKeys", "preventExtensions", "set", "setPrototypeOf"];
+  var REFLECTION_METHODS = [
+    "apply",
+    "construct",
+    "defineProperty",
+    "deleteProperty",
+    "get",
+    "getOwnPropertyDescriptor",
+    "getPrototypeOf",
+    "isExtensible",
+    "ownKeys",
+    "preventExtensions",
+    "set",
+    "setPrototypeOf"
+  ];
   var RevocableProxy_default = (target, handler) => {
     let revoked = false;
     const revocableHandler = {};
@@ -359,7 +386,7 @@
             if (target2[key] === value) {
               return true;
             }
-            if (typeof value === "object") {
+            if (value && typeof value === "object") {
               value = this.add(value, [...path, key]);
             }
             target2[key] = value;
@@ -478,13 +505,15 @@
       }
       return;
     }
-    const {
-      prefix
-    } = component.getLibrary().getOptions();
+    const { prefix } = component.getLibrary().getOptions();
     const transitionName = prefix + TRANSITION_NAME + type;
     const dispatchEvent = (phase) => {
-      element.dispatchEvent(new CustomEvent("transition-" + phase));
-      element.dispatchEvent(new CustomEvent("transition-" + type + "-" + phase));
+      element.dispatchEvent(
+        new CustomEvent("transition-" + phase)
+      );
+      element.dispatchEvent(
+        new CustomEvent("transition-" + type + "-" + phase)
+      );
     };
     let name, value, timeout, requestFrame;
     let isDone = false;
@@ -620,12 +649,15 @@
 
   // src/Component.js
   var Component = class {
+    /**
+     * Create instance.
+     * @param {Doars} library Library instance.
+     * @param {HTMLElement} element Element.
+     */
     constructor(library, element) {
+      var _a, _b;
       const id = Symbol("ID_COMPONENT");
-      const {
-        prefix,
-        processor
-      } = library.getOptions();
+      const { prefix, processor } = library.getOptions();
       const processorType = typeof processor;
       let processExpression;
       if (processorType === "function") {
@@ -634,7 +666,7 @@
         processExpression = library.constructor[processor + "Expression"];
       } else {
         console.warn("Doars: Expression processor not found. Using fallback instead.");
-        processExpression = library.constructor.executeExpression ?? library.constructor.interpretExpression ?? library.constructor.callExpression;
+        processExpression = (_b = (_a = library.constructor.executeExpression) != null ? _a : library.constructor.interpretExpression) != null ? _b : library.constructor.callExpression;
       }
       if (!processExpression) {
         console.error("Doars: No expression processor available. Process option: ", process);
@@ -801,10 +833,7 @@
         const newAttributes = [];
         const iterator = walk(element2, (element3) => !element3.hasAttribute(componentName) && !element3.hasAttribute(ignoreName));
         do {
-          for (const {
-            name,
-            value
-          } of element2.attributes) {
+          for (const { name, value } of element2.attributes) {
             if (library.isDirectiveName(name)) {
               newAttributes.push(this.addAttribute(element2, name, value));
             }
@@ -870,10 +899,12 @@
         }
       };
       const dispatchEvent = (name, detail) => {
-        element.dispatchEvent(new CustomEvent(prefix + "-" + name, {
-          detail,
-          bubbles: true
-        }));
+        element.dispatchEvent(
+          new CustomEvent(prefix + "-" + name, {
+            detail,
+            bubbles: true
+          })
+        );
       };
     }
   };
@@ -881,10 +912,7 @@
   // src/contexts/children.js
   var children_default = {
     name: "$children",
-    create: (component, attribute, update, {
-      createContextsProxy: createContextsProxy2,
-      RevocableProxy
-    }) => {
+    create: (component, attribute, update, { createContextsProxy: createContextsProxy2, RevocableProxy }) => {
       let children;
       const revocable = RevocableProxy(component.getChildren(), {
         get: (target, key, receiver) => {
@@ -939,10 +967,12 @@
     create: (component) => {
       return {
         value: (name, detail = {}) => {
-          component.getElement().dispatchEvent(new CustomEvent(name, {
-            detail,
-            bubbles: true
-          }));
+          component.getElement().dispatchEvent(
+            new CustomEvent(name, {
+              detail,
+              bubbles: true
+            })
+          );
         }
       };
     }
@@ -952,9 +982,7 @@
   var for_default = {
     deconstruct: true,
     name: "$for",
-    create: (component, attribute, update, {
-      RevocableProxy
-    }) => {
+    create: (component, attribute, update, { RevocableProxy }) => {
       if (component !== attribute.getComponent()) {
         return;
       }
@@ -995,9 +1023,7 @@
   // src/contexts/inContext.js
   var inContext_default = {
     name: "$inContext",
-    create: (component, attribute, update, {
-      createContexts: createContexts2
-    }) => {
+    create: (component, attribute, update, { createContexts: createContexts2 }) => {
       return {
         value: (callback) => {
           const triggers = [];
@@ -1007,10 +1033,7 @@
               path: context
             });
           };
-          const {
-            contexts,
-            destroy: destroy3
-          } = createContexts2(component, attribute, contextUpdate, {});
+          const { contexts, destroy: destroy3 } = createContexts2(component, attribute, contextUpdate, {});
           const result = callback(contexts);
           destroy3();
           if (triggers.length > 0) {
@@ -1025,9 +1048,7 @@
   // src/contexts/nextTick.js
   var nextTick_default = {
     name: "$nextTick",
-    create: (component, attribute, update, {
-      createContexts: createContexts2
-    }) => {
+    create: (component, attribute, update, { createContexts: createContexts2 }) => {
       let callbacks;
       let isSetup = false;
       const setup = () => {
@@ -1039,10 +1060,7 @@
         callbacks = [];
         const handleUpdate = () => {
           stopListening();
-          const {
-            contexts,
-            destroy: destroy3
-          } = createContexts2(component, attribute, update, {});
+          const { contexts, destroy: destroy3 } = createContexts2(component, attribute, update, {});
           for (const callback of callbacks) {
             callback(contexts);
           }
@@ -1069,9 +1087,7 @@
   // src/contexts/parent.js
   var parent_default = {
     name: "$parent",
-    create: (component, attribute, update, {
-      createContextsProxy: createContextsProxy2
-    }) => {
+    create: (component, attribute, update, { createContextsProxy: createContextsProxy2 }) => {
       const parent = component.getParent();
       if (!parent) {
         return {
@@ -1079,10 +1095,7 @@
           value: null
         };
       }
-      const {
-        contexts,
-        destroy: destroy3
-      } = createContextsProxy2(parent, attribute, update);
+      const { contexts, destroy: destroy3 } = createContextsProxy2(parent, attribute, update);
       return {
         value: contexts,
         destroy: destroy3
@@ -1093,9 +1106,7 @@
   // src/contexts/references.js
   var references_default = {
     name: "$references",
-    create: (component, attribute, update, {
-      RevocableProxy
-    }) => {
+    create: (component, attribute, update, { RevocableProxy }) => {
       if (!component[REFERENCES]) {
         return {
           key: "$references",
@@ -1108,10 +1119,7 @@
         const attributeIds = Object.getOwnPropertySymbols(references);
         cache = {};
         for (const id of attributeIds) {
-          const {
-            element,
-            name
-          } = references[id];
+          const { element, name } = references[id];
           cache[name] = element;
         }
         component[REFERENCES_CACHE] = cache;
@@ -1135,9 +1143,7 @@
   var state_default = {
     deconstruct: true,
     name: "$state",
-    create: (component, attribute, update, {
-      RevocableProxy
-    }) => {
+    create: (component, attribute, update, { RevocableProxy }) => {
       const proxy = component.getProxy();
       const state = component.getState();
       if (!proxy || !state) {
@@ -1152,6 +1158,7 @@
       const revocable = RevocableProxy(state, {});
       return {
         value: revocable.proxy,
+        // Remove event listeners.
         destroy: () => {
           proxy.removeEventListener("delete", onDelete);
           proxy.removeEventListener("get", onGet);
@@ -1165,6 +1172,7 @@
   // ../common/src/utilities/Promise.js
   var nativePromise = Function.prototype.toString.call(
     Function
+    /* A native object */
   ).replace("Function", "Promise").replace(/\(.*\)/, "()");
   var isPromise = (value) => {
     return value && Object.prototype.toString.call(value) === "[object Promise]";
@@ -1173,9 +1181,7 @@
   // src/directives/attribute.js
   var attribute_default = {
     name: "attribute",
-    update: (component, attribute, {
-      processExpression
-    }) => {
+    update: (component, attribute, { processExpression }) => {
       const element = attribute.getElement();
       const modifiers = attribute.getModifiers();
       const set = (value) => {
@@ -1217,11 +1223,11 @@
   // src/directives/cloak.js
   var cloak_default = {
     name: "cloak",
-    update: function(component, attribute, {
-      transitionIn: transitionIn2
-    }) {
+    update: function(component, attribute, { transitionIn: transitionIn2 }) {
       const element = attribute.getElement();
-      element.removeAttribute(component.getLibrary().getOptions().prefix + "-" + this.name);
+      element.removeAttribute(
+        component.getLibrary().getOptions().prefix + "-" + this.name
+      );
       transitionIn2(component, element);
     }
   };
@@ -1284,9 +1290,7 @@
   };
   var for_default2 = {
     name: "for",
-    update: (component, attribute, {
-      processExpression
-    }) => {
+    update: (component, attribute, { processExpression }) => {
       const template = attribute.getElement();
       if (template.tagName !== "TEMPLATE") {
         console.warn("Doars: `for` directive must be placed on a `<template>` tag.");
@@ -1327,7 +1331,7 @@
               const values = [...iterable];
               isArray = true;
               length = values.length;
-            } catch {
+            } catch (e) {
             }
             if (isArray) {
               for (let index = 0; index < length; index++) {
@@ -1351,9 +1355,11 @@
         if (Object.getOwnPropertySymbols(triggers).length > 0) {
           component.update(triggers);
         }
-        attribute.setData(Object.assign({}, data2, {
-          elements
-        }));
+        attribute.setData(
+          Object.assign({}, data2, {
+            elements
+          })
+        );
       };
       let result;
       if (!isNaN(expression.iterable)) {
@@ -1362,9 +1368,11 @@
         result = processExpression(component, attribute, expression.iterable);
       }
       const data = attribute.getData();
-      attribute.setData(Object.assign({}, data, {
-        result
-      }));
+      attribute.setData(
+        Object.assign({}, data, {
+          result
+        })
+      );
       if (isPromise(result)) {
         Promise.resolve(result).then((resultResolved) => {
           if (attribute.getData().result !== result) {
@@ -1414,9 +1422,7 @@
   // src/directives/html.js
   var html_default = {
     name: "html",
-    update: (component, attribute, {
-      processExpression
-    }) => {
+    update: (component, attribute, { processExpression }) => {
       const element = attribute.getElement();
       const modifiers = attribute.getModifiers();
       const set = (html) => {
@@ -1456,11 +1462,7 @@
   // src/directives/if.js
   var if_default = {
     name: "if",
-    update: (component, attribute, {
-      processExpression,
-      transitionIn: transitionIn2,
-      transitionOut: transitionOut2
-    }) => {
+    update: (component, attribute, { processExpression, transitionIn: transitionIn2, transitionOut: transitionOut2 }) => {
       const template = attribute.getElement();
       if (template.tagName !== "TEMPLATE") {
         console.warn("Doars: `if` directive must be placed on a `<template>` tag.");
@@ -1492,16 +1494,20 @@
           element = template.nextElementSibling;
           transition2 = transitionIn2(component, element);
         }
-        attribute.setData(Object.assign({}, data2, {
-          element,
-          transition: transition2
-        }));
+        attribute.setData(
+          Object.assign({}, data2, {
+            element,
+            transition: transition2
+          })
+        );
       };
       const result = processExpression(component, attribute, attribute.getValue());
       const data = attribute.getData();
-      attribute.setData(Object.assign({}, data, {
-        result
-      }));
+      attribute.setData(
+        Object.assign({}, data, {
+          result
+        })
+      );
       if (isPromise(result)) {
         Promise.resolve(result).then((result2) => {
           if (attribute.getData().result !== result2) {
@@ -1513,9 +1519,7 @@
         set(result);
       }
     },
-    destroy: (component, attribute, {
-      transitionOut: transitionOut2
-    }) => {
+    destroy: (component, attribute, { transitionOut: transitionOut2 }) => {
       const data = attribute.getData();
       if (data.element) {
         transitionOut2(component, data.element, () => {
@@ -1537,9 +1541,7 @@
   };
   var initialized_default = {
     name: "initialized",
-    update: (component, attribute, {
-      processExpression
-    }) => {
+    update: (component, attribute, { processExpression }) => {
       const element = component.getElement();
       const value = attribute.getValue();
       const name = component.getLibrary().getOptions().prefix + "-updated";
@@ -1550,9 +1552,7 @@
         element.removeEventListener(name, attribute[INITIALIZED].handler);
         delete attribute[INITIALIZED];
       }
-      const handler = ({
-        detail
-      }) => {
+      const handler = ({ detail }) => {
         if (detail.element !== element) {
           return;
         }
@@ -1586,12 +1586,15 @@
     HOLD: 4,
     THROTTLE: 5
   };
-  var KEYPRESS_MODIFIERS = ["alt", "ctrl", "meta", "shift"];
+  var KEYPRESS_MODIFIERS = [
+    "alt",
+    "ctrl",
+    "meta",
+    "shift"
+  ];
   var on_default = {
     name: "on",
-    update: (component, attribute, {
-      processExpression
-    }) => {
+    update: (component, attribute, { processExpression }) => {
       let name = attribute.getKeyRaw();
       if (!name) {
         console.warn("Doars: `on` directive must have a key.");
@@ -1708,9 +1711,7 @@
           processExpression(component, attribute.clone(), value, {
             $event: event,
             $events: attribute[ON].buffer
-          }, {
-            return: false
-          });
+          }, { return: false });
           attribute[ON].buffer = [];
         };
         attribute[ON].buffer.push(event);
@@ -1768,9 +1769,7 @@
               execute();
             };
             attribute[ON].prevent = true;
-            target.addEventListener(cancelHeldName, attribute[ON].cancel, {
-              once: true
-            });
+            target.addEventListener(cancelHeldName, attribute[ON].cancel, { once: true });
             return;
           case EXECUTION_MODIFIERS.HOLD:
             if (!(name in CANCEL_EVENTS)) {
@@ -1809,9 +1808,7 @@
               }
               clearTimeout(attribute[ON].timeout);
             };
-            target.addEventListener(cancelHoldName, attribute[ON].cancel, {
-              once: true
-            });
+            target.addEventListener(cancelHoldName, attribute[ON].cancel, { once: true });
             attribute[ON].prevent = true;
             attribute[ON].timeout = setTimeout(() => {
               target.removeEventListener(cancelHoldName, attribute[ON].cancel);
@@ -1847,7 +1844,10 @@
       const key = attribute.getKeyRaw();
       attribute[ON].target.removeEventListener(key, attribute[ON].handler);
       if (attribute[ON].cancel) {
-        attribute[ON].target.removeEventListener(CANCEL_EVENTS[key], attribute[ON].cancel);
+        attribute[ON].target.removeEventListener(
+          CANCEL_EVENTS[key],
+          attribute[ON].cancel
+        );
       }
       if (attribute[ON].timeout) {
         clearTimeout(attribute[ON].timeout);
@@ -1873,10 +1873,7 @@
     if (Object.keys(component[REFERENCES]).length === 0) {
       delete component[REFERENCES];
     }
-    library.update([{
-      id: componentId,
-      path: "$references." + value
-    }]);
+    library.update([{ id: componentId, path: "$references." + value }]);
   };
   var reference_default = {
     name: "reference",
@@ -1899,10 +1896,7 @@
         name: value
       };
       delete component[REFERENCES_CACHE];
-      library.update([{
-        id: componentId,
-        path: "$references." + value
-      }]);
+      library.update([{ id: componentId, path: "$references." + value }]);
     },
     destroy: destroy2
   };
@@ -1914,9 +1908,7 @@
   var TYPE_CHECKBOX = "checkbox";
   var select_default = {
     name: "select",
-    update: (component, attribute, {
-      processExpression
-    }) => {
+    update: (component, attribute, { processExpression }) => {
       const element = attribute.getElement();
       const type = element.getAttribute("type");
       if (element.tagName !== TAG_SELECT && !(element.tagName === "INPUT" && (type === TYPE_CHECKBOX || type === "radio"))) {
@@ -1974,11 +1966,7 @@
   // src/directives/show.js
   var show_default = {
     name: "show",
-    update: (component, attribute, {
-      processExpression,
-      transitionIn: transitionIn2,
-      transitionOut: transitionOut2
-    }) => {
+    update: (component, attribute, { processExpression, transitionIn: transitionIn2, transitionOut: transitionOut2 }) => {
       const element = attribute.getElement();
       const set = () => {
         const data2 = attribute.getData();
@@ -1994,16 +1982,20 @@
             element.style.display = "none";
           });
         }
-        attribute.setData(Object.assign({}, data2, {
-          transition: transition2
-        }));
+        attribute.setData(
+          Object.assign({}, data2, {
+            transition: transition2
+          })
+        );
       };
       const result = processExpression(component, attribute, attribute.getValue());
       const data = attribute.getData();
       if (isPromise(result)) {
-        attribute.setData(Object.assign({}, data, {
-          result
-        }));
+        attribute.setData(
+          Object.assign({}, data, {
+            result
+          })
+        );
         Promise.resolve(result).then((resultResolved) => {
           if (attribute.getData().result !== result) {
             return;
@@ -2011,9 +2003,11 @@
           set(resultResolved);
         });
       } else if (!data || data.result !== result) {
-        attribute.setData(Object.assign({}, data, {
-          result
-        }));
+        attribute.setData(
+          Object.assign({}, data, {
+            result
+          })
+        );
         set();
       }
     }
@@ -2106,10 +2100,7 @@
         path: context
       });
     };
-    const {
-      contexts,
-      destroy: destroy3
-    } = createContexts(component, attribute, update, extra);
+    const { contexts, destroy: destroy3 } = createContexts(component, attribute, update, extra);
     return [contexts, () => {
       destroy3();
       if (triggers.length > 0) {
@@ -2144,9 +2135,7 @@
   // src/directives/sync.js
   var sync_default = {
     name: "sync",
-    update: (component, attribute, {
-      processExpression
-    }) => {
+    update: (component, attribute, { processExpression }) => {
       const element = attribute.getElement();
       const isNew = !attribute[SYNC];
       if (isNew) {
@@ -2223,7 +2212,9 @@
               if (element.multiple) {
                 const elementValues = [];
                 for (const option of element.selectedOptions) {
-                  elementValues.push(escapeHtml(option.value));
+                  elementValues.push(
+                    escapeHtml(option.value)
+                  );
                 }
                 setDeeply(contexts, value, [elementValues.join("','")]);
               } else {
@@ -2299,9 +2290,7 @@
   // src/directives/text.js
   var text_default = {
     name: "text",
-    update: (component, attribute, {
-      processExpression
-    }) => {
+    update: (component, attribute, { processExpression }) => {
       const element = attribute.getElement();
       const modifiers = attribute.getModifiers();
       const set = (text) => {
@@ -2331,9 +2320,7 @@
   // src/directives/watch.js
   var watch_default = {
     name: "watch",
-    update: (component, attribute, {
-      processExpression
-    }) => {
+    update: (component, attribute, { processExpression }) => {
       const value = attribute.getValue();
       processExpression(component, attribute, value, {}, {
         return: false
@@ -2343,12 +2330,13 @@
 
   // src/Doars.js
   var Doars = class extends EventDispatcher_default {
+    /**
+     * Create instance.
+     * @param {Object} options Options.
+     */
     constructor(options) {
       super();
-      let {
-        prefix,
-        root
-      } = options = Object.assign({
+      let { prefix, root } = options = Object.assign({
         prefix: "d",
         processor: "execute",
         root: document.body
@@ -2384,16 +2372,20 @@
         nextTick_default,
         parent_default,
         references_default,
+        // Order of `state` before `for` context is important for deconstruction.
         state_default,
         for_default
       ];
       const directives = [
+        // Must happen first as other directives can rely on it.
         reference_default,
+        // Then execute those that modify the document tree, since it could make other directives redundant and save on processing.
         attribute_default,
         for_default2,
         html_default,
         if_default,
         text_default,
+        // Order does not matter any more.
         cloak_default,
         initialized_default,
         on_default,
@@ -2453,15 +2445,11 @@
         observer.disconnect();
         observer = null;
         isUpdating = mutations = triggers = null;
-        this.dispatchEvent("disabling", [this], {
-          reverse: true
-        });
+        this.dispatchEvent("disabling", [this], { reverse: true });
         removeComponents(...components);
         directivesNames = directivesObject = directivesRegexp = null;
         isEnabled = false;
-        this.dispatchEvent("disabled", [this], {
-          reverse: true
-        });
+        this.dispatchEvent("disabled", [this], { reverse: true });
         return this;
       };
       const addComponents = (...elements) => {
@@ -2620,12 +2608,11 @@
         }
         if (_triggers) {
           for (const trigger of _triggers) {
-            const {
-              id: id2,
-              path
-            } = trigger;
+            const { id: id2, path } = trigger;
             if (!(id2 in triggers)) {
-              triggers[id2] = [path];
+              triggers[id2] = [
+                path
+              ];
               continue;
             }
             if (!triggers[id2].includes(path)) {
@@ -2824,9 +2811,13 @@
   // ../interpret/src/parse.js
   var SPACE_CODES = [
     9,
+    // Tab
     10,
+    // LF
     13,
+    // CR
     32
+    // Space
   ];
   var OPENING_PARENTHESIS_CODE = 40;
   var CLOSING_PARENTHESIS_CODE = 41;
@@ -2848,6 +2839,12 @@
     "%=",
     "+=",
     "-="
+    // '<<=',
+    // '>>=',
+    // '>>>=',
+    // '&=',
+    // '^=',
+    // '|=',
   ];
   var BINARY_OPERATORS = {
     "=": 1,
@@ -2860,9 +2857,18 @@
     "%=": 1,
     "+=": 1,
     "-=": 1,
+    // '<<=': 1,
+    // '>>=': 1,
+    // '>>>=': 1,
+    // '&=': 1,
+    // '^=': 1,
+    // '|=': 1,
     "||": 2,
     "&&": 3,
     "??": 4,
+    // '|': 5,
+    // '^': 6,
+    // '&': 7,
     "==": 8,
     "!=": 8,
     "===": 8,
@@ -2871,6 +2877,9 @@
     ">": 9,
     "<=": 9,
     ">=": 9,
+    // '<<': 10,
+    // '>>': 10,
+    // '>>>': 10,
     "*": 11,
     "/": 11,
     "%": 11,
@@ -2880,6 +2889,7 @@
   var UNARY_OPERATORS = [
     "-",
     "!",
+    // '~',
     "+"
   ];
   var UPDATE_OPERATOR_DECREMENT = "--";
@@ -2892,7 +2902,11 @@
   };
   var isDecimalDigit = (character) => character >= 48 && character <= 57;
   var isIdentifierPart = (character) => isIdentifierStart(character) || isDecimalDigit(character);
-  var isIdentifierStart = (character) => character === 36 || character >= 48 && character <= 57 || character === 95 || character >= 65 && character <= 90 || character >= 97 && character <= 122;
+  var isIdentifierStart = (character) => character === 36 || // Dollar ($)
+  character >= 48 && character <= 57 || // Between 0 and 9
+  character === 95 || // Underscore
+  character >= 65 && character <= 90 || // Between A and Z
+  character >= 97 && character <= 122;
   var parse_default = (expression) => {
     let index = 0;
     const gobbleArray = () => {
@@ -2960,7 +2974,11 @@
       if (!right) {
         throw new Error("Expected expression after " + operator);
       }
-      const stack = [left, binaryOperationInfo, right];
+      const stack = [
+        left,
+        binaryOperationInfo,
+        right
+      ];
       let node;
       while (operator = gobbleBinaryOperation()) {
         const precedence = BINARY_OPERATORS[operator] || 0;
@@ -3028,7 +3046,8 @@
       const nodes2 = [];
       while (index < expression.length) {
         const characterIndex = expression.charCodeAt(index);
-        if (characterIndex === 59 || characterIndex === COMMA_CODE) {
+        if (characterIndex === 59 || // Semicolon (;)
+        characterIndex === COMMA_CODE) {
           index++;
         } else {
           const node = gobbleExpression();
@@ -3099,6 +3118,7 @@
       return {
         type: LITERAL,
         value: parseFloat(number)
+        // raw: number,
       };
     };
     const gobbleObjectExpression = () => {
@@ -3221,6 +3241,7 @@
       return {
         type: LITERAL,
         value: string
+        // raw: expression.substring(startIndex, index),
       };
     };
     const gobbleTernary = (node) => {
@@ -3296,13 +3317,16 @@
             node = {
               type: LITERAL,
               value: LITERALS[node.name]
+              // raw: node.name,
             };
           }
         } else if (character === OPENING_PARENTHESIS_CODE) {
           node = gobbleSequence();
         }
       }
-      return gobbleUpdateSuffixExpression(gobbleTokenProperty(node));
+      return gobbleUpdateSuffixExpression(
+        gobbleTokenProperty(node)
+      );
     };
     const gobbleTokenProperty = (node) => {
       gobbleSpaces();
@@ -3468,7 +3492,7 @@
               assignmentValue = assignmentLeft * assignmentValue;
               break;
             case "**=":
-              assignmentValue = assignmentLeft ** assignmentValue;
+              assignmentValue = __pow(assignmentLeft, assignmentValue);
               break;
             case "/=":
               assignmentValue = assignmentLeft / assignmentValue;
@@ -3494,7 +3518,7 @@
           case "&&":
             return binaryLeft && binaryRight;
           case "??":
-            return binaryLeft ?? binaryRight;
+            return binaryLeft != null ? binaryLeft : binaryRight;
           case "==":
             return binaryLeft == binaryRight;
           case "!=":

@@ -25,10 +25,3 @@ node_modules/
 # dotenv environment variables file
 .env
 .env.test
-
-# Gzipped builds.
-*.js.gz
-
-# Ignore screenshots and videos
-cypress/screenshots/
-cypress/videos/

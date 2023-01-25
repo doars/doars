@@ -210,7 +210,7 @@ var ProxyDispatcher = class extends EventDispatcher_default {
           if (target2[key] === value) {
             return true;
           }
-          if (typeof value === "object") {
+          if (value && typeof value === "object") {
             value = this.add(value, [...path, key]);
           }
           target2[key] = value;

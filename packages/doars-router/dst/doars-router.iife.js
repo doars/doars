@@ -1,6 +1,19 @@
 (() => {
   // ../common/src/polyfills/RevocableProxy.js
-  var REFLECTION_METHODS = ["apply", "construct", "defineProperty", "deleteProperty", "get", "getOwnPropertyDescriptor", "getPrototypeOf", "isExtensible", "ownKeys", "preventExtensions", "set", "setPrototypeOf"];
+  var REFLECTION_METHODS = [
+    "apply",
+    "construct",
+    "defineProperty",
+    "deleteProperty",
+    "get",
+    "getOwnPropertyDescriptor",
+    "getPrototypeOf",
+    "isExtensible",
+    "ownKeys",
+    "preventExtensions",
+    "set",
+    "setPrototypeOf"
+  ];
   var RevocableProxy_default = (target, handler) => {
     let revoked = false;
     const revocableHandler = {};
@@ -83,35 +96,19 @@
     while (i < str.length) {
       var char = str[i];
       if (char === "*" || char === "+" || char === "?") {
-        tokens.push({
-          type: "MODIFIER",
-          index: i,
-          value: str[i++]
-        });
+        tokens.push({ type: "MODIFIER", index: i, value: str[i++] });
         continue;
       }
       if (char === "\\") {
-        tokens.push({
-          type: "ESCAPED_CHAR",
-          index: i++,
-          value: str[i++]
-        });
+        tokens.push({ type: "ESCAPED_CHAR", index: i++, value: str[i++] });
         continue;
       }
       if (char === "{") {
-        tokens.push({
-          type: "OPEN",
-          index: i,
-          value: str[i++]
-        });
+        tokens.push({ type: "OPEN", index: i, value: str[i++] });
         continue;
       }
       if (char === "}") {
-        tokens.push({
-          type: "CLOSE",
-          index: i,
-          value: str[i++]
-        });
+        tokens.push({ type: "CLOSE", index: i, value: str[i++] });
         continue;
       }
       if (char === ":") {
@@ -119,7 +116,13 @@
         var j = i + 1;
         while (j < str.length) {
           var code = str.charCodeAt(j);
-          if (code >= 48 && code <= 57 || code >= 65 && code <= 90 || code >= 97 && code <= 122 || code === 95) {
+          if (
+            // `0-9`
+            code >= 48 && code <= 57 || // `A-Z`
+            code >= 65 && code <= 90 || // `a-z`
+            code >= 97 && code <= 122 || // `_`
+            code === 95
+          ) {
             name += str[j++];
             continue;
           }
@@ -127,11 +130,7 @@
         }
         if (!name)
           throw new TypeError("Missing parameter name at ".concat(i));
-        tokens.push({
-          type: "NAME",
-          index: i,
-          value: name
-        });
+        tokens.push({ type: "NAME", index: i, value: name });
         i = j;
         continue;
       }
@@ -165,25 +164,13 @@
           throw new TypeError("Unbalanced pattern at ".concat(i));
         if (!pattern)
           throw new TypeError("Missing pattern at ".concat(i));
-        tokens.push({
-          type: "PATTERN",
-          index: i,
-          value: pattern
-        });
+        tokens.push({ type: "PATTERN", index: i, value: pattern });
         i = j;
         continue;
       }
-      tokens.push({
-        type: "CHAR",
-        index: i,
-        value: str[i++]
-      });
+      tokens.push({ type: "CHAR", index: i, value: str[i++] });
     }
-    tokens.push({
-      type: "END",
-      index: i,
-      value: ""
-    });
+    tokens.push({ type: "END", index: i, value: "" });
     return tokens;
   }
   function parse(str, options) {
@@ -282,6 +269,7 @@
     var execResult = groupsRegex.exec(path.source);
     while (execResult) {
       keys.push({
+        // Use parenthesized substring match if available, index otherwise
         name: execResult[1] || index++,
         prefix: "",
         suffix: "",
@@ -366,6 +354,9 @@
 
   // ../common/src/events/EventDispatcher.js
   var EventDispatcher = class {
+    /**
+     * Create instance.
+     */
     constructor() {
       let events = {};
       this.addEventListener = (name, callback, options = null) => {
@@ -518,9 +509,7 @@
   var router_default2 = (routerOptions) => {
     return {
       name: "router",
-      update: (component, attribute, {
-        processExpression
-      }) => {
+      update: (component, attribute, { processExpression }) => {
         const element = attribute.getElement();
         let router = element[ROUTER];
         if (!router) {
@@ -538,10 +527,7 @@
         const id = router.getId();
         router.destroy();
         const library = component.getLibrary();
-        library.update([{
-          id,
-          path: ""
-        }]);
+        library.update([{ id, path: "" }]);
       }
     };
   };
@@ -558,10 +544,7 @@
   // src/directives/route.js
   var route_default = {
     name: "route",
-    update: (component, attribute, {
-      transitionIn,
-      transitionOut
-    }) => {
+    update: (component, attribute, { transitionIn, transitionOut }) => {
       const element = attribute.getElement();
       let router;
       const setup = () => {
@@ -612,9 +595,7 @@
       };
       setup();
     },
-    destroy: (component, attribute, {
-      transitionOut
-    }) => {
+    destroy: (component, attribute, { transitionOut }) => {
       const element = attribute.getElement();
       if (element.tagName === "TEMPLATE") {
         if (attribute[ROUTE] && attribute[ROUTE].element) {

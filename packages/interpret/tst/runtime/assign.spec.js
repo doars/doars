@@ -1,7 +1,7 @@
 import {
   ASSIGN,
   IDENTIFIER,
-  LITERAL,
+  LITERAL
 } from '../../src/types.js'
 import test from './utilities/test.js'
 

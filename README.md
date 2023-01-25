@@ -6,7 +6,7 @@
 
 # Doars
 
-Build reactive websites without leaving your HTML. Most other font-end frameworks come at a cost from compiling to loading. Doars is a declarative and light solution that scans the webpage then processes the instructions found as well as keep the state and content up-to-date.
+Build reactive websites without leaving your HTML. Ditch the hassle with other frameworks. Doars is a declarative and light solution that scans the webpage then processes the instructions found as well as keep the state and content up-to-date.
 
 You can write logic directly in your layout, as a result you have to simply look at the HTML to read what the elements do. You won't need to dig through other files because the functionality is written on the structure itself.
 

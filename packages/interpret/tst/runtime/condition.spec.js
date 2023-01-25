@@ -2,7 +2,7 @@ import {
   BINARY,
   CONDITION,
   IDENTIFIER,
-  LITERAL,
+  LITERAL
 } from '../../src/types.js'
 import test from './utilities/test.js'
 
@@ -77,9 +77,9 @@ test('Ternary with identifier in conditional', 'false == hello ? 1 : 2', 2, {
   },
   type: CONDITION,
 }, {
-  hello: true
+  hello: true,
 }, {
-  hello: true
+  hello: true,
 })
 
 test('Ternary with identifier in alternate', 'false == true ? 1 : hello', 2, {
@@ -105,7 +105,7 @@ test('Ternary with identifier in alternate', 'false == true ? 1 : hello', 2, {
   },
   type: CONDITION,
 }, {
-  hello: 2
+  hello: 2,
 }, {
-  hello: 2
+  hello: 2,
 })
