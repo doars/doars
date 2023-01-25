@@ -11,6 +11,7 @@
         proxy.addEventListener("get", onGet);
         return {
           value: time,
+          // Remove event listeners.
           destroy: () => {
             proxy.removeEventListener("get", onGet);
           }
@@ -28,9 +29,7 @@
     const items = [];
     const directive = {
       name: "update",
-      update: function(component, attribute, {
-        processExpression
-      }) {
+      update: function(component, attribute, { processExpression }) {
         if (!this._execute) {
           this._execute = processExpression;
         }
@@ -38,9 +37,7 @@
         if (itemIds.indexOf(id) >= 0) {
           return;
         }
-        let {
-          order
-        } = attribute.getModifiers();
+        let { order } = attribute.getModifiers();
         if (!order) {
           order = options.defaultOrder;
         }
@@ -74,15 +71,26 @@
     };
     return [directive, () => {
       for (const item of items) {
-        directive._execute(item.component, item.attribute.clone(), item.attribute.getValue(), {}, {
-          return: false
-        });
+        directive._execute(item.component, item.attribute.clone(), item.attribute.getValue(), {}, { return: false });
       }
     }];
   };
 
   // ../common/src/polyfills/RevocableProxy.js
-  var REFLECTION_METHODS = ["apply", "construct", "defineProperty", "deleteProperty", "get", "getOwnPropertyDescriptor", "getPrototypeOf", "isExtensible", "ownKeys", "preventExtensions", "set", "setPrototypeOf"];
+  var REFLECTION_METHODS = [
+    "apply",
+    "construct",
+    "defineProperty",
+    "deleteProperty",
+    "get",
+    "getOwnPropertyDescriptor",
+    "getPrototypeOf",
+    "isExtensible",
+    "ownKeys",
+    "preventExtensions",
+    "set",
+    "setPrototypeOf"
+  ];
   var RevocableProxy_default = (target, handler) => {
     let revoked = false;
     const revocableHandler = {};
@@ -108,6 +116,9 @@
 
   // ../common/src/events/EventDispatcher.js
   var EventDispatcher = class {
+    /**
+     * Create instance.
+     */
     constructor() {
       let events = {};
       this.addEventListener = (name, callback, options = null) => {
@@ -249,6 +260,7 @@
       const id = Symbol("ID_UPDATE");
       let isEnabled = false, request;
       const proxy = new ProxyDispatcher_default({
+        // We don't care when they are updated, we have a callback for that. They should never be updated by the user anyway.
         delete: false,
         set: false
       });

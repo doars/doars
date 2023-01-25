@@ -17,6 +17,7 @@ module.exports = {
     'eslint-plugin-import',
     'eslint-plugin-node',
     'eslint-plugin-promise',
+    'eslint-plugin-standard',
   ],
   rules: {
     'comma-dangle': [
@@ -24,9 +25,9 @@ module.exports = {
       {
         arrays: 'always-multiline',
         objects: 'always-multiline',
-        imports: 'never',
-        exports: 'never',
-        functions: 'never',
+        imports: 'always-multiline',
+        exports: 'always-multiline',
+        functions: 'always-multiline',
       },
     ],
     'default-case-last': 0,
@@ -57,6 +58,5 @@ module.exports = {
       0,
       'always',
     ],
-    'standard/no-callback-literal': 0,
   },
 }

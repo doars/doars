@@ -30,10 +30,13 @@
     "release": "yarn run lint && yarn publish",
     "test": "yarn run test:browser && yarn run test:runtime",
     "test:browser": "echo 'todo'",
-    "test:runtime": "echo 'todo'"
+    "test:runtime": "echo 'todo'",
+    "upgrade": "npm-check-updates --upgrade --target minor"
   },
   "files": [
     "src",
     "README.md"
-  ]
+  ],
+  "devDependencies": {},
+  "dependencies": {}
 }

@@ -12,24 +12,25 @@
     "docs:develop": "yarn workspace @doars/docs run develop",
     "lint": "yarn workspaces run lint",
     "release": "yarn workspaces run release",
+    "serve": "serve ./",
     "test": "yarn workspaces run test",
     "test:browser": "yarn workspaces run test:browser",
-    "test:runtime": "yarn workspaces run test:runtime"
+    "test:runtime": "yarn workspaces run test:runtime",
+    "upgrade": "npm-check-updates --upgrade --target minor && yarn workspaces run upgrade && yarn install"
   },
   "devDependencies": {
-    "@babel/core": "7.19.x",
-    "@babel/preset-env": "7.19.x",
-    "@playwright/test": "1.25.x",
-    "brotli-size": "4.0.x",
-    "chai": "4.3.x",
-    "esbuild": "0.15.x",
-    "esbuild-plugin-babel": "0.2.x",
-    "eslint": "8.23.x",
-    "eslint-config-standard": "17.0.x",
-    "eslint-plugin-import": "2.26.x",
-    "eslint-plugin-n": "15.0.x",
-    "eslint-plugin-node": "11.1.x",
-    "eslint-plugin-promise": "6.0.x",
-    "mocha": "10.0.x"
+    "@playwright/test": "^1.30.0",
+    "brotli-size": "^4.0.0",
+    "chai": "^4.3.7",
+    "esbuild": "^0.17.4",
+    "eslint": "^8.32.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^15.6.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "mocha": "^10.2.0",
+    "npm-check-updates": "^16.6.3",
+    "serve": "^14.2.0"
   }
 }

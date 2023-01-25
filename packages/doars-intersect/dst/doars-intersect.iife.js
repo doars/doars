@@ -12,9 +12,7 @@
   var intersect_default = (observer) => {
     return {
       name: "intersect",
-      update: (component, attribute, {
-        processExpression
-      }) => {
+      update: (component, attribute, { processExpression }) => {
         const element = attribute.getElement();
         const key = attribute.getKey();
         const value = attribute.getValue();
@@ -62,9 +60,7 @@
           const execute = () => {
             processExpression(component, attribute.clone(), value, {
               $event: event
-            }, {
-              return: false
-            });
+            }, { return: false });
             attribute[INTERSECT].buffer = [];
           };
           attribute[INTERSECT].buffer.push(event);
@@ -115,6 +111,10 @@
 
   // src/IntersectionObserver.js
   var IntersectionObserver = class {
+    /**
+     * Create observer instance.
+     * @param {Object} options Intersection observer options.
+     */
     constructor(options = null) {
       options = Object.assign({
         root: null,

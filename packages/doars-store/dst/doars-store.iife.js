@@ -4,9 +4,7 @@
     return {
       deconstruct: !!options.deconstruct,
       name: "$store",
-      create: (component, attribute, update, {
-        RevocableProxy
-      }) => {
+      create: (component, attribute, update, { RevocableProxy }) => {
         const onDelete = (target, path) => update(id, path.join("."));
         const onGet = (target, path) => attribute.accessed(id, path.join("."));
         const onSet = (target, path) => update(id, path.join("."));
@@ -16,6 +14,7 @@
         const revocable = RevocableProxy(store, {});
         return {
           value: revocable.proxy,
+          // Remove event listeners.
           destroy: () => {
             proxy.removeEventListener("delete", onDelete);
             proxy.removeEventListener("get", onGet);
@@ -28,7 +27,20 @@
   };
 
   // ../common/src/polyfills/RevocableProxy.js
-  var REFLECTION_METHODS = ["apply", "construct", "defineProperty", "deleteProperty", "get", "getOwnPropertyDescriptor", "getPrototypeOf", "isExtensible", "ownKeys", "preventExtensions", "set", "setPrototypeOf"];
+  var REFLECTION_METHODS = [
+    "apply",
+    "construct",
+    "defineProperty",
+    "deleteProperty",
+    "get",
+    "getOwnPropertyDescriptor",
+    "getPrototypeOf",
+    "isExtensible",
+    "ownKeys",
+    "preventExtensions",
+    "set",
+    "setPrototypeOf"
+  ];
   var RevocableProxy_default = (target, handler) => {
     let revoked = false;
     const revocableHandler = {};
@@ -54,6 +66,9 @@
 
   // ../common/src/events/EventDispatcher.js
   var EventDispatcher = class {
+    /**
+     * Create instance.
+     */
     constructor() {
       let events = {};
       this.addEventListener = (name, callback, options = null) => {

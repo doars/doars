@@ -1,6 +1,7 @@
 <div align="center">
 
 [![npm @latest version](https://img.shields.io/npm/v/@doars/interpret.svg?label=Version&style=flat-square&maxAge=86400)](https://www.npmjs.com/package/@doars/interpret)
+[![minzipped size](https://img.shields.io/bundlephobia/minzip/@doars/interpret?label=Size&style=flat-square&maxAge=86400)](https://www.npmjs.com/package/@doars/interpret)
 
 </div>
 
@@ -12,7 +13,7 @@ Interpret a subset JavaScript expression without using the [`eval` function](htt
 
 The interpreter is written for the [@doars/doars library](https://doars.dev), but can be used elsewhere as well. The features it support are meant to be simple and not allow for much complexity similar to what a formulae in a spreadsheet can do.
 
-Even though the library does not use the `eval` function or `Function` constructor security is still an importtent concern when interpreting any code. Do not provide any functions via the `context` parameter that could cause harm and it is not recommended to run any expression that might contain user input. So do take the accompanying risks into consideration before using this library.
+Even though the library does not use the `eval` function or `Function` constructor security is still an important concern when interpreting any code. Do not provide any functions via the `context` parameter that could cause harm, and you should not run any expression that might contain user input. So do take the accompanying risks into consideration before using this library.
 
 ## Install
 
