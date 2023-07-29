@@ -43,8 +43,8 @@ library.
 
 ```HTML
 <!-- Import library. -->
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.iife.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars-store@1/dst/doars-store.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars-store@2/dst/doars-store.iife.js"></script>
 <script type="application/javascript">
   document.addEventListener('DOMContentLoaded', () => {
     // Setup a library instance.
@@ -59,9 +59,9 @@ library.
 </script>
 ```
 
-> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-store@1/dst/doars-store.esm.js)
+> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-store@2/dst/doars-store.esm.js)
 > and
-> [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-store@1/dst/doars-store.iife.js)
+> [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-store@2/dst/doars-store.iife.js)
 > builds are also available via the jsDelivr CDN.
 
 ## Contexts

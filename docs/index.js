@@ -184,7 +184,7 @@ var parseSelector = (selector) => {
 };
 
 // ../packages/doars/src/Attribute.js
-var Attribute = class extends EventDispatcher_default {
+var Attribute = class _Attribute extends EventDispatcher_default {
   /**
    * Create instance.
    * @param {Component} component Component instance.
@@ -294,7 +294,7 @@ var Attribute = class extends EventDispatcher_default {
       return false;
     };
     this.clone = () => {
-      return new Attribute(component, element2, name, value, true);
+      return new _Attribute(component, element2, name, value, true);
     };
   }
 };
@@ -414,14 +414,13 @@ var ProxyDispatcher_default = ProxyDispatcher;
 
 // ../packages/doars/src/utilities/Component.js
 var closestComponent = (element2) => {
-  if (!element2.parentElement) {
-    return;
+  if (element2.parentElement) {
+    element2 = element2.parentElement;
+    if (element2[COMPONENT]) {
+      return element2[COMPONENT];
+    }
+    return closestComponent(element2);
   }
-  element2 = element2.parentElement;
-  if (element2[COMPONENT]) {
-    return element2[COMPONENT];
-  }
-  return closestComponent(element2);
 };
 
 // ../packages/common/src/utilities/Attribute.js
@@ -2505,6 +2504,15 @@ var Doars = class extends EventDispatcher_default {
       contextsBase[name] = value;
       this.dispatchEvent("simple-context-added", [this, name, value]);
       return true;
+    };
+    this.setSimpleContexts = (contexts2) => {
+      const result = {};
+      for (const name in contexts2) {
+        if (Object.hasOwnProperty.call(contexts2, name)) {
+          result[name] = this.setSimpleContext(name, contexts2[name]);
+        }
+      }
+      return result;
     };
     this.getContexts = () => [...contexts];
     this.addContexts = (index, ..._contexts) => {

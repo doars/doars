@@ -109,7 +109,7 @@ var intersect_default = (observer) => {
 };
 
 // src/IntersectionObserver.js
-var IntersectionObserver = class {
+var IntersectionObserver = class _IntersectionObserver {
   /**
    * Create observer instance.
    * @param {Object} options Intersection observer options.
@@ -128,7 +128,7 @@ var IntersectionObserver = class {
         }
       }
     };
-    const intersectionObserver = new IntersectionObserver(intersect, options);
+    const intersectionObserver = new _IntersectionObserver(intersect, options);
     this.add = (element, callback) => {
       if (!items.has(element)) {
         items.set(element, []);
