@@ -9,7 +9,7 @@
 
 # @doars/doars-morph
 
-Plugin that adds a morph directive which instead of setting directly to the innerHTML of an element morphs the DOM to the new structure.
+Plugin that adds a morph context and directive which instead of setting directly to the innerHTML of an element morphs the DOM to the new structure.
 
 ## Install
 
@@ -85,12 +85,12 @@ are added by the plugin.
 
 ```HTML
 <!-- Decodes the special HTML characters before morphing the inner HTML of the element to the string. -->
-<div d-html.decode="'&lt;h1&gt;Hello world!&lt;/h1&gt;'"></div>
+<div d-morph.decode="'&lt;h1&gt;Hello world!&lt;/h1&gt;'"></div>
 ```
 
 ```HTML
 <!-- Morph the inner HTML of the element to a value from the state. -->
-<div d-html="$state.message"></div>
+<div d-morph="$state.message"></div>
 ```
 
 ## API

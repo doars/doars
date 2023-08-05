@@ -59,14 +59,14 @@ var fromString = (string) => {
   return template.content.childNodes[0];
 };
 var isSame = (a, b) => {
-  if (a.isSameNode) {
-    return a.isSameNode(b);
-  }
-  if (a.tagName !== b.tagName) {
-    return false;
+  if (a.isSameNode && a.isSameNode(b)) {
+    return true;
   }
   if (a.type === 3) {
     return a.nodeValue === b.nodeValue;
+  }
+  if (a.tagName === b.tagName) {
+    return true;
   }
   return false;
 };
@@ -84,11 +84,11 @@ var morphNode = (existingNode, newNode) => {
     }
   }
   if (nodeName === "INPUT") {
-    updateInput(existingNode, newNode);
+    _updateInput(existingNode, newNode);
   } else if (nodeName === "OPTION") {
-    updateAttribute(existingNode, newNode, "selected");
+    _updateAttribute(existingNode, newNode, "selected");
   } else if (nodeName === "TEXTAREA") {
-    updateTextarea(existingNode, newNode);
+    _updateTextarea(existingNode, newNode);
   }
 };
 var morphTree = (existingTree, newTree, options) => {
@@ -101,16 +101,16 @@ var morphTree = (existingTree, newTree, options) => {
     throw new Error("New tree should be an object.");
   }
   if (options && options.childrenOnly || newTree.nodeType === 11) {
-    updateChildren(existingTree, newTree);
+    _updateChildren(existingTree, newTree);
     return existingTree;
   }
-  return updateTree(existingTree, newTree);
+  return _updateTree(existingTree, newTree);
 };
-var updateInput = (existingNode, newNode) => {
+var _updateInput = (existingNode, newNode) => {
   const newValue = newNode.value;
   const existingValue = existingNode.value;
-  updateAttribute(existingNode, newNode, "checked");
-  updateAttribute(existingNode, newNode, "disabled");
+  _updateAttribute(existingNode, newNode, "checked");
+  _updateAttribute(existingNode, newNode, "disabled");
   if (existingNode.indeterminate !== newNode.indeterminate) {
     existingNode.indeterminate = newNode.indeterminate;
   }
@@ -131,19 +131,16 @@ var updateInput = (existingNode, newNode) => {
     existingNode.value = newValue;
   }
 };
-var updateTextarea = (existingNode, newNode) => {
+var _updateTextarea = (existingNode, newNode) => {
   const newValue = newNode.value;
   if (existingNode.value !== newValue) {
     existingNode.value = newValue;
   }
   if (existingNode.firstChild && existingNode.firstChild.nodeValue !== newValue) {
-    if (existingNode.firstChild.nodeValue === existingNode.placeholder && newValue === "") {
-      return;
-    }
     existingNode.firstChild.nodeValue = newValue;
   }
 };
-var updateAttribute = (existingNode, newNode, name) => {
+var _updateAttribute = (existingNode, newNode, name) => {
   if (existingNode[name] !== newNode[name]) {
     existingNode[name] = newNode[name];
     if (newNode[name]) {
@@ -153,7 +150,7 @@ var updateAttribute = (existingNode, newNode, name) => {
     }
   }
 };
-var updateTree = (existingTree, newTree) => {
+var _updateTree = (existingTree, newTree) => {
   if (!existingTree) {
     return newTree;
   }
@@ -167,10 +164,10 @@ var updateTree = (existingTree, newTree) => {
     return newTree;
   }
   morphNode(existingTree, newTree);
-  updateChildren(existingTree, newTree);
+  _updateChildren(existingTree, newTree);
   return existingTree;
 };
-var updateChildren = (existingNode, newNode) => {
+var _updateChildren = (existingNode, newNode) => {
   let existingChild, newChild, morphed, existingMatch;
   let offset = 0;
   for (let i = 0; ; i++) {
@@ -185,7 +182,7 @@ var updateChildren = (existingNode, newNode) => {
       existingNode.appendChild(newChild);
       offset++;
     } else if (isSame(existingChild, newChild)) {
-      morphed = updateTree(existingChild, newChild);
+      morphed = _updateTree(existingChild, newChild);
       if (morphed !== existingChild) {
         existingNode.replaceChild(morphed, existingChild);
         offset++;
@@ -199,12 +196,13 @@ var updateChildren = (existingNode, newNode) => {
         }
       }
       if (existingMatch) {
-        morphed = updateTree(existingMatch, newChild);
-        if (morphed !== existingMatch)
+        morphed = _updateTree(existingMatch, newChild);
+        if (morphed !== existingMatch) {
           offset++;
+        }
         existingNode.insertBefore(morphed, existingChild);
       } else if (!newChild.id && !existingChild.id) {
-        morphed = updateTree(existingChild, newChild);
+        morphed = _updateTree(existingChild, newChild);
         if (morphed !== existingChild) {
           existingNode.replaceChild(morphed, existingChild);
           offset++;

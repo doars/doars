@@ -3,7 +3,10 @@
  * @param {HTMLElement} element Element to add the attributes to.
  * @param {Object} data Attribute data to add.
  */
-export const addAttributes = (element, data) => {
+export const addAttributes = (
+  element,
+  data,
+) => {
   for (const name in data) {
     if (name === 'class') {
       // Add classes to classlist.
@@ -23,7 +26,10 @@ export const addAttributes = (element, data) => {
  * @param {HTMLElement} existingNode Node to copy to.
  * @param {HTMLElement} newNode Node to copy from.
  */
-export const copyAttributes = (existingNode, newNode) => {
+export const copyAttributes = (
+  existingNode,
+  newNode,
+) => {
   const existingAttributes = existingNode.attributes
   const newAttributes = newNode.attributes
   let attributeNamespaceURI = null
@@ -87,7 +93,10 @@ export const copyAttributes = (existingNode, newNode) => {
  * @param {HTMLElement} element Element to remove the attributes from.
  * @param {Object} data Attribute data to remove.
  */
-export const removeAttributes = (element, data) => {
+export const removeAttributes = (
+  element,
+  data,
+) => {
   for (const name in data) {
     if (name === 'class') {
       // Add classes to classlist.
@@ -113,7 +122,11 @@ export const removeAttributes = (element, data) => {
  * @param {String} key Attribute name.
  * @param {Any} data Attribute data.
  */
-export const setAttribute = (element, key, data) => {
+export const setAttribute = (
+  element,
+  key,
+  data,
+) => {
   // Check if a special attribute key.
   if (key === 'value' && element.tagName === 'INPUT') {
     if (!data) {
@@ -173,7 +186,10 @@ export const setAttribute = (element, key, data) => {
  * @param {HTMLElement} element Element to add the attributes to.
  * @param {Object} data Attribute data to set.
  */
-export const setAttributes = (element, data) => {
+export const setAttributes = (
+  element,
+  data,
+) => {
   for (const name in data) {
     setAttribute(element, name, data[name])
   }

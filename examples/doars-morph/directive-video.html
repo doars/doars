@@ -8,10 +8,16 @@
   </head>
 
   <body>
-    <div d-state d-morph="'<div>After</div>'">
-      <div>
-        Before
-      </div>
+    <p>Unfortunately the state of the iframe is not preserved when morphing :(</p>
+    <p>In this case it is caused by the re-appending of the elements to its new position in the morphed tree.</p>
+    <div
+      d-state="{ content: '&lt;div&gt;&lt;div&gt;Before&lt;\/div&gt;&lt;iframe src=&quot;https:\/\/www.youtube.com\/embed\/jDHmg8Mb9wo&quot;&gt;&lt;\/iframe&gt;&lt;\/div&gt;'}">
+      <div d-morph.decode="content"></div>
+
+      <button
+        d-on:click="content = '&lt;div&gt;&lt;iframe src=&quot;https:\/\/www.youtube.com\/embed\/jDHmg8Mb9wo&quot;&gt;&lt;\/iframe&gt;&lt;div&gt;After&lt;\/div&gt;&lt;\/div&gt;'">
+        Morph
+      </button>
     </div>
 
     <script src="/packages/doars/dst/doars.iife.js"></script>

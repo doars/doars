@@ -103,31 +103,29 @@ var responseType = (response) => {
 };
 
 // src/factories/contexts/fetch.js
-var fetch_default = ({ defaultInit }) => {
-  return {
-    name: "$fetch",
-    create: () => {
-      return {
-        value: (url, init = null) => {
-          if (defaultInit) {
-            init = deepAssign({}, defaultInit, init);
-          }
-          let returnType = init.returnType ? init.returnType : null;
-          delete init.returnType;
-          return fetch(url, init).then((response) => {
-            if (returnType === "auto" && response.headers.get("content-type")) {
-              returnType = responseType(response);
-            }
-            if (returnType) {
-              response = parseResponse(response, returnType);
-            }
-            return response;
-          });
+var fetch_default = ({ defaultInit }) => ({
+  name: "$fetch",
+  create: () => {
+    return {
+      value: (url, init = null) => {
+        if (defaultInit) {
+          init = deepAssign({}, defaultInit, init);
         }
-      };
-    }
-  };
-};
+        let returnType = init.returnType ? init.returnType : null;
+        delete init.returnType;
+        return fetch(url, init).then((response) => {
+          if (returnType === "auto" && response.headers.get("content-type")) {
+            returnType = responseType(response);
+          }
+          if (returnType) {
+            response = parseResponse(response, returnType);
+          }
+          return response;
+        });
+      }
+    };
+  }
+});
 
 // src/DoarsFetch.js
 function DoarsFetch_default(library, options = null) {

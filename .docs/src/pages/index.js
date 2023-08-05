@@ -464,6 +464,10 @@ export default function () {
           }, '@doars/doars-intersect', 'Adds an intersect directive for reacting to intersection changes.'),
 
           card({
+            href: 'https://github.com/doars/doars/tree/main/packages/doars-morph#readme',
+          }, '@doars/doars-morph', 'Adds a morph context and directive that instead of setting directly to the innerHTML of an element morphs the DOM to the new structure.'),
+
+          card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars-router#readme',
           }, '@doars/doars-router', 'Adds a router context with set of directives to control it.'),
 

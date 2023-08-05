@@ -1,30 +1,30 @@
 (() => {
   // src/factories/contexts/store.js
-  var store_default = (options, id, store, proxy) => {
-    return {
-      deconstruct: !!options.deconstruct,
-      name: "$store",
-      create: (component, attribute, update, { RevocableProxy }) => {
-        const onDelete = (target, path) => update(id, path.join("."));
-        const onGet = (target, path) => attribute.accessed(id, path.join("."));
-        const onSet = (target, path) => update(id, path.join("."));
-        proxy.addEventListener("delete", onDelete);
-        proxy.addEventListener("get", onGet);
-        proxy.addEventListener("set", onSet);
-        const revocable = RevocableProxy(store, {});
-        return {
-          value: revocable.proxy,
-          // Remove event listeners.
-          destroy: () => {
-            proxy.removeEventListener("delete", onDelete);
-            proxy.removeEventListener("get", onGet);
-            proxy.removeEventListener("set", onSet);
-            revocable.revoke();
-          }
-        };
-      }
-    };
-  };
+  var store_default = (options, id, store, proxy) => ({
+    deconstruct: !!options.deconstruct,
+    name: "$store",
+    create: (component, attribute, update, {
+      RevocableProxy
+    }) => {
+      const onDelete = (target, path) => update(id, path.join("."));
+      const onGet = (target, path) => attribute.accessed(id, path.join("."));
+      const onSet = (target, path) => update(id, path.join("."));
+      proxy.addEventListener("delete", onDelete);
+      proxy.addEventListener("get", onGet);
+      proxy.addEventListener("set", onSet);
+      const revocable = RevocableProxy(store, {});
+      return {
+        value: revocable.proxy,
+        // Remove event listeners.
+        destroy: () => {
+          proxy.removeEventListener("delete", onDelete);
+          proxy.removeEventListener("get", onGet);
+          proxy.removeEventListener("set", onSet);
+          revocable.revoke();
+        }
+      };
+    }
+  });
 
   // ../common/src/polyfills/RevocableProxy.js
   var REFLECTION_METHODS = [
