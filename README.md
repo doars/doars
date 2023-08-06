@@ -66,7 +66,11 @@ This mono-repository includes the core library as well as several plugins. See t
 - Memoization context for faster updates.
 - Morphing pages on navigation clicks instead of refreshing the page.
 - Handling form submissions to allow in page changes.
-- Share state between clients using WebRTC.
+- Realtime shared state between clients using WebRTC.
+- Cookie contexts.
+- Persistent data store via local storage.
+- Sensor access via context and react to changes via directives (Accelerometer, etc.)
+- Visibility directives similar to intersection plugin.
 
 ## Contributing
 
