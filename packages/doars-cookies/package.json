@@ -5,7 +5,7 @@
   },
   "name": "@doars/doars-cookies",
   "packagename": "DoarsCookies",
-  "description": "Doars plugin that adds a cookie context to add and remove browser cookies.",
+  "description": "Doars plugin that adds a cookies context to add and remove browser cookies.",
   "keywords": [
     "doars",
     "cookie",
