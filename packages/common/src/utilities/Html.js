@@ -21,7 +21,9 @@ const ENCODE_LOOKUP = {
 }
 const ENCODE_REGEXP = /[&<>'"]/g
 
-export const decode = (string) => {
+export const decode = (
+  string,
+) => {
   if (typeof (string) !== 'string') {
     return string
   }
@@ -31,7 +33,9 @@ export const decode = (string) => {
   })
 }
 
-export const encode = (string) => {
+export const encode = (
+  string,
+) => {
   if (typeof (string) !== 'string') {
     return string
   }

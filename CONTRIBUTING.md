@@ -4,24 +4,16 @@ Welcome and thank you for wanting to contribute! Following these guidelines help
 
 ## Table of contents
 
-- [Code of conduct](#code-of-conduct)
 - [Security](#security)
   - [Supported versions](#supported-versions)
   - [Reporting a vulnerability](#reporting-a-vulnerability)
+- [Code of conduct](#code-of-conduct)
 - [Issues](#issues)
 - [Creating pull requests](#creating-pull-requests)
-  - [Follow style guide](#follow-style-guide)
+  - [Follow style-guide](#follow-style-guide)
   - [Write documentation](#write-documentation)
-  - [Write examples](#write-examples)
-  - [Write tests](#write-tests)
   - [Sign off commits](#sign-off-commits)
 - [Reviewing pull requests](#reviewing-pull-requests)
-<!-- - [Architecture](#architecture)
-  - [Repository architecture](#repository-architecture)
-  - [Doars architecture](#doars-architecture)
-  - [Context architecture](#context-architecture)
-  - [Directive architecture](#directive-architecture)
-  - [Plugin architecture](#plugin-architecture) -->
 
 ## Security
 
@@ -100,27 +92,3 @@ Before a pull request is allowed to be merged into the master branch at least on
 - Examples are up-to-date and run successfully.
 - Tests are up to date and run successfully.
 - Commits are signed off.
-
-<!-- ## Architecture
-
-TODO:
-
-### Repository architecture
-
-TODO:
-
-### Doars architecture
-
-TODO:
-
-### Context architecture
-
-TODO:
-
-### Directive architecture
-
-TODO:
-
-### Plugin architecture
-
-TODO: -->

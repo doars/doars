@@ -4,8 +4,10 @@ import RevocableProxy from '../polyfills/RevocableProxy.js'
 // Import event dispatcher.
 import EventDispatcher from './EventDispatcher.js'
 
-class ProxyDispatcher extends EventDispatcher {
-  constructor(options = {}) {
+export default class ProxyDispatcher extends EventDispatcher {
+  constructor(
+    options = {},
+  ) {
     super()
 
     options = Object.assign({
@@ -23,7 +25,10 @@ class ProxyDispatcher extends EventDispatcher {
      * @param {Array<String>} path Path of object on optional parent object, used for recursion.
      * @returns {Proxy} Object to access and mutate.
      */
-    this.add = (target, path = []) => {
+    this.add = (
+      target,
+      path = [],
+    ) => {
       // Exit early if proxy already exists.
       if (map.has(target)) {
         return map.get(target)
@@ -40,7 +45,10 @@ class ProxyDispatcher extends EventDispatcher {
       const handler = {}
 
       if (options.delete) {
-        handler.deleteProperty = (target, key) => {
+        handler.deleteProperty = (
+          target,
+          key,
+        ) => {
           // Exit early successful if property doesn't exist.
           if (!Reflect.has(target, key)) {
             return true
@@ -63,7 +71,11 @@ class ProxyDispatcher extends EventDispatcher {
       }
 
       if (options.get) {
-        handler.get = (target, key, receiver) => {
+        handler.get = (
+          target,
+          key,
+          receiver,
+        ) => {
           // Dispatch get event.
           if (key !== Symbol.unscopables) {
             this.dispatchEvent('get', [target, [...path, key], receiver])
@@ -75,7 +87,12 @@ class ProxyDispatcher extends EventDispatcher {
       }
 
       if (options.set) {
-        handler.set = (target, key, value, receiver) => {
+        handler.set = (
+          target,
+          key,
+          value,
+          receiver,
+        ) => {
           // Exit early if not changed.
           if (target[key] === value) {
             return true
@@ -110,7 +127,9 @@ class ProxyDispatcher extends EventDispatcher {
      * Remove object from being kept track of.
      * @param {Object} target Object that is being kept track of.
      */
-    this.remove = (target) => {
+    this.remove = (
+      target,
+    ) => {
       // Remove target from the map.
       if (!map.has(target)) {
         return
@@ -131,5 +150,3 @@ class ProxyDispatcher extends EventDispatcher {
     }
   }
 }
-
-export default ProxyDispatcher

@@ -3,7 +3,10 @@
  * @param {Object} target Target object to merge to.
  * @param  {...Object} sources Objects to merge into the target.
  */
-export const deepAssign = (target, ...sources) => {
+export const deepAssign = (
+  target,
+  ...sources
+) => {
   if (!sources.length) {
     return target
   }
@@ -42,7 +45,10 @@ export const deepAssign = (target, ...sources) => {
  * @param  {Array<String>} path Path to value.
  * @returns {Any} value at path.
  */
-export const getDeeply = (object, path) => {
+export const getDeeply = (
+  object,
+  path,
+) => {
   let objectTemp = object
   let i = 0
   for (; i < path.length - 1; i++) {
@@ -56,7 +62,9 @@ export const getDeeply = (object, path) => {
  * @param {Any} value Value of unknown type.
  * @returns Whether the value is an object.
  */
-export const isObject = (value) => {
+export const isObject = (
+  value,
+) => {
   return (value && typeof value === 'object' && !Array.isArray(value))
 }
 
@@ -66,7 +74,11 @@ export const isObject = (value) => {
  * @param {Array<String>} path Path to value.
  * @param {Any} value Value to set.
  */
-export const setDeeply = (object, path, value) => {
+export const setDeeply = (
+  object,
+  path,
+  value,
+) => {
   // Exit early if not an object.
   if (typeof (object) !== 'object') {
     return

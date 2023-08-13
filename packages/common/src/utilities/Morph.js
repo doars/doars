@@ -4,7 +4,7 @@
 import { copyAttributes } from './Attribute.js'
 import {
   fromString as elementFromString,
-  isSame as elementIsSame
+  isSame as elementIsSame,
 } from './Element.js'
 
 /**
@@ -82,10 +82,7 @@ const _updateInput = (
   existingNode,
   newNode,
 ) => {
-  // The "value" attribute is special for the <input> element since it sets the
-  // initial value. Changing the "value" attribute without changing the "value"
-  // property will have no effect since it is only used to the set the initial
-  // value. Similar for the "checked" attribute, and "disabled".
+  // The "value" attribute is special for the <input> element since it sets the initial value. Changing the "value" attribute without changing the "value" property will have no effect since it is only used to the set the initial value. Similar for the "checked" attribute, and "disabled".
 
   const newValue = newNode.value
   const existingValue = existingNode.value
@@ -204,28 +201,28 @@ const _updateChildren = (
 ) => {
   let existingChild, newChild, morphed, existingMatch
 
-  // The offset is only ever increased, and used for [i - offset] in the loop
+  // The offset is only ever increased, and used for [i - offset] in the loop.
   let offset = 0
 
   for (let i = 0; ; i++) {
     existingChild = existingNode.childNodes[i]
     newChild = newNode.childNodes[i - offset]
 
-    // Both nodes are empty, do nothing
+    // Both nodes are empty, do nothing.
     if (!existingChild && !newChild) {
       break
 
-      // There is no new child, remove old
+      // There is no new child, remove old.
     } else if (!newChild) {
       existingNode.removeChild(existingChild)
       i--
 
-      // There is no old child, add new
+      // There is no old child, add new.
     } else if (!existingChild) {
       existingNode.appendChild(newChild)
       offset++
 
-      // Both nodes are the same, morph
+      // Both nodes are the same, morph.
     } else if (elementIsSame(existingChild, newChild)) {
       morphed = _updateTree(existingChild, newChild)
       if (morphed !== existingChild) {
@@ -233,11 +230,11 @@ const _updateChildren = (
         offset++
       }
 
-      // Both nodes do not share an ID or a placeholder, try reorder
+      // Both nodes do not share an ID or a placeholder, try reorder.
     } else {
       existingMatch = null
 
-      // Try and find a similar node somewhere in the tree
+      // Try and find a similar node somewhere in the tree.
       for (let j = i; j < existingNode.childNodes.length; j++) {
         if (elementIsSame(existingNode.childNodes[j], newChild)) {
           existingMatch = existingNode.childNodes[j]
@@ -245,7 +242,7 @@ const _updateChildren = (
         }
       }
 
-      // If there was a node with the same ID or placeholder in the old list
+      // If there was a node with the same ID or placeholder in the old list.
       if (existingMatch) {
         morphed = _updateTree(existingMatch, newChild)
         if (morphed !== existingMatch) {
@@ -253,7 +250,7 @@ const _updateChildren = (
         }
         existingNode.insertBefore(morphed, existingChild)
 
-        // It is safe to morph two nodes in-place if neither has an ID
+        // It is safe to morph two nodes in-place if neither has an ID.
       } else if (!newChild.id && !existingChild.id) {
         morphed = _updateTree(existingChild, newChild)
         if (morphed !== existingChild) {
@@ -261,7 +258,7 @@ const _updateChildren = (
           offset++
         }
 
-        // Insert the node at the index if we could not morph or find a matching node
+        // Insert the node at the index if we could not morph or find a matching node.
       } else {
         existingNode.insertBefore(newChild, existingChild)
         offset++
