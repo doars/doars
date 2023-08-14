@@ -476,6 +476,14 @@ export default function () {
           }, '@doars/doars-fetch', 'Adds a fetch context that handles parsing the returned content.'),
 
           card({
+            href: 'https://github.com/doars/doars/tree/main/packages/doars-cookies#readme',
+          }, '@doars/doars-cookies', 'Plugin that adds a cookies context to get and set browser cookies.'),
+
+          card({
+            href: 'https://github.com/doars/doars/tree/main/packages/doars-local-storage#readme',
+          }, '@doars/doars-local-storage', 'Plugin that adds a local storage context to get values from and set values in local storage.'),
+
+          card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars-alias#readme',
           }, '@doars/doars-alias', 'Create aliases for or rename any context or directive.'),
 

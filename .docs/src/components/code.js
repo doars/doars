@@ -27,6 +27,6 @@ export default function (options, ...contents) {
       class: '-text-2 sm:-text-1',
     }, [
       highlight(contents, { language: options.language }).value,
-    ])
+    ]),
   )
 }
