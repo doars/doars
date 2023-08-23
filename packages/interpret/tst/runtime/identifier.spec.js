@@ -1,5 +1,5 @@
 import {
-  IDENTIFIER
+  IDENTIFIER,
 } from '../../src/types.js'
 import test from './utilities/test.js'
 

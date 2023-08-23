@@ -1,6 +1,6 @@
 import {
   IDENTIFIER,
-  UPDATE
+  UPDATE,
 } from '../../src/types.js'
 import test from './utilities/test.js'
 

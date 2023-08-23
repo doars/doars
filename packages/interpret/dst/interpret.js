@@ -799,9 +799,7 @@ var run = (node, context = {}) => {
 var run_default = run;
 
 // src/index.js
-var interpret = (expression, context) => {
-  return run_default(parse_default(expression), context);
-};
+var interpret = (expression, context) => run_default(parse_default(expression), context);
 var parse = parse_default;
 var run2 = run_default;
 var ARRAY2 = ARRAY;
