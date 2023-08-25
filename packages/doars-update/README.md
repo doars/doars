@@ -51,7 +51,7 @@ library.
     const doars = new window.Doars()
 
     // Setup the plugin.
-    const doarsUpdate = new window.DoarsUpdate(doars /*, options */)
+    const doarsUpdate = window.DoarsUpdate(doars /*, options */)
 
     // Enable library.
     doars.enable()
@@ -134,6 +134,8 @@ Get information about the most recent update iteration. The context is an
   - `@param {Doars} library` A doars library instance.
   - `@param {Object} options = null` [See options](#doarsupdate-options).
   - `@returns {DoarsUpdate}`
+- `disable` Disables the plugin. Can only be called when the doars is disabled.
+- `enable` Enables the plugin. Can only be called when the doars is disabled.
 
 #### DoarsUpdate options
 

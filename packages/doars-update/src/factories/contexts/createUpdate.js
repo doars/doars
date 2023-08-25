@@ -1,4 +1,6 @@
-export default (updater) => {
+export default (
+  updater,
+) => {
   // Deconstruct updater.
   const id = updater.getId()
   const proxy = updater.getProxy()
@@ -7,9 +9,15 @@ export default (updater) => {
   return {
     name: '$update',
 
-    create: (component, attribute) => {
+    create: (
+      component,
+      attribute,
+    ) => {
       // Create event handlers.
-      const onGet = (target, path) => attribute.accessed(id, path.join('.'))
+      const onGet = (
+        target,
+        path,
+      ) => attribute.accessed(id, path.join('.'))
 
       // Add event listeners.
       proxy.addEventListener('get', onGet)
@@ -18,7 +26,8 @@ export default (updater) => {
         value: time,
 
         // Remove event listeners.
-        destroy: () => {
+        destroy: (
+        ) => {
           proxy.removeEventListener('get', onGet)
         },
       }

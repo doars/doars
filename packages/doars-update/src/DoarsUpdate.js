@@ -14,7 +14,7 @@ import Updater from './Updater.js'
  */
 export default function (
   library,
-  options = null
+  options = null,
 ) {
   // Clone options.
   options = Object.assign({}, options)
@@ -23,7 +23,8 @@ export default function (
   let isEnabled = false
   let contextUpdate, directiveUpdate, updater
 
-  const onEnable = function () {
+  const onEnable = (
+  ) => {
     // Create and add directive.
     const [_directiveUpdate, update] = createDirectiveUpdate(options)
     directiveUpdate = _directiveUpdate
@@ -57,7 +58,9 @@ export default function (
     // Enable updater.
     updater.enable()
   }
-  const onDisable = function () {
+
+  const onDisable = (
+  ) => {
     // Remove context.
     library.removeContexts(contextUpdate)
 
@@ -73,7 +76,8 @@ export default function (
     updater = null
   }
 
-  this.disable = function () {
+  this.disable = (
+  ) => {
     // Check if library is disabled.
     if (!library.getEnabled() && isEnabled) {
       isEnabled = false
@@ -84,7 +88,8 @@ export default function (
     }
   }
 
-  this.enable = function () {
+  this.enable = (
+  ) => {
     if (!isEnabled) {
       isEnabled = true
 
