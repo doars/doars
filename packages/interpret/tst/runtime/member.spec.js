@@ -1,7 +1,7 @@
 import {
   IDENTIFIER,
   LITERAL,
-  MEMBER
+  MEMBER,
 } from '../../src/types.js'
 import test from './utilities/test.js'
 

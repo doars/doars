@@ -7,16 +7,15 @@ import { COMPONENT } from '../symbols.js'
  * @returns {Component} Closest component.
  */
 export const closestComponent = (element) => {
-  if (!element.parentElement) {
-    return
-  }
-  element = element.parentElement
+  if (element.parentElement) {
+    element = element.parentElement
 
-  if (element[COMPONENT]) {
-    return element[COMPONENT]
-  }
+    if (element[COMPONENT]) {
+      return element[COMPONENT]
+    }
 
-  return closestComponent(element)
+    return closestComponent(element)
+  }
 }
 
 export default {

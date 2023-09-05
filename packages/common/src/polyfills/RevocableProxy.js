@@ -17,7 +17,10 @@ const REFLECTION_METHODS = [
 /**
  * Revocable proxy made using regular a proxy and a simple boolean.
  */
-export default (target, handler) => {
+export default (
+  target,
+  handler,
+) => {
   // Keep track of status.
   let revoked = false
 
@@ -26,7 +29,7 @@ export default (target, handler) => {
   for (const key of REFLECTION_METHODS) {
     revocableHandler[key] = (...parameters) => {
       if (revoked) {
-        console.error('illegal operation attempted on a revoked proxy')
+        console.error('proxy revoked')
         return
       }
 

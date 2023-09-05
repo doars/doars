@@ -7,23 +7,26 @@ import directiveMorph from './directives/morph.js'
  * @param {Doars} library Doars instance to add onto.
  */
 export default function (
-  library
+  library,
 ) {
   // Set private variables.
   let isEnabled = false
 
-  const onEnable = function () {
+  const onEnable = (
+  ) => {
     // Add contexts and directives.
     library.addContexts(0, contextMorph)
     library.addDirectives(-1, directiveMorph)
   }
-  const onDisable = function () {
+  const onDisable = (
+  ) => {
     // Remove contexts and directives.
     library.removeContexts(contextMorph)
     library.removeDirectives(directiveMorph)
   }
 
-  this.disable = function () {
+  this.disable = (
+  ) => {
     // Check if library is disabled.
     if (!library.getEnabled() && isEnabled) {
       isEnabled = false
@@ -34,7 +37,8 @@ export default function (
     }
   }
 
-  this.enable = function () {
+  this.enable = (
+  ) => {
     if (!isEnabled) {
       isEnabled = true
 

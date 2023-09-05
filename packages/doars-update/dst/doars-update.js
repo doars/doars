@@ -28,9 +28,11 @@ var createUpdate_default2 = (options) => {
   const items = [];
   const directive = {
     name: "update",
-    update: function(component, attribute, { processExpression }) {
-      if (!this._execute) {
-        this._execute = processExpression;
+    update: (component, attribute, {
+      processExpression
+    }) => {
+      if (!directive._execute) {
+        directive._execute = processExpression;
       }
       const id = attribute.getId();
       if (itemIds.indexOf(id) >= 0) {
@@ -68,11 +70,22 @@ var createUpdate_default2 = (options) => {
       }
     }
   };
-  return [directive, () => {
-    for (const item of items) {
-      directive._execute(item.component, item.attribute.clone(), item.attribute.getValue(), {}, { return: false });
+  return [
+    directive,
+    () => {
+      for (const item of items) {
+        directive._execute(
+          item.component,
+          item.attribute.clone(),
+          item.attribute.getValue(),
+          {},
+          {
+            return: false
+          }
+        );
+      }
     }
-  }];
+  ];
 };
 
 // ../common/src/polyfills/RevocableProxy.js
@@ -96,7 +109,7 @@ var RevocableProxy_default = (target, handler) => {
   for (const key of REFLECTION_METHODS) {
     revocableHandler[key] = (...parameters) => {
       if (revoked) {
-        console.error("illegal operation attempted on a revoked proxy");
+        console.error("proxy revoked");
         return;
       }
       if (key in handler) {
@@ -173,10 +186,9 @@ var EventDispatcher = class {
     };
   }
 };
-var EventDispatcher_default = EventDispatcher;
 
 // ../common/src/events/ProxyDispatcher.js
-var ProxyDispatcher = class extends EventDispatcher_default {
+var ProxyDispatcher = class extends EventDispatcher {
   constructor(options = {}) {
     super();
     options = Object.assign({
@@ -248,7 +260,6 @@ var ProxyDispatcher = class extends EventDispatcher_default {
     };
   }
 };
-var ProxyDispatcher_default = ProxyDispatcher;
 
 // src/Updater.js
 var Updater = class {
@@ -258,7 +269,7 @@ var Updater = class {
     }, options);
     const id = Symbol("ID_UPDATE");
     let isEnabled = false, request;
-    const proxy = new ProxyDispatcher_default({
+    const proxy = new ProxyDispatcher({
       // We don't care when they are updated, we have a callback for that. They should never be updated by the user anyway.
       delete: false,
       set: false
@@ -326,7 +337,7 @@ function DoarsUpdate_default(library, options = null) {
   options = Object.assign({}, options);
   let isEnabled = false;
   let contextUpdate, directiveUpdate, updater;
-  const onEnable = function() {
+  const onEnable = () => {
     const [_directiveUpdate, update] = createUpdate_default2(options);
     directiveUpdate = _directiveUpdate;
     library.addDirectives(-1, directiveUpdate);
@@ -350,7 +361,7 @@ function DoarsUpdate_default(library, options = null) {
     library.addContexts(0, contextUpdate);
     updater.enable();
   };
-  const onDisable = function() {
+  const onDisable = () => {
     library.removeContexts(contextUpdate);
     library.removeDirectives(directiveUpdate);
     updater.disable();
@@ -358,14 +369,14 @@ function DoarsUpdate_default(library, options = null) {
     directiveUpdate = null;
     updater = null;
   };
-  this.disable = function() {
+  this.disable = () => {
     if (!library.getEnabled() && isEnabled) {
       isEnabled = false;
       library.removeEventListener("enabling", onEnable);
       library.removeEventListener("disabling", onDisable);
     }
   };
-  this.enable = function() {
+  this.enable = () => {
     if (!isEnabled) {
       isEnabled = true;
       library.addEventListener("enabling", onEnable);

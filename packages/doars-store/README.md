@@ -43,15 +43,15 @@ library.
 
 ```HTML
 <!-- Import library. -->
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.iife.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars-store@1/dst/doars-store.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars-store@2/dst/doars-store.iife.js"></script>
 <script type="application/javascript">
   document.addEventListener('DOMContentLoaded', () => {
     // Setup a library instance.
     const doars = new window.Doars()
 
     // Setup the plugin.
-    const doarsStore = new window.DoarsStore(doars /*, options, data */)
+    const doarsStore = window.DoarsStore(doars /*, options, data */)
 
     // Enable library.
     doars.enable()
@@ -59,9 +59,9 @@ library.
 </script>
 ```
 
-> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-store@1/dst/doars-store.esm.js)
+> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-store@2/dst/doars-store.esm.js)
 > and
-> [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-store@1/dst/doars-store.iife.js)
+> [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-store@2/dst/doars-store.iife.js)
 > builds are also available via the jsDelivr CDN.
 
 ## Contexts
@@ -72,7 +72,7 @@ added by the plugin.
 
 ### \$store
 
-Access the datastore object.
+Access the data store object.
 
 #### Examples
 
@@ -131,8 +131,10 @@ directive can used well with the [\$store](#$store) context.
 - `constructor` Create plugin instance.
   - `@param {Doars} library` A doars library instance.
   - `@param {Object} options = null` [See options](#doarsstore-options).
-  - `@param {Object} datastore = {}` Initial datastore data.
+  - `@param {Object} dataStore = {}` Initial data store data.
   - `@returns {DoarsStore}`
+- `disable` Disables the plugin. Can only be called when the doars is disabled.
+- `enable` Enables the plugin. Can only be called when the doars is disabled.
 
 #### DoarsStore options
 
@@ -140,7 +142,7 @@ directive can used well with the [\$store](#$store) context.
   accessing the properties you do not need to prefix it with `$store`. Do note
   the `$store` context will be checked after the `$for` and `$state` contexts
   since the `$store` context is inserted before the others. This means that when
-  a property exists on both the datastore and state the value from the state
+  a property exists on both the data store and state the value from the state
   will be returned.
 
 ## Compatible versions

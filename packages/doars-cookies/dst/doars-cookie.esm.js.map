@@ -1,0 +1,17 @@
+{
+  "version": 3,
+  "sources": [
+    "../src/factories/contexts/cookies.js",
+    "../src/contexts/removeCookie.js",
+    "../src/contexts/setCookie.js",
+    "../src/DoarsCookies.js"
+  ],
+  "sourcesContent": [
+    "// Import proxy dispatcher.\nimport ProxyDispatcher from '@doars/common/src/events/ProxyDispatcher.js';\nexport default (options => {\n  return {\n    name: '$cookies',\n    create: () => {// TODO: Create proxy that reads the cookies when accessed.\n    }\n  };\n});",
+    "export default {\n  name: '$removeCookie',\n  create: () => {\n    return name => {// TODO: Remove cookie.\n    };\n  }\n};",
+    "export default {\n  name: '$setCookie',\n  create: () => {\n    return (name, value, expiration) => {// TODO: Set cookie.\n    };\n  }\n};",
+    "// Import contexts.\nimport createCookieContext from './factories/contexts/cookies.js';\nimport removeCookieContext from './contexts/removeCookie.js';\nimport setCookieContext from './contexts/setCookie.js';\nexport default class DoarsCookies {\n  /**\n   * Create plugin instance.\n   * @param {Doars} library Doars instance to add onto.\n   * @param {Object} options The plugin options.\n   */\n  constructor(library, options = null) {\n    // Clone options.\n    options = Object.assign({}, options); // Create contexts.\n\n    const cookieContext = createCookieContext(options); // Enable plugin when library is enabling.\n\n    library.addEventListener('enabling', () => {\n      library.addContexts(0, removeCookieContext, setCookieContext, cookieContext);\n    }); // Disable plugin when library is disabling.\n\n    library.addEventListener('disabling', () => {\n      library.removeContexts(removeCookieContext, setCookieContext, cookieContext);\n    });\n  }\n\n}"
+  ],
+  "mappings": ";AAEA,IAAO,kBAAS,aAAW;AACzB,SAAO;AAAA,IACL,MAAM;AAAA,IACN,QAAQ,MAAM;AAAA,IACd;AAAA,EACF;AACF;;;ACRA,IAAO,uBAAQ;AAAA,EACb,MAAM;AAAA,EACN,QAAQ,MAAM;AACZ,WAAO,UAAQ;AAAA,IACf;AAAA,EACF;AACF;;;ACNA,IAAO,oBAAQ;AAAA,EACb,MAAM;AAAA,EACN,QAAQ,MAAM;AACZ,WAAO,CAAC,MAAM,OAAO,eAAe;AAAA,IACpC;AAAA,EACF;AACF;;;ACFA,IAAqB,cAArB,MAAiC;AAAA,EAM/B,YAAY,SAAS,UAAU,MAAM;AAEnC,cAAU,OAAO,OAAO,CAAC,GAAG,OAAO;AAEnC,UAAM,gBAAgB,gBAAoB,OAAO;AAEjD,YAAQ,iBAAiB,YAAY,MAAM;AACzC,cAAQ,YAAY,GAAG,sBAAqB,mBAAkB,aAAa;AAAA,IAC7E,CAAC;AAED,YAAQ,iBAAiB,aAAa,MAAM;AAC1C,cAAQ,eAAe,sBAAqB,mBAAkB,aAAa;AAAA,IAC7E,CAAC;AAAA,EACH;AAEF;",
+  "names": []
+}

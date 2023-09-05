@@ -3,7 +3,9 @@
  * @param {String} string Element contents.
  * @returns {HTMLElement} HTML element part of a document fragment.
  */
-export const fromString = (string) => {
+export const fromString = (
+  string,
+) => {
   const template = document.createElement('template')
   template.innerHTML = string
   return template.content.childNodes[0]
@@ -14,7 +16,10 @@ export const fromString = (string) => {
  * @param {HTMLElement} reference Node to insert after.
  * @param {Node} node Node to insert.
  */
-export const insertAfter = (reference, node) => {
+export const insertAfter = (
+  reference,
+  node,
+) => {
   if (reference.nextSibling) {
     reference.parentNode.insertBefore(node, reference.nextSibling)
   } else {
@@ -28,17 +33,20 @@ export const insertAfter = (reference, node) => {
  * @param {HTMElement} b Another node.
  * @returns {Boolean} Whether the nodes are the same.
  */
-export const isSame = (a, b) => {
-  if (a.isSameNode) {
-    return a.isSameNode(b)
-  }
-
-  if (a.tagName !== b.tagName) {
-    return false
+export const isSame = (
+  a,
+  b,
+) => {
+  if (a.isSameNode && a.isSameNode(b)) {
+    return true
   }
 
   if (a.type === 3) { // Text node.
     return a.nodeValue === b.nodeValue
+  }
+
+  if (a.tagName === b.tagName) {
+    return true
   }
 
   return false
@@ -50,7 +58,10 @@ export const isSame = (a, b) => {
  * @param {Function} filter Filter function, return false to skip element.
  * @returns {Function} Iterator function. Call until a non-truthy value is returned.
  */
-export const walk = (element, filter) => {
+export const walk = (
+  element,
+  filter,
+) => {
   let index = -1
   let iterator = null
   return () => {

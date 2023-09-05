@@ -915,10 +915,13 @@ Extends the [`EventDispatcher`](#eventdispatcher).
   - `@returns {Doars}` This instance.
 - `getSimpleContexts` Get simple contexts.
   - `@returns {Object}` Stored simple contexts.
-- `setSimpleContexts` Add a value directly to the contexts without needing to use an object or having to deal with indices.
+- `setSimpleContext` Add a value directly to the contexts without needing to use an object or having to deal with indices.
   - `@param {String} name` Property name under which to add the context.
   - `@param {Any} value = null` The value to add, null removes the context.
   - `@returns {Boolean}` Whether the value was successfully set.
+- `setSimpleContexts` Adds simple contexts by looping through the object and calling the the setSimpleContext function with the data.
+  - `@param {Object} contexts` An object where the key is the name for the simple context and the value the simple context.
+  - `@returns {Object}` Which simple context was successfully set.
 - `getContexts` Get list of contexts.
   - `@returns {Array<Object>}` List of contexts.
 - `addContexts` Add contexts at the index. _Can only be called when NOT enabled._

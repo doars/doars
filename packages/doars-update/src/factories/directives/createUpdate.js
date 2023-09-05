@@ -1,4 +1,6 @@
-export default (options) => {
+export default (
+  options,
+) => {
   // Overwrite default options.
   options = Object.assign({
     defaultOrder: 500,
@@ -11,10 +13,15 @@ export default (options) => {
   const directive = {
     name: 'update',
 
-    update: function (component, attribute, { processExpression }) {
+    update: (
+      component,
+      attribute, {
+        processExpression,
+      },
+    ) => {
       // Store execute expression locally.
-      if (!this._execute) {
-        this._execute = processExpression
+      if (!directive._execute) {
+        directive._execute = processExpression
       }
 
       // Deconstruct attribute.
@@ -48,7 +55,10 @@ export default (options) => {
       })
     },
 
-    destroy: (component, attribute) => {
+    destroy: (
+      component,
+      attribute,
+    ) => {
       // Deconstruct attribute.
       const id = attribute.getId()
 
@@ -72,10 +82,21 @@ export default (options) => {
     },
   }
 
-  return [directive, () => {
-    // Run expression of each item in order.
-    for (const item of items) {
-      directive._execute(item.component, item.attribute.clone(), item.attribute.getValue(), {}, { return: false })
-    }
-  }]
+  return [
+    directive,
+    () => {
+      // Run expression of each item in order.
+      for (const item of items) {
+        directive._execute(
+          item.component,
+          item.attribute.clone(),
+          item.attribute.getValue(),
+          {},
+          {
+            return: false,
+          },
+        )
+      }
+    },
+  ]
 }

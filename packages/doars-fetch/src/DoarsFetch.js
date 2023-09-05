@@ -1,6 +1,5 @@
 // Import contexts.
 import createFetchContext from './factories/contexts/fetch.js'
-// import createFetchDirective from './factories/directives/fetch.js'
 
 /**
  * Create plugin instance.
@@ -26,21 +25,16 @@ export default function (
   let isEnabled = false
   // Store contexts and directives.
   let fetchContext
-  // let fetchDirective
 
   const onEnable = function () {
     // Create and add contexts and directives.
     fetchContext = createFetchContext(options)
     library.addContexts(0, fetchContext)
-    // fetchDirective = createFetchDirective(options)
-    // library.addDirectives(-1, fetchDirective)
   }
   const onDisable = function () {
     // Remove contexts and directives.
     library.removeContexts(fetchContext)
     fetchContext = null
-    // library.removeDirective(fetchDirective)
-    // fetchDirective = null
   }
 
   this.disable = function () {

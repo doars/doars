@@ -13,7 +13,7 @@ import {
   PROPERTY,
   SEQUENCE,
   UNARY,
-  UPDATE
+  UPDATE,
 } from './types.js'
 
 // Character codes.
@@ -109,23 +109,30 @@ const LITERALS = {
   undefined,
 }
 
-const isDecimalDigit = (character) =>
-  (character >= 48 && character <= 57) // Between 0 and 9
+const isDecimalDigit = (
+  character,
+) => (character >= 48 && character <= 57) // Between 0 and 9
 
-const isIdentifierPart = (character) =>
-  isIdentifierStart(character) || isDecimalDigit(character)
+const isIdentifierPart = (
+  character,
+) => isIdentifierStart(character) || isDecimalDigit(character)
 
-const isIdentifierStart = (character) =>
+const isIdentifierStart = (
+  character,
+) =>
   character === 36 || // Dollar ($)
   (character >= 48 && character <= 57) || // Between 0 and 9
   character === 95 || // Underscore
   (character >= 65 && character <= 90) || // Between A and Z
   (character >= 97 && character <= 122) // Between a and z
 
-export default (expression) => {
+export default (
+  expression,
+) => {
   let index = 0
 
-  const gobbleArray = () => {
+  const gobbleArray = (
+  ) => {
     index++
 
     return {
@@ -134,7 +141,9 @@ export default (expression) => {
     }
   }
 
-  const gobbleParameters = (termination) => {
+  const gobbleParameters = (
+    termination,
+  ) => {
     const parameters = []
     let closed = false
 
@@ -184,7 +193,8 @@ export default (expression) => {
     return parameters
   }
 
-  const gobbleBinaryExpression = () => {
+  const gobbleBinaryExpression = (
+  ) => {
     let left = gobbleToken()
     if (!left) {
       return left
@@ -269,7 +279,8 @@ export default (expression) => {
     return node
   }
 
-  const gobbleBinaryOperation = () => {
+  const gobbleBinaryOperation = (
+  ) => {
     gobbleSpaces()
     let toCheck = expression.substring(index, index + 3) // 3 = Maximum binary operator length.
     let toCheckLength = toCheck.length
@@ -287,14 +298,17 @@ export default (expression) => {
     return false
   }
 
-  const gobbleExpression = () => {
+  const gobbleExpression = (
+  ) => {
     let node = gobbleBinaryExpression()
     gobbleSpaces()
     node = gobbleTernary(node)
     return node
   }
 
-  const gobbleExpressions = (untilCharacterCode) => {
+  const gobbleExpressions = (
+    untilCharacterCode,
+  ) => {
     const nodes = []
     while (index < expression.length) {
       const characterIndex = expression.charCodeAt(index)
@@ -318,7 +332,8 @@ export default (expression) => {
     return nodes
   }
 
-  const gobbleIdentifier = () => {
+  const gobbleIdentifier = (
+  ) => {
     let character = expression.charCodeAt(index)
     const start = index
 
@@ -343,7 +358,8 @@ export default (expression) => {
     }
   }
 
-  const gobbleNumericLiteral = () => {
+  const gobbleNumericLiteral = (
+  ) => {
     let number = ''
     while (isDecimalDigit(expression.charCodeAt(index))) {
       number += expression.charAt(index++)
@@ -393,7 +409,8 @@ export default (expression) => {
     }
   }
 
-  const gobbleObjectExpression = () => {
+  const gobbleObjectExpression = (
+  ) => {
     // Check if opening brace "{"
     if (expression.charCodeAt(index) !== 123) {
       return
@@ -461,7 +478,8 @@ export default (expression) => {
     throw new Error('Missing }')
   }
 
-  const gobbleSequence = () => {
+  const gobbleSequence = (
+  ) => {
     index++
 
     const nodes = gobbleExpressions(CLOSING_PARENTHESIS_CODE)
@@ -484,13 +502,15 @@ export default (expression) => {
     throw new Error('Unclosed (')
   }
 
-  const gobbleSpaces = () => {
+  const gobbleSpaces = (
+  ) => {
     while (SPACE_CODES.indexOf(expression.charCodeAt(index)) >= 0) {
       index++
     }
   }
 
-  const gobbleStringLiteral = () => {
+  const gobbleStringLiteral = (
+  ) => {
     let string = ''
     // const startIndex = index
     const quote = expression.charAt(index++)
@@ -550,7 +570,9 @@ export default (expression) => {
     }
   }
 
-  const gobbleTernary = (node) => {
+  const gobbleTernary = (
+    node,
+  ) => {
     if (!node || expression.charCodeAt(index) !== QUESTION_MARK_CODE) {
       return node
     }
@@ -593,7 +615,8 @@ export default (expression) => {
     return conditional
   }
 
-  const gobbleToken = () => {
+  const gobbleToken = (
+  ) => {
     let node = gobbleObjectExpression() || gobbleUpdatePrefixExpression()
     if (node) {
       return gobbleUpdateSuffixExpression(node)
@@ -648,11 +671,13 @@ export default (expression) => {
     }
 
     return gobbleUpdateSuffixExpression(
-      gobbleTokenProperty(node)
+      gobbleTokenProperty(node),
     )
   }
 
-  const gobbleTokenProperty = (node) => {
+  const gobbleTokenProperty = (
+    node,
+  ) => {
     gobbleSpaces()
 
     let character = expression.charCodeAt(index)
@@ -717,7 +742,8 @@ export default (expression) => {
     return node
   }
 
-  const gobbleUpdatePrefixExpression = () => {
+  const gobbleUpdatePrefixExpression = (
+  ) => {
     if (index + 1 >= expression.length) {
       return
     }
@@ -745,7 +771,9 @@ export default (expression) => {
     return node
   }
 
-  const gobbleUpdateSuffixExpression = (node) => {
+  const gobbleUpdateSuffixExpression = (
+    node,
+  ) => {
     if (!node || index + 1 >= expression.length) {
       return node
     }

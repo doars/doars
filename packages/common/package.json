@@ -9,7 +9,7 @@
     "doars",
     "common"
   ],
-  "version": "1.0.1",
+  "version": "1.1.0",
   "license": "MIT",
   "type": "module",
   "homepage": "https://github.com/doars/doars/tree/main/packages/common#readme",

@@ -187,7 +187,7 @@
   };
 
   // src/Attribute.js
-  var Attribute = class extends EventDispatcher_default {
+  var Attribute = class _Attribute extends EventDispatcher_default {
     /**
      * Create instance.
      * @param {Component} component Component instance.
@@ -297,7 +297,7 @@
         return false;
       };
       this.clone = () => {
-        return new Attribute(component, element, name, value, true);
+        return new _Attribute(component, element, name, value, true);
       };
     }
   };
@@ -417,14 +417,13 @@
 
   // src/utilities/Component.js
   var closestComponent = (element) => {
-    if (!element.parentElement) {
-      return;
+    if (element.parentElement) {
+      element = element.parentElement;
+      if (element[COMPONENT]) {
+        return element[COMPONENT];
+      }
+      return closestComponent(element);
     }
-    element = element.parentElement;
-    if (element[COMPONENT]) {
-      return element[COMPONENT];
-    }
-    return closestComponent(element);
   };
 
   // ../common/src/utilities/Attribute.js
@@ -2508,6 +2507,15 @@
         contextsBase[name] = value;
         this.dispatchEvent("simple-context-added", [this, name, value]);
         return true;
+      };
+      this.setSimpleContexts = (contexts2) => {
+        const result = {};
+        for (const name in contexts2) {
+          if (Object.hasOwnProperty.call(contexts2, name)) {
+            result[name] = this.setSimpleContext(name, contexts2[name]);
+          }
+        }
+        return result;
       };
       this.getContexts = () => [...contexts];
       this.addContexts = (index, ..._contexts) => {

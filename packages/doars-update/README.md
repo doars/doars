@@ -43,15 +43,15 @@ library.
 
 ```HTML
 <!-- Import library. -->
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@1/dst/doars.iife.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars-update@1/dst/doars-update.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars-update@2/dst/doars-update.iife.js"></script>
 <script type="application/javascript">
   document.addEventListener('DOMContentLoaded', () => {
     // Setup a library instance.
     const doars = new window.Doars()
 
     // Setup the plugin.
-    const doarsUpdate = new window.DoarsUpdate(doars /*, options */)
+    const doarsUpdate = window.DoarsUpdate(doars /*, options */)
 
     // Enable library.
     doars.enable()
@@ -59,9 +59,9 @@ library.
 </script>
 ```
 
-> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-update@1/dst/doars-update.esm.js)
+> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-update@2/dst/doars-update.esm.js)
 > and
-> [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-update@1/dst/doars-update.iife.js)
+> [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-update@2/dst/doars-update.iife.js)
 > builds are also available via the jsDelivr CDN.
 
 ## Directives
@@ -134,6 +134,8 @@ Get information about the most recent update iteration. The context is an
   - `@param {Doars} library` A doars library instance.
   - `@param {Object} options = null` [See options](#doarsupdate-options).
   - `@returns {DoarsUpdate}`
+- `disable` Disables the plugin. Can only be called when the doars is disabled.
+- `enable` Enables the plugin. Can only be called when the doars is disabled.
 
 #### DoarsUpdate options
 

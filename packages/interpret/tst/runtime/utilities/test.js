@@ -16,7 +16,7 @@ export default (
   context = {},
   contextExpected = {},
 
-  options = {}
+  options = {},
 ) => {
   // Assign default options.
   options = Object.assign({

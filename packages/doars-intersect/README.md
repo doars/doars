@@ -59,9 +59,9 @@ library.
 </script>
 ```
 
-> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-intersect@1/dst/doars-intersect.esm.js)
+> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-intersect@2/dst/doars-intersect.esm.js)
 > and
-> [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-intersect@1/dst/doars-intersect.iife.js)
+> [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-intersect@2/dst/doars-intersect.iife.js)
 > builds are also available via the jsDelivr CDN.
 
 ## Directives

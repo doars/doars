@@ -12,7 +12,12 @@ const TRANSITION_NAME = '-transition:'
  * @param {HTMLElement} element Element to transition.
  * @param {Function} callback Function to call after transition is done.
  */
-export const transition = (type, component, element, callback = null) => {
+export const transition = (
+  type,
+  component,
+  element,
+  callback = null,
+) => {
   // Only transition element nodes.
   if (element.nodeType !== 1) {
     if (callback) {
@@ -30,10 +35,10 @@ export const transition = (type, component, element, callback = null) => {
   // Setup dispatcher function.
   const dispatchEvent = (phase) => {
     element.dispatchEvent(
-      new CustomEvent('transition-' + phase)
+      new CustomEvent('transition-' + phase),
     )
     element.dispatchEvent(
-      new CustomEvent('transition-' + type + '-' + phase)
+      new CustomEvent('transition-' + type + '-' + phase),
     )
   }
 
@@ -137,7 +142,8 @@ export const transition = (type, component, element, callback = null) => {
     }, duration)
   })
 
-  return () => {
+  return (
+  ) => {
     if (!isDone) {
       return
     }
@@ -180,7 +186,11 @@ export const transition = (type, component, element, callback = null) => {
  * @param {HTMLElement} element Element to transition.
  * @param {Function} callback Function to call after transition is done.
  */
-export const transitionIn = (component, element, callback) => {
+export const transitionIn = (
+  component,
+  element,
+  callback,
+) => {
   return transition('in', component, element, callback)
 }
 
@@ -190,7 +200,11 @@ export const transitionIn = (component, element, callback) => {
  * @param {HTMLElement} element Element to transition.
  * @param {Function} callback Function to call after transition is done.
  */
-export const transitionOut = (component, element, callback) => {
+export const transitionOut = (
+  component,
+  element,
+  callback,
+) => {
   return transition('out', component, element, callback)
 }
 

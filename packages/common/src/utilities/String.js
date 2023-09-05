@@ -3,7 +3,9 @@
  * @param {String} text String to escape.
  * @returns {String} Escaped string.
  */
-export const escapeHtml = (text) => {
+export const escapeHtml = (
+  text,
+) => {
   return text
     .replace(/\\/g, '\\\\')
     .replace(/\\'/g, '\\\'')
@@ -16,7 +18,9 @@ export const escapeHtml = (text) => {
  * @param {String} text String to modify.
  * @returns {String} Converted string.
  */
-export const kebabToCamel = (text) => {
+export const kebabToCamel = (
+  text,
+) => {
   return text.replace(/-(\w)/g, (match, character) => character.toUpperCase())
 }
 
@@ -27,7 +31,9 @@ export const kebabToCamel = (text) => {
  * @param {Array<String>} modifiers List of modifiers to parse.
  * @returns {Object} Parsed modifiers.
  */
-export const parseAttributeModifiers = (modifiers) => {
+export const parseAttributeModifiers = (
+  modifiers,
+) => {
   const result = {}
   for (const modifier of modifiers) {
     // Get index of hyphen.
@@ -106,7 +112,10 @@ export const parseAttributeModifiers = (modifiers) => {
  * @param {String} name Name to parse.
  * @returns {Array<String>} list of segments.
  */
-export const parseAttributeName = (prefix, name) => {
+export const parseAttributeName = (
+  prefix,
+  name,
+) => {
   // Match with expression.
   name = name.match(new RegExp('^' + prefix + '-([a-z][0-9a-z-]{1,}):?([a-z][0-9a-z-]*)?(\\..*]*)?$', 'i'))
   if (!name) {
@@ -138,7 +147,9 @@ export const parseAttributeName = (prefix, name) => {
  * - "(key, , index) in object"
  *    -> { iterable: "object", variables: [ "key", undefined, "index" ] }
  */
-export const parseForExpression = (expression) => {
+export const parseForExpression = (
+  expression,
+) => {
   // Split variables from items expression.
   const match = expression.match(/^([$_a-z0-9,(){}\s]{1,}?)\s+(?:in|of)\s+([\s\S]{1,})$/i)
   if (!match) {
@@ -164,7 +175,9 @@ export const parseForExpression = (expression) => {
  * @param {String} selector Selector to parse.
  * @returns {Object} Attributes. Do note the class property is a list of strings not a single string.
  */
-export const parseSelector = (selector) => {
+export const parseSelector = (
+  selector,
+) => {
   // Convert to array.
   if (typeof (selector) === 'string') {
     selector = selector.split(/(?=\.)|(?=#)|(?=\[)/)

@@ -1,30 +1,39 @@
 (() => {
+  // ../common/src/factories/createStateContext.js
+  var createStateContext_default = (name, id2, state, proxy, deconstruct) => ({
+    deconstruct,
+    name,
+    create: (component, attribute, update, {
+      RevocableProxy
+    }) => {
+      const onDelete = (target, path) => update(id2, name + "." + path.join("."));
+      const onGet = (target, path) => attribute.accessed(id2, name + "." + path.join("."));
+      const onSet = (target, path) => update(id2, name + "." + path.join("."));
+      proxy.addEventListener("delete", onDelete);
+      proxy.addEventListener("get", onGet);
+      proxy.addEventListener("set", onSet);
+      const revocable = RevocableProxy(state, {});
+      return {
+        value: revocable.proxy,
+        // Remove event listeners.
+        destroy: () => {
+          proxy.removeEventListener("delete", onDelete);
+          proxy.removeEventListener("get", onGet);
+          proxy.removeEventListener("set", onSet);
+          revocable.revoke();
+        }
+      };
+    }
+  });
+
   // src/factories/contexts/store.js
-  var store_default = (options, id, store, proxy) => {
-    return {
-      deconstruct: !!options.deconstruct,
-      name: "$store",
-      create: (component, attribute, update, { RevocableProxy }) => {
-        const onDelete = (target, path) => update(id, path.join("."));
-        const onGet = (target, path) => attribute.accessed(id, path.join("."));
-        const onSet = (target, path) => update(id, path.join("."));
-        proxy.addEventListener("delete", onDelete);
-        proxy.addEventListener("get", onGet);
-        proxy.addEventListener("set", onSet);
-        const revocable = RevocableProxy(store, {});
-        return {
-          value: revocable.proxy,
-          // Remove event listeners.
-          destroy: () => {
-            proxy.removeEventListener("delete", onDelete);
-            proxy.removeEventListener("get", onGet);
-            proxy.removeEventListener("set", onSet);
-            revocable.revoke();
-          }
-        };
-      }
-    };
-  };
+  var store_default = (id2, state, proxy, deconstruct) => createStateContext_default(
+    "$store",
+    id2,
+    state,
+    proxy,
+    deconstruct
+  );
 
   // ../common/src/polyfills/RevocableProxy.js
   var REFLECTION_METHODS = [
@@ -47,7 +56,7 @@
     for (const key of REFLECTION_METHODS) {
       revocableHandler[key] = (...parameters) => {
         if (revoked) {
-          console.error("illegal operation attempted on a revoked proxy");
+          console.error("proxy revoked");
           return;
         }
         if (key in handler) {
@@ -124,10 +133,9 @@
       };
     }
   };
-  var EventDispatcher_default = EventDispatcher;
 
   // ../common/src/events/ProxyDispatcher.js
-  var ProxyDispatcher = class extends EventDispatcher_default {
+  var ProxyDispatcher = class extends EventDispatcher {
     constructor(options = {}) {
       super();
       options = Object.assign({
@@ -199,7 +207,6 @@
       };
     }
   };
-  var ProxyDispatcher_default = ProxyDispatcher;
 
   // ../common/src/utilities/Object.js
   var deepAssign = (target, ...sources) => {
@@ -237,18 +244,18 @@
   };
 
   // src/DoarsStore.js
+  var id = Symbol("ID_STORE");
   function DoarsStore_default(library, options = null, dataStore = {}) {
     options = Object.assign({
       deconstruct: false
     }, options);
     let isEnabled = false;
-    let contextStore, dataStoreCopy, proxy, store;
-    const onEnable = function() {
-      dataStoreCopy = deepAssign({}, dataStore);
-      proxy = new ProxyDispatcher_default();
-      store = proxy.add(dataStoreCopy);
-      const id = Symbol("ID_STORE");
-      contextStore = store_default(options, id, store, proxy);
+    let contextStore, data, proxy, store;
+    const onEnable = () => {
+      data = deepAssign({}, dataStore);
+      proxy = new ProxyDispatcher();
+      store = proxy.add(data);
+      contextStore = store_default(id, store, proxy, !!options.deconstruct);
       const existingContexts = library.getContexts();
       let stateIndex = 0;
       for (let i = existingContexts.length - 1; i >= 0; i--) {
@@ -260,22 +267,22 @@
       }
       library.addContexts(stateIndex, contextStore);
     };
-    const onDisable = function() {
+    const onDisable = () => {
       library.removeContexts(contextStore);
       store = null;
-      proxy.remove(dataStoreCopy);
+      proxy.remove(data);
       proxy = null;
-      dataStoreCopy = null;
+      data = null;
       contextStore = null;
     };
-    this.disable = function() {
+    this.disable = () => {
       if (!library.getEnabled() && isEnabled) {
         isEnabled = false;
         library.removeEventListener("enabling", onEnable);
         library.removeEventListener("disabling", onDisable);
       }
     };
-    this.enable = function() {
+    this.enable = () => {
       if (!isEnabled) {
         isEnabled = true;
         library.addEventListener("enabling", onEnable);

@@ -10,13 +10,13 @@ import {
   OBJECT,
   SEQUENCE,
   UNARY,
-  UPDATE
+  UPDATE,
 } from './types.js'
 
 const setToContext = (
   node,
   value,
-  context = {}
+  context = {},
 ) => {
   switch (node.type) {
     case IDENTIFIER:
@@ -42,7 +42,7 @@ const setToContext = (
 
 const run = (
   node,
-  context = {}
+  context = {},
 ) => {
   if (!node) {
     return
@@ -207,4 +207,5 @@ const run = (
 
   throw new Error('Unexpected node type "' + node.type + '".')
 }
+
 export default run

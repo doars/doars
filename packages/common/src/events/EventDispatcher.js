@@ -1,8 +1,9 @@
-class EventDispatcher {
+export default class EventDispatcher {
   /**
    * Create instance.
    */
-  constructor() {
+  constructor(
+  ) {
     let events = {}
 
     /**
@@ -11,7 +12,11 @@ class EventDispatcher {
      * @param {Function} callback Function to call on dispatch.
      * @param {Object} options Callback options.
      */
-    this.addEventListener = (name, callback, options = null) => {
+    this.addEventListener = (
+      name,
+      callback,
+      options = null,
+    ) => {
       // Check if event name exits and callback is not already present.
       if (!(name in events)) {
         events[name] = []
@@ -29,7 +34,10 @@ class EventDispatcher {
      * @param {String} name Event name.
      * @param {Function} callback Function that would be called.
      */
-    this.removeEventListener = (name, callback) => {
+    this.removeEventListener = (
+      name,
+      callback,
+    ) => {
       // Check if event exists.
       if (!Object.keys(events).includes(name)) {
         return
@@ -61,7 +69,9 @@ class EventDispatcher {
      * Remove listeners to an event.
      * @param {String} name Event name.
      */
-    this.removeEventListeners = (name) => {
+    this.removeEventListeners = (
+      name,
+    ) => {
       if (!name) {
         return
       }
@@ -74,7 +84,8 @@ class EventDispatcher {
      * Remove all listeners.
      * @param {String} name Event name.
      */
-    this.removeAllEventListeners = () => {
+    this.removeAllEventListeners = (
+    ) => {
       // Remove all listeners.
       events = {}
     }
@@ -85,7 +96,11 @@ class EventDispatcher {
      * @param {Array<Any>} parameters Event parameters to pass through.
      * @param {Object} options Dispatch options.
      */
-    this.dispatchEvent = (name, parameters, options = null) => {
+    this.dispatchEvent = (
+      name,
+      parameters,
+      options = null,
+    ) => {
       // Check if event exists.
       if (!events[name]) {
         return
@@ -108,5 +123,3 @@ class EventDispatcher {
     }
   }
 }
-
-export default EventDispatcher

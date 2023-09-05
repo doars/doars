@@ -5,14 +5,14 @@
   },
   "name": "@doars/doars-morph",
   "packagename": "DoarsMorph",
-  "description": "Doars plugin that adds a morph context with set of directives to control it.",
+  "description": "Doars plugin that adds a morph context and directive that instead of setting directly to the innerHTML of an element morphs the DOM to the new structure.",
   "keywords": [
     "doars",
     "dom",
     "html",
     "morph"
   ],
-  "version": "2.0.0",
+  "version": "2.0.2",
   "license": "MIT",
   "type": "module",
   "main": "src/DoarsMorph.js",

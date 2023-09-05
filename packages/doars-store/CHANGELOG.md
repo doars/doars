@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 2.1.0
+
+- Changed to use createStateContext from common package.
+
 ## 2.0.0
 
 - Changed from constructor to function.

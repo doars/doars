@@ -354,6 +354,21 @@ export default class Doars extends EventDispatcher {
       return true
     }
 
+    /**
+     * Adds simple contexts by looping through the object and calling the the setSimpleContext function with the data.
+     * @param {Object} contexts An object where the key is the name for the simple context and the value the simple context.
+     * @returns {Object} Which simple context was successfully set.
+     */
+    this.setSimpleContexts = (contexts) => {
+      const result = {}
+      for (const name in contexts) {
+        if (Object.hasOwnProperty.call(contexts, name)) {
+          result[name] = this.setSimpleContext(name, contexts[name])
+        }
+      }
+      return result
+    }
+
     /* Contexts */
 
     /**

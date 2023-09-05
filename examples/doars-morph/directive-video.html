@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doars morph directive string example</title>
+  </head>
+
+  <body>
+    <p>Unfortunately the state of the iframe is not preserved when morphing :(</p>
+    <p>In this case it is caused by the re-appending of the elements to its new position in the morphed tree.</p>
+    <div
+      d-state="{ content: '&lt;div&gt;&lt;div&gt;Before&lt;\/div&gt;&lt;iframe src=&quot;https:\/\/www.youtube.com\/embed\/jDHmg8Mb9wo&quot;&gt;&lt;\/iframe&gt;&lt;\/div&gt;'}">
+      <div d-morph.decode="content"></div>
+
+      <button
+        d-on:click="content = '&lt;div&gt;&lt;iframe src=&quot;https:\/\/www.youtube.com\/embed\/jDHmg8Mb9wo&quot;&gt;&lt;\/iframe&gt;&lt;div&gt;After&lt;\/div&gt;&lt;\/div&gt;'">
+        Morph
+      </button>
+    </div>
+
+    <script src="/packages/doars/dst/doars.iife.js"></script>
+    <script src="/packages/doars-morph/dst/doars-morph.iife.js"></script>
+    <script>
+      // Wait for the DOM to be interactive.
+      document.addEventListener('DOMContentLoaded', () => {
+        // Setup a library instance.
+        const doars = new window.Doars()
+
+        // Add plugin.
+        window.DoarsMorph(doars)
+
+        // Enable library.
+        doars.enable()
+      })
+    </script>
+  </body>
+
+</html>

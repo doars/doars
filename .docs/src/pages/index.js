@@ -464,12 +464,24 @@ export default function () {
           }, '@doars/doars-intersect', 'Adds an intersect directive for reacting to intersection changes.'),
 
           card({
+            href: 'https://github.com/doars/doars/tree/main/packages/doars-morph#readme',
+          }, '@doars/doars-morph', 'Adds a morph context and directive that instead of setting directly to the innerHTML of an element morphs the DOM to the new structure.'),
+
+          card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars-router#readme',
           }, '@doars/doars-router', 'Adds a router context with set of directives to control it.'),
 
           card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars-fetch#readme',
           }, '@doars/doars-fetch', 'Adds a fetch context that handles parsing the returned content.'),
+
+          card({
+            href: 'https://github.com/doars/doars/tree/main/packages/doars-cookies#readme',
+          }, '@doars/doars-cookies', 'Plugin that adds a cookies context to get and set browser cookies.'),
+
+          card({
+            href: 'https://github.com/doars/doars/tree/main/packages/doars-local-storage#readme',
+          }, '@doars/doars-local-storage', 'Plugin that adds a local storage context to get values from and set values in local storage.'),
 
           card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars-alias#readme',
