@@ -261,7 +261,9 @@
   // src/directives/morph.js
   var morph_default2 = {
     name: "morph",
-    update: (component, attribute, { processExpression }) => {
+    update: (component, attribute, {
+      processExpression
+    }) => {
       const element = attribute.getElement();
       const modifiers = attribute.getModifiers();
       const set = (html) => {
@@ -299,22 +301,22 @@
   // src/DoarsMorph.js
   function DoarsMorph_default(library) {
     let isEnabled = false;
-    const onEnable = function() {
+    const onEnable = () => {
       library.addContexts(0, morph_default);
       library.addDirectives(-1, morph_default2);
     };
-    const onDisable = function() {
+    const onDisable = () => {
       library.removeContexts(morph_default);
       library.removeDirectives(morph_default2);
     };
-    this.disable = function() {
+    this.disable = () => {
       if (!library.getEnabled() && isEnabled) {
         isEnabled = false;
         library.removeEventListener("enabling", onEnable);
         library.removeEventListener("disabling", onDisable);
       }
     };
-    this.enable = function() {
+    this.enable = () => {
       if (!isEnabled) {
         isEnabled = true;
         library.addEventListener("enabling", onEnable);

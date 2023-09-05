@@ -30,7 +30,7 @@ import DoarsMorph from '@doars/doars-morph'
 const doars = new Doars()
 
 // Setup the plugin.
-const doarsMorph = new DoarsMorph(doars /*, options */)
+const doarsMorph = DoarsMorph(doars /*, options */)
 
 // Enable library.
 doars.enable()
@@ -100,6 +100,8 @@ are added by the plugin.
 - `constructor` Create plugin instance.
   - `@param {Doars} library` A doars library instance.
   - `@returns {DoarsMorph}`
+- `disable` Disables the plugin. Can only be called when the doars is disabled.
+- `enable` Enables the plugin. Can only be called when the doars is disabled.
 
 ## Compatible versions
 

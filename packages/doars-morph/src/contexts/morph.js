@@ -3,7 +3,8 @@ import { morphTree } from '@doars/common/src/utilities/Morph.js'
 export default {
   name: '$morph',
 
-  create: () => {
+  create: (
+  ) => {
     return {
       value: morphTree,
     }
