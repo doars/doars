@@ -45,7 +45,7 @@ export const morphNode = (
 /**
  * Morph the existing element tree into the given tree.
  * @param {HTMLElement} existingTree The existing tree to convert.
- * @param {HTMLElement} newTree The tree to change to.
+ * @param {HTMLElement | string} newTree The tree to change to.
  * @param {Object} options Options to modify the morphing behaviour.
  * @returns {HTMLElement} New tree root element.
  */
