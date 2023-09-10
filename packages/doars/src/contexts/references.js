@@ -4,7 +4,13 @@ import { REFERENCES, REFERENCES_CACHE } from '../symbols.js'
 export default {
   name: '$references',
 
-  create: (component, attribute, update, { RevocableProxy }) => {
+  create: (
+    component,
+    attribute,
+    update, {
+      RevocableProxy,
+    },
+  ) => {
     // Exit early if no references exist.
     if (!component[REFERENCES]) {
       return {
@@ -31,7 +37,11 @@ export default {
 
     // Create revocable proxy.
     const revocable = RevocableProxy(cache, {
-      get: (target, propertyKey, receiver) => {
+      get: (
+        target,
+        propertyKey,
+        receiver,
+      ) => {
         // Mark references as accessed.
         attribute.accessed(component.getId(), '$references.' + propertyKey)
 
@@ -44,7 +54,8 @@ export default {
     return {
       value: revocable.proxy,
 
-      destroy: () => {
+      destroy: (
+      ) => {
         revocable.revoke()
       },
     }

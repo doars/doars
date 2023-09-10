@@ -1,7 +1,10 @@
 // Import symbols.
 import { INITIALIZED } from '../symbols.js'
 
-const destroy = (component, attribute) => {
+const destroy = (
+  component,
+  attribute,
+) => {
   // Exit early if no listeners can be found.
   if (!attribute[INITIALIZED]) {
     return
@@ -21,7 +24,12 @@ const destroy = (component, attribute) => {
 export default {
   name: 'initialized',
 
-  update: (component, attribute, { processExpression }) => {
+  update: (
+    component,
+    attribute, {
+      processExpression,
+    },
+  ) => {
     // Deconstruct component.
     const element = component.getElement()
 

@@ -4,11 +4,19 @@ import { isPromise } from '@doars/common/src/utilities/Promise.js'
 export default {
   name: 'show',
 
-  update: (component, attribute, { processExpression, transitionIn, transitionOut }) => {
+  update: (
+    component,
+    attribute, {
+      processExpression,
+      transitionIn,
+      transitionOut,
+    },
+  ) => {
     // Deconstruct attribute.
     const element = attribute.getElement()
 
-    const set = () => {
+    const set = (
+    ) => {
       // Get stored data.
       const data = attribute.getData()
 
@@ -32,7 +40,7 @@ export default {
       attribute.setData(
         Object.assign({}, data, {
           transition,
-        })
+        }),
       )
     }
 
@@ -48,11 +56,13 @@ export default {
       attribute.setData(
         Object.assign({}, data, {
           result,
-        })
+        }),
       )
 
       Promise.resolve(result)
-        .then((resultResolved) => {
+        .then((
+          resultResolved,
+        ) => {
           // If stored data has changed then this promise should be ignored.
           if (attribute.getData().result !== result) {
             return
@@ -65,7 +75,7 @@ export default {
       attribute.setData(
         Object.assign({}, data, {
           result,
-        })
+        }),
       )
 
       set()

@@ -5,7 +5,7 @@
   },
   "name": "@doars/doars-cookies",
   "packagename": "DoarsCookies",
-  "description": "Doars plugin that adds a cookies context to add and remove browser cookies.",
+  "description": "Doars plugin that adds a cookies context to get and set browser cookies.",
   "keywords": [
     "doars",
     "cookie",
@@ -44,6 +44,6 @@
     "README.md"
   ],
   "dependencies": {
-    "@doars/common": "^1.0.1"
+    "@doars/common": "^1.1.0"
   }
 }

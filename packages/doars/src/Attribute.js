@@ -5,7 +5,10 @@ import EventDispatcher from '@doars/common/src/events/EventDispatcher.js'
 import { ATTRIBUTES } from './symbols.js'
 
 // Import utilities.
-import { parseAttributeName, parseAttributeModifiers } from '@doars/common/src/utilities/String.js'
+import {
+  parseAttributeName,
+  parseAttributeModifiers,
+} from '@doars/common/src/utilities/String.js'
 
 export default class Attribute extends EventDispatcher {
   /**
@@ -16,7 +19,13 @@ export default class Attribute extends EventDispatcher {
    * @param {String} value Attribute value.
    * @param {Boolean} isClone Whether this will be a clone of an existing attribute.
    */
-  constructor(component, element, name, value, isClone = false) {
+  constructor(
+    component,
+    element,
+    name,
+    value,
+    isClone = false,
+  ) {
     super()
 
     // Create unique ID.
@@ -52,7 +61,8 @@ export default class Attribute extends EventDispatcher {
      * Get the component this attribute is a part of.
      * @returns {Component} Attribute's component.
      */
-    this.getComponent = () => {
+    this.getComponent = (
+    ) => {
       return component
     }
 
@@ -60,7 +70,8 @@ export default class Attribute extends EventDispatcher {
      * Get the element this attribute belongs to.
      * @returns {HTMLElement} Element.
      */
-    this.getElement = () => {
+    this.getElement = (
+    ) => {
       return element
     }
 
@@ -68,7 +79,8 @@ export default class Attribute extends EventDispatcher {
      * Get attribute id.
      * @returns {Symbol} Unique identifier.
      */
-    this.getId = () => {
+    this.getId = (
+    ) => {
       return id
     }
 
@@ -76,7 +88,8 @@ export default class Attribute extends EventDispatcher {
      * Get the directive this attribute matches.
      * @returns {String} Directive name.
      */
-    this.getDirective = () => {
+    this.getDirective = (
+    ) => {
       return directive
     }
 
@@ -84,7 +97,8 @@ export default class Attribute extends EventDispatcher {
      * Get the optional key of the attribute.
      * @returns {String} Key.
      */
-    this.getKey = () => {
+    this.getKey = (
+    ) => {
       return key
     }
 
@@ -92,7 +106,8 @@ export default class Attribute extends EventDispatcher {
      * Get the optional key of the attribute before being processed.
      * @returns {String} Raw key.
      */
-    this.getKeyRaw = () => {
+    this.getKeyRaw = (
+    ) => {
       return keyRaw
     }
 
@@ -100,7 +115,8 @@ export default class Attribute extends EventDispatcher {
      * Get the optional modifiers of the attribute.
      * @returns {Object} Modifiers object.
      */
-    this.getModifiers = () => {
+    this.getModifiers = (
+    ) => {
       return Object.assign({}, modifiers)
     }
 
@@ -108,7 +124,8 @@ export default class Attribute extends EventDispatcher {
      * Get the optional modifiers of the attribute before being processed.
      * @returns {Array<String>} List of raw modifiers.
      */
-    this.getModifiersRaw = () => {
+    this.getModifiersRaw = (
+    ) => {
       return modifiersRaw
     }
 
@@ -116,7 +133,8 @@ export default class Attribute extends EventDispatcher {
      * Get attribute's name.
      * @returns {String} Attribute name.
      */
-    this.getName = () => {
+    this.getName = (
+    ) => {
       return name
     }
 
@@ -124,7 +142,8 @@ export default class Attribute extends EventDispatcher {
      * Get the attribute's value.
      * @returns {String} Value.
      */
-    this.getValue = () => {
+    this.getValue = (
+    ) => {
       return value
     }
 
@@ -132,7 +151,9 @@ export default class Attribute extends EventDispatcher {
      * Set the attribute's value.
      * @param {String} value New value.
      */
-    this.setValue = (_value) => {
+    this.setValue = (
+      _value,
+    ) => {
       value = _value
 
       // Dispatch changed event.
@@ -142,7 +163,8 @@ export default class Attribute extends EventDispatcher {
     /**
      * Clear custom data set.
      */
-    this.clearData = () => {
+    this.clearData = (
+    ) => {
       data = null
     }
 
@@ -150,7 +172,8 @@ export default class Attribute extends EventDispatcher {
      * Whether there is data set.
      * @returns {boolean} Whether data is set.
      */
-    this.hasData = () => {
+    this.hasData = (
+    ) => {
       return data !== null
     }
 
@@ -158,7 +181,8 @@ export default class Attribute extends EventDispatcher {
      * Get custom data set previously.
      * @returns {any} the data.
      */
-    this.getData = () => {
+    this.getData = (
+    ) => {
       return data
     }
 
@@ -166,14 +190,17 @@ export default class Attribute extends EventDispatcher {
      * Set custom attribute data.
      * @param {any} data Some data.
      */
-    this.setData = (_data) => {
+    this.setData = (
+      _data,
+    ) => {
       data = _data
     }
 
     /**
      * Destroy the attribute.
      */
-    this.destroy = () => {
+    this.destroy = (
+    ) => {
       // Clear data.
       this.setData(null)
 
@@ -198,7 +225,10 @@ export default class Attribute extends EventDispatcher {
      * @param {Symbol} id Unique identifier.
      * @param {String} path Context path.
      */
-    this.accessed = (id, path) => {
+    this.accessed = (
+      id,
+      path,
+    ) => {
       if (!accessedItems[id]) {
         accessedItems[id] = []
       } else if (accessedItems[id].includes(path)) {
@@ -214,7 +244,8 @@ export default class Attribute extends EventDispatcher {
     /**
      * Clear list of accessed items.
      */
-    this.clearAccessed = () => {
+    this.clearAccessed = (
+    ) => {
       accessedItems = {}
     }
 
@@ -224,7 +255,10 @@ export default class Attribute extends EventDispatcher {
      * @param {Array<String>} paths Contexts path.
      * @returns {Boolean} Whether any item's path was accessed.
      */
-    this.hasAccessed = (id, paths) => {
+    this.hasAccessed = (
+      id,
+      paths,
+    ) => {
       if (!(id in accessedItems)) {
         return false
       }
@@ -242,7 +276,8 @@ export default class Attribute extends EventDispatcher {
      * Creates a clone of the attribute without copying over the id and accessed values.
      * @returns {Attribute} Cloned attribute.
      */
-    this.clone = () => {
+    this.clone = (
+    ) => {
       // Create new attribute as clone.
       return new Attribute(component, element, name, value, true)
     }

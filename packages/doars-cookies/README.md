@@ -9,7 +9,7 @@
 
 # @doars/doars-cookies
 
-Plugin that adds a cookies context to add and remove browser cookies
+Plugin that adds a cookies context to get and set browser cookies.
 
 ## Install
 
@@ -30,7 +30,7 @@ import DoarsCookies from '@doars/doars-cookies'
 const doars = new Doars()
 
 // Setup the plugin.
-const doarsCookies = new DoarsCookies(doars /*, options */)
+const doarsCookies = DoarsCookies(doars /*, options */)
 
 // Enable library.
 doars.enable()
@@ -97,7 +97,19 @@ Access the cookies object.
 
 - `constructor` Create plugin instance.
   - `@param {Doars} library` A doars library instance.
+  - `@param {Object} options = null` [See options](#doarscookies-options).
   - `@returns {DoarsCookies}`
+- `disable` Disables the plugin. Can only be called when the doars is disabled.
+- `enable` Enables the plugin. Can only be called when the doars is disabled.
+
+#### DoarsCookies options
+
+- `{Boolean} deconstruct = false` Whether to deconstruct the context so when
+  accessing the properties you do not need to prefix it with `$cookies`. Do note
+  the `$cookies` context will be checked after the `$for` and `$state` contexts
+  since the `$cookies` context is inserted before the others. This means that when
+  a property exists on both the cookies and state the value from the state
+  will be returned.
 
 ## Compatible versions
 

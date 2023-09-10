@@ -5,7 +5,14 @@ import { isPromise } from '@doars/common/src/utilities/Promise.js'
 export default {
   name: 'if',
 
-  update: (component, attribute, { processExpression, transitionIn, transitionOut }) => {
+  update: (
+    component,
+    attribute, {
+      processExpression,
+      transitionIn,
+      transitionOut,
+    },
+  ) => {
     // Deconstruct attribute.
     const template = attribute.getElement()
 
@@ -21,7 +28,9 @@ export default {
       return
     }
 
-    const set = (result) => {
+    const set = (
+      result,
+    ) => {
       // Get stored data.
       const data = attribute.getData()
 
@@ -32,6 +41,8 @@ export default {
       if (!result) {
         // If the element exists then transition out and remove the element.
         if (element) {
+          // FIX: Will this not re-animate the element out, or break because the element does not exist since removing the transition. Perhaps track whether it is a transition in or transition out.
+
           // Cancel previous transition.
           if (transition) {
             transition()
@@ -65,7 +76,7 @@ export default {
         Object.assign({}, data, {
           element,
           transition,
-        })
+        }),
       )
     }
 
@@ -79,13 +90,15 @@ export default {
     attribute.setData(
       Object.assign({}, data, {
         result,
-      })
+      }),
     )
 
     // Handle promises.
     if (isPromise(result)) {
       Promise.resolve(result)
-        .then((result) => {
+        .then((
+          result,
+        ) => {
           // If stored data has changed then this promise should be ignored.
           if (attribute.getData().result !== result) {
             return
@@ -98,7 +111,12 @@ export default {
     }
   },
 
-  destroy: (component, attribute, { transitionOut }) => {
+  destroy: (
+    component,
+    attribute, {
+      transitionOut,
+    },
+  ) => {
     // Get stored data.
     const data = attribute.getData()
 

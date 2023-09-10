@@ -13,7 +13,10 @@ import { transitionIn, transitionOut } from '@doars/common/src/utilities/Transit
  * @param  {...Any} values Values to add to object.
  * @returns {Object} Resulting object with values at names.
  */
-const createVariables = (names, ...values) => {
+const createVariables = (
+  names,
+  ...values
+) => {
   const variables = {}
   for (let i = 0; i < values.length; i++) {
     if (i >= names.length) {
@@ -30,7 +33,11 @@ const createVariables = (names, ...values) => {
  * @param {Any} value Value to compare to.
  * @param {Number} index The index to start searching after.
  */
-const indexInSiblings = (elements, value, index = -1) => {
+const indexInSiblings = (
+  elements,
+  value,
+  index = -1,
+) => {
   index++
   if (index >= elements.length) {
     return -1
@@ -53,7 +60,15 @@ const indexInSiblings = (elements, value, index = -1) => {
  * @param {Any} value Value of item to add.
  * @param {Object} variables Variables associated with item.
  */
-const setAfter = (component, update, template, elements, index, value, variables) => {
+const setAfter = (
+  component,
+  update,
+  template,
+  elements,
+  index,
+  value,
+  variables,
+) => {
   const existingIndex = indexInSiblings(elements, value, index)
   if (existingIndex >= 0) {
     // Exit early it is already in place.
@@ -100,7 +115,11 @@ const setAfter = (component, update, template, elements, index, value, variables
  * @param {Array<HTMLElement>} elements List of existing elements.
  * @param {Number} maxLength Maximum number of elements.
  */
-const removeAfter = (component, elements, maxLength) => {
+const removeAfter = (
+  component,
+  elements,
+  maxLength,
+) => {
   // Exit early if length is not exceeded.
   if (elements.length < maxLength) {
     return
@@ -122,7 +141,12 @@ const removeAfter = (component, elements, maxLength) => {
 export default {
   name: 'for',
 
-  update: (component, attribute, { processExpression }) => {
+  update: (
+    component,
+    attribute, {
+      processExpression,
+    },
+  ) => {
     // Deconstruct attribute.
     const template = attribute.getElement()
 
@@ -146,7 +170,9 @@ export default {
       }
     }
 
-    const set = (iterable) => {
+    const set = (
+      iterable,
+    ) => {
       // Get stored data.
       const data = attribute.getData()
 
@@ -232,7 +258,7 @@ export default {
       attribute.setData(
         Object.assign({}, data, {
           elements,
-        })
+        }),
       )
     }
 
@@ -253,13 +279,15 @@ export default {
     attribute.setData(
       Object.assign({}, data, {
         result,
-      })
+      }),
     )
 
     // Handle promises.
     if (isPromise(result)) {
       Promise.resolve(result)
-        .then((resultResolved) => {
+        .then((
+          resultResolved,
+        ) => {
           // If stored data has changed then this promise should be ignored.
           if (attribute.getData().result !== result) {
             return
@@ -272,7 +300,10 @@ export default {
     }
   },
 
-  destroy: (component, attribute) => {
+  destroy: (
+    component,
+    attribute,
+  ) => {
     // Get stored data.
     const data = attribute.getData()
 

@@ -54,6 +54,13 @@ var copyAttributes = (existingNode, newNode) => {
 
 // ../common/src/utilities/Element.js
 var fromString = (string) => {
+  const stringStart = string.substring(0, 15).toLowerCase();
+  const isDocument = stringStart.startsWith("<!doctype html>") || stringStart.startsWith("<html>");
+  if (isDocument) {
+    const html = document.createElement("html");
+    html.innerHTML = string;
+    return html;
+  }
   const template = document.createElement("template");
   template.innerHTML = string;
   return template.content.childNodes[0];

@@ -9,10 +9,17 @@ const EXECUTION_MODIFIERS = {
   THROTTLE: 3,
 }
 
-export default (observer) => ({
+export default (
+  observer,
+) => ({
   name: 'intersect',
 
-  update: (component, attribute, { processExpression }) => {
+  update: (
+    component,
+    attribute, {
+      processExpression,
+    },
+  ) => {
     // Deconstruct attribute.
     const element = attribute.getElement()
     const key = attribute.getKey()
@@ -58,7 +65,9 @@ export default (observer) => ({
     }
 
     // Create intersection handler.
-    const handler = (event) => {
+    const handler = (
+      event,
+    ) => {
       // Check if intersection has changed.
       const isChanged = attribute[INTERSECT].isIntersecting !== event.isIntersecting
       if (!isChanged) {
@@ -78,7 +87,8 @@ export default (observer) => ({
         return
       }
 
-      const execute = () => {
+      const execute = (
+      ) => {
         // Execute value using a copy of the attribute since this attribute should not update based on what contexts will be accessed.
         processExpression(component, attribute.clone(), value, {
           $event: event,
@@ -140,7 +150,10 @@ export default (observer) => ({
     }
   },
 
-  destroy: (component, attribute) => {
+  destroy: (
+    component,
+    attribute,
+  ) => {
     // Check if a handler exists.
     if (!attribute[INTERSECT]) {
       return

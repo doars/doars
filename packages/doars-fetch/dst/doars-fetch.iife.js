@@ -104,17 +104,22 @@
   };
 
   // src/factories/contexts/fetch.js
-  var fetch_default = ({ defaultInit }) => ({
+  var fetch_default = ({
+    fetchOptions
+  }) => ({
     name: "$fetch",
     create: () => {
       return {
-        value: (url, init = null) => {
-          if (defaultInit) {
-            init = deepAssign({}, defaultInit, init);
+        value: (url, options = null) => {
+          if (fetchOptions) {
+            options = deepAssign({}, fetchOptions, options);
           }
-          let returnType = init.returnType ? init.returnType : null;
-          delete init.returnType;
-          return fetch(url, init).then((response) => {
+          let returnType = options.returnType ? options.returnType : null;
+          delete options.returnType;
+          return fetch(
+            url,
+            options
+          ).then((response) => {
             if (returnType === "auto" && response.headers.get("content-type")) {
               returnType = responseType(response);
             }
@@ -131,7 +136,7 @@
   // src/DoarsFetch.js
   function DoarsFetch_default(library, options = null) {
     options = Object.assign({
-      defaultInit: {},
+      fetchOptions: {},
       encodingConverters: {
         "application/json": () => {
         },
@@ -141,24 +146,27 @@
         }
       }
     }, options);
+    if (options.defaultInit) {
+      Object.assign(options.fetchOptions, options.defaultInit);
+    }
     let isEnabled = false;
     let fetchContext;
-    const onEnable = function() {
+    const onEnable = () => {
       fetchContext = fetch_default(options);
       library.addContexts(0, fetchContext);
     };
-    const onDisable = function() {
+    const onDisable = () => {
       library.removeContexts(fetchContext);
       fetchContext = null;
     };
-    this.disable = function() {
+    this.disable = () => {
       if (!library.getEnabled() && isEnabled) {
         isEnabled = false;
         library.removeEventListener("enabling", onEnable);
         library.removeEventListener("disabling", onDisable);
       }
     };
-    this.enable = function() {
+    this.enable = () => {
       if (!isEnabled) {
         isEnabled = true;
         library.addEventListener("enabling", onEnable);

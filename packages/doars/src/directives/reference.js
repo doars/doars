@@ -1,7 +1,13 @@
 // Import symbols.
-import { REFERENCES, REFERENCES_CACHE } from '../symbols.js'
+import {
+  REFERENCES,
+  REFERENCES_CACHE,
+} from '../symbols.js'
 
-const destroy = (component, attribute) => {
+const destroy = (
+  component,
+  attribute,
+) => {
   // Exit early if not set.
   if (!component[REFERENCES]) {
     return
@@ -34,13 +40,19 @@ const destroy = (component, attribute) => {
   }
 
   // Trigger references update.
-  library.update([{ id: componentId, path: '$references.' + value }])
+  library.update([{
+    id: componentId,
+    path: '$references.' + value,
+  }])
 }
 
 export default {
   name: 'reference',
 
-  update: (component, attribute) => {
+  update: (
+    component,
+    attribute,
+  ) => {
     // Deconstruct attribute.
     const value = attribute.getValue().trim()
 
@@ -74,7 +86,10 @@ export default {
     delete component[REFERENCES_CACHE]
 
     // Trigger references update.
-    library.update([{ id: componentId, path: '$references.' + value }])
+    library.update([{
+      id: componentId,
+      path: '$references.' + value,
+    }])
   },
 
   destroy,

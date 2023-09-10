@@ -1,7 +1,13 @@
 export default {
   name: '$parent',
 
-  create: (component, attribute, update, { createContextsProxy }) => {
+  create: (
+    component,
+    attribute,
+    update, {
+      createContextsProxy,
+    },
+  ) => {
     // Deconstruct component.
     const parent = component.getParent()
     if (!parent) {

@@ -4,8 +4,10 @@ import { pathToRegexp } from 'path-to-regexp'
 // Import event dispatcher.
 import EventDispatcher from '@doars/common/src/events/EventDispatcher.js'
 
-class Router extends EventDispatcher {
-  constructor(options = {}) {
+export default class Router extends EventDispatcher {
+  constructor(
+    options = {},
+  ) {
     super()
 
     // Create id.
@@ -24,7 +26,8 @@ class Router extends EventDispatcher {
     let routes = {}
 
     // Listen for history state changes.
-    const handleHistory = () => {
+    const handleHistory = (
+    ) => {
       this.setPath(window.location.pathname)
     }
     if (options.updateHistory) {
@@ -37,7 +40,11 @@ class Router extends EventDispatcher {
      * @param {String} _path Path.
      * @param {String} _route Route.
      */
-    const updateRoute = (url, newPath, newRoute) => {
+    const updateRoute = (
+      url,
+      newPath,
+      newRoute,
+    ) => {
       // Update stored data.
       path = newPath
       route = newRoute
@@ -61,7 +68,8 @@ class Router extends EventDispatcher {
      * Get router id.
      * @returns {Symbol} Unique identifier.
      */
-    this.getId = () => {
+    this.getId = (
+    ) => {
       return id
     }
 
@@ -69,7 +77,8 @@ class Router extends EventDispatcher {
      * Get current path.
      * @returns {String} path.
      */
-    this.getPath = () => {
+    this.getPath = (
+    ) => {
       return path
     }
 
@@ -77,7 +86,8 @@ class Router extends EventDispatcher {
      * Get current route.
      * @returns {String} Route.
      */
-    this.getRoute = () => {
+    this.getRoute = (
+    ) => {
       return route
     }
 
@@ -85,14 +95,16 @@ class Router extends EventDispatcher {
      * Get observed routes.
      * @returns {Array<String>} List of routers.
      */
-    this.getRoutes = () => {
+    this.getRoutes = (
+    ) => {
       return Object.keys(routes)
     }
 
     /**
      * Destroy router instance.
      */
-    this.destroy = () => {
+    this.destroy = (
+    ) => {
       // Stop listening to state changes.
       if (options.updateHistory) {
         window.removeEventListener('popstate', handleHistory)
@@ -114,7 +126,9 @@ class Router extends EventDispatcher {
      * Add route.
      * @param {String} _route Route pattern.
      */
-    this.addRoute = (_route) => {
+    this.addRoute = (
+      _route,
+    ) => {
       // Convert path to regexp and store it in routes.
       routes[_route] = pathToRegexp(_route, [], options.pathToRegexp)
 
@@ -135,7 +149,9 @@ class Router extends EventDispatcher {
      * Remove route.
      * @param {String} _route Route pattern.
      */
-    this.removeRoute = (_route) => {
+    this.removeRoute = (
+      _route,
+    ) => {
       // Delete route.
       delete routes[_route]
 
@@ -156,7 +172,9 @@ class Router extends EventDispatcher {
      * Set current route.
      * @param {String} url URL path.
      */
-    this.setPath = (url) => {
+    this.setPath = (
+      url,
+    ) => {
       // Remove base url, if present.
       const newPath = url.replace(options.basePath, '')
       if (path === newPath) {
@@ -178,5 +196,3 @@ class Router extends EventDispatcher {
     }
   }
 }
-
-export default Router

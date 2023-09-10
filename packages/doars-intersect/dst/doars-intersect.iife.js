@@ -11,7 +11,9 @@
   };
   var intersect_default = (observer) => ({
     name: "intersect",
-    update: (component, attribute, { processExpression }) => {
+    update: (component, attribute, {
+      processExpression
+    }) => {
       const element = attribute.getElement();
       const key = attribute.getKey();
       const value = attribute.getValue();
@@ -157,7 +159,7 @@
     options = Object.assign({}, options);
     let isEnabled = false;
     let directiveView, intersectionObserver;
-    const onEnable = function() {
+    const onEnable = () => {
       const _options = Object.assign({}, options);
       if (!_options.root) {
         _options.root = library.getOptions().root;
@@ -166,19 +168,19 @@
       directiveView = intersect_default(intersectionObserver);
       library.addDirectives(-1, directiveView);
     };
-    const onDisable = function() {
+    const onDisable = () => {
       library.removeDirectives(directiveView);
       directiveView = null;
       intersectionObserver = null;
     };
-    this.disable = function() {
+    this.disable = () => {
       if (!library.getEnabled() && isEnabled) {
         isEnabled = false;
         library.removeEventListener("enabling", onEnable);
         library.removeEventListener("disabling", onDisable);
       }
     };
-    this.enable = function() {
+    this.enable = () => {
       if (!isEnabled) {
         isEnabled = true;
         library.addEventListener("enabling", onEnable);

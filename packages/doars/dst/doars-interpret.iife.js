@@ -71,7 +71,6 @@
       };
     }
   };
-  var EventDispatcher_default = EventDispatcher;
 
   // ../common/src/utilities/String.js
   var escapeHtml = (text) => {
@@ -187,7 +186,7 @@
   };
 
   // src/Attribute.js
-  var Attribute = class _Attribute extends EventDispatcher_default {
+  var Attribute = class _Attribute extends EventDispatcher {
     /**
      * Create instance.
      * @param {Component} component Component instance.
@@ -323,7 +322,7 @@
     for (const key of REFLECTION_METHODS) {
       revocableHandler[key] = (...parameters) => {
         if (revoked) {
-          console.error("illegal operation attempted on a revoked proxy");
+          console.error("proxy revoked");
           return;
         }
         if (key in handler) {
@@ -341,7 +340,7 @@
   };
 
   // ../common/src/events/ProxyDispatcher.js
-  var ProxyDispatcher = class extends EventDispatcher_default {
+  var ProxyDispatcher = class extends EventDispatcher {
     constructor(options = {}) {
       super();
       options = Object.assign({
@@ -413,7 +412,6 @@
       };
     }
   };
-  var ProxyDispatcher_default = ProxyDispatcher;
 
   // src/utilities/Component.js
   var closestComponent = (element) => {
@@ -734,7 +732,7 @@
           console.error("Doars: component tag must return an object!");
           return;
         }
-        proxy = new ProxyDispatcher_default();
+        proxy = new ProxyDispatcher();
         state = proxy.add(data);
         this.scanAttributes(element);
       };
@@ -911,7 +909,10 @@
   // src/contexts/children.js
   var children_default = {
     name: "$children",
-    create: (component, attribute, update, { createContextsProxy: createContextsProxy2, RevocableProxy }) => {
+    create: (component, attribute, update, {
+      createContextsProxy: createContextsProxy2,
+      RevocableProxy
+    }) => {
       let children;
       const revocable = RevocableProxy(component.getChildren(), {
         get: (target, key, receiver) => {
@@ -981,7 +982,9 @@
   var for_default = {
     deconstruct: true,
     name: "$for",
-    create: (component, attribute, update, { RevocableProxy }) => {
+    create: (component, attribute, update, {
+      RevocableProxy
+    }) => {
       if (component !== attribute.getComponent()) {
         return;
       }
@@ -1022,7 +1025,9 @@
   // src/contexts/inContext.js
   var inContext_default = {
     name: "$inContext",
-    create: (component, attribute, update, { createContexts: createContexts2 }) => {
+    create: (component, attribute, update, {
+      createContexts: createContexts2
+    }) => {
       return {
         value: (callback) => {
           const triggers = [];
@@ -1047,7 +1052,9 @@
   // src/contexts/nextTick.js
   var nextTick_default = {
     name: "$nextTick",
-    create: (component, attribute, update, { createContexts: createContexts2 }) => {
+    create: (component, attribute, update, {
+      createContexts: createContexts2
+    }) => {
       let callbacks;
       let isSetup = false;
       const setup = () => {
@@ -1086,7 +1093,9 @@
   // src/contexts/parent.js
   var parent_default = {
     name: "$parent",
-    create: (component, attribute, update, { createContextsProxy: createContextsProxy2 }) => {
+    create: (component, attribute, update, {
+      createContextsProxy: createContextsProxy2
+    }) => {
       const parent = component.getParent();
       if (!parent) {
         return {
@@ -1105,7 +1114,9 @@
   // src/contexts/references.js
   var references_default = {
     name: "$references",
-    create: (component, attribute, update, { RevocableProxy }) => {
+    create: (component, attribute, update, {
+      RevocableProxy
+    }) => {
       if (!component[REFERENCES]) {
         return {
           key: "$references",
@@ -1139,18 +1150,21 @@
   };
 
   // src/contexts/state.js
+  var NAME = "$state";
   var state_default = {
     deconstruct: true,
-    name: "$state",
-    create: (component, attribute, update, { RevocableProxy }) => {
+    name: NAME,
+    create: (component, attribute, update, {
+      RevocableProxy
+    }) => {
       const proxy = component.getProxy();
       const state = component.getState();
       if (!proxy || !state) {
         return;
       }
-      const onDelete = (target, path) => update(component.getId(), "$state." + path.join("."));
-      const onGet = (target, path) => attribute.accessed(component.getId(), "$state." + path.join("."));
-      const onSet = (target, path) => update(component.getId(), "$state." + path.join("."));
+      const onDelete = (target, path) => update(component.getId(), NAME + "." + path.join("."));
+      const onGet = (target, path) => attribute.accessed(component.getId(), NAME + "." + path.join("."));
+      const onSet = (target, path) => update(component.getId(), NAME + "." + path.join("."));
       proxy.addEventListener("delete", onDelete);
       proxy.addEventListener("get", onGet);
       proxy.addEventListener("set", onSet);
@@ -1180,7 +1194,9 @@
   // src/directives/attribute.js
   var attribute_default = {
     name: "attribute",
-    update: (component, attribute, { processExpression }) => {
+    update: (component, attribute, {
+      processExpression
+    }) => {
       const element = attribute.getElement();
       const modifiers = attribute.getModifiers();
       const set = (value) => {
@@ -1222,10 +1238,12 @@
   // src/directives/cloak.js
   var cloak_default = {
     name: "cloak",
-    update: function(component, attribute, { transitionIn: transitionIn2 }) {
+    update: (component, attribute, {
+      transitionIn: transitionIn2
+    }) => {
       const element = attribute.getElement();
       element.removeAttribute(
-        component.getLibrary().getOptions().prefix + "-" + this.name
+        component.getLibrary().getOptions().prefix + "-" + (void 0).name
       );
       transitionIn2(component, element);
     }
@@ -1289,7 +1307,9 @@
   };
   var for_default2 = {
     name: "for",
-    update: (component, attribute, { processExpression }) => {
+    update: (component, attribute, {
+      processExpression
+    }) => {
       const template = attribute.getElement();
       if (template.tagName !== "TEMPLATE") {
         console.warn("Doars: `for` directive must be placed on a `<template>` tag.");
@@ -1421,7 +1441,9 @@
   // src/directives/html.js
   var html_default = {
     name: "html",
-    update: (component, attribute, { processExpression }) => {
+    update: (component, attribute, {
+      processExpression
+    }) => {
       const element = attribute.getElement();
       const modifiers = attribute.getModifiers();
       const set = (html) => {
@@ -1461,7 +1483,11 @@
   // src/directives/if.js
   var if_default = {
     name: "if",
-    update: (component, attribute, { processExpression, transitionIn: transitionIn2, transitionOut: transitionOut2 }) => {
+    update: (component, attribute, {
+      processExpression,
+      transitionIn: transitionIn2,
+      transitionOut: transitionOut2
+    }) => {
       const template = attribute.getElement();
       if (template.tagName !== "TEMPLATE") {
         console.warn("Doars: `if` directive must be placed on a `<template>` tag.");
@@ -1518,7 +1544,9 @@
         set(result);
       }
     },
-    destroy: (component, attribute, { transitionOut: transitionOut2 }) => {
+    destroy: (component, attribute, {
+      transitionOut: transitionOut2
+    }) => {
       const data = attribute.getData();
       if (data.element) {
         transitionOut2(component, data.element, () => {
@@ -1540,7 +1568,9 @@
   };
   var initialized_default = {
     name: "initialized",
-    update: (component, attribute, { processExpression }) => {
+    update: (component, attribute, {
+      processExpression
+    }) => {
       const element = component.getElement();
       const value = attribute.getValue();
       const name = component.getLibrary().getOptions().prefix + "-updated";
@@ -1593,7 +1623,9 @@
   ];
   var on_default = {
     name: "on",
-    update: (component, attribute, { processExpression }) => {
+    update: (component, attribute, {
+      processExpression
+    }) => {
       let name = attribute.getKeyRaw();
       if (!name) {
         console.warn("Doars: `on` directive must have a key.");
@@ -1627,7 +1659,7 @@
       if (modifiers.once) {
         options.once = true;
       }
-      if (modifiers.passive) {
+      if (modifiers.passive && !modifiers.prevent) {
         options.passive = true;
       }
       let executionModifier = EXECUTION_MODIFIERS.NONE;
@@ -1872,7 +1904,10 @@
     if (Object.keys(component[REFERENCES]).length === 0) {
       delete component[REFERENCES];
     }
-    library.update([{ id: componentId, path: "$references." + value }]);
+    library.update([{
+      id: componentId,
+      path: "$references." + value
+    }]);
   };
   var reference_default = {
     name: "reference",
@@ -1895,7 +1930,10 @@
         name: value
       };
       delete component[REFERENCES_CACHE];
-      library.update([{ id: componentId, path: "$references." + value }]);
+      library.update([{
+        id: componentId,
+        path: "$references." + value
+      }]);
     },
     destroy: destroy2
   };
@@ -1907,7 +1945,9 @@
   var TYPE_CHECKBOX = "checkbox";
   var select_default = {
     name: "select",
-    update: (component, attribute, { processExpression }) => {
+    update: (component, attribute, {
+      processExpression
+    }) => {
       const element = attribute.getElement();
       const type = element.getAttribute("type");
       if (element.tagName !== TAG_SELECT && !(element.tagName === "INPUT" && (type === TYPE_CHECKBOX || type === "radio"))) {
@@ -1965,7 +2005,11 @@
   // src/directives/show.js
   var show_default = {
     name: "show",
-    update: (component, attribute, { processExpression, transitionIn: transitionIn2, transitionOut: transitionOut2 }) => {
+    update: (component, attribute, {
+      processExpression,
+      transitionIn: transitionIn2,
+      transitionOut: transitionOut2
+    }) => {
       const element = attribute.getElement();
       const set = () => {
         const data2 = attribute.getData();
@@ -2134,7 +2178,9 @@
   // src/directives/sync.js
   var sync_default = {
     name: "sync",
-    update: (component, attribute, { processExpression }) => {
+    update: (component, attribute, {
+      processExpression
+    }) => {
       const element = attribute.getElement();
       const isNew = !attribute[SYNC];
       if (isNew) {
@@ -2289,7 +2335,9 @@
   // src/directives/text.js
   var text_default = {
     name: "text",
-    update: (component, attribute, { processExpression }) => {
+    update: (component, attribute, {
+      processExpression
+    }) => {
       const element = attribute.getElement();
       const modifiers = attribute.getModifiers();
       const set = (text) => {
@@ -2319,7 +2367,9 @@
   // src/directives/watch.js
   var watch_default = {
     name: "watch",
-    update: (component, attribute, { processExpression }) => {
+    update: (component, attribute, {
+      processExpression
+    }) => {
       const value = attribute.getValue();
       processExpression(component, attribute, value, {}, {
         return: false
@@ -2328,7 +2378,7 @@
   };
 
   // src/Doars.js
-  var Doars = class extends EventDispatcher_default {
+  var Doars = class extends EventDispatcher {
     /**
      * Create instance.
      * @param {Object} options Options.

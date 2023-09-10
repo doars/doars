@@ -6,7 +6,7 @@ export const interpret = (
   attribute,
   expression,
   extra = null,
-  options = null
+  options = null,
 ) => {
   // Override default with given options.
   options = Object.assign({

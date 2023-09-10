@@ -1,12 +1,23 @@
 export default {
   name: '$inContext',
 
-  create: (component, attribute, update, { createContexts }) => {
+  create: (
+    component,
+    attribute,
+    update, {
+      createContexts,
+    },
+  ) => {
     return {
-      value: (callback) => {
+      value: (
+        callback,
+      ) => {
         // Collect update triggers.
         const triggers = []
-        const contextUpdate = (id, context) => {
+        const contextUpdate = (
+          id,
+          context,
+        ) => {
           triggers.push({
             id,
             path: context,

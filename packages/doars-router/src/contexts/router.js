@@ -10,13 +10,20 @@ import closestRouter from '../utilities/closestRouter.js'
 export default {
   name: '$router',
 
-  create: (component, attribute) => {
+  create: (
+    component,
+    attribute,
+  ) => {
     // Deconstruct attribute.
     const element = attribute.getElement()
 
     let router = null
     const revocable = RevocableProxy({}, {
-      get: (target, propertyKey, receiver) => {
+      get: (
+        target,
+        propertyKey,
+        receiver,
+      ) => {
         // Get closest router from hierarchy.
         if (router === null) {
           if (element[ROUTER]) {
@@ -46,7 +53,8 @@ export default {
     return {
       value: revocable.proxy,
 
-      destroy: () => {
+      destroy: (
+      ) => {
         revocable.revoke()
       },
     }

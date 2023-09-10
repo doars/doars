@@ -39,7 +39,7 @@
     options = deepAssign({}, options);
     let isEnabled = false;
     let contextAliases, contextsRenamed, directiveAliases, directivesRenamed;
-    const onEnable = function() {
+    const onEnable = () => {
       if (options.aliasContexts || options.renameContexts) {
         let insertOffset = 1;
         const contexts = library.getContexts();
@@ -145,7 +145,7 @@
         }
       }
     };
-    const onDisable = function() {
+    const onDisable = () => {
       if (directiveAliases) {
         library.removeDirectives(...directiveAliases);
         directiveAliases = null;
@@ -175,14 +175,14 @@
         contextsRenamed = null;
       }
     };
-    this.disable = function() {
+    this.disable = () => {
       if (!library.getEnabled() && isEnabled) {
         isEnabled = false;
         library.removeEventListener("enabling", onEnable);
         library.removeEventListener("disabling", onDisable);
       }
     };
-    this.enable = function() {
+    this.enable = () => {
       if (!isEnabled) {
         isEnabled = true;
         library.addEventListener("enabling", onEnable);

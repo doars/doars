@@ -6,7 +6,13 @@ export default {
 
   name: '$for',
 
-  create: (component, attribute, update, { RevocableProxy }) => {
+  create: (
+    component,
+    attribute,
+    update, {
+      RevocableProxy,
+    },
+  ) => {
     // Exit early in parent contexts.
     if (component !== attribute.getComponent()) {
       return
@@ -38,7 +44,10 @@ export default {
 
     // Create revocable proxy.
     const revocable = RevocableProxy(target, {
-      get: (target, key) => {
+      get: (
+        target,
+        key,
+      ) => {
         for (const item of items) {
           if (key in item.variables) {
             // Mark as accessed for data.
@@ -55,7 +64,8 @@ export default {
     return {
       value: revocable.proxy,
 
-      destroy: () => {
+      destroy: (
+      ) => {
         revocable.revoke()
       },
     }

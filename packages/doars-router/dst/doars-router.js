@@ -19,7 +19,7 @@ var RevocableProxy_default = (target, handler) => {
   for (const key of REFLECTION_METHODS) {
     revocableHandler[key] = (...parameters) => {
       if (revoked) {
-        console.error("illegal operation attempted on a revoked proxy");
+        console.error("proxy revoked");
         return;
       }
       if (key in handler) {
@@ -411,10 +411,9 @@ var EventDispatcher = class {
     };
   }
 };
-var EventDispatcher_default = EventDispatcher;
 
 // src/Router.js
-var Router = class extends EventDispatcher_default {
+var Router = class extends EventDispatcher {
   constructor(options = {}) {
     super();
     const id = Symbol("ID_ROUTER");
@@ -502,18 +501,19 @@ var Router = class extends EventDispatcher_default {
     };
   }
 };
-var Router_default = Router;
 
 // src/factories/directives/router.js
 var router_default2 = (routerOptions) => {
   return {
     name: "router",
-    update: (component, attribute, { processExpression }) => {
+    update: (component, attribute, {
+      processExpression
+    }) => {
       const element = attribute.getElement();
       let router = element[ROUTER];
       if (!router) {
         const options = Object.assign({}, routerOptions, processExpression(component, attribute.clone(), attribute.getValue()));
-        router = element[ROUTER] = new Router_default(options);
+        router = element[ROUTER] = new Router(options);
       }
     },
     destroy: (component, attribute) => {
@@ -526,7 +526,10 @@ var router_default2 = (routerOptions) => {
       const id = router.getId();
       router.destroy();
       const library = component.getLibrary();
-      library.update([{ id, path: "" }]);
+      library.update([{
+        id,
+        path: ""
+      }]);
     }
   };
 };
@@ -543,7 +546,10 @@ var insertAfter = (reference, node) => {
 // src/directives/route.js
 var route_default = {
   name: "route",
-  update: (component, attribute, { transitionIn, transitionOut }) => {
+  update: (component, attribute, {
+    transitionIn,
+    transitionOut
+  }) => {
     const element = attribute.getElement();
     let router;
     const setup = () => {
@@ -594,7 +600,9 @@ var route_default = {
     };
     setup();
   },
-  destroy: (component, attribute, { transitionOut }) => {
+  destroy: (component, attribute, {
+    transitionOut
+  }) => {
     const element = attribute.getElement();
     if (element.tagName === "TEMPLATE") {
       if (attribute[ROUTE] && attribute[ROUTE].element) {
@@ -708,24 +716,24 @@ function DoarsRouter_default(library, options = null) {
   options = deepAssign({}, options);
   let isEnabled = false;
   let directiveRouter;
-  const onEnable = function() {
+  const onEnable = () => {
     library.addContexts(0, router_default);
     directiveRouter = router_default2(options);
     library.addDirectives(-1, directiveRouter, route_default, routeTo_default);
   };
-  const onDisable = function() {
+  const onDisable = () => {
     library.removeContexts(router_default);
     library.removeDirectives(directiveRouter, route_default, routeTo_default);
     directiveRouter = null;
   };
-  this.disable = function() {
+  this.disable = () => {
     if (!library.getEnabled() && isEnabled) {
       isEnabled = false;
       library.removeEventListener("enabling", onEnable);
       library.removeEventListener("disabling", onDisable);
     }
   };
-  this.enable = function() {
+  this.enable = () => {
     if (!isEnabled) {
       isEnabled = true;
       library.addEventListener("enabling", onEnable);

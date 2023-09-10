@@ -1,4 +1,40 @@
 (() => {
+  // ../common/src/factories/createStateContext.js
+  var createStateContext_default = (name, id2, state, proxy, deconstruct) => ({
+    deconstruct,
+    name,
+    create: (component, attribute, update, {
+      RevocableProxy
+    }) => {
+      const onDelete = (target, path) => update(id2, name + "." + path.join("."));
+      const onGet = (target, path) => attribute.accessed(id2, name + "." + path.join("."));
+      const onSet = (target, path) => update(id2, name + "." + path.join("."));
+      proxy.addEventListener("delete", onDelete);
+      proxy.addEventListener("get", onGet);
+      proxy.addEventListener("set", onSet);
+      const revocable = RevocableProxy(state, {});
+      return {
+        value: revocable.proxy,
+        // Remove event listeners.
+        destroy: () => {
+          proxy.removeEventListener("delete", onDelete);
+          proxy.removeEventListener("get", onGet);
+          proxy.removeEventListener("set", onSet);
+          revocable.revoke();
+        }
+      };
+    }
+  });
+
+  // src/factories/contexts/cookies.js
+  var cookies_default = (id2, state, proxy, deconstruct) => createStateContext_default(
+    "$cookies",
+    id2,
+    state,
+    proxy,
+    deconstruct
+  );
+
   // ../common/src/polyfills/RevocableProxy.js
   var REFLECTION_METHODS = [
     "apply",
@@ -44,20 +80,20 @@
      */
     constructor() {
       let events = {};
-      this.addEventListener = (name2, callback, options = null) => {
-        if (!(name2 in events)) {
-          events[name2] = [];
+      this.addEventListener = (name, callback, options = null) => {
+        if (!(name in events)) {
+          events[name] = [];
         }
-        events[name2].push({
+        events[name].push({
           callback,
           options
         });
       };
-      this.removeEventListener = (name2, callback) => {
-        if (!Object.keys(events).includes(name2)) {
+      this.removeEventListener = (name, callback) => {
+        if (!Object.keys(events).includes(name)) {
           return;
         }
-        const eventData = events[name2];
+        const eventData = events[name];
         let index = -1;
         for (let i = 0; i < eventData.length; i++) {
           if (eventData[i].callback === callback) {
@@ -70,23 +106,23 @@
         }
         eventData.splice(index, 1);
         if (Object.keys(eventData).length === 0) {
-          delete events[name2];
+          delete events[name];
         }
       };
-      this.removeEventListeners = (name2) => {
-        if (!name2) {
+      this.removeEventListeners = (name) => {
+        if (!name) {
           return;
         }
-        delete events[name2];
+        delete events[name];
       };
       this.removeAllEventListeners = () => {
         events = {};
       };
-      this.dispatchEvent = (name2, parameters, options = null) => {
-        if (!events[name2]) {
+      this.dispatchEvent = (name, parameters, options = null) => {
+        if (!events[name]) {
           return;
         }
-        const eventData = events[name2];
+        const eventData = events[name];
         for (let i = 0; i < eventData.length; i++) {
           const event = options && options.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
           if (event.options && event.options.once) {
@@ -97,10 +133,9 @@
       };
     }
   };
-  var EventDispatcher_default = EventDispatcher;
 
   // ../common/src/events/ProxyDispatcher.js
-  var ProxyDispatcher = class extends EventDispatcher_default {
+  var ProxyDispatcher = class extends EventDispatcher {
     constructor(options = {}) {
       super();
       options = Object.assign({
@@ -172,27 +207,26 @@
       };
     }
   };
-  var ProxyDispatcher_default = ProxyDispatcher;
 
   // src/utilities/cookies.js
-  var _cookies = null;
+  var _cache = null;
   var getAll = () => {
-    if (_cookies === null) {
-      _cookies = Object.fromEntries(
+    if (_cache === null) {
+      _cache = Object.fromEntries(
         document.cookie.split(/; */).map((cookie) => {
           const [key, ...value] = cookie.split("=");
           return [key, decodeURIComponent(value.join("="))];
         })
       );
     }
-    return _cookies;
+    return _cache;
   };
-  var set = (name2, value = "", days = 60) => {
-    name2 = name2.trim();
+  var set = (name, value = "", days = 60) => {
+    name = name.trim();
     if (!value || value === "") {
-      document.cookie = name2 + "=; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Path=/; SameSite=Strict;";
-      if (_cookies !== null) {
-        delete _cookies[name2];
+      document.cookie = name + "=; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Path=/; SameSite=Strict;";
+      if (_cache !== null) {
+        delete _cache[name];
       }
     } else {
       let expires = "";
@@ -201,39 +235,11 @@
         date.setTime(date.getTime() + days * 24 * 60 * 60 * 1e3);
         expires = "; expires=" + date.toUTCString();
       }
-      document.cookie = name2 + "=" + encodeURIComponent(value) + expires + "; Path=/; SameSite=Strict;";
+      document.cookie = name + "=" + encodeURIComponent(value) + expires + "; Path=/; SameSite=Strict;";
       getAll();
-      _cookies[name2] = value;
+      _cache[name] = value;
     }
   };
-
-  // src/factories/contexts/cookies.js
-  var name = "$cookies";
-  var cookies_default = (options, id2, state, proxy) => ({
-    deconstruct: !!options.deconstruct,
-    name,
-    create: (component, attribute, update, {
-      RevocableProxy
-    }) => {
-      const onDelete = (target, path) => update(id2, name + "." + path.join("."));
-      const onGet = (target, path) => attribute.accessed(id2, name + "." + path.join("."));
-      const onSet = (target, path) => update(id2, name + "." + path.join("."));
-      proxy.addEventListener("delete", onDelete);
-      proxy.addEventListener("get", onGet);
-      proxy.addEventListener("set", onSet);
-      const revocable = RevocableProxy(state, {});
-      return {
-        value: revocable.proxy,
-        // Remove event listeners.
-        destroy: () => {
-          proxy.removeEventListener("delete", onDelete);
-          proxy.removeEventListener("get", onGet);
-          proxy.removeEventListener("set", onSet);
-          revocable.revoke();
-        }
-      };
-    }
-  });
 
   // src/DoarsCookies.js
   var id = Symbol("ID_COOKIES");
@@ -242,49 +248,49 @@
       deconstruct: false
     }, options);
     let isEnabled = false;
-    let contextCookies, data, proxy, cookies;
+    let context, data, proxy, state;
     const onMutate = (target, path) => {
       if (path.length > 1) {
         console.warn('Nested cookies impossible tried to set "' + path.join(".") + '".');
       }
       set(path[0], target[path[0]]);
     };
-    const onEnable = function() {
+    const onEnable = () => {
       data = getAll();
-      proxy = new ProxyDispatcher_default();
-      cookies = proxy.add(data);
+      proxy = new ProxyDispatcher();
+      state = proxy.add(data);
       proxy.addEventListener("delete", onMutate);
       proxy.addEventListener("set", onMutate);
-      contextCookies = cookies_default(options, id, cookies, proxy);
+      context = cookies_default(id, state, proxy, !!options.deconstruct);
       const existingContexts = library.getContexts();
       let stateIndex = 0;
       for (let i = existingContexts.length - 1; i >= 0; i--) {
-        const context = existingContexts[i];
-        if (context.name === "$state") {
+        const context2 = existingContexts[i];
+        if (context2.name === "$state") {
           stateIndex = i;
           break;
         }
       }
-      library.addContexts(stateIndex, contextCookies);
+      library.addContexts(stateIndex, context);
     };
-    const onDisable = function() {
-      library.removeContexts(contextCookies);
+    const onDisable = () => {
+      library.removeContexts(context);
       proxy.removeEventListener("delete", onMutate);
       proxy.removeEventListener("set", onMutate);
-      cookies = null;
+      state = null;
       proxy.remove(data);
       proxy = null;
       data = null;
-      contextCookies = null;
+      context = null;
     };
-    this.disable = function() {
+    this.disable = () => {
       if (!library.getEnabled() && isEnabled) {
         isEnabled = false;
         library.removeEventListener("enabling", onEnable);
         library.removeEventListener("disabling", onDisable);
       }
     };
-    this.enable = function() {
+    this.enable = () => {
       if (!isEnabled) {
         isEnabled = true;
         library.addEventListener("enabling", onEnable);

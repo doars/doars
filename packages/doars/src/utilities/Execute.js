@@ -9,7 +9,13 @@ import { createContexts } from './Context.js'
  * @param {Object} options Optional options object.
  * @returns {Any} Result of expression.
  */
-export const execute = (component, attribute, expression, extra = null, options = null) => {
+export const execute = (
+  component,
+  attribute,
+  expression,
+  extra = null,
+  options = null,
+) => {
   // Override default with given options.
   options = Object.assign({
     return: true,

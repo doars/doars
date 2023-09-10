@@ -6,12 +6,19 @@ import { parseSelector } from '@doars/common/src/utilities/String.js'
 export default {
   name: 'attribute',
 
-  update: (component, attribute, { processExpression }) => {
+  update: (
+    component,
+    attribute, {
+      processExpression,
+    },
+  ) => {
     // Deconstruct attribute.
     const element = attribute.getElement()
     const modifiers = attribute.getModifiers()
 
-    const set = (value) => {
+    const set = (
+      value,
+    ) => {
       if (modifiers.selector) {
         if (typeof (value) !== 'string') {
           console.error('Doars: Value returned to attribute directive must be a string if the selector modifier is set.')
@@ -50,7 +57,9 @@ export default {
     // Handle promises.
     if (isPromise(result)) {
       Promise.resolve(result)
-        .then((resultResolved) => {
+        .then((
+          resultResolved,
+        ) => {
           // If stored data has changed then this promise should be ignored.
           if (attribute.getData() !== result) {
             return

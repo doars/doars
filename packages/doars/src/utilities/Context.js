@@ -5,7 +5,8 @@ import RevocableProxy from '@doars/common/src/polyfills/RevocableProxy.js'
  * Create an object with utility function.
  * @returns {Object} Utilities.
  */
-const createContextUtilities = () => {
+const createContextUtilities = (
+) => {
   return {
     createContexts,
     createContextsProxy,
@@ -21,7 +22,12 @@ const createContextUtilities = () => {
  * @param {Object} extra Optional extra context items.
  * @returns {Array<Object, Function>} Expressions contexts and destroy functions.
  */
-export const createContexts = (component, attribute, update, extra = null) => {
+export const createContexts = (
+  component,
+  attribute,
+  update,
+  extra = null,
+) => {
   // Get library.
   const library = component.getLibrary()
 
@@ -70,7 +76,8 @@ export const createContexts = (component, attribute, update, extra = null) => {
 
   return {
     contexts,
-    destroy: () => {
+    destroy: (
+    ) => {
       // Call all destroy functions.
       for (const destroyFunction of destroyFunctions) {
         destroyFunction(createContextUtilities())
@@ -91,12 +98,20 @@ export const createContexts = (component, attribute, update, extra = null) => {
  * @param {Function} update Called when update needs to be invoked.
  * @returns {Proxy} Expressions contexts' proxy.
  */
-export const createContextsProxy = (component, attribute, update, extra = null) => {
+export const createContextsProxy = (
+  component,
+  attribute,
+  update,
+  extra = null,
+) => {
   // Store context after first call.
   let data = null
   // Create context proxy.
   const revocable = RevocableProxy({}, {
-    get: (target, property) => {
+    get: (
+      target,
+      property,
+    ) => {
       // Create context.
       if (!data) {
         data = createContexts(component, attribute, update, extra)
@@ -127,7 +142,8 @@ export const createContextsProxy = (component, attribute, update, extra = null) 
   // Return context.
   return {
     contexts: revocable.proxy,
-    destroy: () => {
+    destroy: (
+    ) => {
       // Call destroy on created context.
       if (data && data.destroy) {
         data.destroy(component, attribute)
@@ -142,7 +158,7 @@ export const createContextsProxy = (component, attribute, update, extra = null) 
 export const createAutoContexts = (
   component,
   attribute,
-  extra = null
+  extra = null,
 ) => {
   // Collect update triggers.
   const triggers = []

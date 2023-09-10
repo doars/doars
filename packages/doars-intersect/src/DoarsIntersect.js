@@ -11,7 +11,7 @@ import IntersectionObserver from './IntersectionObserver.js'
  */
 export default function (
   library,
-  options = null
+  options = null,
 ) {
   // Clone options.
   options = Object.assign({}, options)
@@ -20,7 +20,8 @@ export default function (
   let isEnabled = false
   let directiveView, intersectionObserver
 
-  const onEnable = function () {
+  const onEnable = (
+  ) => {
     // Overwrite default options.
     const _options = Object.assign({}, options)
     if (!_options.root) {
@@ -34,7 +35,9 @@ export default function (
     directiveView = createDirectiveIntersect(intersectionObserver)
     library.addDirectives(-1, directiveView)
   }
-  const onDisable = function () {
+
+  const onDisable = (
+  ) => {
     // Remove directive.
     library.removeDirectives(directiveView)
     directiveView = null
@@ -43,7 +46,8 @@ export default function (
     intersectionObserver = null
   }
 
-  this.disable = function () {
+  this.disable = (
+  ) => {
     // Check if library is disabled.
     if (!library.getEnabled() && isEnabled) {
       isEnabled = false
@@ -54,7 +58,8 @@ export default function (
     }
   }
 
-  this.enable = function () {
+  this.enable = (
+  ) => {
     if (!isEnabled) {
       isEnabled = true
 

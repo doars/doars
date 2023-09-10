@@ -51,7 +51,7 @@ library.
     const doars = new window.Doars()
 
     // Setup the plugin.
-    const doarsFetch = new window.DoarsFetch(doars /*, options */)
+    const doarsFetch = window.DoarsFetch(doars /*, options */)
 
     // Enable library.
     doars.enable()
@@ -121,11 +121,12 @@ Call fetch function.
   - `@param {Doars} library` A doars library instance.
   - `@param {Object} options = null` [See options](#doarsstorertc-options).
   - `@returns {DoarsFetch}`
+- `disable` Disables the plugin. Can only be called when the doars is disabled.
+- `enable` Enables the plugin. Can only be called when the doars is disabled.
 
 #### DoarsFetch options
 
-- `{Object} defaultInit = {}` Default init to use, the init object provided when
-  calling fetch will be merged with this default.
+- `{Object} fetchOptions = {}` Default fetch options to use, the options object provided when calling fetch will be merged with this default.
 
 ## Compatible versions
 

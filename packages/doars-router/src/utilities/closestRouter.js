@@ -6,7 +6,9 @@ import { ROUTER } from '../symbols.js'
  * @param {HTMLElement} element Element to start searching from.
  * @returns {Router} Closest router.
  */
-const closestRouter = (element) => {
+const closestRouter = (
+  element,
+) => {
   if (!element.parentElement) {
     return
   }

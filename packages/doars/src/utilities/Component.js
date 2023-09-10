@@ -6,7 +6,9 @@ import { COMPONENT } from '../symbols.js'
  * @param {HTMLElement} element Element to start searching from.
  * @returns {Component} Closest component.
  */
-export const closestComponent = (element) => {
+export const closestComponent = (
+  element,
+) => {
   if (element.parentElement) {
     element = element.parentElement
 

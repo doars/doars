@@ -8,7 +8,7 @@ export const call = (
   attribute,
   expression,
   extra = null,
-  options = null
+  options = null,
 ) => {
   // Create contexts.
   const [contexts, destroyContexts] = createAutoContexts(component, attribute, extra)

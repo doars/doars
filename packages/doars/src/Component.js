@@ -9,7 +9,11 @@ import ProxyDispatcher from '@doars/common/src/events/ProxyDispatcher.js'
 
 // Import utilities.
 import { closestComponent } from './utilities/Component.js'
-import { transition, transitionIn, transitionOut } from '@doars/common/src/utilities/Transition.js'
+import {
+  transition,
+  transitionIn,
+  transitionOut,
+} from '@doars/common/src/utilities/Transition.js'
 import { walk } from '@doars/common/src/utilities/Element.js'
 
 export default class Component {
@@ -18,7 +22,10 @@ export default class Component {
    * @param {Doars} library Library instance.
    * @param {HTMLElement} element Element.
    */
-  constructor(library, element) {
+  constructor(
+    library,
+    element,
+  ) {
     // Create unique ID.
     const id = Symbol('ID_COMPONENT')
 
@@ -81,7 +88,8 @@ export default class Component {
      * Get the attributes in this component.
      * @returns {Array<Attribute>} List of attributes.
      */
-    this.getAttributes = () => {
+    this.getAttributes = (
+    ) => {
       return attributes
     }
 
@@ -89,7 +97,8 @@ export default class Component {
      * Get child components in hierarchy of this component.
      * @returns {Array<Component>} List of components.
      */
-    this.getChildren = () => {
+    this.getChildren = (
+    ) => {
       return children
     }
 
@@ -97,7 +106,8 @@ export default class Component {
      * Get root element of the component.
      * @returns {HTMLElement} Element.
      */
-    this.getElement = () => {
+    this.getElement = (
+    ) => {
       return element
     }
 
@@ -105,7 +115,8 @@ export default class Component {
      * Get component id.
      * @returns {Symbol} Unique identifier.
      */
-    this.getId = () => {
+    this.getId = (
+    ) => {
       return id
     }
 
@@ -113,7 +124,8 @@ export default class Component {
      * Get the library instance this component is from.
      * @returns {Doars} Doars instance.
      */
-    this.getLibrary = () => {
+    this.getLibrary = (
+    ) => {
       return library
     }
 
@@ -121,7 +133,8 @@ export default class Component {
      * Get parent component in hierarchy of this component.
      * @returns {Component} Component.
      */
-    this.getParent = () => {
+    this.getParent = (
+    ) => {
       return parent
     }
 
@@ -129,7 +142,8 @@ export default class Component {
      * Get the event dispatcher of state's proxy.
      * @returns {ProxyDispatcher} State's proxy dispatcher.
      */
-    this.getProxy = () => {
+    this.getProxy = (
+    ) => {
       return proxy
     }
 
@@ -137,7 +151,8 @@ export default class Component {
      * Get the component's state.
      * @returns {Proxy} State.
      */
-    this.getState = () => {
+    this.getState = (
+    ) => {
       return state
     }
 
@@ -145,14 +160,17 @@ export default class Component {
      * Set new parent component of this component.
      * @param {Component} _parent Parent component.
      */
-    this.setParent = (_parent) => {
+    this.setParent = (
+      _parent,
+    ) => {
       parent = _parent
     }
 
     /**
      * Initialize the component.
      */
-    this.initialize = () => {
+    this.initialize = (
+    ) => {
       if (isInitialized) {
         return
       }
@@ -185,7 +203,8 @@ export default class Component {
     /**
      * Destroy the component.
      */
-    this.destroy = () => {
+    this.destroy = (
+    ) => {
       if (!isInitialized) {
         return
       }
@@ -286,7 +305,11 @@ export default class Component {
      * @param {String} value Value of the attribute.
      * @returns {Attribute} New attribute.
      */
-    this.addAttribute = (element, name, value) => {
+    this.addAttribute = (
+      element,
+      name,
+      value,
+    ) => {
       // Get directive keys from library.
       const directivesKeys = library.getDirectivesNames()
 
@@ -315,7 +338,9 @@ export default class Component {
      * Remove an attribute.
      * @param {Attribute} attribute The attribute to remove.
      */
-    this.removeAttribute = (attribute) => {
+    this.removeAttribute = (
+      attribute,
+    ) => {
       // Get index of attribute in list.
       const indexInAttributes = attributes.indexOf(attribute)
       if (indexInAttributes < 0) {
@@ -343,7 +368,9 @@ export default class Component {
      * @param {HTMLElement} element Element to scan.
      * @returns {Array<Attribute>} New attributes.
      */
-    this.scanAttributes = (element) => {
+    this.scanAttributes = (
+      element,
+    ) => {
       // Get component's state attribute.
       const componentName = prefix + '-state'
       const ignoreName = prefix + '-ignore'
@@ -371,7 +398,9 @@ export default class Component {
      * Update an attribute.
      * @param {Attribute} attribute The attribute to update.
      */
-    this.updateAttribute = (attribute) => {
+    this.updateAttribute = (
+      attribute,
+    ) => {
       // Check if the attribute is still relevant, since the attribute or element could have been removed.
       if (!attribute.getElement() || attribute.getValue() === null || attribute.getValue() === undefined) {
         this.removeAttribute(attribute)
@@ -395,7 +424,9 @@ export default class Component {
      * Update the specified attributes of the component.
      * @param {Array<Attribute>} attributes Attributes to update.
      */
-    this.updateAttributes = (attributes) => {
+    this.updateAttributes = (
+      attributes,
+    ) => {
       if (!isInitialized || attributes.length <= 0) {
         if (!hasUpdated) {
           // Dispatch updated event anyway.
@@ -426,7 +457,9 @@ export default class Component {
      * Start updating the component's attributes.
      * @param {Array<Object>} triggers List of triggers.
      */
-    this.update = (triggers) => {
+    this.update = (
+      triggers,
+    ) => {
       if (!isInitialized) {
         return
       }
@@ -460,12 +493,15 @@ export default class Component {
      * Dispatch an event from this component.
      * @param {String} name Name of the event.
      */
-    const dispatchEvent = (name, detail) => {
+    const dispatchEvent = (
+      name,
+      detail,
+    ) => {
       element.dispatchEvent(
         new CustomEvent(prefix + '-' + name, {
           detail,
           bubbles: true,
-        })
+        }),
       )
     }
   }

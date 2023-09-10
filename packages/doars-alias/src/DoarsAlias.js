@@ -8,7 +8,7 @@ import { deepAssign } from '@doars/common/src/utilities/Object.js'
  */
 export default function (
   library,
-  options = null
+  options = null,
 ) {
   // Clone options.
   options = deepAssign({}, options)
@@ -18,7 +18,8 @@ export default function (
   // Store changes made to contexts and directives.
   let contextAliases, contextsRenamed, directiveAliases, directivesRenamed
 
-  const onEnable = function () {
+  const onEnable = (
+  ) => {
     if (options.aliasContexts || options.renameContexts) {
       // Store insert offset so aliases are added directly after the original.
       let insertOffset = 1
@@ -169,7 +170,9 @@ export default function (
       }
     }
   }
-  const onDisable = function () {
+
+  const onDisable = (
+  ) => {
     // Remove directive aliases first.
     if (directiveAliases) {
       library.removeDirectives(...directiveAliases)
@@ -223,7 +226,8 @@ export default function (
     }
   }
 
-  this.disable = function () {
+  this.disable = (
+  ) => {
     // Check if library is disabled.
     if (!library.getEnabled() && isEnabled) {
       isEnabled = false
@@ -234,7 +238,8 @@ export default function (
     }
   }
 
-  this.enable = function () {
+  this.enable = (
+  ) => {
     if (!isEnabled) {
       isEnabled = true
 

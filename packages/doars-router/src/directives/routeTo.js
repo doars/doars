@@ -9,7 +9,10 @@ const CLICK = 'click'
 export default {
   name: 'route-to',
 
-  update: (component, attribute) => {
+  update: (
+    component,
+    attribute,
+  ) => {
     const element = attribute.getElement()
     const modifiers = attribute.getModifiers()
     const value = attribute.getValue()
@@ -55,7 +58,10 @@ export default {
     }
   },
 
-  destroy: (component, attribute) => {
+  destroy: (
+    component,
+    attribute,
+  ) => {
     if (!attribute[ROUTE_TO]) {
       return
     }

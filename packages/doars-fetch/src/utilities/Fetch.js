@@ -1,4 +1,7 @@
-export const parseResponse = (response, type) => {
+export const parseResponse = (
+  response,
+  type,
+) => {
   let promise
   switch (String.prototype.toLowerCase.call(type)) {
     default:
@@ -36,7 +39,9 @@ export const parseResponse = (response, type) => {
   }
 
   return promise
-    .then((response) => {
+    .then((
+      response,
+    ) => {
       switch (type) {
         // Convert from html to HTMLElement inside a document fragment.
         case 'element':
@@ -61,7 +66,9 @@ export const parseResponse = (response, type) => {
     })
 }
 
-export const responseType = (response) => {
+export const responseType = (
+  response,
+) => {
   switch (String.prototype.toLowerCase(response.headers.get('content-type'))) {
     case 'text/html':
       return 'html'

@@ -1,13 +1,20 @@
 export default {
   name: '$nextTick',
 
-  create: (component, attribute, update, { createContexts }) => {
+  create: (
+    component,
+    attribute,
+    update, {
+      createContexts,
+    },
+  ) => {
     // Keep track of callbacks.
     let callbacks
 
     // The setup process is delayed since we only want this code to run if the context is used.
     let isSetup = false
-    const setup = () => {
+    const setup = (
+    ) => {
       // Exit early if already setup.
       if (isSetup) {
         return
@@ -21,7 +28,8 @@ export default {
       callbacks = []
 
       // Remove and invoke each callback in the list.
-      const handleUpdate = () => {
+      const handleUpdate = (
+      ) => {
         // Stop listening the update has happened.
         stopListening()
 
@@ -38,7 +46,8 @@ export default {
       }
 
       // Stop listening for the update event and attribute changes.
-      const stopListening = () => {
+      const stopListening = (
+      ) => {
         // Stop listening for updated event.
         library.removeEventListener('updated', handleUpdate)
 
@@ -56,7 +65,9 @@ export default {
     }
 
     return {
-      value: (callback) => {
+      value: (
+        callback,
+      ) => {
         // Do delayed setup now.
         setup()
 

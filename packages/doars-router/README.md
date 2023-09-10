@@ -51,7 +51,7 @@ library.
     const doars = new window.Doars()
 
     // Setup the plugin.
-    const doarsRouter = new window.DoarsRouter(doars /*, options */)
+    const doarsRouter = window.DoarsRouter(doars /*, options */)
 
     // Enable library.
     doars.enable()
@@ -167,6 +167,8 @@ directive.
   - `@param {Doars} library` A doars library instance.
   - `@param {Object} options = null` [See router options](#router-options).
   - `@returns {DoarsRouter}`
+- `disable` Disables the plugin. Can only be called when the doars is disabled.
+- `enable` Enables the plugin. Can only be called when the doars is disabled.
 
 ### Router
 

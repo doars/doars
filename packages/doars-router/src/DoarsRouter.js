@@ -16,7 +16,7 @@ import { deepAssign } from '@doars/common/src/utilities/Object.js'
  */
 export default function (
   library,
-  options = null
+  options = null,
 ) {
   // Clone options.
   options = deepAssign({}, options)
@@ -25,20 +25,23 @@ export default function (
   let isEnabled = false
   let directiveRouter
 
-  const onEnable = function () {
+  const onEnable = (
+  ) => {
     // Add contexts and directives.
     library.addContexts(0, contextRouter)
     directiveRouter = createDirectiveRouter(options)
     library.addDirectives(-1, directiveRouter, directiveRoute, directiveRouteTo)
   }
-  const onDisable = function () {
+  const onDisable = (
+  ) => {
     // Remove contexts and directives.
     library.removeContexts(contextRouter)
     library.removeDirectives(directiveRouter, directiveRoute, directiveRouteTo)
     directiveRouter = null
   }
 
-  this.disable = function () {
+  this.disable = (
+  ) => {
     // Check if library is disabled.
     if (!library.getEnabled() && isEnabled) {
       isEnabled = false
@@ -49,7 +52,8 @@ export default function (
     }
   }
 
-  this.enable = function () {
+  this.enable = (
+  ) => {
     if (!isEnabled) {
       isEnabled = true
 

@@ -2,24 +2,35 @@
 import { deepAssign } from '@doars/common/src/utilities/Object.js'
 import { parseResponse, responseType } from '../../utilities/Fetch.js'
 
-export default ({ defaultInit }) => ({
+export default ({
+  fetchOptions,
+}) => ({
   name: '$fetch',
 
-  create: () => {
+  create: (
+  ) => {
     return {
-      value: (url, init = null) => {
+      value: (
+        url,
+        options = null,
+      ) => {
         // Apply default options to init.
-        if (defaultInit) {
-          init = deepAssign({}, defaultInit, init)
+        if (fetchOptions) {
+          options = deepAssign({}, fetchOptions, options)
         }
 
         // Extract optional return type.
-        let returnType = init.returnType ? init.returnType : null
-        delete init.returnType
+        let returnType = options.returnType ? options.returnType : null
+        delete options.returnType
 
         // Perform and process fetch request.
-        return fetch(url, init)
-          .then((response) => {
+        return fetch(
+          url,
+          options,
+        )
+          .then((
+            response,
+          ) => {
             // Automatically base return type on header.
             if (returnType === 'auto' && response.headers.get('content-type')) {
               returnType = responseType(response)

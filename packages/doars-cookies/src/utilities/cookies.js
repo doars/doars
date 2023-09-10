@@ -1,18 +1,18 @@
-// Cookie cache.
-let _cookies = null
+let _cache = null
+
 export const getAll = (
 ) => {
-  if (_cookies === null) {
+  if (_cache === null) {
     // Get and parse cookies.
-    _cookies = Object.fromEntries(
+    _cache = Object.fromEntries(
       document.cookie.split(/; */)
         .map(cookie => {
           const [key, ...value] = cookie.split('=')
           return [key, decodeURIComponent(value.join('='))]
-        })
+        }),
     )
   }
-  return _cookies
+  return _cache
 }
 
 export const set = (
@@ -27,15 +27,15 @@ export const set = (
     document.cookie = name + '=; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Path=/; SameSite=Strict;'
 
     // Delete from cache as well.
-    if (_cookies !== null) {
+    if (_cache !== null) {
       // Ensure cache exists.
-      delete _cookies[name]
+      delete _cache[name]
     }
   } else {
     // Set cookie in document.
     let expires = ''
     if (days) {
-      const date = new Date();
+      const date = new Date()
       date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000))
       expires = '; expires=' + date.toUTCString()
     }
@@ -44,6 +44,6 @@ export const set = (
     // Ensure the cache is populated.
     getAll()
     // Set in cache as well.
-    _cookies[name] = value
+    _cache[name] = value
   }
 }

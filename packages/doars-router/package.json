@@ -45,7 +45,7 @@
   ],
   "devDependencies": {},
   "dependencies": {
-    "@doars/common": "^1.0.1",
+    "@doars/common": "^1.1.0",
     "path-to-regexp": "^6.2.1"
   }
 }

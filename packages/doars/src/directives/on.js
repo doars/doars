@@ -25,7 +25,12 @@ const KEYPRESS_MODIFIERS = [
 export default {
   name: 'on',
 
-  update: (component, attribute, { processExpression }) => {
+  update: (
+    component,
+    attribute, {
+      processExpression,
+    },
+  ) => {
     // Deconstruct attribute.
     let name = attribute.getKeyRaw()
 
@@ -81,7 +86,7 @@ export default {
     if (modifiers.once) {
       options.once = true
     }
-    if (modifiers.passive) {
+    if (modifiers.passive && !modifiers.prevent) {
       options.passive = true
     }
 
@@ -135,7 +140,9 @@ export default {
       target = window
     }
 
-    const handler = (event) => {
+    const handler = (
+      event,
+    ) => {
       // Prevent repeat calls if prevent is set.
       if (attribute[ON].prevent) {
         return
@@ -187,7 +194,8 @@ export default {
         event.stopPropagation()
       }
 
-      const execute = () => {
+      const execute = (
+      ) => {
         // Execute value using a copy of the attribute since this attribute should not update based on what contexts will be accessed.
         processExpression(component, attribute.clone(), value, {
           $event: event,
@@ -297,7 +305,9 @@ export default {
           }
           const cancelHoldName = CANCEL_EVENTS[name]
 
-          attribute[ON].cancel = (cancelEvent) => {
+          attribute[ON].cancel = (
+            cancelEvent,
+          ) => {
             // For keyboard events check any required key has been depressed.
             if (cancelHoldName === 'keyup' && key) {
               let keyLetGo = false
@@ -393,7 +403,10 @@ export default {
     }
   },
 
-  destroy: (component, attribute) => {
+  destroy: (
+    component,
+    attribute,
+  ) => {
     // Exit early if no listeners can be found.
     if (!attribute[ON]) {
       return
@@ -403,14 +416,15 @@ export default {
     const key = attribute.getKeyRaw()
 
     // Remove existing listener.
-    attribute[ON].target.removeEventListener(key, attribute[ON].handler)
+    attribute[ON].target
+      .removeEventListener(key, attribute[ON].handler)
 
     // Clear any ongoing callbacks and timeouts.
     if (attribute[ON].cancel) {
       attribute[ON].target
         .removeEventListener(
           CANCEL_EVENTS[key],
-          attribute[ON].cancel
+          attribute[ON].cancel,
         )
     }
     if (attribute[ON].timeout) {

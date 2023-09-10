@@ -8,11 +8,11 @@ import createFetchContext from './factories/contexts/fetch.js'
  */
 export default function (
   library,
-  options = null
+  options = null,
 ) {
   // Clone options.
   options = Object.assign({
-    defaultInit: {},
+    fetchOptions: {},
 
     encodingConverters: {
       'application/json': () => { },
@@ -20,24 +20,31 @@ export default function (
       'multipart/formdata': () => { },
     },
   }, options)
+  if (options.defaultInit) {
+    Object.assign(options.fetchOptions, options.defaultInit)
+  }
 
   // Set private variables.
   let isEnabled = false
   // Store contexts and directives.
   let fetchContext
 
-  const onEnable = function () {
+  const onEnable = (
+  ) => {
     // Create and add contexts and directives.
     fetchContext = createFetchContext(options)
     library.addContexts(0, fetchContext)
   }
-  const onDisable = function () {
+
+  const onDisable = (
+  ) => {
     // Remove contexts and directives.
     library.removeContexts(fetchContext)
     fetchContext = null
   }
 
-  this.disable = function () {
+  this.disable = (
+  ) => {
     // Check if library is disabled.
     if (!library.getEnabled() && isEnabled) {
       isEnabled = false
@@ -48,7 +55,8 @@ export default function (
     }
   }
 
-  this.enable = function () {
+  this.enable = (
+  ) => {
     if (!isEnabled) {
       isEnabled = true
 

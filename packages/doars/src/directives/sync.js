@@ -7,7 +7,12 @@ import { escapeHtml } from '@doars/common/src/utilities/String.js'
 export default {
   name: 'sync',
 
-  update: (component, attribute, { processExpression }) => {
+  update: (
+    component,
+    attribute, {
+      processExpression,
+    },
+  ) => {
     // Deconstruct attribute.
     const element = attribute.getElement()
 
@@ -46,7 +51,8 @@ export default {
       let handler
       switch (element.tagName) {
         case 'DIV':
-          handler = () => {
+          handler = (
+          ) => {
             // Update value.
             const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone())
             setDeeply(contexts, value, escapeHtml(element.innerText))
@@ -55,7 +61,8 @@ export default {
           break
 
         case 'INPUT':
-          handler = () => {
+          handler = (
+          ) => {
             const attributeClone = attribute.clone()
             const elementValue = escapeHtml(element.value)
             // Setup contexts.
@@ -99,7 +106,8 @@ export default {
           break
 
         case 'TEXTAREA':
-          handler = () => {
+          handler = (
+          ) => {
             // Update value.
             const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone())
             setDeeply(contexts, value, escapeHtml(element.innerText))
@@ -108,7 +116,8 @@ export default {
           break
 
         case 'SELECT':
-          handler = () => {
+          handler = (
+          ) => {
             // Create contexts.
             const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone())
 
@@ -117,7 +126,7 @@ export default {
               const elementValues = []
               for (const option of element.selectedOptions) {
                 elementValues.push(
-                  escapeHtml(option.value)
+                  escapeHtml(option.value),
                 )
               }
               // Update value.
@@ -210,7 +219,10 @@ export default {
     }
   },
 
-  destroy: (component, attribute) => {
+  destroy: (
+    component,
+    attribute,
+  ) => {
     // Exit early if nothing to destroy.
     if (!attribute[SYNC]) {
       return

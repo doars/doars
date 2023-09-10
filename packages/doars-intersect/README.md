@@ -30,7 +30,7 @@ import DoarsIntersect from '@doars/doars-intersect'
 const doars = new Doars()
 
 // Setup the plugin.
-const doarsIntersect = new DoarsIntersect(doars /*, options */)
+const doarsIntersect = DoarsIntersect(doars /*, options */)
 
 // Enable library.
 doars.enable()

@@ -30,7 +30,7 @@ import DoarsAlias from '@doars/doars-alias'
 const doars = new Doars()
 
 // Setup the plugin.
-const doarsAlias = new DoarsAlias(doars /*, options */)
+const doarsAlias = DoarsAlias(doars /*, options */)
 
 // Enable library.
 doars.enable()
@@ -71,7 +71,7 @@ library.
 const doars = new Doars()
 
 // Setup the plugin.
-const doarsAlias = new DoarsAlias(doars, {
+const doarsAlias = DoarsAlias(doars, {
   aliasContexts: {
     component: "root",
   },
@@ -99,6 +99,8 @@ doars.enable()
   - `@param {Doars} library` A doars library instance.
   - `@param {Object} options = null` [See options](#doarsalias-options).
   - `@returns {DoarsAlias}`
+- `disable` Disables the plugin. Can only be called when the doars is disabled.
+- `enable` Enables the plugin. Can only be called when the doars is disabled.
 
 #### DoarsAlias options
 

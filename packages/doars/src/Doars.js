@@ -43,7 +43,9 @@ export default class Doars extends EventDispatcher {
    * Create instance.
    * @param {Object} options Options.
    */
-  constructor(options) {
+  constructor(
+    options,
+  ) {
     super()
 
     // Deconstruct options.
@@ -121,7 +123,8 @@ export default class Doars extends EventDispatcher {
      * Get the unique identifier.
      * @returns {Symbol} Unique identifier.
      */
-    this.getId = () => {
+    this.getId = (
+    ) => {
       return id
     }
 
@@ -129,7 +132,8 @@ export default class Doars extends EventDispatcher {
      * Get the current options.
      * @returns {Object} Current options.
      */
-    this.getOptions = () => {
+    this.getOptions = (
+    ) => {
       return Object.assign({}, options)
     }
 
@@ -139,7 +143,8 @@ export default class Doars extends EventDispatcher {
      * Whether this is currently enabled.
      * @returns {Boolean} Whether the library is enabled.
      */
-    this.getEnabled = () => {
+    this.getEnabled = (
+    ) => {
       return isEnabled
     }
 
@@ -147,7 +152,8 @@ export default class Doars extends EventDispatcher {
      * Enable the library.
      * @returns {Doars} This instance.
      */
-    this.enable = () => {
+    this.enable = (
+    ) => {
       if (isEnabled) {
         return this
       }
@@ -206,7 +212,8 @@ export default class Doars extends EventDispatcher {
      * Disable the library.
      * @returns {Doars} This instance.
      */
-    this.disable = () => {
+    this.disable = (
+    ) => {
       if (!isEnabled) {
         return this
       }
@@ -243,7 +250,9 @@ export default class Doars extends EventDispatcher {
      * @param  {...HTMLElement} elements Elements to add as components.
      * @returns {Array<Component>} List of added components.
      */
-    const addComponents = (...elements) => {
+    const addComponents = (
+      ...elements
+    ) => {
       const results = []
       const resultElements = []
       for (const element of elements) {
@@ -289,7 +298,9 @@ export default class Doars extends EventDispatcher {
      * @param  {...Component} components Component to remove.
      * @returns {Array<HTMLElement>} List of elements of removed components.
      */
-    const removeComponents = (..._components) => {
+    const removeComponents = (
+      ..._components
+    ) => {
       const results = []
       for (const component of _components) {
         // Skip if not in list.
@@ -321,7 +332,8 @@ export default class Doars extends EventDispatcher {
      * Get simple contexts.
      * @returns {Object} Stored simple contexts.
      */
-    this.getSimpleContexts = () => Object.assign({}, contextsBase)
+    this.getSimpleContexts = (
+    ) => Object.assign({}, contextsBase)
 
     /**
      * Add a value directly to the contexts without needing to use an object or having to deal with indices.
@@ -329,7 +341,10 @@ export default class Doars extends EventDispatcher {
      * @param {Any} value The value to add, null removes the context.
      * @returns {Boolean} Whether the value was successfully set.
      */
-    this.setSimpleContext = (name, value = null) => {
+    this.setSimpleContext = (
+      name,
+      value = null,
+    ) => {
       // Delete context if value is null.
       if (value === null) {
         delete contextsBase[name]
@@ -359,7 +374,9 @@ export default class Doars extends EventDispatcher {
      * @param {Object} contexts An object where the key is the name for the simple context and the value the simple context.
      * @returns {Object} Which simple context was successfully set.
      */
-    this.setSimpleContexts = (contexts) => {
+    this.setSimpleContexts = (
+      contexts,
+    ) => {
       const result = {}
       for (const name in contexts) {
         if (Object.hasOwnProperty.call(contexts, name)) {
@@ -375,7 +392,8 @@ export default class Doars extends EventDispatcher {
      * Get list contexts.
      * @returns {Array<Object>} List of contexts.
      */
-    this.getContexts = () => [...contexts]
+    this.getContexts = (
+    ) => [...contexts]
 
     /**
      * Add contexts at the index. *Can only be called when NOT enabled.*
@@ -383,7 +401,10 @@ export default class Doars extends EventDispatcher {
      * @param {...Object} _contexts List of contexts to add.
      * @returns {Array<Object>} List of added contexts.
      */
-    this.addContexts = (index, ..._contexts) => {
+    this.addContexts = (
+      index,
+      ..._contexts
+    ) => {
       if (isEnabled) {
         console.warn('Doars: Unable to add contexts after being enabled!')
         return
@@ -425,7 +446,9 @@ export default class Doars extends EventDispatcher {
      * @param {...Object} _contexts List of contexts to remove.
      * @returns {Array<Object>} List of removed contexts.
      */
-    this.removeContexts = (..._contexts) => {
+    this.removeContexts = (
+      ..._contexts
+    ) => {
       if (isEnabled) {
         console.warn('Doars: Unable to remove contexts after being enabled!')
         return
@@ -460,26 +483,31 @@ export default class Doars extends EventDispatcher {
      * Get list directives.
      * @returns {Array<Object>} List of directives.
      */
-    this.getDirectives = () => [...directives]
+    this.getDirectives = (
+    ) => [...directives]
 
     /**
      * Get list of directive names.
      * @returns {Array<String>} List of directive names.
      */
-    this.getDirectivesNames = () => [...directivesNames]
+    this.getDirectivesNames = (
+    ) => [...directivesNames]
 
     /**
      * Get object of directives with the directive name as key.
      * @returns {Object} Object of directives.
      */
-    this.getDirectivesObject = () => Object.assign({}, directivesObject)
+    this.getDirectivesObject = (
+    ) => Object.assign({}, directivesObject)
 
     /**
      * Check whether a name matches that of a directive.
      * @param {String} attributeName Name of the attribute to match.
      * @returns {Boolean} Whether the name matches that of a directive.
      */
-    this.isDirectiveName = (attributeName) => directivesRegexp.test(attributeName)
+    this.isDirectiveName = (
+      attributeName,
+    ) => directivesRegexp.test(attributeName)
 
     /**
      * Add directives at the index. *Can only be called when NOT enabled.*
@@ -487,7 +515,10 @@ export default class Doars extends EventDispatcher {
      * @param  {...Object} _directives List of directives to add.
      * @returns {Array<Object>} List of added directives.
      */
-    this.addDirectives = (index, ..._directives) => {
+    this.addDirectives = (
+      index,
+      ..._directives
+    ) => {
       if (isEnabled) {
         console.warn('Doars: Unable to add directives after being enabled!')
         return
@@ -532,7 +563,9 @@ export default class Doars extends EventDispatcher {
      * @param  {...Object} _directives List of directives to remove.
      * @returns {Array<Object>} List of removed directives.
      */
-    this.removeDirectives = (..._directives) => {
+    this.removeDirectives = (
+      ..._directives
+    ) => {
       if (isEnabled) {
         console.warn('Doars: Unable to remove directives after being enabled!')
         return
@@ -570,7 +603,9 @@ export default class Doars extends EventDispatcher {
      * Update directives based on triggers. *Can only be called when enabled.*
      * @param {Array<Object>} _triggers List of triggers to update with.
      */
-    this.update = (_triggers) => {
+    this.update = (
+      _triggers,
+    ) => {
       if (!isEnabled) {
         // Exit early since it needs to enabled first.
         return
@@ -646,7 +681,9 @@ export default class Doars extends EventDispatcher {
      * Handle document mutations by update internal data and executing directives.
      * @param {Array<MutationRecord>} newMutations List of mutations.
      */
-    const handleMutation = (newMutations) => {
+    const handleMutation = (
+      newMutations,
+    ) => {
       // Add mutations to existing list.
       mutations.push(...newMutations)
 
@@ -714,7 +751,9 @@ export default class Doars extends EventDispatcher {
           } while (element = iterator())
         }
       }
-      const add = (element) => {
+      const add = (
+        element,
+      ) => {
         // Skip if not an element.
         if (element.nodeType !== 1) {
           return

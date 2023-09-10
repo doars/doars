@@ -1,7 +1,14 @@
 export default {
   name: '$children',
 
-  create: (component, attribute, update, { createContextsProxy, RevocableProxy }) => {
+  create: (
+    component,
+    attribute,
+    update, {
+      createContextsProxy,
+      RevocableProxy,
+    },
+  ) => {
     // Create contexts proxy for children.
     let children
     const revocable = RevocableProxy(component.getChildren(), {
@@ -30,7 +37,8 @@ export default {
     return {
       value: revocable.proxy,
 
-      destroy: () => {
+      destroy: (
+      ) => {
         // Call destroy on all created contexts.
         if (children) {
           children.forEach((child) => child.destroy())

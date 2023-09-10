@@ -15,7 +15,7 @@ const id = Symbol('ID_COOKIES')
  */
 export default function (
   library,
-  options = null
+  options = null,
 ) {
   // Clone options.
   options = Object.assign({
@@ -24,7 +24,7 @@ export default function (
 
   // Set private variables.
   let isEnabled = false
-  let contextCookies, data, proxy, cookies
+  let context, data, proxy, state
 
   const onMutate = (target, path) => {
     if (path.length > 1) {
@@ -33,18 +33,19 @@ export default function (
     set(path[0], target[path[0]])
   }
 
-  const onEnable = function () {
+  const onEnable = (
+  ) => {
     // Create proxy.
     data = getAll()
     proxy = new ProxyDispatcher()
-    cookies = proxy.add(data)
+    state = proxy.add(data)
 
     // Add event listeners.
     proxy.addEventListener('delete', onMutate)
     proxy.addEventListener('set', onMutate)
 
     // Create contexts.
-    contextCookies = createCookieContext(options, id, cookies, proxy)
+    context = createCookieContext(id, state, proxy, !!options.deconstruct)
     // Get index of state and insert the context directly before it.
     const existingContexts = library.getContexts()
     let stateIndex = 0
@@ -55,25 +56,28 @@ export default function (
         break
       }
     }
-    library.addContexts(stateIndex, contextCookies)
+    library.addContexts(stateIndex, context)
   }
-  const onDisable = function () {
+
+  const onDisable = (
+  ) => {
     // Remove contexts.
-    library.removeContexts(contextCookies)
+    library.removeContexts(context)
 
     // Remove event listeners.
     proxy.removeEventListener('delete', onMutate)
     proxy.removeEventListener('set', onMutate)
 
     // Reset references.
-    cookies = null
+    state = null
     proxy.remove(data)
     proxy = null
     data = null
-    contextCookies = null
+    context = null
   }
 
-  this.disable = function () {
+  this.disable = (
+  ) => {
     // Check if library is disabled.
     if (!library.getEnabled() && isEnabled) {
       isEnabled = false
@@ -84,7 +88,8 @@ export default function (
     }
   }
 
-  this.enable = function () {
+  this.enable = (
+  ) => {
     if (!isEnabled) {
       isEnabled = true
 

@@ -8,12 +8,19 @@ import { insertAfter } from '@doars/common/src/utilities/Element.js'
 export default {
   name: 'route',
 
-  update: (component, attribute, { transitionIn, transitionOut }) => {
+  update: (
+    component,
+    attribute, {
+      transitionIn,
+      transitionOut,
+    },
+  ) => {
     // Deconstruct attribute.
     const element = attribute.getElement()
 
     let router
-    const setup = () => {
+    const setup = (
+    ) => {
       // Stop listening to router and remove it.
       if (router && attribute[ROUTE]) {
         router.removeEventListener('changed', attribute[ROUTE].handler)
@@ -41,7 +48,10 @@ export default {
       router.addRoute(value)
 
       // Handle router changes.
-      const handleChange = (router, route) => {
+      const handleChange = (
+        router,
+        route,
+      ) => {
         if (route !== value) {
           if (element.tagName === 'TEMPLATE') {
             if (attribute[ROUTE] && attribute[ROUTE].element) {
@@ -91,7 +101,12 @@ export default {
     setup()
   },
 
-  destroy: (component, attribute, { transitionOut }) => {
+  destroy: (
+    component,
+    attribute, {
+      transitionOut,
+    },
+  ) => {
     // Deconstruct attribute.
     const element = attribute.getElement()
     if (element.tagName === 'TEMPLATE') {

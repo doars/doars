@@ -4,11 +4,18 @@ import Router from '../../Router.js'
 // Import symbols.
 import { ROUTER } from '../../symbols.js'
 
-export default (routerOptions) => {
+export default (
+  routerOptions,
+) => {
   return {
     name: 'router',
 
-    update: (component, attribute, { processExpression }) => {
+    update: (
+      component,
+      attribute, {
+        processExpression,
+      },
+    ) => {
       // Deconstruct attribute.
       const element = attribute.getElement()
 
@@ -22,7 +29,10 @@ export default (routerOptions) => {
       }
     },
 
-    destroy: (component, attribute) => {
+    destroy: (
+      component,
+      attribute,
+    ) => {
       // Deconstruct attribute.
       const element = attribute.getElement()
 
@@ -45,7 +55,10 @@ export default (routerOptions) => {
       const library = component.getLibrary()
 
       // Trigger update due to changed router.
-      library.update([{ id, path: '' }])
+      library.update([{
+        id,
+        path: '',
+      }])
     },
   }
 }

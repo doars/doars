@@ -1,9 +1,17 @@
+const NAME = '$state'
+
 export default {
   deconstruct: true,
 
-  name: '$state',
+  name: NAME,
 
-  create: (component, attribute, update, { RevocableProxy }) => {
+  create: (
+    component,
+    attribute,
+    update, {
+      RevocableProxy,
+    },
+  ) => {
     // Deconstruct component.
     const proxy = component.getProxy()
     const state = component.getState()
@@ -12,9 +20,9 @@ export default {
     }
 
     // Create event handlers.
-    const onDelete = (target, path) => update(component.getId(), '$state.' + path.join('.'))
-    const onGet = (target, path) => attribute.accessed(component.getId(), '$state.' + path.join('.'))
-    const onSet = (target, path) => update(component.getId(), '$state.' + path.join('.'))
+    const onDelete = (target, path) => update(component.getId(), NAME + '.' + path.join('.'))
+    const onGet = (target, path) => attribute.accessed(component.getId(), NAME + '.' + path.join('.'))
+    const onSet = (target, path) => update(component.getId(), NAME + '.' + path.join('.'))
 
     // Add event listeners.
     proxy.addEventListener('delete', onDelete)
@@ -28,7 +36,8 @@ export default {
       value: revocable.proxy,
 
       // Remove event listeners.
-      destroy: () => {
+      destroy: (
+      ) => {
         proxy.removeEventListener('delete', onDelete)
         proxy.removeEventListener('get', onGet)
         proxy.removeEventListener('set', onSet)

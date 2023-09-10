@@ -1,7 +1,12 @@
 export default {
   name: 'watch',
 
-  update: (component, attribute, { processExpression }) => {
+  update: (
+    component,
+    attribute, {
+      processExpression,
+    },
+  ) => {
     // Deconstruct attribute.
     const value = attribute.getValue()
 

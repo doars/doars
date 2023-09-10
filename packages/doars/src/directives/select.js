@@ -9,7 +9,12 @@ const TYPE_CHECKBOX = 'checkbox'
 export default {
   name: 'select',
 
-  update: (component, attribute, { processExpression }) => {
+  update: (
+    component,
+    attribute, {
+      processExpression,
+    },
+  ) => {
     // Deconstruct attribute.
     const element = attribute.getElement()
 
@@ -20,7 +25,9 @@ export default {
       return
     }
 
-    const set = (data) => {
+    const set = (
+      data,
+    ) => {
       // Iterate over the select options.
       if (element.tagName === TAG_SELECT) {
         for (const option of Array.from(element.options)) {
@@ -72,7 +79,9 @@ export default {
     // Handle promises.
     if (isPromise(result)) {
       Promise.resolve(result)
-        .then((resultResolved) => {
+        .then((
+          resultResolved,
+        ) => {
           // If stored data has changed then this promise should be ignored.
           if (attribute.getData() !== result) {
             return
