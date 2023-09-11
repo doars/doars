@@ -68,9 +68,9 @@ This mono-repository includes the core library as well as several plugins. See t
 
 - Memoization context for faster updates.
 - Handling form submissions to allow in page changes.
+- Visibility directives similar to intersection plugin.
 - Realtime shared state between clients using WebRTC.
 - Sensor access via context and react to changes via directives (Accelerometer, etc.)
-- Visibility directives similar to intersection plugin.
 
 ## Contributing
 
