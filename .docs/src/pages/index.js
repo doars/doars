@@ -468,6 +468,10 @@ export default function () {
           }, '@doars/doars-morph', 'Adds a morph context and directive that instead of setting directly to the innerHTML of an element morphs the DOM to the new structure.'),
 
           card({
+            href: 'https://github.com/doars/doars/tree/main/packages/doars-navigate#readme',
+          }, '@doars/doars-morph', 'Adds a navigation directive that loads pages without unloading the current page by listening to anchor tags.'),
+
+          card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars-router#readme',
           }, '@doars/doars-router', 'Adds a router context with set of directives to control it.'),
 

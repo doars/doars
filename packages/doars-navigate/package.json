@@ -1,0 +1,49 @@
+{
+  "author": {
+    "name": "Ron Dekker",
+    "website": "https://rondekker.com"
+  },
+  "name": "@doars/doars-navigate",
+  "packagename": "DoarsNavigate",
+  "description": "Doars plugin that adds a navigation directive that loads pages without unloading the current page by listening to anchor tags.",
+  "keywords": [
+    "doars",
+    "navigate"
+  ],
+  "version": "2.0.1",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/DoarsNavigate.js",
+  "browser": "dst/doars-navigate.js",
+  "homepage": "https://github.com/doars/doars/tree/main/packages/doars-navigate#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/doars/doars.git"
+  },
+  "bugs": {
+    "url": "https://github.com/doars/doars/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "NODE_ENV=production node config.esbuild.js",
+    "develop": "NODE_ENV=development node config.esbuild.js",
+    "lint": "eslint src/** --cache --fix --no-error-on-unmatched-pattern",
+    "release": "yarn run lint && yarn run test && yarn run build && yarn publish",
+    "test": "yarn run test:browser && yarn run test:runtime",
+    "test:browser": "echo 'todo'",
+    "test:runtime": "echo 'todo'",
+    "upgrade": "npm-check-updates --upgrade --target minor"
+  },
+  "files": [
+    "dst",
+    "src",
+    "CHANGELOG.md",
+    "README.md"
+  ],
+  "devDependencies": {},
+  "dependencies": {
+    "@doars/common": "^1.1.0"
+  }
+}

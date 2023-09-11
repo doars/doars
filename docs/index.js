@@ -1656,7 +1656,7 @@ var on_default = {
     if (modifiers.once) {
       options.once = true;
     }
-    if (modifiers.passive) {
+    if (modifiers.passive && !modifiers.prevent) {
       options.passive = true;
     }
     let executionModifier = EXECUTION_MODIFIERS.NONE;
