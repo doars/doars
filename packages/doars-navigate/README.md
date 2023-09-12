@@ -91,15 +91,15 @@ This directive will listen to all anchor tags in it and update its contents when
 
 ### d-navigate-loader
 
-Set this directive on a `d-navigate` directive to specify another element as the loader to show when a link is clicked, but before the content is fetched. The directive should return an element.
+Set this directive on a `d-navigate` directive to specify another element as the loader to show when a link is clicked, but before the content is fetched. The directive should return an element or the selector of an element inside. If a string is returned the element should exist inside the element with this directive on it.
 
-The simplest method is to use this directive in combination with the `$references` context.
+The simplest way to get an element is to use this directive in combination with the `$references` context.
 
 ### d-navigate-target
 
-Set this directive on a `d-navigate` directive to specify another element as the target to update when a link is clicked. The directive should return an element.
+Set this directive on a `d-navigate` directive to specify another element as the target to update when a link is clicked. The directive should return an element or the selector of an element. If a string is returned the element should exist inside the element with this directive on it.
 
-The simplest method is to use this directive in combination with the `$references` context.
+The simplest way to get an element is to use this directive in combination with the `$references` context.
 
 #### Examples
 

@@ -35,17 +35,22 @@ const loaderAdd = (
 ) => {
   const element = attribute.getElement()
   const directive = attribute.getDirective()
+
   const attributeName = libraryOptions.prefix + '-' + directive + NAME_LOADER
   if (!element.hasAttribute(attributeName)) {
     return
   }
-  const loaderTemplate = processExpression(
+  let loaderTemplate = processExpression(
     component,
     attribute,
     element.getAttribute(attributeName),
   )
   if (!loaderTemplate) {
     return
+  }
+
+  if (typeof (loaderTemplate) === 'string') {
+    loaderTemplate = element.querySelector(loaderTemplate)
   }
 
   // Check if placed on a template tag.
@@ -413,6 +418,9 @@ export default (
                 attribute,
                 element.getAttribute(attributeName),
               )
+              if (typeof (target) === 'string') {
+                target = element.querySelector(target)
+              }
             }
             if (!target) {
               target = element

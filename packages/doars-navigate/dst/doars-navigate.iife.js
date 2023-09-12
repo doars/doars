@@ -278,13 +278,16 @@
     if (!element.hasAttribute(attributeName)) {
       return;
     }
-    const loaderTemplate = processExpression(
+    let loaderTemplate = processExpression(
       component,
       attribute,
       element.getAttribute(attributeName)
     );
     if (!loaderTemplate) {
       return;
+    }
+    if (typeof loaderTemplate === "string") {
+      loaderTemplate = element.querySelector(loaderTemplate);
     }
     if (loaderTemplate.tagName !== "TEMPLATE") {
       console.warn("Doars: `" + attributeName + "` directive must be placed on a `<template>` tag.");
@@ -536,6 +539,9 @@
                   attribute,
                   element.getAttribute(attributeName)
                 );
+                if (typeof target === "string") {
+                  target = element.querySelector(target);
+                }
               }
               if (!target) {
                 target = element;
