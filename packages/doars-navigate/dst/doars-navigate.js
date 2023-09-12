@@ -260,7 +260,6 @@ var _updateChildren = (existingNode, newNode) => {
 };
 
 // src/factories/directives/navigate.js
-var NAME = "navigate";
 var NAME_LOADER = "-loader";
 var NAME_TARGET = "-target";
 var HEADER_DATE = "Date";
@@ -308,10 +307,7 @@ var loaderAdd = (attribute, component, libraryOptions, processExpression, transi
   attribute[NAVIGATE].loaderTransitionIn = transitionIn(component, loaderElement);
 };
 var loaderRemove = (attribute, component, transitionOut) => {
-  if (attribute[NAVIGATE].loaderTransitionOut) {
-    return;
-  }
-  if (!attribute[NAVIGATE].loaderElement) {
+  if (attribute[NAVIGATE].loaderTransitionOut || !attribute[NAVIGATE].loaderElement) {
     return;
   }
   const loaderElement = attribute[NAVIGATE].loaderElement;
@@ -467,7 +463,7 @@ var navigate_default = (options) => {
     });
   };
   return {
-    name: NAME,
+    name: "navigate",
     update: (component, attribute, {
       processExpression,
       transitionIn,
@@ -547,10 +543,22 @@ var navigate_default = (options) => {
             }
           }
           if (modifiers.morph) {
-            html = fromString(html);
-            morphTree(target, html, {
-              childrenOnly: !modifiers.outer
-            });
+            if (modifiers.outer) {
+              morphTree(target, html);
+            } else {
+              if (target.children.length === 0) {
+                target.appendChild(document.createElement("div"));
+              } else if (target.children.length > 1) {
+                for (let i = target.children.length - 1; i >= 1; i--) {
+                  target.children[i].remove();
+                }
+              }
+              const root = morphTree(target.children[0], html);
+              if (!target.children[0].isSameNode(root)) {
+                target.children[0].remove();
+                target.appendChild(root);
+              }
+            }
           } else if (modifiers.outer) {
             target.outerHTML = html;
           } else {
@@ -713,6 +721,7 @@ var navigate_default = (options) => {
       }
       attribute[NAVIGATE] = {
         cache,
+        element,
         historyHandler,
         loadHandler,
         destroyPreloader
@@ -731,7 +740,7 @@ var navigate_default = (options) => {
           cache = {};
         }
       }
-      attribute[NAVIGATE].target.removeEventListener(
+      attribute[NAVIGATE].element.removeEventListener(
         "click",
         attribute[NAVIGATE].loadHandler
       );

@@ -7,15 +7,11 @@ import {
 import { NAVIGATE } from '../../symbols.js'
 
 // Import utilities.
-import {
-  fromString as elementFromString,
-  insertAfter,
-} from '@doars/common/src/utilities/Element.js'
+import { insertAfter } from '@doars/common/src/utilities/Element.js'
 import { decode } from '@doars/common/src/utilities/Html.js'
 import { morphTree } from '@doars/common/src/utilities/Morph.js'
 
 // Cannot be renamed...
-const NAME = 'navigate'
 const NAME_LOADER = '-loader'
 const NAME_TARGET = '-target'
 const HEADER_DATE = 'Date'
@@ -87,12 +83,11 @@ const loaderRemove = (
   component,
   transitionOut,
 ) => {
-  // Check if not already transitioning out.
-  if (attribute[NAVIGATE].loaderTransitionOut) {
-    return
-  }
-  // Check if a loader element exists.
-  if (!attribute[NAVIGATE].loaderElement) {
+  // Check if not already transitioning out and if a loader element exists.
+  if (
+    attribute[NAVIGATE].loaderTransitionOut ||
+    !attribute[NAVIGATE].loaderElement
+  ) {
     return
   }
   // Transition element in.
@@ -316,7 +311,7 @@ export default (
   }
 
   return {
-    name: NAME,
+    name: 'navigate',
 
     update: (
       component,
@@ -429,10 +424,25 @@ export default (
 
           // Update target.
           if (modifiers.morph) {
-            html = elementFromString(html)
-            morphTree(target, html, {
-              childrenOnly: !modifiers.outer,
-            })
+            if (modifiers.outer) {
+              morphTree(target, html)
+            } else {
+              // Ensure element only has one child.
+              if (target.children.length === 0) {
+                target.appendChild(document.createElement('div'))
+              } else if (target.children.length > 1) {
+                for (let i = target.children.length - 1; i >= 1; i--) {
+                  target.children[i].remove()
+                }
+              }
+
+              // Morph first child to given target tree.
+              const root = morphTree(target.children[0], html)
+              if (!target.children[0].isSameNode(root)) {
+                target.children[0].remove()
+                target.appendChild(root)
+              }
+            }
           } else if (modifiers.outer) {
             target.outerHTML = html
           } else {
@@ -653,6 +663,7 @@ export default (
 
       attribute[NAVIGATE] = {
         cache,
+        element,
         historyHandler,
         loadHandler,
         destroyPreloader,
@@ -680,7 +691,7 @@ export default (
       }
 
       // Remove existing listener.
-      attribute[NAVIGATE].target.removeEventListener(
+      attribute[NAVIGATE].element.removeEventListener(
         'click',
         attribute[NAVIGATE].loadHandler,
       )
@@ -690,7 +701,6 @@ export default (
           attribute[NAVIGATE].historyHandler,
         )
       }
-
       if (attribute[NAVIGATE].destroyPreloader) {
         attribute[NAVIGATE].destroyPreloader()
       }

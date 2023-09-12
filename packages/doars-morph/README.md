@@ -89,6 +89,11 @@ are added by the plugin.
 ```
 
 ```HTML
+<!-- Morph the outer HTML of the element, changing this element in the process. -->
+<div d-html.outer="'<h1>Hello world!</h1>'"></div>
+```
+
+```HTML
 <!-- Morph the inner HTML of the element to a value from the state. -->
 <div d-morph="$state.message"></div>
 ```

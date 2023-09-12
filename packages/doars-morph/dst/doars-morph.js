@@ -276,20 +276,28 @@ var morph_default2 = {
       if (modifiers.decode && typeof html === "string") {
         html = decode(html);
       }
-      if (element.children.length === 0) {
-        element.appendChild(document.createElement("div"));
-      } else if (element.children.length > 1) {
-        for (let i = element.children.length - 1; i >= 1; i--) {
-          element.children[i].remove();
+      if (modifiers.outer) {
+        morphTree(element, html);
+      } else {
+        if (element.children.length === 0) {
+          element.appendChild(document.createElement("div"));
+        } else if (element.children.length > 1) {
+          for (let i = element.children.length - 1; i >= 1; i--) {
+            element.children[i].remove();
+          }
+        }
+        const root = morphTree(element.children[0], html);
+        if (!element.children[0].isSameNode(root)) {
+          element.children[0].remove();
+          element.appendChild(root);
         }
       }
-      const root = morphTree(element.children[0], html);
-      if (!element.children[0].isSameNode(root)) {
-        element.children[0].remove();
-        element.appendChild(root);
-      }
     };
-    const result = processExpression(component, attribute, attribute.getValue());
+    const result = processExpression(
+      component,
+      attribute,
+      attribute.getValue()
+    );
     attribute.setData(result);
     if (isPromise(result)) {
       Promise.resolve(result).then((resultResolved) => {

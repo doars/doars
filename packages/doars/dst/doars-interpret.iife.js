@@ -1458,8 +1458,14 @@
           return;
         }
         if (typeof html === "string") {
-          if (element.innerHTML !== html) {
-            element.innerHTML = html;
+          if (modifiers.outer) {
+            if (element.outerHTML !== html) {
+              element.outerHTML = html;
+            }
+          } else {
+            if (element.innerHTML !== html) {
+              element.innerHTML = html;
+            }
           }
           return;
         }

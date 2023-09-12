@@ -188,6 +188,7 @@ Set the inner HTML of the element. The directive's value should be a function ex
 #### d-html modifiers
 
 - `{Boolean} decode = false` If the returned type is a string the value will's special HTML characters will be decoded. For example `&gt;` will become `>`.
+- `{Boolean} outer = false` Set the result to `outerHTML` instead of the `innerHTML`.
 
 #### d-html examples
 
@@ -199,6 +200,11 @@ Set the inner HTML of the element. The directive's value should be a function ex
 ```HTML
 <!-- Decodes the special HTML characters before writing the string to the inner HTML of the element. -->
 <div d-html.decode="'&lt;h1&gt;Hello world!&lt;/h1&gt;'"></div>
+```
+
+```HTML
+<!-- Write a string to the outer HTML of the element, replacing this element in the process. -->
+<div d-html.outer="'<h1>Hello world!</h1>'"></div>
 ```
 
 ```HTML
