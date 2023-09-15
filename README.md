@@ -67,7 +67,9 @@ This mono-repository includes the core library as well as several plugins. See t
 ## Ideas
 
 - Memoization context for faster updates.
+- Watch context in addition to the directive.
 - Handling form submissions to allow in page changes.
+- Add section loading directive to the navigate plugin where another page gets loaded in below the directive.
 - Visibility directives similar to intersection plugin.
 - Realtime shared state between clients using WebRTC.
 - Sensor access via context and react to changes via directives (Accelerometer, etc.)
