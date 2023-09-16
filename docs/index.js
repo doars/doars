@@ -1455,8 +1455,14 @@ var html_default = {
         return;
       }
       if (typeof html === "string") {
-        if (element2.innerHTML !== html) {
-          element2.innerHTML = html;
+        if (modifiers.outer) {
+          if (element2.outerHTML !== html) {
+            element2.outerHTML = html;
+          }
+        } else {
+          if (element2.innerHTML !== html) {
+            element2.innerHTML = html;
+          }
         }
         return;
       }
