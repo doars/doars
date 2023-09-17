@@ -87,9 +87,9 @@ Call fetch function.
     header used by the response.
 
 ```HTML
-<!-- On initialization fetch the data from doars.dev and manually convert it to text and store it as text on the message variable of the state. -->
+<!-- On initialization fetch the data from doars.js.org and manually convert it to text and store it as text on the message variable of the state. -->
 <div d-state="{ message: 'empty string' }" d-initialized="
-  $fetch('https://doars.dev').then((result) => {
+  $fetch('https://doars.js.org').then((result) => {
     result.text().then((text) => {
       $inContext(({ $state }) => {
         $state.message = text
@@ -99,9 +99,9 @@ Call fetch function.
   <div d-text="message"></div>
 </div>
 
-<!-- On initialization fetch the data from doars.dev and automatically convert it to text and store it as text on the message variable of the state. -->
+<!-- On initialization fetch the data from doars.js.org and automatically convert it to text and store it as text on the message variable of the state. -->
 <div d-state="{ message: 'empty string' }" d-initialized="
-  $fetch('https://doars.dev', { returnType: 'text' })
+  $fetch('https://doars.js.org', { returnType: 'text' })
     .then((text) => {
       $inContext(({ $state }) => {
         $state.message = text

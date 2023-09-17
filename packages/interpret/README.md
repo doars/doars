@@ -11,7 +11,7 @@
 
 Interpret a subset JavaScript expression without using the [`eval` function](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/eval) or [`Function` constructor](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function/Function). Allowing it to be used in combination with a strict [Content Security Policy](https://developer.mozilla.org/docs/Web/HTTP/Headers/Content-Security-Policy) that does not contain the `unsafe-eval` option.
 
-The interpreter is written for the [@doars/doars library](https://doars.dev), but can be used elsewhere as well. The features it support are meant to be simple and not allow for much complexity similar to what a formulae in a spreadsheet can do.
+The interpreter is written for the [@doars/doars library](https://doars.js.org), but can be used elsewhere as well. The features it support are meant to be simple and not allow for much complexity similar to what a formulae in a spreadsheet can do.
 
 Even though the library does not use the `eval` function or `Function` constructor security is still an important concern when interpreting any code. Do not provide any functions via the `context` parameter that could cause harm, and you should not run any expression that might contain user input. So do take the accompanying risks into consideration before using this library.
 

@@ -10,7 +10,7 @@
 
   <body>
     <div d-state="{ message: 'empty string' }" d-initialized="
-      $fetch('https://doars.dev', { returnType: 'text' })
+      $fetch('https://doars.js.org', { returnType: 'text' })
         .then((text) => {
           $inContext(({ $state }) => {
             $state.message = text

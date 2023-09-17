@@ -3,9 +3,9 @@ import { render as r } from '../utils/RenderUtils.js'
 
 export default function (meta = {}, ...contents) {
   meta = Object.assign({
-    image: 'https://doars.dev/banner.png',
+    image: 'https://doars.js.org/banner.png',
     twitter: '@RedKenrok',
-    url: 'https://doars.dev',
+    url: 'https://doars.js.org',
   }, meta)
 
   // Render document.
