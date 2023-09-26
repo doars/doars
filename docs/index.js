@@ -188,9 +188,9 @@ var Attribute = class _Attribute extends EventDispatcher {
    * Create instance.
    * @param {Component} component Component instance.
    * @param {HTMLElement} element Element.
-   * @param {String} name Attribute name (with library prefix removed).
-   * @param {String} value Attribute value.
-   * @param {Boolean} isClone Whether this will be a clone of an existing attribute.
+   * @param {string} name Attribute name (with library prefix removed).
+   * @param {string} value Attribute value.
+   * @param {boolean} isClone Whether this will be a clone of an existing attribute.
    */
   constructor(component, element2, name, value, isClone = false) {
     super();
@@ -1257,15 +1257,19 @@ var createVariables = (names, ...values) => {
   }
   return variables;
 };
-var indexInSiblings = (elements, value, index = -1) => {
-  index++;
-  if (index >= elements.length) {
+var indexInSiblings = (elements, value, offset = -1) => {
+  offset++;
+  if (offset >= elements.length) {
     return -1;
   }
-  if (elements[index][FOR].value === value) {
-    return index;
+  if (elements[offset][FOR].value === value) {
+    return offset;
   }
-  return indexInSiblings(elements, value, index);
+  return indexInSiblings(
+    elements,
+    value,
+    offset
+  );
 };
 var setAfter = (component, update, template, elements, index, value, variables) => {
   const existingIndex = indexInSiblings(elements, value, index);
@@ -2384,7 +2388,7 @@ var watch_default = {
 var Doars = class extends EventDispatcher {
   /**
    * Create instance.
-   * @param {Object} options Options.
+   * @param {object} options Options. TODO: Specify type more explicitly.
    */
   constructor(options) {
     super();

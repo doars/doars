@@ -1,6 +1,11 @@
 // Import renderer.
 import { render as r } from '../utils/RenderUtils.js'
 
+/**
+ *
+ * @param options
+ * @param {...any} contents
+ */
 export default function (options, ...contents) {
   options = Object.assign({
     align: 'center',

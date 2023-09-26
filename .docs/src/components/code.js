@@ -6,6 +6,11 @@ import { render as r } from '../utils/RenderUtils.js'
 
 const { highlight } = hljs
 
+/**
+ *
+ * @param options
+ * @param {...any} contents
+ */
 export default function (options, ...contents) {
   // Override default options.
   options = Object.assign({

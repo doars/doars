@@ -469,7 +469,7 @@ export default function () {
 
           card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars-navigate#readme',
-          }, '@doars/doars-morph', 'Adds a navigation directive that loads pages without unloading the current page by listening to anchor tags.'),
+          }, '@doars/doars-navigate', 'Adds a navigation directive that loads pages without unloading the current page by listening to anchor tags.'),
 
           card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars-router#readme',

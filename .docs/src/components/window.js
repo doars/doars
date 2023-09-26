@@ -4,6 +4,11 @@ import code from './code.js'
 // Import renderer.
 import { render as r } from '../utils/RenderUtils.js'
 
+/**
+ *
+ * @param options
+ * @param {...any} contents
+ */
 export default function (options, ...contents) {
   return r('div', {
     class: 'bg-grey-0 mt-2 overflow-x-auto text-white rounded-1 shadow-lg',

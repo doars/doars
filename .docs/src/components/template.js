@@ -1,6 +1,11 @@
 // Import renderer.
 import { render as r } from '../utils/RenderUtils.js'
 
+/**
+ *
+ * @param meta
+ * @param {...any} contents
+ */
 export default function (meta = {}, ...contents) {
   meta = Object.assign({
     image: 'https://doars.js.org/banner.png',

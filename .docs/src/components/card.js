@@ -7,6 +7,13 @@ import { render as r } from '../utils/RenderUtils.js'
 // Import icon components.
 const iconOpen = readFileSync('src/icons/open-outline.svg')
 
+/**
+ *
+ * @param options
+ * @param title
+ * @param description
+ * @param {...any} children
+ */
 export default function (options = {}, title = '', description = '', ...children) {
   // Override default options.
   options = Object.assign({
