@@ -4,6 +4,7 @@ module.exports = {
   },
   extends: [
     'standard',
+    'plugin:jsdoc/recommended',
   ],
   globals: {
     Atomics: 'readonly',
@@ -18,6 +19,7 @@ module.exports = {
     'eslint-plugin-node',
     'eslint-plugin-promise',
     'eslint-plugin-standard',
+    'jsdoc',
   ],
   rules: {
     'comma-dangle': [
