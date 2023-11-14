@@ -135,6 +135,33 @@ The simplest way to get an element is to use this directive in combination with 
 </div>
 ```
 
+## Events
+
+### d-navigate-started
+
+Dispatched when starting to fetch the contents of URL.
+
+#### Event
+
+- `url:URL` URL of the contents that are being fetched.
+
+### d-navigate-failed
+
+Dispatched when the fetching of the page failed.
+
+#### Event
+
+- `response:Response` - The response of the failed fetch call.
+- `url:URL` URL of the contents that was being fetched.
+
+### d-navigate-loaded
+
+Dispatched when the contents has successfully been updated.
+
+#### Event
+
+- `url:URL` URL of the contents that are being fetched.
+
 ## API
 
 ### DoarsNavigate

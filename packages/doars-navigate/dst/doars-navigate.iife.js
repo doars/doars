@@ -373,7 +373,7 @@
         options.cacheInterval
       );
     };
-    const getFromUrl = (url, dispatchEvent) => {
+    const getFromUrl = (url, dispatchEvent, headers) => {
       return new Promise((resolve) => {
         if (window.location.hostname !== url.hostname) {
           resolve(null);
@@ -402,8 +402,13 @@
         dispatchEvent("-started", {
           url
         });
-        fetch(url, options.defaultInit).then((response) => {
-          if (response.status < 200 || response.status >= 300) {
+        fetch(
+          url,
+          Object.assign({}, options.fetchOptions, {
+            headers: Object.assign({}, headers, options.fetchOptions.headers)
+          })
+        ).then((response) => {
+          if (response.status < 200 || response.status >= 500) {
             dispatchEvent("-failed", {
               response,
               url
@@ -482,6 +487,9 @@
         if (modifiers.capture) {
           listenerOptions.capture = true;
         }
+        const fetchHeaders = {
+          [libraryOptions.prefix + "-request"]: directive
+        };
         const dispatchEvent = (suffix = "", data = {}) => {
           element.dispatchEvent(
             new CustomEvent(
@@ -506,7 +514,7 @@
             processExpression,
             transitionIn
           );
-          getFromUrl(url, dispatchEvent).then((result) => {
+          getFromUrl(url, dispatchEvent, fetchHeaders).then((result) => {
             if (!attribute[NAVIGATE].identifier || attribute[NAVIGATE].identifier !== identifier) {
               return;
             }
@@ -634,7 +642,7 @@
               return;
             }
             const href = anchor.getAttribute("href");
-            getFromUrl(new URL(href, window.location), dispatchEvent);
+            getFromUrl(new URL(href, window.location), dispatchEvent, fetchHeaders);
           };
           element.addEventListener(
             "focusin",
@@ -666,7 +674,8 @@
                       anchor.target.getAttribute("href"),
                       window.location
                     ),
-                    dispatchEvent
+                    dispatchEvent,
+                    fetchHeaders
                   );
                 }
               }

@@ -184,6 +184,7 @@ export default (
   const getFromUrl = (
     url,
     dispatchEvent,
+    headers,
   ) => {
     return new Promise((resolve) => {
       // Check if same website.
@@ -223,10 +224,15 @@ export default (
         url,
       })
 
-      fetch(url, options.defaultInit).then((response) => {
+      fetch(
+        url,
+        Object.assign({}, options.fetchOptions, {
+          headers: Object.assign({}, headers, options.fetchOptions.headers),
+        }),
+      ).then((response) => {
         if (
           response.status < 200 ||
-          response.status >= 300
+          response.status >= 500
         ) {
           // Dispatch navigation failed event.
           dispatchEvent('-failed', {
@@ -342,6 +348,10 @@ export default (
         listenerOptions.capture = true
       }
 
+      const fetchHeaders = {
+        [libraryOptions.prefix + '-request']: directive,
+      }
+
       const dispatchEvent = (
         suffix = '',
         data = {},
@@ -374,7 +384,7 @@ export default (
           transitionIn,
         )
 
-        getFromUrl(url, dispatchEvent).then((result) => {
+        getFromUrl(url, dispatchEvent, fetchHeaders).then((result) => {
           // Validate that this is still the active request.
           if (
             !attribute[NAVIGATE].identifier ||
@@ -551,7 +561,7 @@ export default (
             return
           }
           const href = anchor.getAttribute('href')
-          getFromUrl(new URL(href, window.location), dispatchEvent)
+          getFromUrl(new URL(href, window.location), dispatchEvent, fetchHeaders)
         }
         element.addEventListener(
           'focusin',
@@ -586,6 +596,7 @@ export default (
                     window.location,
                   ),
                   dispatchEvent,
+                  fetchHeaders,
                 )
               }
             }

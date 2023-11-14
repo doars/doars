@@ -4,7 +4,7 @@ import createNavigateDirective from './factories/directives/navigate.js'
 /**
  * Create plugin instance.
  * @param {Doars} library Doars instance to add onto.
- * @param {Object} options The plugin options.
+ * @param {object} options The plugin options.
  */
 const DoarsNavigate = function (
   library,
