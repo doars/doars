@@ -1,7 +1,8 @@
 /**
  * Deeply assign a series of objects properties together.
- * @param {Object} target Target object to merge to.
- * @param  {...Object} sources Objects to merge into the target.
+ * @param {object} target Target object to merge to.
+ * @param {...object} sources Objects to merge into the target.
+ * @returns {object} Merged resulting object.
  */
 export const deepAssign = (
   target,
@@ -41,9 +42,9 @@ export const deepAssign = (
 
 /**
  * Get value at path on object.
- * @param {Object} object Object to get from.
- * @param  {Array<String>} path Path to value.
- * @returns {Any} value at path.
+ * @param {object} object Object to get from.
+ * @param  {Array<string>} path Path to value.
+ * @returns {any} value at path.
  */
 export const getDeeply = (
   object,
@@ -59,8 +60,8 @@ export const getDeeply = (
 
 /**
  * Check whether the value is an object.
- * @param {Any} value Value of unknown type.
- * @returns Whether the value is an object.
+ * @param {any} value Value of unknown type.
+ * @returns {boolean} Whether the value is an object.
  */
 export const isObject = (
   value,
@@ -70,9 +71,9 @@ export const isObject = (
 
 /**
  * Set value on path at object.
- * @param {Object} object Object to set on.
- * @param {Array<String>} path Path to value.
- * @param {Any} value Value to set.
+ * @param {object} object Object to set on.
+ * @param {Array<string>} path Path to value.
+ * @param {any} value Value to set.
  */
 export const setDeeply = (
   object,

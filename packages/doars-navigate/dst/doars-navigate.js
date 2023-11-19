@@ -1,65 +1,12 @@
-// src/constants.js
-var PRELOAD_INTERACT = "interact";
-var PRELOAD_INTERSECT = "intersect";
-
-// src/symbols.js
-var NAVIGATE = Symbol("NAVIGATE");
-
-// ../common/src/utilities/Element.js
-var fromString = (string) => {
-  const stringStart = string.substring(0, 15).toLowerCase();
-  const isDocument = stringStart.startsWith("<!doctype html>") || stringStart.startsWith("<html>");
-  if (isDocument) {
-    const html = document.createElement("html");
-    html.innerHTML = string;
-    return html;
-  }
-  const template = document.createElement("template");
-  template.innerHTML = string;
-  return template.content.childNodes[0];
-};
-var insertAfter = (reference, node) => {
-  if (reference.nextSibling) {
-    reference.parentNode.insertBefore(node, reference.nextSibling);
-  } else {
-    reference.parentNode.appendChild(node);
-  }
-};
-var isSame = (a, b) => {
-  if (a.isSameNode && a.isSameNode(b)) {
-    return true;
-  }
-  if (a.type === 3) {
-    return a.nodeValue === b.nodeValue;
-  }
-  if (a.tagName === b.tagName) {
-    return true;
-  }
-  return false;
-};
-
-// ../common/src/utilities/Html.js
-var DECODE_LOOKUP = {
-  "&amp;": "&",
-  "&#38;": "&",
-  "&lt;": "<",
-  "&#60;": "<",
-  "&gt;": ">",
-  "&#62;": ">",
-  "&apos;": "'",
-  "&#39;": "'",
-  "&quot;": '"',
-  "&#34;": '"'
-};
-var DECODE_REGEXP = /&(?:amp|#38|lt|#60|gt|#62|apos|#39|quot|#34);/g;
-var decode = (string) => {
-  if (typeof string !== "string") {
-    return string;
-  }
-  return string.replaceAll(DECODE_REGEXP, (character) => {
-    return DECODE_LOOKUP[character];
-  });
-};
+// ../doars/src/symbols.js
+var ATTRIBUTES = Symbol("ATTRIBUTES");
+var COMPONENT = Symbol("COMPONENT");
+var FOR = Symbol("FOR");
+var INITIALIZED = Symbol("INITIALIZED");
+var ON = Symbol("ON");
+var REFERENCES = Symbol("REFERENCES");
+var REFERENCES_CACHE = Symbol("REFERENCES_CACHE");
+var SYNC = Symbol("SYNC");
 
 // ../common/src/utilities/Attribute.js
 var copyAttributes = (existingNode, newNode) => {
@@ -114,6 +61,75 @@ var copyAttributes = (existingNode, newNode) => {
     }
   }
 };
+
+// ../common/src/utilities/Element.js
+var fromString = (string) => {
+  const stringStart = string.substring(0, 15).toLowerCase();
+  const isDocument = stringStart.startsWith("<!doctype html>") || stringStart.startsWith("<html>");
+  if (isDocument) {
+    const html = document.createElement("html");
+    html.innerHTML = string;
+    return html;
+  }
+  const template = document.createElement("template");
+  template.innerHTML = string;
+  return template.content.childNodes[0];
+};
+var insertAfter = (reference, node) => {
+  if (reference.nextSibling) {
+    reference.parentNode.insertBefore(node, reference.nextSibling);
+  } else {
+    reference.parentNode.appendChild(node);
+  }
+};
+var isSame = (a, b) => {
+  if (a.isSameNode && a.isSameNode(b)) {
+    return true;
+  }
+  if (a.type === 3) {
+    return a.nodeValue === b.nodeValue;
+  }
+  if (a.tagName === b.tagName) {
+    return true;
+  }
+  return false;
+};
+
+// ../common/src/utilities/Promise.js
+var nativePromise = Function.prototype.toString.call(
+  Function
+  /* A native object */
+).replace("Function", "Promise").replace(/\(.*\)/, "()");
+
+// ../common/src/utilities/Html.js
+var DECODE_LOOKUP = {
+  "&amp;": "&",
+  "&#38;": "&",
+  "&lt;": "<",
+  "&#60;": "<",
+  "&gt;": ">",
+  "&#62;": ">",
+  "&apos;": "'",
+  "&#39;": "'",
+  "&quot;": '"',
+  "&#34;": '"'
+};
+var DECODE_REGEXP = /&(?:amp|#38|lt|#60|gt|#62|apos|#39|quot|#34);/g;
+var decode = (string) => {
+  if (typeof string !== "string") {
+    return string;
+  }
+  return string.replaceAll(DECODE_REGEXP, (character) => {
+    return DECODE_LOOKUP[character];
+  });
+};
+
+// src/constants.js
+var PRELOAD_INTERACT = "interact";
+var PRELOAD_INTERSECT = "intersect";
+
+// src/symbols.js
+var NAVIGATE = Symbol("NAVIGATE");
 
 // ../common/src/utilities/Morph.js
 var morphNode = (existingNode, newNode) => {
@@ -269,7 +285,8 @@ var CACHE_INVALIDATION_CLAUSES = [
   "must-revalidate",
   "no-store"
 ];
-var loaderAdd = (attribute, component, libraryOptions, processExpression, transitionIn) => {
+var loaderAdd = (attribute, component, libraryOptions, processExpression, transitionIn2) => {
+  const { prefix } = component.getLibrary().getOptions();
   const element = attribute.getElement();
   const directive = attribute.getDirective();
   const attributeName = libraryOptions.prefix + "-" + directive + NAME_LOADER;
@@ -304,18 +321,22 @@ var loaderAdd = (attribute, component, libraryOptions, processExpression, transi
   let loaderElement = document.importNode(loaderTemplate.content, true);
   insertAfter(loaderTemplate, loaderElement);
   attribute[NAVIGATE].loaderElement = loaderElement = loaderTemplate.nextElementSibling;
-  attribute[NAVIGATE].loaderTransitionIn = transitionIn(component, loaderElement);
+  attribute[NAVIGATE].loaderTransitionIn = transitionIn2(prefix, loaderElement);
 };
-var loaderRemove = (attribute, component, transitionOut) => {
+var loaderRemove = (attribute, component, transitionOut2) => {
   if (attribute[NAVIGATE].loaderTransitionOut || !attribute[NAVIGATE].loaderElement) {
     return;
   }
   const loaderElement = attribute[NAVIGATE].loaderElement;
-  attribute[NAVIGATE].loaderTransitionIn = transitionOut(component, loaderElement, () => {
-    if (loaderElement) {
-      loaderElement.remove();
+  attribute[NAVIGATE].loaderTransitionIn = transitionOut2(
+    component.getLibrary().getOptions().prefix,
+    loaderElement,
+    () => {
+      if (loaderElement) {
+        loaderElement.remove();
+      }
     }
-  });
+  );
 };
 var validCacheFromHeaders = (headers, maxAge = null) => {
   if (!headers.has(HEADER_DATE) || !headers.has(HEADER_CACHE_CONTROL)) {
@@ -471,8 +492,8 @@ var navigate_default = (options) => {
     name: "navigate",
     update: (component, attribute, {
       processExpression,
-      transitionIn,
-      transitionOut
+      transitionIn: transitionIn2,
+      transitionOut: transitionOut2
     }) => {
       const element = attribute.getElement();
       if (element[NAVIGATE]) {
@@ -486,8 +507,10 @@ var navigate_default = (options) => {
       if (modifiers.capture) {
         listenerOptions.capture = true;
       }
+      const directiveHeader = libraryOptions.prefix + "-request";
       const fetchHeaders = {
-        [libraryOptions.prefix + "-request"]: directive
+        [directiveHeader]: directive,
+        Vary: directiveHeader
       };
       const dispatchEvent = (suffix = "", data = {}) => {
         element.dispatchEvent(
@@ -511,7 +534,7 @@ var navigate_default = (options) => {
           component,
           libraryOptions,
           processExpression,
-          transitionIn
+          transitionIn2
         );
         getFromUrl(url, dispatchEvent, fetchHeaders).then((result) => {
           if (!attribute[NAVIGATE].identifier || attribute[NAVIGATE].identifier !== identifier) {
@@ -521,7 +544,7 @@ var navigate_default = (options) => {
             loaderRemove(
               attribute,
               component,
-              transitionOut
+              transitionOut2
             );
             delete attribute[NAVIGATE].url;
             delete attribute[NAVIGATE].identifier;
@@ -585,7 +608,7 @@ var navigate_default = (options) => {
           loaderRemove(
             attribute,
             component,
-            transitionOut
+            transitionOut2
           );
           delete attribute[NAVIGATE].url;
           delete attribute[NAVIGATE].identifier;
@@ -737,7 +760,7 @@ var navigate_default = (options) => {
       };
     },
     destroy: (component, attribute, {
-      transitionOut
+      transitionOut: transitionOut2
     }) => {
       if (!attribute[NAVIGATE]) {
         return;
@@ -765,7 +788,7 @@ var navigate_default = (options) => {
       loaderRemove(
         attribute,
         component,
-        transitionOut
+        transitionOut2
       );
       delete attribute[NAVIGATE];
     }

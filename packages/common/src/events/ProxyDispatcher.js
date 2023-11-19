@@ -21,8 +21,8 @@ export default class ProxyDispatcher extends EventDispatcher {
 
     /**
      * Add object to start keeping track of it.
-     * @param {Object} target Object that is being kept track of.
-     * @param {Array<String>} path Path of object on optional parent object, used for recursion.
+     * @param {object} target Object that is being kept track of.
+     * @param {Array<string>} path Path of object on optional parent object, used for recursion.
      * @returns {Proxy} Object to access and mutate.
      */
     this.add = (
@@ -125,7 +125,7 @@ export default class ProxyDispatcher extends EventDispatcher {
 
     /**
      * Remove object from being kept track of.
-     * @param {Object} target Object that is being kept track of.
+     * @param {object} target Object that is being kept track of.
      */
     this.remove = (
       target,

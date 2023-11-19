@@ -29,6 +29,7 @@ const loaderAdd = (
   processExpression,
   transitionIn,
 ) => {
+  const { prefix } = component.getLibrary().getOptions()
   const element = attribute.getElement()
   const directive = attribute.getDirective()
 
@@ -75,7 +76,7 @@ const loaderAdd = (
   attribute[NAVIGATE].loaderElement = loaderElement = loaderTemplate.nextElementSibling
 
   // Transition element in.
-  attribute[NAVIGATE].loaderTransitionIn = transitionIn(component, loaderElement)
+  attribute[NAVIGATE].loaderTransitionIn = transitionIn(prefix, loaderElement)
 }
 
 const loaderRemove = (
@@ -90,14 +91,19 @@ const loaderRemove = (
   ) {
     return
   }
+
   // Transition element in.
   const loaderElement = attribute[NAVIGATE].loaderElement
   attribute[NAVIGATE].loaderTransitionIn =
-    transitionOut(component, loaderElement, () => {
-      if (loaderElement) {
-        loaderElement.remove()
-      }
-    })
+    transitionOut(
+      component.getLibrary().getOptions().prefix,
+      loaderElement,
+      () => {
+        if (loaderElement) {
+          loaderElement.remove()
+        }
+      },
+    )
 }
 
 const validCacheFromHeaders = (
@@ -348,8 +354,10 @@ export default (
         listenerOptions.capture = true
       }
 
+      const directiveHeader = libraryOptions.prefix + '-request'
       const fetchHeaders = {
-        [libraryOptions.prefix + '-request']: directive,
+        [directiveHeader]: directive,
+        Vary: directiveHeader,
       }
 
       const dispatchEvent = (

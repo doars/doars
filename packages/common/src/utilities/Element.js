@@ -1,6 +1,6 @@
 /**
  * Convert string to HTML element.
- * @param {String} string Element contents.
+ * @param {string} string Element contents.
  * @returns {HTMLElement} HTML element part of a document fragment.
  */
 export const fromString = (
@@ -40,9 +40,9 @@ export const insertAfter = (
 
 /**
  * Check whether two nodes are the same.
- * @param {HTMElement} a A node.
- * @param {HTMElement} b Another node.
- * @returns {Boolean} Whether the nodes are the same.
+ * @param {HTMLElement} a A node.
+ * @param {HTMLElement} b Another node.
+ * @returns {boolean} Whether the nodes are the same.
  */
 export const isSame = (
   a,

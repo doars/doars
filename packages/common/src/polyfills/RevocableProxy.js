@@ -16,6 +16,9 @@ const REFLECTION_METHODS = [
 
 /**
  * Revocable proxy made using regular a proxy and a simple boolean.
+ * @param {object} target Object to proxy.
+ * @param {object} handler Object of handler methods.
+ * @returns {object} Proxy object and revoke method.
  */
 export default (
   target,

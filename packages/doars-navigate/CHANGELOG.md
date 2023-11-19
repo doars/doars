@@ -1,5 +1,13 @@
 # CHANGELOG.md
 
+## 2.1.4
+
+- Remove accidental inclusion of core library from plugin.
+
+## 2.1.3
+
+- Added `Vary` header pointing to the `d-request` header.
+
 ## 2.1.2
 
 - Added `d-request` header to every request denoting the directive name used.

@@ -1,4 +1,4 @@
-// Import directives.
+import Doars from '@doars/doars/src/Doars.js'
 import createNavigateDirective from './factories/directives/navigate.js'
 
 /**

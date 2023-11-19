@@ -1,7 +1,7 @@
 /**
  * Add attributes on an element based of an object.
  * @param {HTMLElement} element Element to add the attributes to.
- * @param {Object} data Attribute data to add.
+ * @param {object} data Attribute data to add.
  */
 export const addAttributes = (
   element,
@@ -91,7 +91,7 @@ export const copyAttributes = (
 /**
  * Remove attributes on an element based of an object.
  * @param {HTMLElement} element Element to remove the attributes from.
- * @param {Object} data Attribute data to remove.
+ * @param {object} data Attribute data to remove.
  */
 export const removeAttributes = (
   element,
@@ -119,8 +119,8 @@ export const removeAttributes = (
 /**
  * Set data at key on element as attribute.
  * @param {HTMLElement} element Element to set attribute of.
- * @param {String} key Attribute name.
- * @param {Any} data Attribute data.
+ * @param {string} key Attribute name.
+ * @param {any} data Attribute data.
  */
 export const setAttribute = (
   element,
@@ -184,7 +184,7 @@ export const setAttribute = (
 /**
  * Set attributes on an element based of an object.
  * @param {HTMLElement} element Element to add the attributes to.
- * @param {Object} data Attribute data to set.
+ * @param {object} data Attribute data to set.
  */
 export const setAttributes = (
   element,

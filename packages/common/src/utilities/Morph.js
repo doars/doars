@@ -11,7 +11,7 @@ import {
  * Diff elements and apply the resulting patch to the existing node.
  * @param {HTMLElement} existingNode Existing node to update.
  * @param {HTMLElement} newNode Element to update existing node with.
-*/
+ */
 export const morphNode = (
   existingNode,
   newNode,
@@ -46,7 +46,7 @@ export const morphNode = (
  * Morph the existing element tree into the given tree.
  * @param {HTMLElement} existingTree The existing tree to convert.
  * @param {HTMLElement | string} newTree The tree to change to.
- * @param {Object} options Options to modify the morphing behaviour.
+ * @param {object} options Options to modify the morphing behaviour.
  * @returns {HTMLElement} New tree root element.
  */
 export const morphTree = (
@@ -142,6 +142,7 @@ const _updateTextarea = (
  * Update attributes on element.
  * @param {HTMLElement} existingNode Existing node to update.
  * @param {HTMLElement} newNode Element to update existing node with.
+ * @param {string} name Name of the attribute.
  */
 const _updateAttribute = (
   existingNode,

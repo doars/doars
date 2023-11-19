@@ -8,9 +8,9 @@ export default class EventDispatcher {
 
     /**
      * Add callback to event.
-     * @param {String} name Event name.
+     * @param {string} name Event name.
      * @param {Function} callback Function to call on dispatch.
-     * @param {Object} options Callback options.
+     * @param {object} options Callback options.
      */
     this.addEventListener = (
       name,
@@ -31,7 +31,7 @@ export default class EventDispatcher {
 
     /**
      * Remove callback from event.
-     * @param {String} name Event name.
+     * @param {string} name Event name.
      * @param {Function} callback Function that would be called.
      */
     this.removeEventListener = (
@@ -67,7 +67,7 @@ export default class EventDispatcher {
 
     /**
      * Remove listeners to an event.
-     * @param {String} name Event name.
+     * @param {string} name Event name.
      */
     this.removeEventListeners = (
       name,
@@ -82,7 +82,6 @@ export default class EventDispatcher {
 
     /**
      * Remove all listeners.
-     * @param {String} name Event name.
      */
     this.removeAllEventListeners = (
     ) => {
@@ -92,9 +91,9 @@ export default class EventDispatcher {
 
     /**
      * Trigger event and dispatch data to listeners.
-     * @param {String} name Event name.
-     * @param {Array<Any>} parameters Event parameters to pass through.
-     * @param {Object} options Dispatch options.
+     * @param {string} name Event name.
+     * @param {Array<any>} parameters Event parameters to pass through.
+     * @param {object} options Dispatch options.
      */
     this.dispatchEvent = (
       name,

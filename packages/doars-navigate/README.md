@@ -168,19 +168,19 @@ Dispatched when the contents has successfully been updated.
 
 - `constructor` Create plugin instance.
   - `@param {Doars} library` A doars library instance.
-  - `@param {Object} options = null` [See options](#doarsnavigate-options).
+  - `@param {object} options = null` [See options](#doarsnavigate-options).
   - `@returns {DoarsMorph}`
 - `disable` Disables the plugin. Can only be called when the doars is disabled.
 - `enable` Enables the plugin. Can only be called when the doars is disabled.
 
 #### DoarsNavigate options
 
-- `{Number} cacheInterval = 60 * 1e3` How often to check for items in the cache that have expired either the max age of the cache, or the max age provided by the request's headers. Time is in milliseconds. Default is every 60 seconds.
-- `{Number} cacheMaxAge = 30 * 60 * 1e3` Maximum amount of time to hold a request in the cache without using it. Time is in milliseconds. Default is 30 minutes.
-- `{Object} fetchOptions = {}` Default fetch options to use, the options object provided when calling fetch will be merged with this default.
-- `{String} headerTitle = null` If not an entire document is updated but you still want to set a new title to the page a header can be returned that will contain the new title. This new title will be set automatically.
-- `{String} intersectionMargin = '0px'` Only used when intersection is selected for the preload option. Specifies a set of offsets to add to the viewports bounding box when calculating intersections, effectively shrinking or growing the root for calculation purposes.
-- `{Number} intersectionThreshold = 0` Only used when intersection is selected for the preload option. Specifies a ratio of intersection area to total bounding box area for the observed target. A value of 0.0 means that even a single visible pixel counts as the target being visible. 1.0 means that the entire target element is visible.
+- `{number} cacheInterval = 60 * 1e3` How often to check for items in the cache that have expired either the max age of the cache, or the max age provided by the request's headers. Time is in milliseconds. Default is every 60 seconds.
+- `{number} cacheMaxAge = 30 * 60 * 1e3` Maximum amount of time to hold a request in the cache without using it. Time is in milliseconds. Default is 30 minutes.
+- `{object} fetchOptions = {}` Default fetch options to use, the options object provided when calling fetch will be merged with this default.
+- `{string} headerTitle = null` If not an entire document is updated but you still want to set a new title to the page a header can be returned that will contain the new title. This new title will be set automatically.
+- `{string} intersectionMargin = '0px'` Only used when intersection is selected for the preload option. Specifies a set of offsets to add to the viewports bounding box when calculating intersections, effectively shrinking or growing the root for calculation purposes.
+- `{number} intersectionThreshold = 0` Only used when intersection is selected for the preload option. Specifies a ratio of intersection area to total bounding box area for the observed target. A value of 0.0 means that even a single visible pixel counts as the target being visible. 1.0 means that the entire target element is visible.
 
 ## Compatible versions
 

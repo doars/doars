@@ -1,7 +1,7 @@
 /**
  * Escape slashes, quotation marks, and new lines.
- * @param {String} text String to escape.
- * @returns {String} Escaped string.
+ * @param {string} text String to escape.
+ * @returns {string} Escaped string.
  */
 export const escapeHtml = (
   text,
@@ -15,8 +15,8 @@ export const escapeHtml = (
 
 /**
  * Convert a string from kebab-case to camelCase.
- * @param {String} text String to modify.
- * @returns {String} Converted string.
+ * @param {string} text String to modify.
+ * @returns {string} Converted string.
  */
 export const kebabToCamel = (
   text,
@@ -28,8 +28,8 @@ export const kebabToCamel = (
  * Parse list of modifiers to an object.
  * - [ 'hello', 'there-100', 'general-kenobi' ]
  *    -> { 'hello': true, 'there': 100, 'general': 'kenobi' }
- * @param {Array<String>} modifiers List of modifiers to parse.
- * @returns {Object} Parsed modifiers.
+ * @param {Array<string>} modifiers List of modifiers to parse.
+ * @returns {object} Parsed modifiers.
  */
 export const parseAttributeModifiers = (
   modifiers,
@@ -109,8 +109,9 @@ export const parseAttributeModifiers = (
  *    -> [ 'directive', 'key-name', 'keyName', [ 'modifiers' ] ]
  * - "d-directive.modifiers.multiple"
  *    -> [ 'directive', null, null, [ 'modifiers', 'multiple' ] ]
- * @param {String} name Name to parse.
- * @returns {Array<String>} list of segments.
+ * @param {string} prefix Directive prefix.
+ * @param {string} name Name to parse.
+ * @returns {Array<string> | undefined} list of segments.
  */
 export const parseAttributeName = (
   prefix,
@@ -146,6 +147,8 @@ export const parseAttributeName = (
  *    -> { iterable: "object", variables: [ "key", "value", "index" ] }
  * - "(key, , index) in object"
  *    -> { iterable: "object", variables: [ "key", undefined, "index" ] }
+ * @param {string} expression For expression to parse.
+ * @returns {object | undefined} Iterable type and variables.
  */
 export const parseForExpression = (
   expression,
@@ -172,8 +175,8 @@ export const parseForExpression = (
 
 /**
  * Parse selector to an attributes object.
- * @param {String} selector Selector to parse.
- * @returns {Object} Attributes. Do note the class property is a list of strings not a single string.
+ * @param {string} selector Selector to parse.
+ * @returns {object | undefined} Attributes. Do note the class property is a list of strings not a single string.
  */
 export const parseSelector = (
   selector,

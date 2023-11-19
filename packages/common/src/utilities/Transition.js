@@ -6,15 +6,20 @@ import { addAttributes, removeAttributes } from './Attribute.js'
 const TRANSITION_NAME = '-transition:'
 
 /**
+ * @callback TransitionEnd
+ */
+
+/**
  * Transition an element.
- * @param {String} type Type of transition, for example 'in' and 'out'.
- * @param {Component} component Component the transitioning element is part of.
+ * @param {string} type Type of transition, for example 'in' and 'out'.
+ * @param {string} prefix Directive prefix.
  * @param {HTMLElement} element Element to transition.
  * @param {Function} callback Function to call after transition is done.
+ * @returns {TransitionEnd | undefined} Function to immediately end the transition.
  */
 export const transition = (
   type,
-  component,
+  prefix,
   element,
   callback = null,
 ) => {
@@ -25,9 +30,6 @@ export const transition = (
     }
     return
   }
-
-  // Get library options.
-  const { prefix } = component.getLibrary().getOptions()
 
   // Transition attribute name.
   const transitionName = prefix + TRANSITION_NAME + type
@@ -182,30 +184,32 @@ export const transition = (
 
 /**
  * Transition an element in.
- * @param {Component} component Component the transitioning element is part of.
+ * @param {string} prefix Directive prefix.
  * @param {HTMLElement} element Element to transition.
  * @param {Function} callback Function to call after transition is done.
+ * @returns {TransitionEnd | undefined} Function to immediately end the transition.
  */
 export const transitionIn = (
-  component,
+  prefix,
   element,
   callback,
 ) => {
-  return transition('in', component, element, callback)
+  return transition('in', prefix, element, callback)
 }
 
 /**
  * Transition an element out.
- * @param {Component} component Component the transitioning element is part of.
+ * @param {string} prefix Directive prefix.
  * @param {HTMLElement} element Element to transition.
  * @param {Function} callback Function to call after transition is done.
+ * @returns {TransitionEnd | undefined} Function to immediately end the transition.
  */
 export const transitionOut = (
-  component,
+  prefix,
   element,
   callback,
 ) => {
-  return transition('out', component, element, callback)
+  return transition('out', prefix, element, callback)
 }
 
 export default {
