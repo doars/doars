@@ -10,7 +10,7 @@
     "doars",
     "navigate"
   ],
-  "version": "2.1.2",
+  "version": "2.1.4",
   "license": "MIT",
   "type": "module",
   "main": "src/DoarsNavigate.js",
@@ -44,6 +44,7 @@
   ],
   "devDependencies": {},
   "dependencies": {
-    "@doars/common": "^1.1.0"
+    "@doars/common": "^1.1.0",
+    "@doars/doars": "^2.1.0"
   }
 }
