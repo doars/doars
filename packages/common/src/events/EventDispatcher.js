@@ -1,16 +1,32 @@
+/**
+ * @typedef EventListenerOptions
+ * @type {object}
+ * @property {?boolean} once Whether to call the listener only once.
+ */
+
+/**
+ * @typedef DispatchEventOptions
+ * @type {object}
+ * @property {?boolean} reverse Whether to call the listeners in reverse order.
+ */
+
 export default class EventDispatcher {
   /**
    * Create instance.
    */
   constructor(
   ) {
+    /**
+     * Object to store event listeners for the EventDispatcher class.
+     * @type {Record<string, Array<{callback: Function, options: EventListenerOptions }>>}
+     */
     let events = {}
 
     /**
      * Add callback to event.
      * @param {string} name Event name.
      * @param {Function} callback Function to call on dispatch.
-     * @param {object} options Callback options.
+     * @param {EventListenerOptions} options Callback options.
      */
     this.addEventListener = (
       name,
@@ -93,7 +109,7 @@ export default class EventDispatcher {
      * Trigger event and dispatch data to listeners.
      * @param {string} name Event name.
      * @param {Array<any>} parameters Event parameters to pass through.
-     * @param {object} options Dispatch options.
+     * @param {DispatchEventOptions} options Dispatch options.
      */
     this.dispatchEvent = (
       name,
