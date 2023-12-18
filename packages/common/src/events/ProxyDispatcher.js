@@ -4,7 +4,19 @@ import RevocableProxy from '../polyfills/RevocableProxy.js'
 // Import event dispatcher.
 import EventDispatcher from './EventDispatcher.js'
 
+/**
+ * @typedef ProxyOptions
+ * @type {object}
+ * @property {?boolean} delete Whether to dispatch an event on delete.
+ * @property {?boolean} get Whether to dispatch an event on get.
+ * @property {?boolean} set Whether to dispatch an event on set.
+ */
+
 export default class ProxyDispatcher extends EventDispatcher {
+  /**
+   * Creates a proxy dispatcher instance.
+   * @param {ProxyOptions} options Options for proxy dispatcher.
+   */
   constructor(
     options = {},
   ) {
