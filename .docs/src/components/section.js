@@ -2,11 +2,14 @@
 import { render as r } from '../utils/RenderUtils.js'
 
 /**
- *
- * @param {...any} contents
+ * Renders a section component.
+ * @param {...string} children Rendered elements to add as children.
+ * @returns {string} Resulting HTML structure.
  */
-export default function (...contents) {
+export default function (
+  ...children
+) {
   return r('section', {
     class: 'container px-2',
-  }, contents)
+  }, children)
 }

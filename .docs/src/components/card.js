@@ -8,13 +8,21 @@ import { render as r } from '../utils/RenderUtils.js'
 const iconOpen = readFileSync('src/icons/open-outline.svg')
 
 /**
- *
- * @param options
- * @param title
- * @param description
- * @param {...any} children
+ * Renders a card component.
+ * @param {object} options Component options.
+ * - {string | null} href = null - URL that the card links to.
+ * - {string} target = '_blank' - Link target of the card.
+ * @param {string} title Card description text.
+ * @param {string} description Card description text.
+ * @param {...string} children Rendered elements to add as children.
+ * @returns {string} Resulting HTML structure.
  */
-export default function (options = {}, title = '', description = '', ...children) {
+export default function (
+  options = {},
+  title = '',
+  description = '',
+  ...children
+) {
   // Override default options.
   options = Object.assign({
     href: null,

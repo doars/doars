@@ -1,15 +1,19 @@
-// Import highlight.js.
+// Import components.
 import code from './code.js'
 
 // Import renderer.
 import { render as r } from '../utils/RenderUtils.js'
 
 /**
- *
- * @param options
- * @param {...any} contents
+ * Renders a code window component.
+ * @param {object} options Component options, see code component options.
+ * @param {...string} children Rendered elements to add as children.
+ * @returns {string} Resulting HTML structure.
  */
-export default function (options, ...contents) {
+export default function (
+  options,
+  ...children
+) {
   return r('div', {
     class: 'bg-grey-0 mt-2 overflow-x-auto text-white rounded-1 shadow-lg',
   }, [
@@ -28,6 +32,6 @@ export default function (options, ...contents) {
     ]),
     r('div', {
       class: 'code-dark bg-grey-1 pl-1 py-1 md:px-2',
-    }, code(options, ...contents)),
+    }, code(options, ...children)),
   ])
 }

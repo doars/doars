@@ -2,14 +2,19 @@
 import { render as r } from '../utils/RenderUtils.js'
 
 /**
- *
- * @param meta
- * @param {...any} contents
+ * Wraps a page's content in a template to create the final document.
+ * @param {object} meta Metadata of the template:
+ * - {string} image - Meta / preview image of the page.
+ * - {string} url - Link of the webpage.
+ * @param {...string} children Rendered elements to add as children.
+ * @returns {string} Resulting HTML structure.
  */
-export default function (meta = {}, ...contents) {
+export default function (
+  meta = {},
+  ...children
+) {
   meta = Object.assign({
     image: 'https://doars.js.org/banner.png',
-    twitter: '@RedKenrok',
     url: 'https://doars.js.org',
   }, meta)
 
@@ -66,14 +71,6 @@ export default function (meta = {}, ...contents) {
         content: 'summary_large_image',
       }),
       r('meta', {
-        name: 'twitter:creator',
-        content: meta.twitter,
-      }),
-      r('meta', {
-        name: 'twitter:site',
-        content: meta.twitter,
-      }),
-      r('meta', {
         name: 'twitter:description',
         content: meta.description,
       }),
@@ -121,7 +118,7 @@ export default function (meta = {}, ...contents) {
 
     r('body', [
       // Add contents.
-      contents,
+      children,
 
       // Scripts.
       r('script', {

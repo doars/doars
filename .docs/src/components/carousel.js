@@ -2,11 +2,18 @@
 import { render as r } from '../utils/RenderUtils.js'
 
 /**
- *
- * @param options
- * @param {...any} contents
+ * Renders a carousel component.
+ * @param {object} options Component options:
+ * - {string} align = 'center' - Alignment of the carousel contents.
+ * - {boolean} alignOnHover = false - Whether to rotate that cards when not hovering over them.
+ * - {width} width = 'w-24' - The width class of the cards.
+ * @param {...string} children Rendered elements to add as children.
+ * @returns {string} Resulting HTML structure.
  */
-export default function (options, ...contents) {
+export default function (
+  options,
+  ...children
+) {
   options = Object.assign({
     align: 'center',
     alignOnHover: false,
@@ -29,7 +36,7 @@ export default function (options, ...contents) {
   }
 
   // Flatten contents.
-  contents = contents.flat(4)
+  children = children.flat(4)
 
   return r('div', {
     class: 'no-scrollbar overflow-x-scroll',
@@ -40,7 +47,7 @@ export default function (options, ...contents) {
       r('ul', {
         class: 'inline-flex py-2 px-1 ' + alignment,
       }, [
-        ...contents.map(
+        ...children.map(
           (content, index) => {
             let transform = ''
             if (options.alignOnHover) {

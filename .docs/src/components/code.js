@@ -7,11 +7,16 @@ import { render as r } from '../utils/RenderUtils.js'
 const { highlight } = hljs
 
 /**
- *
- * @param options
- * @param {...any} contents
+ * Renders a code component.
+ * @param {object} options Component options:
+ * - {string} language = 'xml' - The language the code is written in.
+ * @param {...string} children Rendered elements to add as children.
+ * @returns {string} Resulting HTML structure.
  */
-export default function (options, ...contents) {
+export default function (
+  options,
+  ...children
+) {
   // Override default options.
   options = Object.assign({
     language: 'xml',
@@ -24,14 +29,14 @@ export default function (options, ...contents) {
   }
 
   // prepare contents.
-  contents = contents.flat(4)
-  contents = contents.join('\n')
+  children = children.flat(4)
+  children = children.join('\n')
 
   return r('pre',
     r('code', {
       class: '-text-2 sm:-text-1',
     }, [
-      highlight(contents, { language: options.language }).value,
+      highlight(children, { language: options.language }).value,
     ]),
   )
 }
