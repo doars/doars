@@ -3649,7 +3649,7 @@
     }
   };
 
-  // node_modules/@doars/interpret/src/types.js
+  // ../interpret/src/types.js
   var ARRAY = 5;
   var ASSIGN = 6;
   var BINARY = 7;
@@ -3664,7 +3664,7 @@
   var UNARY = 13;
   var UPDATE = 14;
 
-  // node_modules/@doars/interpret/src/parse.js
+  // ../interpret/src/parse.js
   var SPACE_CODES = [
     9,
     // Tab
@@ -4289,7 +4289,7 @@
     return nodes.length === 0 ? void 0 : nodes;
   };
 
-  // node_modules/@doars/interpret/src/run.js
+  // ../interpret/src/run.js
   var setToContext = (node, value, context = {}) => {
     switch (node.type) {
       case IDENTIFIER:
@@ -4447,7 +4447,7 @@
   };
   var run_default = run;
 
-  // node_modules/@doars/interpret/src/index.js
+  // ../interpret/src/index.js
   var parse = parse_default;
   var run2 = run_default;
 
