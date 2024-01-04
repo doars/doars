@@ -374,16 +374,16 @@ export default (
           }, '$children', 'List of contexts of child components.'),
 
           card({
-            href: 'https://github.com/doars/doars/tree/main/packages/doars#$previoussibling',
-          }, '$children', 'Context of previous sibling component.'),
+            href: 'https://github.com/doars/doars/tree/main/packages/doars#$siblings',
+          }, '$siblings', 'List of contexts of sibling components.'),
 
           card({
-            href: 'https://github.com/doars/doars/tree/main/packages/doars#$siblings',
-          }, '$children', 'List of contexts of sibling components.'),
+            href: 'https://github.com/doars/doars/tree/main/packages/doars#$previoussibling',
+          }, '$previousSibling', 'Context of previous sibling component.'),
 
           card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars#$nextsibling',
-          }, '$children', 'Context of next sibling component.'),
+          }, '$nextSibling', 'Context of next sibling component.'),
         ]),
       ]),
 

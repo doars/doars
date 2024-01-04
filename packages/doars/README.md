@@ -90,23 +90,23 @@ Add the IIFE build to the page from for example the jsDelivr CDN and enable the 
 
 ## Contexts overview
 
-| Name                                   | Description                                                         |
-| -------------------------------------- | ------------------------------------------------------------------- |
-| [\$children](#children)                | List of contexts of child components.                               |
-| [\$component](#component)              | Component's root element.                                           |
-| [\$dispatch](#dispatch)                | Dispatch custom event on the element.                               |
-| [\$element](#element)                  | Directive's element.                                                |
-| [\$for](#for)                          | Get variables defined in the for directive.                         |
-| [\$inContext](#inContext)              | Call a function in context after the existing one has been revoked. |
-| [\$nextSiblings](#nextsibling)         | Context of next sibling component.                                  |
-| [\$nextTick](#nextTick)                | Call a function after updates are done processing.                  |
-| [\$parent](#parent)                    | Context of parent component.                                        |
-| [\$previousSiblings](#previoussibling) | Context of previous sibling component.                              |
-| [\$references](#references)            | List of referenced elements in the component.                       |
-| [\$siblings](#siblings)                | List of contexts of sibling components.                             |
-| [\$state](#state)                      | Access the component's state.                                       |
-| [\$store](#store)                      | Access the data store.                                              |
-| [\$watch](#watch)                      | Call a function when the specified value changes.                   |
+| Name                                  | Description                                                         |
+| ------------------------------------- | ------------------------------------------------------------------- |
+| [\$children](#children)               | List of contexts of child components.                               |
+| [\$component](#component)             | Component's root element.                                           |
+| [\$dispatch](#dispatch)               | Dispatch custom event on the element.                               |
+| [\$element](#element)                 | Directive's element.                                                |
+| [\$for](#for)                         | Get variables defined in the for directive.                         |
+| [\$inContext](#inContext)             | Call a function in context after the existing one has been revoked. |
+| [\$nextSibling](#nextsibling)         | Context of next sibling component.                                  |
+| [\$nextTick](#nextTick)               | Call a function after updates are done processing.                  |
+| [\$parent](#parent)                   | Context of parent component.                                        |
+| [\$previousSibling](#previoussibling) | Context of previous sibling component.                              |
+| [\$references](#references)           | List of referenced elements in the component.                       |
+| [\$siblings](#siblings)               | List of contexts of sibling components.                             |
+| [\$state](#state)                     | Access the component's state.                                       |
+| [\$store](#store)                     | Access the data store.                                              |
+| [\$watch](#watch)                     | Call a function when the specified value changes.                   |
 
 ### Header overview
 
