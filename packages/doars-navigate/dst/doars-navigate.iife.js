@@ -1,15 +1,470 @@
 (() => {
-  // ../doars/src/symbols.js
-  var ATTRIBUTES = Symbol("ATTRIBUTES");
-  var COMPONENT = Symbol("COMPONENT");
-  var FOR = Symbol("FOR");
-  var INITIALIZED = Symbol("INITIALIZED");
-  var ON = Symbol("ON");
-  var REFERENCES = Symbol("REFERENCES");
-  var REFERENCES_CACHE = Symbol("REFERENCES_CACHE");
-  var SYNC = Symbol("SYNC");
+  // ../common/src/utilities/Fetch.js
+  var parseResponse = (response, type) => {
+    let promise;
+    switch (String.prototype.toLowerCase.call(type)) {
+      default:
+        console.warn('Unknown response type "' + type + '" used when using the $fetch context.');
+        break;
+      case "arraybuffer":
+        promise = response.arrayBuffer();
+        break;
+      case "blob":
+        promise = response.blob();
+        break;
+      case "formdata":
+        promise = response.formData();
+        break;
+      case "json":
+        promise = response.json();
+        break;
+      case "element":
+      case "html":
+      case "svg":
+      case "text":
+      case "xml":
+        promise = response.text();
+        break;
+    }
+    if (!promise) {
+      return null;
+    }
+    return promise.then((response2) => {
+      switch (type) {
+        case "element":
+          const template = document.createElement("template");
+          template.innerHTML = response2;
+          response2 = template.content.childNodes[0];
+          break;
+        case "html":
+          response2 = new DOMParser().parseFromString(response2, "text/html");
+          break;
+        case "svg":
+          response2 = new DOMParser().parseFromString(response2, "image/svg+xml");
+          break;
+        case "xml":
+          response2 = new DOMParser().parseFromString(response2, "application/xml");
+          break;
+      }
+      return response2;
+    });
+  };
+  var responseType = (response, request = null) => {
+    let contentType = response.headers.get("Content-Type");
+    if (contentType) {
+      contentType = String.prototype.toLowerCase.call(contentType).split(";")[0];
+      const result = simplifyType(contentType.trim());
+      if (result) {
+        return result;
+      }
+    }
+    let extension = response.url.split(".");
+    if (extension) {
+      extension = extension[extension.length - 1];
+      switch (extension) {
+        case "htm":
+        case "html":
+          return "html";
+        case "json":
+          return "json";
+        case "svg":
+          return "svg";
+        case "txt":
+          return "text";
+        case "xml":
+          return "xml";
+      }
+    }
+    if (request) {
+      let acceptTypes = request.headers.Accept;
+      if (acceptTypes) {
+        acceptTypes = String.prototype.toLowerCase.call(acceptTypes).split(",");
+        for (let acceptType of acceptTypes) {
+          acceptType = acceptType.split(";")[0].trim();
+          const result = simplifyType(acceptType);
+          if (result) {
+            return result;
+          }
+        }
+      }
+    }
+    return null;
+  };
+  var simplifyType = (mimeType) => {
+    switch (mimeType) {
+      case "text/html":
+        return "html";
+      case "text/json":
+      case "application/json":
+      case "application/ld+json":
+      case "application/vnd.api+json":
+        return "json";
+      case "image/svg+xml":
+        return "svg";
+      case "text/plain":
+        return "text";
+      case "application/xml":
+      case "text/xml":
+        return "xml";
+    }
+  };
+
+  // ../common/src/utilities/Cache.js
+  var HEADER_DATE = "Date";
+  var HEADER_CACHE_CONTROL = "Cache-Control";
+  var CACHE_CLEAN_INTERVAL = 5 * 60 * 1e3;
+  var CACHE_INVALIDATION_CLAUSES = [
+    "no-cache",
+    "must-revalidate",
+    "no-store"
+  ];
+  var CACHE_NAME = "doars";
+  var cacheCleanCounter = 0;
+  var cacheCleanInterval = null;
+  var cacheListeners = {};
+  var validCacheFromHeaders = (headers) => {
+    if (!headers.has(HEADER_DATE) || !headers.has(HEADER_CACHE_CONTROL)) {
+      return false;
+    }
+    const cacheDate = new Date(headers.get(HEADER_DATE));
+    const currentDate = /* @__PURE__ */ new Date();
+    if (cacheDate > currentDate) {
+      return false;
+    }
+    const cacheControl = headers.get(HEADER_CACHE_CONTROL).split(",");
+    let cacheMaxAge = 0;
+    for (const cacheControlItem of cacheControl) {
+      if (cacheControlItem.trim().startsWith("max-age=")) {
+        cacheMaxAge = parseInt(cacheControlItem.split("=")[1].trim(), 10);
+      }
+      if (cacheControlItem.trim().startsWith("s-maxage=")) {
+        cacheMaxAge = parseInt(cacheControlItem.split("=")[1].trim(), 10);
+        break;
+      }
+    }
+    if (cacheMaxAge <= 0) {
+      return false;
+    }
+    const expireDate = new Date(cacheDate.getTime() + cacheMaxAge * 1e3);
+    return expireDate >= currentDate;
+  };
+  var getFromCache = (url, options, returnType) => new Promise((resolve, reject) => {
+    if (!options.method || String.prototype.toUpperCase.call(options.method) === "GET") {
+      caches.open(CACHE_NAME).then((cache) => {
+        cache.match(url).then((cachedResponse) => {
+          if (cachedResponse) {
+            if (validCacheFromHeaders(cachedResponse.headers)) {
+              if (returnType === "auto") {
+                returnType = responseType(cachedResponse, options);
+              }
+              if (returnType) {
+                cachedResponse = parseResponse(cachedResponse, returnType);
+              }
+              cachedResponse.then((cachedResponseValue) => {
+                resolve({
+                  headers: cachedResponse.headers,
+                  value: cachedResponseValue
+                });
+              });
+              return;
+            }
+            cache.delete(url);
+          }
+          if (Object.prototype.hasOwnProperty.call(cacheListeners, url.location)) {
+            cacheListeners[url.location].push({
+              resolve,
+              reject
+            });
+            return;
+          } else {
+            cacheListeners[url.location] = [];
+          }
+          fetch(url, options).then((response) => {
+            if (response.status < 200 || response.status >= 500) {
+              const listeners = cacheListeners[url.location];
+              delete cacheListeners[url.location];
+              reject(response);
+              for (const listener of listeners) {
+                listener.reject(response);
+              }
+              return;
+            }
+            let allowCache = true;
+            if (response.headers.has(HEADER_CACHE_CONTROL)) {
+              const cacheControl = response.headers.get(HEADER_CACHE_CONTROL).split(",");
+              let maxAge = 0;
+              for (const cacheControlItem of cacheControl) {
+                const cacheClause = cacheControlItem.trim();
+                if (CACHE_INVALIDATION_CLAUSES.indexOf(cacheClause) >= 0) {
+                  allowCache = false;
+                  break;
+                }
+                if (cacheClause.startsWith("s-maxage=")) {
+                  maxAge = parseInt(cacheClause.split("=")[1].trim(), 10);
+                  if (maxAge <= 0) {
+                    allowCache = false;
+                    break;
+                  }
+                }
+                if (cacheClause.startsWith("max-age=") && maxAge <= 0) {
+                  maxAge = parseInt(cacheClause.split("=")[1].trim(), 10);
+                  if (maxAge <= 0) {
+                    allowCache = false;
+                    break;
+                  }
+                }
+              }
+            }
+            if (allowCache) {
+              cache.put(url, response.clone());
+            } else {
+              cache.delete(url);
+            }
+            if (returnType === "auto") {
+              returnType = responseType(response, options);
+            }
+            if (returnType) {
+              response = parseResponse(response, returnType);
+            }
+            response.then((responseValue) => {
+              const result = {
+                headers: response.headers,
+                value: responseValue
+              };
+              const listeners = cacheListeners[url.location];
+              delete cacheListeners[url.location];
+              resolve(result);
+              if (listeners) {
+                for (const listener of listeners) {
+                  listener.resolve(result);
+                }
+              }
+            }).catch((error) => {
+              const listeners = cacheListeners[url.location];
+              delete cacheListeners[url.location];
+              reject(error);
+              if (listeners) {
+                for (const listener of listeners) {
+                  listener.reject(error);
+                }
+              }
+            });
+          }).catch((error) => {
+            const listeners = cacheListeners[url.location];
+            delete cacheListeners[url.location];
+            reject(error);
+            if (listeners) {
+              for (const listener of listeners) {
+                listener.reject(error);
+              }
+            }
+          });
+        }).catch(reject);
+      }).catch(reject);
+      return;
+    }
+    fetch(url, options).then((response) => {
+      if (response.status < 200 || response.status >= 500) {
+        const listeners = cacheListeners[url.location];
+        delete cacheListeners[url.location];
+        reject(response);
+        for (const listener of listeners) {
+          listener.reject(response);
+        }
+        return;
+      }
+      if (returnType === "auto") {
+        returnType = responseType(response, options);
+      }
+      if (returnType) {
+        response = parseResponse(response, returnType);
+      }
+      response.then((responseValue) => {
+        const result = {
+          headers: response.headers,
+          value: responseValue
+        };
+        const listeners = cacheListeners[url.location];
+        delete cacheListeners[url.location];
+        resolve(result);
+        if (listeners) {
+          for (const listener of listeners) {
+            listener.resolve(result);
+          }
+        }
+      }).catch((error) => {
+        const listeners = cacheListeners[url.location];
+        delete cacheListeners[url.location];
+        reject(error);
+        if (listeners) {
+          for (const listener of listeners) {
+            listener.reject(error);
+          }
+        }
+      });
+    }).catch((error) => {
+      const listeners = cacheListeners[url.location];
+      delete cacheListeners[url.location];
+      reject(error);
+      if (listeners) {
+        for (const listener of listeners) {
+          listener.reject(error);
+        }
+      }
+    });
+  });
+  var startCacheCleaner = () => {
+    if (cacheCleanCounter > 0) {
+      cacheCleanCounter++;
+      return;
+    }
+    cacheCleanInterval = setInterval(() => {
+      caches.open(CACHE_NAME).then((cache) => {
+        cache.keys().then((cacheKeys) => {
+          for (const cacheKey of cacheKeys) {
+            cache.match(cacheKey).then((cachedResponse) => {
+              if (!validCacheFromHeaders(cachedResponse.headers)) {
+                cache.delete(cacheKey);
+              }
+            });
+          }
+        });
+      });
+    }, CACHE_CLEAN_INTERVAL);
+  };
+  var stopCacheCleaner = () => {
+    cacheCleanCounter--;
+    if (cacheCleanCounter <= 0 && cacheCleanInterval) {
+      clearInterval(cacheCleanInterval);
+    }
+  };
+
+  // ../common/src/utilities/Html.js
+  var DECODE_LOOKUP = {
+    "&amp;": "&",
+    "&#38;": "&",
+    "&lt;": "<",
+    "&#60;": "<",
+    "&gt;": ">",
+    "&#62;": ">",
+    "&apos;": "'",
+    "&#39;": "'",
+    "&quot;": '"',
+    "&#34;": '"'
+  };
+  var DECODE_REGEXP = /&(?:amp|#38|lt|#60|gt|#62|apos|#39|quot|#34);/g;
+  var decode = (string) => {
+    if (typeof string !== "string") {
+      return string;
+    }
+    return string.replaceAll(DECODE_REGEXP, (character) => {
+      return DECODE_LOOKUP[character];
+    });
+  };
+
+  // ../common/src/utilities/Element.js
+  var fromString = (string) => {
+    const stringStart = string.substring(0, 15).toLowerCase();
+    const isDocument = stringStart.startsWith("<!doctype html>") || stringStart.startsWith("<html>");
+    if (isDocument) {
+      const html = document.createElement("html");
+      html.innerHTML = string;
+      return html;
+    }
+    const template = document.createElement("template");
+    template.innerHTML = string;
+    return template.content.childNodes[0];
+  };
+  var insertAfter = (reference, node) => {
+    if (reference.nextSibling) {
+      reference.parentNode.insertBefore(node, reference.nextSibling);
+    } else {
+      reference.parentNode.appendChild(node);
+    }
+  };
+  var isSame = (a, b) => {
+    if (a.isSameNode && a.isSameNode(b)) {
+      return true;
+    }
+    if (a.type === 3) {
+      return a.nodeValue === b.nodeValue;
+    }
+    if (a.tagName === b.tagName) {
+      return true;
+    }
+    return false;
+  };
+  var walk = (element, filter) => {
+    let index = -1;
+    let iterator = null;
+    return () => {
+      if (index >= 0 && iterator) {
+        const child2 = iterator();
+        if (child2) {
+          return child2;
+        }
+      }
+      let child = null;
+      do {
+        index++;
+        if (index >= element.childElementCount) {
+          return null;
+        }
+        child = element.children[index];
+      } while (!filter(child));
+      if (child.childElementCount) {
+        iterator = walk(child, filter);
+      }
+      return child;
+    };
+  };
+
+  // ../common/src/utilities/String.js
+  var parseSelector = (selector) => {
+    if (typeof selector === "string") {
+      selector = selector.split(/(?=\.)|(?=#)|(?=\[)/);
+    }
+    if (!Array.isArray(selector)) {
+      console.error("Doars: parseSelector expects Array of string or a single string.");
+      return;
+    }
+    const attributes = {};
+    for (let selectorSegment of selector) {
+      selectorSegment = selectorSegment.trim();
+      switch (selectorSegment[0]) {
+        case "#":
+          attributes.id = selectorSegment.substring(1);
+          break;
+        case ".":
+          selectorSegment = selectorSegment.substring(1);
+          if (!attributes.class) {
+            attributes.class = [];
+          }
+          if (!attributes.class.includes(selectorSegment)) {
+            attributes.class.push(selectorSegment);
+          }
+          break;
+        case "[":
+          const [full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
+          attributes[key] = value;
+          break;
+      }
+    }
+    return attributes;
+  };
 
   // ../common/src/utilities/Attribute.js
+  var addAttributes = (element, data) => {
+    for (const name in data) {
+      if (name === "class") {
+        for (const className of data.class) {
+          element.classList.add(className);
+        }
+        continue;
+      }
+      element.setAttribute(name, data[name]);
+    }
+  };
   var copyAttributes = (existingNode, newNode) => {
     const existingAttributes = existingNode.attributes;
     const newAttributes = newNode.attributes;
@@ -62,75 +517,235 @@
       }
     }
   };
-
-  // ../common/src/utilities/Element.js
-  var fromString = (string) => {
-    const stringStart = string.substring(0, 15).toLowerCase();
-    const isDocument = stringStart.startsWith("<!doctype html>") || stringStart.startsWith("<html>");
-    if (isDocument) {
-      const html = document.createElement("html");
-      html.innerHTML = string;
-      return html;
+  var removeAttributes = (element, data) => {
+    for (const name in data) {
+      if (name === "class") {
+        for (const className of data.class) {
+          element.classList.remove(className);
+        }
+        continue;
+      }
+      if (data[name] && element.attributes[name] !== data[name]) {
+        continue;
+      }
+      element.removeAttribute(name);
     }
-    const template = document.createElement("template");
-    template.innerHTML = string;
-    return template.content.childNodes[0];
-  };
-  var insertAfter = (reference, node) => {
-    if (reference.nextSibling) {
-      reference.parentNode.insertBefore(node, reference.nextSibling);
-    } else {
-      reference.parentNode.appendChild(node);
-    }
-  };
-  var isSame = (a, b) => {
-    if (a.isSameNode && a.isSameNode(b)) {
-      return true;
-    }
-    if (a.type === 3) {
-      return a.nodeValue === b.nodeValue;
-    }
-    if (a.tagName === b.tagName) {
-      return true;
-    }
-    return false;
   };
 
-  // ../common/src/utilities/Promise.js
-  var nativePromise = Function.prototype.toString.call(
-    Function
-    /* A native object */
-  ).replace("Function", "Promise").replace(/\(.*\)/, "()");
-
-  // ../common/src/utilities/Html.js
-  var DECODE_LOOKUP = {
-    "&amp;": "&",
-    "&#38;": "&",
-    "&lt;": "<",
-    "&#60;": "<",
-    "&gt;": ">",
-    "&#62;": ">",
-    "&apos;": "'",
-    "&#39;": "'",
-    "&quot;": '"',
-    "&#34;": '"'
-  };
-  var DECODE_REGEXP = /&(?:amp|#38|lt|#60|gt|#62|apos|#39|quot|#34);/g;
-  var decode = (string) => {
-    if (typeof string !== "string") {
-      return string;
+  // ../common/src/utilities/Transition.js
+  var TRANSITION_NAME = "-transition:";
+  var transition = (type, libraryOptions, element, callback = null) => {
+    if (element.nodeType !== 1) {
+      if (callback) {
+        callback();
+      }
+      return;
     }
-    return string.replaceAll(DECODE_REGEXP, (character) => {
-      return DECODE_LOOKUP[character];
+    const transitionDirectiveName = libraryOptions.prefix + TRANSITION_NAME + type;
+    const dispatchEvent = (phase) => {
+      element.dispatchEvent(
+        new CustomEvent("transition-" + phase)
+      );
+      element.dispatchEvent(
+        new CustomEvent("transition-" + type + "-" + phase)
+      );
+    };
+    let name, value, timeout, requestFrame;
+    let isDone = false;
+    const selectors = {};
+    name = transitionDirectiveName;
+    value = element.getAttribute(name);
+    if (value) {
+      selectors.during = parseSelector(value);
+      addAttributes(element, selectors.during);
+    }
+    name = transitionDirectiveName + ".from";
+    value = element.getAttribute(name);
+    if (value) {
+      selectors.from = parseSelector(value);
+      addAttributes(element, selectors.from);
+    }
+    dispatchEvent("start");
+    requestFrame = requestAnimationFrame(() => {
+      requestFrame = null;
+      if (isDone) {
+        return;
+      }
+      if (selectors.from) {
+        removeAttributes(element, selectors.from);
+        selectors.from = void 0;
+      }
+      name = transitionDirectiveName + ".to";
+      value = element.getAttribute(name);
+      if (value) {
+        selectors.to = parseSelector(value);
+        addAttributes(element, selectors.to);
+      } else if (!selectors.during) {
+        dispatchEvent("end");
+        if (callback) {
+          callback();
+        }
+        isDone = true;
+        return;
+      }
+      const styles = getComputedStyle(element);
+      let duration = Number(styles.transitionDuration.replace(/,.*/, "").replace("s", "")) * 1e3;
+      if (duration === 0) {
+        duration = Number(styles.animationDuration.replace("s", "")) * 1e3;
+      }
+      timeout = setTimeout(() => {
+        timeout = null;
+        if (isDone) {
+          return;
+        }
+        if (selectors.during) {
+          removeAttributes(element, selectors.during);
+          selectors.during = void 0;
+        }
+        if (selectors.to) {
+          removeAttributes(element, selectors.to);
+          selectors.to = void 0;
+        }
+        dispatchEvent("end");
+        if (callback) {
+          callback();
+        }
+        isDone = true;
+      }, duration);
+    });
+    return () => {
+      if (!isDone) {
+        return;
+      }
+      isDone = true;
+      if (selectors.during) {
+        removeAttributes(element, selectors.during);
+        selectors.during = void 0;
+      }
+      if (selectors.from) {
+        removeAttributes(element, selectors.from);
+        selectors.from = void 0;
+      } else if (selectors.to) {
+        removeAttributes(element, selectors.to);
+        selectors.to = void 0;
+      }
+      if (requestFrame) {
+        cancelAnimationFrame(requestFrame);
+        requestFrame = null;
+      } else if (timeout) {
+        clearTimeout(timeout);
+        timeout = null;
+      }
+      dispatchEvent("end");
+      if (callback) {
+        callback();
+      }
+    };
+  };
+  var transitionIn = (libraryOptions, element, callback) => {
+    return transition("in", libraryOptions, element, callback);
+  };
+  var transitionOut = (libraryOptions, element, callback) => {
+    return transition("out", libraryOptions, element, callback);
+  };
+
+  // ../common/src/utilities/Indicator.js
+  var hideIndicator = (component, attribute) => {
+    if (!attribute.indicator) {
+      return;
+    }
+    if (attribute.indicator.indicatorTransitionOut) {
+      return;
+    }
+    if (!attribute.indicator.indicatorElement) {
+      return;
+    }
+    const libraryOptions = component.getLibrary().getOptions();
+    const indicatorElement = attribute.indicator.indicatorElement;
+    attribute.indicator.indicatorTransitionIn = transitionOut(libraryOptions, indicatorElement, () => {
+      if (indicatorElement) {
+        indicatorElement.remove();
+      }
     });
   };
+  var showIndicator = (component, attribute, processExpression) => {
+    const libraryOptions = component.getLibrary().getOptions();
+    const element = attribute.getElement();
+    const directive = attribute.getDirective();
+    const attributeName = libraryOptions.prefix + "-" + directive + "-" + libraryOptions.indicatorDirectiveName;
+    if (!element.hasAttribute(attributeName)) {
+      return;
+    }
+    let indicatorTemplate = null;
+    if (libraryOptions.indicatorDirectiveEvaluate) {
+      indicatorTemplate = processExpression(
+        component,
+        attribute,
+        element.getAttribute(attributeName)
+      );
+    } else {
+      indicatorTemplate = element.getAttribute(attributeName);
+    }
+    if (!indicatorTemplate) {
+      return;
+    }
+    if (typeof indicatorTemplate === "string") {
+      indicatorTemplate = element.querySelector(indicatorTemplate);
+      if (!indicatorTemplate) {
+        return;
+      }
+    }
+    if (indicatorTemplate.tagName !== "TEMPLATE") {
+      console.warn("Doars: `" + attributeName + "` must be placed on a `<template>`.");
+      return;
+    }
+    if (indicatorTemplate.childCount > 1) {
+      console.warn("Doars: `" + attributeName + "` must have one child.");
+      return;
+    }
+    if (attribute.indicator) {
+      if (attribute.indicator.indicatorTransitionOut) {
+        attribute.indicator.indicatorTransitionOut();
+        attribute.indicator.indicatorTransitionOut = null;
+      } else if (attribute.indicator.indicatorElement) {
+        return;
+      }
+    }
+    let indicatorElement = document.importNode(indicatorTemplate.content, true);
+    insertAfter(indicatorTemplate, indicatorElement);
+    indicatorElement = indicatorTemplate.nextElementSibling;
+    attribute.indicator = {
+      indicatorElement,
+      // Transition element in.
+      indicatorTransitionIn: transitionIn(libraryOptions, indicatorElement)
+    };
+  };
 
-  // src/constants.js
-  var PRELOAD_INTERACT = "interact";
-  var PRELOAD_INTERSECT = "intersect";
-
-  // src/symbols.js
-  var NAVIGATE = Symbol("NAVIGATE");
+  // ../common/src/utilities/Script.js
+  var _readdScript = (element) => {
+    if (element.tagName !== "SCRIPT" || element.hasAttribute("src")) {
+      return false;
+    }
+    const newScript = document.createElement("script");
+    newScript.innerText = element.innerText;
+    element.parentNode.insertBefore(
+      newScript,
+      element
+    );
+    element.remove();
+    return true;
+  };
+  var readdScripts = (...elements) => {
+    for (const element of elements) {
+      if (!_readdScript(element)) {
+        const iterate = walk(element);
+        let maybeScript = null;
+        while (maybeScript = iterate()) {
+          _readdScript(maybeScript);
+        }
+      }
+    }
+  };
 
   // ../common/src/utilities/Morph.js
   var morphNode = (existingNode, newNode) => {
@@ -276,230 +891,22 @@
     }
   };
 
-  // src/factories/directives/navigate.js
-  var NAME_LOADER = "-loader";
-  var NAME_TARGET = "-target";
-  var HEADER_DATE = "Date";
-  var HEADER_CACHE_CONTROL = "Cache-Control";
-  var CACHE_INVALIDATION_CLAUSES = [
-    "no-cache",
-    "must-revalidate",
-    "no-store"
-  ];
-  var loaderAdd = (attribute, component, libraryOptions, processExpression, transitionIn2) => {
-    const { prefix } = component.getLibrary().getOptions();
-    const element = attribute.getElement();
-    const directive = attribute.getDirective();
-    const attributeName = libraryOptions.prefix + "-" + directive + NAME_LOADER;
-    if (!element.hasAttribute(attributeName)) {
-      return;
-    }
-    let loaderTemplate = processExpression(
-      component,
-      attribute,
-      element.getAttribute(attributeName)
-    );
-    if (!loaderTemplate) {
-      return;
-    }
-    if (typeof loaderTemplate === "string") {
-      loaderTemplate = element.querySelector(loaderTemplate);
-    }
-    if (loaderTemplate.tagName !== "TEMPLATE") {
-      console.warn("Doars: `" + attributeName + "` directive must be placed on a `<template>` tag.");
-      return;
-    }
-    if (loaderTemplate.childCount > 1) {
-      console.warn("Doars: `" + attributeName + "` directive must have a single child node.");
-      return;
-    }
-    if (attribute[NAVIGATE].loaderTransitionOut) {
-      attribute[NAVIGATE].loaderTransitionOut();
-      attribute[NAVIGATE].loaderTransitionOut = null;
-    } else if (attribute[NAVIGATE].loaderElement) {
-      return;
-    }
-    let loaderElement = document.importNode(loaderTemplate.content, true);
-    insertAfter(loaderTemplate, loaderElement);
-    attribute[NAVIGATE].loaderElement = loaderElement = loaderTemplate.nextElementSibling;
-    attribute[NAVIGATE].loaderTransitionIn = transitionIn2(prefix, loaderElement);
-  };
-  var loaderRemove = (attribute, component, transitionOut2) => {
-    if (attribute[NAVIGATE].loaderTransitionOut || !attribute[NAVIGATE].loaderElement) {
-      return;
-    }
-    const loaderElement = attribute[NAVIGATE].loaderElement;
-    attribute[NAVIGATE].loaderTransitionIn = transitionOut2(
-      component.getLibrary().getOptions().prefix,
-      loaderElement,
-      () => {
-        if (loaderElement) {
-          loaderElement.remove();
-        }
-      }
-    );
-  };
-  var validCacheFromHeaders = (headers, maxAge = null) => {
-    if (!headers.has(HEADER_DATE) || !headers.has(HEADER_CACHE_CONTROL)) {
-      return false;
-    }
-    const cacheDate = new Date(headers.get(HEADER_DATE));
-    const currentDate = /* @__PURE__ */ new Date();
-    if (cacheDate > currentDate) {
-      return false;
-    }
-    if (maxAge) {
-      const expireDate2 = new Date(cacheDate.getTime() + maxAge);
-      if (currentDate > expireDate2) {
-        return false;
-      }
-    }
-    const cacheControl = headers.get(HEADER_CACHE_CONTROL).split(",");
-    let cacheMaxAge = 0;
-    for (const cacheControlItem of cacheControl) {
-      if (cacheControlItem.trim().startsWith("max-age=")) {
-        cacheMaxAge = parseInt(cacheControlItem.split("=")[1].trim(), 10);
-      }
-      if (cacheControlItem.trim().startsWith("s-maxage=")) {
-        cacheMaxAge = parseInt(cacheControlItem.split("=")[1].trim(), 10);
-        break;
-      }
-    }
-    if (cacheMaxAge <= 0) {
-      return false;
-    }
-    const expireDate = new Date(cacheDate.getTime() + cacheMaxAge * 1e3);
-    return expireDate >= currentDate;
-  };
-  var clearCacheCounter = 0;
-  var clearCacheInterval = null;
-  var navigate_default = (options) => {
-    let cache = {};
-    const setupCacheClearing = () => {
-      if (clearCacheCounter > 0) {
-        clearCacheCounter++;
-        return;
-      }
-      clearCacheInterval = setInterval(
-        () => {
-          for (const location in cache) {
-            if (!Object.hasOwnProperty.call(cache, location) || !cache.headers) {
-              continue;
-            }
-            if (!validCacheFromHeaders(cache.headers, options.cacheMaxAge)) {
-              delete cache[location];
-            }
-          }
-        },
-        options.cacheInterval
-      );
-    };
-    const getFromUrl = (url, dispatchEvent, headers) => {
-      return new Promise((resolve) => {
-        if (window.location.hostname !== url.hostname) {
-          resolve(null);
-        }
-        if (Object.hasOwnProperty.call(cache, url.location)) {
-          if (cache[url.location].headers && validCacheFromHeaders(cache[url.location].headers)) {
-            resolve(cache[url.location]);
-            return;
-          }
-          if (cache[url.location].listeners) {
-            cache[url.location].listeners.push(
-              () => {
-                resolve(cache[url.location]);
-              }
-            );
-          } else {
-            cache[url.location] = {
-              listeners: []
-            };
-          }
-        } else {
-          cache[url.location] = {
-            listeners: []
-          };
-        }
-        dispatchEvent("-started", {
-          url
-        });
-        fetch(
-          url,
-          Object.assign({}, options.fetchOptions, {
-            headers: Object.assign({}, headers, options.fetchOptions.headers)
-          })
-        ).then((response) => {
-          if (response.status < 200 || response.status >= 500) {
-            dispatchEvent("-failed", {
-              response,
-              url
-            });
-            resolve(null);
-            return;
-          }
-          const contentType = response.headers.get("Content-Type");
-          if (!contentType.toLowerCase().startsWith("text/html")) {
-            console.warn('Returned response not of header type text/html, content type is "' + contentType + '".');
-          }
-          let allowCache = true;
-          if (response.headers.has(HEADER_CACHE_CONTROL)) {
-            const cacheControl = response.headers.get(HEADER_CACHE_CONTROL).split(",");
-            let maxAge = 0;
-            for (const cacheControlItem of cacheControl) {
-              const cacheClause = cacheControlItem.trim();
-              if (CACHE_INVALIDATION_CLAUSES.indexOf(cacheClause) >= 0) {
-                allowCache = false;
-                break;
-              }
-              if (cacheClause.startsWith("s-maxage=")) {
-                maxAge = parseInt(cacheClause.split("=")[1].trim(), 10);
-                if (maxAge <= 0) {
-                  allowCache = false;
-                  break;
-                }
-              }
-              if (cacheClause.startsWith("max-age=") && maxAge <= 0) {
-                maxAge = parseInt(cacheClause.split("=")[1].trim(), 10);
-                if (maxAge <= 0) {
-                  allowCache = false;
-                  break;
-                }
-              }
-            }
-          }
-          response.text().then((html) => {
-            const result = {
-              headers: response.headers,
-              html
-            };
-            const listeners = cache[url.location].listeners;
-            if (allowCache) {
-              cache[url.location] = result;
-              setupCacheClearing();
-            } else {
-              delete cache[url.location];
-            }
-            resolve(result);
-            if (listeners) {
-              for (const listener of listeners) {
-                listener();
-              }
-            }
-          });
-        });
-      });
-    };
+  // src/directives/navigate.js
+  var NAVIGATE = Symbol("NAVIGATE");
+  var navigate_default = ({
+    fetchOptions,
+    intersectionMargin,
+    intersectionThreshold,
+    navigateDirectiveName
+  }) => {
     return {
-      name: "navigate",
-      update: (component, attribute, {
-        processExpression,
-        transitionIn: transitionIn2,
-        transitionOut: transitionOut2
-      }) => {
+      name: navigateDirectiveName,
+      update: (component, attribute, processExpression) => {
         const element = attribute.getElement();
         if (element[NAVIGATE]) {
           return;
         }
+        startCacheCleaner();
         const library = component.getLibrary();
         const libraryOptions = library.getOptions();
         const directive = attribute.getDirective();
@@ -508,10 +915,9 @@
         if (modifiers.capture) {
           listenerOptions.capture = true;
         }
-        const directiveHeader = libraryOptions.prefix + "-request";
         const fetchHeaders = {
-          [directiveHeader]: directive,
-          Vary: directiveHeader
+          [libraryOptions.prefix + "-" + libraryOptions.requestHeaderName]: directive,
+          Vary: libraryOptions.prefix + "-" + libraryOptions.requestHeaderName
         };
         const dispatchEvent = (suffix = "", data = {}) => {
           element.dispatchEvent(
@@ -530,43 +936,52 @@
           attribute[NAVIGATE].url = url;
           const identifier = (/* @__PURE__ */ new Date()).toISOString();
           attribute[NAVIGATE].identifier = identifier;
-          loaderAdd(
-            attribute,
+          showIndicator(
             component,
-            libraryOptions,
-            processExpression,
-            transitionIn2
+            attribute,
+            processExpression
           );
-          getFromUrl(url, dispatchEvent, fetchHeaders).then((result) => {
+          dispatchEvent("-started", {
+            url
+          });
+          getFromCache(
+            url,
+            Object.assign({}, fetchOptions, {
+              headers: Object.assign({}, fetchOptions.headers, fetchHeaders)
+            })
+          ).then((result) => {
             if (!attribute[NAVIGATE].identifier || attribute[NAVIGATE].identifier !== identifier) {
               return;
             }
             if (!result) {
-              loaderRemove(
-                attribute,
+              hideIndicator(
                 component,
-                transitionOut2
+                attribute
               );
               delete attribute[NAVIGATE].url;
               delete attribute[NAVIGATE].identifier;
               return;
             }
-            let html = result.html;
+            let html = result.value;
             if (modifiers.decode) {
-              html = decode(result.html);
+              html = decode(result.value);
             }
             let target = null;
             if (modifiers.document) {
               target = document.documentElement;
             } else {
-              const attributeName = libraryOptions.prefix + "-" + directive + NAME_TARGET;
-              if (element.hasAttribute(attributeName)) {
-                target = processExpression(
-                  component,
-                  attribute,
-                  element.getAttribute(attributeName)
-                );
-                if (typeof target === "string") {
+              const attributeName = libraryOptions.prefix + "-" + directive + "-" + libraryOptions.targetDirectiveName;
+              if (element.getAttribute(attributeName)) {
+                if (libraryOptions.targetDirectiveEvaluate) {
+                  target = processExpression(
+                    component,
+                    attribute,
+                    element.getAttribute(attributeName)
+                  );
+                } else {
+                  target = element.getAttribute(attributeName);
+                }
+                if (target && typeof target === "string") {
                   target = element.querySelector(target);
                 }
               }
@@ -592,13 +1007,25 @@
                 }
               }
             } else if (modifiers.outer) {
-              target.outerHTML = html;
-            } else {
+              if (target.outerHTML !== html) {
+                target.outerHTML = html;
+                if (libraryOptions.allowInlineScript || modifiers.script) {
+                  readdScripts(target);
+                }
+              }
+            } else if (target.innerHTML !== html) {
               target.innerHTML = html;
+              if (libraryOptions.allowInlineScript || modifiers.script) {
+                readdScripts(...target.children);
+              }
+            }
+            if (libraryOptions.redirectHeaderName && result.headers.has(libraryOptions.prefix + "-" + libraryOptions.titleHeaderName)) {
+              window.location.href = result.headers.get(libraryOptions.prefix + "-" + libraryOptions.titleHeaderName);
+              return;
             }
             let documentTitle = "";
-            if (options.headerTitle && result.headers.has(options.headerTitle)) {
-              documentTitle = result.headers.get(options.headerTitle);
+            if (libraryOptions.titleHeaderName && result.headers.has(libraryOptions.prefix + "-" + libraryOptions.titleHeaderName)) {
+              documentTitle = result.headers.get(libraryOptions.prefix + "-" + libraryOptions.titleHeaderName);
             }
             if (modifiers.document && modifiers.history) {
               history.pushState({}, documentTitle, url);
@@ -606,19 +1033,22 @@
             if (documentTitle && document.title !== documentTitle) {
               document.title = documentTitle;
             }
-            loaderRemove(
-              attribute,
+            hideIndicator(
               component,
-              transitionOut2
+              attribute
             );
             delete attribute[NAVIGATE].url;
             delete attribute[NAVIGATE].identifier;
-            dispatchEvent("-loaded", {
+            dispatchEvent("-succeeded", {
               url
             });
-          });
+          }).catch(
+            () => dispatchEvent("-failed", {
+              url
+            })
+          );
         };
-        const loadHandler = (event) => {
+        const interactionHandler = (event) => {
           const anchor = event.target.closest("a");
           if (!anchor || !anchor.hasAttribute("href")) {
             return;
@@ -639,7 +1069,7 @@
         };
         element.addEventListener(
           "click",
-          loadHandler,
+          interactionHandler,
           listenerOptions
         );
         let historyHandler;
@@ -658,14 +1088,25 @@
           );
         }
         let destroyPreloader;
-        if (modifiers.preload === PRELOAD_INTERACT) {
+        if (modifiers.preload === "interact") {
           const preloadHandler = (event) => {
             const anchor = event.target.closest("a");
             if (!anchor || !anchor.hasAttribute("href")) {
               return;
             }
-            const href = anchor.getAttribute("href");
-            getFromUrl(new URL(href, window.location), dispatchEvent, fetchHeaders);
+            const url = new URL(
+              anchor.getAttribute("href"),
+              window.location
+            );
+            dispatchEvent("-started", {
+              url
+            });
+            getFromCache(
+              url,
+              Object.assign({}, fetchOptions, {
+                headers: Object.assign({}, fetchOptions.headers, fetchHeaders)
+              })
+            );
           };
           element.addEventListener(
             "focusin",
@@ -687,26 +1128,31 @@
               attribute[NAVIGATE].preloadHandler
             );
           };
-        } else if (modifiers.preload === PRELOAD_INTERSECT) {
+        } else if (modifiers.preload === "intersect") {
           const intersectionObserver = new IntersectionObserver(
             (anchors2) => {
               for (const anchor of anchors2) {
                 if (anchor.isIntersecting) {
-                  getFromUrl(
-                    new URL(
-                      anchor.target.getAttribute("href"),
-                      window.location
-                    ),
-                    dispatchEvent,
-                    fetchHeaders
+                  const url = new URL(
+                    anchor.target.getAttribute("href"),
+                    window.location
+                  );
+                  dispatchEvent("-started", {
+                    url
+                  });
+                  getFromCache(
+                    url,
+                    Object.assign({}, fetchOptions, {
+                      headers: Object.assign({}, fetchOptions.headers, fetchHeaders)
+                    })
                   );
                 }
               }
             },
             {
               root: null,
-              rootMargin: options.intersectionMargin,
-              threshold: options.intersectionThreshold
+              rootMargin: intersectionMargin,
+              threshold: intersectionThreshold
             }
           );
           const mutationObserver = new MutationObserver(
@@ -753,26 +1199,17 @@
           );
         }
         attribute[NAVIGATE] = {
-          cache,
           element,
           historyHandler,
-          loadHandler,
+          loadHandler: interactionHandler,
           destroyPreloader
         };
       },
-      destroy: (component, attribute, {
-        transitionOut: transitionOut2
-      }) => {
+      destroy: (component, attribute) => {
         if (!attribute[NAVIGATE]) {
           return;
         }
-        if (clearCacheCounter > 0) {
-          clearCacheCounter--;
-          if (clearCacheCounter === 0 && clearCacheInterval) {
-            clearInterval(clearCacheInterval);
-            cache = {};
-          }
-        }
+        stopCacheCleaner();
         attribute[NAVIGATE].element.removeEventListener(
           "click",
           attribute[NAVIGATE].loadHandler
@@ -786,10 +1223,9 @@
         if (attribute[NAVIGATE].destroyPreloader) {
           attribute[NAVIGATE].destroyPreloader();
         }
-        loaderRemove(
-          attribute,
+        hideIndicator(
           component,
-          transitionOut2
+          attribute
         );
         delete attribute[NAVIGATE];
       }
@@ -799,22 +1235,18 @@
   // src/DoarsNavigate.js
   var DoarsNavigate = function(library, options = null) {
     options = Object.assign({
-      cacheInterval: 60 * 1e3,
-      cacheMaxAge: 30 * 60 * 1e3,
       fetchOptions: {},
-      headerTitle: null,
       intersectionMargin: "0px",
-      intersectionThreshold: 0
+      intersectionThreshold: 0,
+      navigateDirectiveName: "navigate"
     }, options);
     let isEnabled = false;
-    let navigateDirective;
+    const navigateDirective = navigate_default(options);
     const onEnable = () => {
-      navigateDirective = navigate_default(options);
       library.addDirectives(-1, navigateDirective);
     };
     const onDisable = () => {
       library.removeDirective(navigateDirective);
-      navigateDirective = null;
     };
     this.disable = () => {
       if (!library.getEnabled() && isEnabled) {

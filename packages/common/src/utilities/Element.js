@@ -23,7 +23,7 @@ export const fromString = (
 }
 
 /**
- * Inserts an element after the reference element opposite of insertBefore and more reliable then ChildNode.after()
+ * Inserts an element after the reference element opposite of insertBefore and more reliable then ChildNode.after().
  * @param {HTMLElement} reference Node to insert after.
  * @param {Node} node Node to insert.
  */
@@ -36,6 +36,18 @@ export const insertAfter = (
   } else {
     reference.parentNode.appendChild(node)
   }
+}
+
+/**
+ * Inserts an element before the reference element,
+ * @param {HTMLElement} reference Node to insert before.
+ * @param {Node} node Node to insert.
+ */
+export const insertBefore = (
+  reference,
+  node,
+) => {
+  reference.parentNode.insertBefore(reference, node)
 }
 
 /**
@@ -64,16 +76,28 @@ export const isSame = (
 }
 
 /**
+ * @callback WalkIterate Returns a new child element or null when all items have been iterated on.
+ * @returns {HTMLElement|null}
+ */
+
+/**
+ * @callback WalkFilter Filter function that takes in an element and return true if the element needs to be walked and false when it needs to be skipped.
+ * @param {HTMLElement} element Element to decide on.
+ * @returns {boolean}
+ */
+
+/**
  * Iterate over all descendants of a given node.
  * @param {HTMLElement} element Element to walk over.
- * @param {Function} filter Filter function, return false to skip element.
- * @returns {Function} Iterator function. Call until a non-truthy value is returned.
+ * @param {WalkFilter} filter Filter function, return false to skip element.
+ * @returns {WalkIterate} Iterator function. Call until a non-truthy value is returned.
  */
 export const walk = (
   element,
   filter,
 ) => {
   let index = -1
+  /** @type {null|WalkIterate} */
   let iterator = null
   return () => {
     // First go over iterator.

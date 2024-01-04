@@ -1,13 +1,13 @@
-// Import symbols.
-import { ROUTE_TO } from '../symbols.js'
-
 // Import utilities.
 import closestRouter from '../utilities/closestRouter.js'
 
+const ROUTE_TO = Symbol('ROUTE_TO')
 const CLICK = 'click'
 
-export default {
-  name: 'route-to',
+export default ({
+  routeToDirectiveName,
+}) => ({
+  name: routeToDirectiveName,
 
   update: (
     component,
@@ -25,7 +25,10 @@ export default {
       }
 
       // Remove existing listeners so we don't listen twice.
-      attribute[ROUTE_TO].target.removeEventListener(CLICK, attribute[ROUTE_TO].handler)
+      attribute[ROUTE_TO].target.removeEventListener(
+        CLICK,
+        attribute[ROUTE_TO].handler,
+      )
     }
 
     const handler = (event) => {
@@ -72,4 +75,4 @@ export default {
 
     delete attribute[ROUTE_TO]
   },
-}
+})

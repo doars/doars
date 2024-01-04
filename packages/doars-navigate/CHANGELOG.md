@@ -1,5 +1,16 @@
 # CHANGELOG.md
 
+## 3.0.0
+
+- Added `esm` suffix back onto ESM builds.
+- Added renaming option.
+- Added evaluation option.
+- Removed caching options.
+- Removed document title header option.
+- Renamed `loaded` event to `succeeded`.
+- Renamed `navigate-loader` directive to `indicator`.
+- Renamed `navigate-target` directive to `target`.
+
 ## 2.1.4
 
 - Remove accidental inclusion of core library from plugin.

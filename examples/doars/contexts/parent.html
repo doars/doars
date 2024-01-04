@@ -10,7 +10,7 @@
 
   <body>
     <div d-state="{ message: 'Hello there!' }">
-      <div d-state="{}" d-initialized="console.log($parent.message)"></div>
+      <div d-state="{}" d-initialized="console.log($parent.$state.message)"></div>
     </div>
 
     <script src="/packages/doars/dst/doars.iife.js"></script>

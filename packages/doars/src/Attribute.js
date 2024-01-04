@@ -4,20 +4,27 @@ import EventDispatcher from '@doars/common/src/events/EventDispatcher.js'
 // Import symbols.
 import { ATTRIBUTES } from './symbols.js'
 
+// Import types.
+import Component from './Component.js'
+
 // Import utilities.
 import {
   parseAttributeName,
   parseAttributeModifiers,
 } from '@doars/common/src/utilities/String.js'
 
+/**
+ * @typedef {import('./Doars.js').default} Doars
+ */
+
 export default class Attribute extends EventDispatcher {
   /**
    * Create instance.
    * @param {Component} component Component instance.
    * @param {HTMLElement} element Element.
-   * @param {String} name Attribute name (with library prefix removed).
-   * @param {String} value Attribute value.
-   * @param {Boolean} isClone Whether this will be a clone of an existing attribute.
+   * @param {string} name Attribute name (with library prefix removed).
+   * @param {string} value Attribute value.
+   * @param {boolean} isClone Whether this will be a clone of an existing attribute.
    */
   constructor(
     component,
@@ -40,12 +47,21 @@ export default class Attribute extends EventDispatcher {
     }
 
     // Create private variables.
-    let accessedItems = {}, data = null, directive, key, keyRaw, modifiersRaw, modifiers
+    let accessedItems = {},
+      data = null,
+      directive,
+      key,
+      keyRaw,
+      modifiersRaw,
+      modifiers
 
     // Parse and store name.
     if (name) {
       // Parse and store attribute name.
-      const [_directive, _keyRaw, _key, _modifiers] = parseAttributeName(component.getLibrary().getOptions().prefix, name)
+      const [_directive, _keyRaw, _key, _modifiers] = parseAttributeName(
+        component.getLibrary().getOptions().prefix,
+        name,
+      )
       directive = _directive
       key = _key
       keyRaw = _keyRaw
@@ -77,7 +93,7 @@ export default class Attribute extends EventDispatcher {
 
     /**
      * Get attribute id.
-     * @returns {Symbol} Unique identifier.
+     * @returns {symbol} Unique identifier.
      */
     this.getId = (
     ) => {
@@ -86,7 +102,7 @@ export default class Attribute extends EventDispatcher {
 
     /**
      * Get the directive this attribute matches.
-     * @returns {String} Directive name.
+     * @returns {string} Directive name.
      */
     this.getDirective = (
     ) => {
@@ -95,7 +111,7 @@ export default class Attribute extends EventDispatcher {
 
     /**
      * Get the optional key of the attribute.
-     * @returns {String} Key.
+     * @returns {string} Key.
      */
     this.getKey = (
     ) => {
@@ -104,7 +120,7 @@ export default class Attribute extends EventDispatcher {
 
     /**
      * Get the optional key of the attribute before being processed.
-     * @returns {String} Raw key.
+     * @returns {string} Raw key.
      */
     this.getKeyRaw = (
     ) => {
@@ -113,7 +129,7 @@ export default class Attribute extends EventDispatcher {
 
     /**
      * Get the optional modifiers of the attribute.
-     * @returns {Object} Modifiers object.
+     * @returns {object} Modifiers object.
      */
     this.getModifiers = (
     ) => {
@@ -122,7 +138,7 @@ export default class Attribute extends EventDispatcher {
 
     /**
      * Get the optional modifiers of the attribute before being processed.
-     * @returns {Array<String>} List of raw modifiers.
+     * @returns {Array<string>} List of raw modifiers.
      */
     this.getModifiersRaw = (
     ) => {
@@ -131,7 +147,7 @@ export default class Attribute extends EventDispatcher {
 
     /**
      * Get attribute's name.
-     * @returns {String} Attribute name.
+     * @returns {string} Attribute name.
      */
     this.getName = (
     ) => {
@@ -140,7 +156,7 @@ export default class Attribute extends EventDispatcher {
 
     /**
      * Get the attribute's value.
-     * @returns {String} Value.
+     * @returns {string} Value.
      */
     this.getValue = (
     ) => {
@@ -149,7 +165,7 @@ export default class Attribute extends EventDispatcher {
 
     /**
      * Set the attribute's value.
-     * @param {String} value New value.
+     * @param {string} _value New value.
      */
     this.setValue = (
       _value,
@@ -188,7 +204,7 @@ export default class Attribute extends EventDispatcher {
 
     /**
      * Set custom attribute data.
-     * @param {any} data Some data.
+     * @param {any} _data Some data.
      */
     this.setData = (
       _data,
@@ -222,8 +238,8 @@ export default class Attribute extends EventDispatcher {
 
     /**
      * Mark an item as accessed.
-     * @param {Symbol} id Unique identifier.
-     * @param {String} path Context path.
+     * @param {symbol} id Unique identifier.
+     * @param {string} path Context path.
      */
     this.accessed = (
       id,
@@ -251,9 +267,9 @@ export default class Attribute extends EventDispatcher {
 
     /**
      * Check if attribute accessed any of the item's paths.
-     * @param {Symbol} id Unique identifier.
-     * @param {Array<String>} paths Contexts path.
-     * @returns {Boolean} Whether any item's path was accessed.
+     * @param {symbol} id Unique identifier.
+     * @param {Array<string>} paths Contexts path.
+     * @returns {boolean} Whether any item's path was accessed.
      */
     this.hasAccessed = (
       id,
@@ -279,7 +295,13 @@ export default class Attribute extends EventDispatcher {
     this.clone = (
     ) => {
       // Create new attribute as clone.
-      return new Attribute(component, element, name, value, true)
+      return new Attribute(
+        component,
+        element,
+        name,
+        value,
+        true,
+      )
     }
   }
 }

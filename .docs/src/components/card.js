@@ -17,12 +17,12 @@ const iconOpen = readFileSync('src/icons/open-outline.svg')
  * @param {...string} children Rendered elements to add as children.
  * @returns {string} Resulting HTML structure.
  */
-export default function (
+export default (
   options = {},
   title = '',
   description = '',
   ...children
-) {
+) => {
   // Override default options.
   options = Object.assign({
     href: null,

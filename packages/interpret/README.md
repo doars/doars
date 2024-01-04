@@ -50,14 +50,14 @@ Exported functions:
 
 - `interpret` Interpret an expression.
   - `@param {string} expression` Expression to interpret.
-  - `@param {Object} context` Context of the expression.
+  - `@param {object} context` Context of the expression.
   - `@returns {Array}` results of the expression.
 - `parse` Parse an expression.
   - `@param {string} expression` Expression to parse.
-  - `@returns {Object}` The parsed expression.
+  - `@returns {object}` The parsed expression.
 - `run` Run a parsed expression.
-  - `@param {Object} node` Parsed expression.
-  - `@param {Object} context` Context of the expression.
+  - `@param {object} node` Parsed expression.
+  - `@param {object} context` Context of the expression.
   - `@returns {Array}` results of the expression.
 
 The following node types are exported as variables: `ARRAY`, `ASSIGN`, `BINARY`, `CALL`, `CONDITION`, `IDENTIFIER`, `LITERAL`, `MEMBER`, `OBJECT`, `PROPERTY`, `SEQUENCE`, `UNARY`, `UPDATE`.
@@ -96,7 +96,3 @@ As well as several value types and most operators. See an overview below for mor
 - Assignment: `hello = 'there'`.
 - Arithmetic assignment: `hello **= 2` as well as `*=`, `/=`, `%=`, `+=`, and `-=`.
 - Logical assignment: `hello ||= 'there'` as well as `&&=` and `??=`.
-
-## Known issues
-
-- Unable to define objects in objects: `{ hello: {} }`.

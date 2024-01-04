@@ -1,13 +1,22 @@
 // Import proxy dispatcher.
 import ProxyDispatcher from '@doars/common/src/events/ProxyDispatcher.js'
 
-export default class Updater {
-  constructor(options, callback) {
-    // Overwrite default options.
-    options = Object.assign({
-      stepMinimum: 0,
-    }, options)
+/**
+ * @callback UpdateCallback
+ */
 
+export default class Updater {
+  /**
+   * @param {object} options Updater options.
+   * @param {number} options.stepMinimum Minimum duration of a tick in milliseconds.
+   * @param {UpdateCallback} callback Called every update tick.
+   */
+  constructor(
+    {
+      stepMinimum,
+    },
+    callback,
+  ) {
     // Create id.
     const id = Symbol('ID_UPDATE')
 
@@ -22,7 +31,12 @@ export default class Updater {
     })
     const time = proxy.add({})
 
-    const update = (timeAbsolute) => {
+    /**
+     * @param {number} timeAbsolute timestamp in milliseconds.
+     */
+    const update = (
+      timeAbsolute,
+    ) => {
       // Exit if not enabled any more.
       if (!isEnabled) {
         return
@@ -43,7 +57,7 @@ export default class Updater {
 
       // Check if minimum time has been elapsed.
       const deltaMs = timeAbsolute - time.lastMs
-      if (deltaMs <= options.stepMinimum) {
+      if (deltaMs <= stepMinimum) {
         return
       }
 
@@ -63,7 +77,7 @@ export default class Updater {
 
     /**
      * Get whether the instance is enabled.
-     * @returns {Bool} Whether the instance is enabled.
+     * @returns {boolean} Whether the instance is enabled.
      */
     this.isEnabled = () => {
       return isEnabled
@@ -71,7 +85,7 @@ export default class Updater {
 
     /**
      * Get updater id.
-     * @returns {Symbol} Unique identifier.
+     * @returns {symbol} Unique identifier.
      */
     this.getId = () => {
       return id

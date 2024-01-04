@@ -1,5 +1,17 @@
-export default {
-  name: '$dispatch',
+/**
+ * @typedef {import('../Context.js').Context} Context
+ * @typedef {import('../Doars.js').DoarsOptions} DoarsOptions
+ */
+
+/**
+ * Create the dispatch context.
+ * @param {DoarsOptions} options Library options.
+ * @returns {Context} The context.
+ */
+export default ({
+  dispatchContextName,
+}) => ({
+  name: dispatchContextName,
 
   create: (
     component,
@@ -20,4 +32,4 @@ export default {
       },
     }
   },
-}
+})

@@ -7,7 +7,18 @@ const BABEL_OPTIONS = {
   retainLines: false,
 }
 
-export const anyToString = function (data, asCode = false, unwrap = true) {
+/**
+ * Converts almost any data type to a string.
+ * @param {any} data Data to render as a string.
+ * @param {boolean} asCode Whether to render it as code. For example null will be 'null' instead of ''.
+ * @param {boolean} unwrap If a function is given should it convert that function into inline code that gets invoked ran or a function definition.
+ * @returns {string} Resulting stringified data.
+ */
+export const anyToString = (
+  data,
+  asCode = false,
+  unwrap = true,
+) => {
   switch (typeof (data)) {
     default:
       if (asCode) {
@@ -99,11 +110,12 @@ export const anyToString = function (data, asCode = false, unwrap = true) {
   }
 }
 
-export const escapeHtmlCharacters = function (string) {
-  return string.replace(/[\u00A0-\u9999<>&]/g, function (character) {
-    return '&#' + character.charCodeAt(0) + ';'
-  })
-}
+export const escapeHtmlCharacters = (
+  string,
+) => string.replace(
+  /[\u00A0-\u9999<>&]/g,
+  (character) => '&#' + character.charCodeAt(0) + ';',
+)
 
 export default {
   anyToString,

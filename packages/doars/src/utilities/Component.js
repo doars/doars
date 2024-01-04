@@ -2,9 +2,13 @@
 import { COMPONENT } from '../symbols.js'
 
 /**
+ * @typedef {import('../Component.js').default} Component
+ */
+
+/**
  * Get closest component in hierarchy.
  * @param {HTMLElement} element Element to start searching from.
- * @returns {Component} Closest component.
+ * @returns {Component|undefined} Closest component.
  */
 export const closestComponent = (
   element,
@@ -13,6 +17,7 @@ export const closestComponent = (
     element = element.parentElement
 
     if (element[COMPONENT]) {
+      /** @type {Component} */
       return element[COMPONENT]
     }
 

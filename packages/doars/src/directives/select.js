@@ -1,27 +1,39 @@
 // Import utilities.
 import { isPromise } from '@doars/common/src/utilities/Promise.js'
 
+/**
+ * @typedef {import('../Directive.js').Directive} Directive
+ * @typedef {import('../Doars.js').DoarsOptions} DoarsOptions
+ */
+
 const TAG_SELECT = 'SELECT'
 const CHECKED = 'checked'
 const SELECTED = 'selected'
 const TYPE_CHECKBOX = 'checkbox'
 
-export default {
-  name: 'select',
+/**
+ * Create the select directive.
+ * @param {DoarsOptions} options Library options.
+ * @returns {Directive} The directive.
+ */
+export default ({
+  selectDirectiveName,
+}) => ({
+  name: selectDirectiveName,
 
   update: (
     component,
-    attribute, {
-      processExpression,
-    },
+    attribute,
+    processExpression,
   ) => {
     // Deconstruct attribute.
     const element = attribute.getElement()
+    const directive = attribute.getDirective()
 
     // Check if placed on a select tag.
     const type = element.getAttribute('type')
     if (element.tagName !== TAG_SELECT && !(element.tagName === 'INPUT' && (type === TYPE_CHECKBOX || type === 'radio'))) {
-      console.warn('Doars: `select` directive must be placed on a `select` tag or `input` of type checkbox or radio.')
+      console.warn('Doars: "' + directive + '" directive must be placed on a `select` tag or `input` of type checkbox or radio.')
       return
     }
 
@@ -71,7 +83,11 @@ export default {
     }
 
     // Execute attribute value.
-    const result = processExpression(component, attribute, attribute.getValue())
+    const result = processExpression(
+      component,
+      attribute,
+      attribute.getValue(),
+    )
 
     // Store results.
     attribute.setData(result)
@@ -93,4 +109,4 @@ export default {
       set(result)
     }
   },
-}
+})

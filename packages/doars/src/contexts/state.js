@@ -1,16 +1,29 @@
-const NAME = '$state'
+import createState from '@doars/common/src/factories/createState'
 
-export default {
-  deconstruct: true,
+/**
+ * @typedef {import('../Context.js').Context} Context
+ * @typedef {import('../Doars.js').DoarsOptions} DoarsOptions
+ */
 
-  name: NAME,
+/**
+ * Create the state context.
+ * @param {DoarsOptions} options Library options.
+ * @returns {Context} The context.
+ */
+export default ({
+  stateContextDeconstruct,
+  stateContextName,
+}) => ({
+  deconstruct: stateContextDeconstruct,
 
+  name: stateContextName,
+
+  // Wrap create state so the component's data can be used.
   create: (
     component,
     attribute,
-    update, {
-      RevocableProxy,
-    },
+    update,
+    utilities,
   ) => {
     // Deconstruct component.
     const proxy = component.getProxy()
@@ -19,32 +32,18 @@ export default {
       return
     }
 
-    // Create event handlers.
-    const onDelete = (target, path) => update(component.getId(), NAME + '.' + path.join('.'))
-    const onGet = (target, path) => attribute.accessed(component.getId(), NAME + '.' + path.join('.'))
-    const onSet = (target, path) => update(component.getId(), NAME + '.' + path.join('.'))
-
-    // Add event listeners.
-    proxy.addEventListener('delete', onDelete)
-    proxy.addEventListener('get', onGet)
-    proxy.addEventListener('set', onSet)
-
-    // Wrap in a revocable proxy.
-    const revocable = RevocableProxy(state, {})
-
-    return {
-      value: revocable.proxy,
-
-      // Remove event listeners.
-      destroy: (
-      ) => {
-        proxy.removeEventListener('delete', onDelete)
-        proxy.removeEventListener('get', onGet)
-        proxy.removeEventListener('set', onSet)
-
-        // Revoke access to state.
-        revocable.revoke()
-      },
-    }
+    return (
+      createState(
+        stateContextName,
+        component.getId(),
+        state,
+        proxy,
+      )(
+        component,
+        attribute,
+        update,
+        utilities,
+      )
+    )
   },
-}
+})

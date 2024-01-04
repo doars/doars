@@ -1,3 +1,31 @@
+import createState from './createState.js'
+
+/**
+ * @typedef {import('../events/ProxyDispatcher.js').default} ProxyDispatcher
+ * @typedef {import('../polyfills/RevocableProxy.js').RevocableProxy} RevocableProxy
+ */
+
+/**
+ * Function called when the context needs to be destroyed.
+ * @callback DestroyStateContext
+ */
+
+/**
+ * @typedef StateContext
+ * @type {object}
+ * @property {Proxy} value The proxy of the state to mutate.
+ * @property {DestroyStateContext} destroy The proxy of the state.
+ */
+
+/**
+ * Factory function to create a context for a state which dispatched update events when mutated.
+ * @param {string} name Name of the state.
+ * @param {string} id Identifier of the state.
+ * @param {object} state Data of the state.
+ * @param {ProxyDispatcher} proxy Dispatcher to pass events through.
+ * @param {boolean} deconstruct Whether to deconstruct the state or require the name prefix.
+ * @returns {object} Proxied state and destroy callback.
+ */
 export default (
   name,
   id,
@@ -9,48 +37,10 @@ export default (
 
   name,
 
-  create: (
-    component,
-    attribute,
-    update, {
-      RevocableProxy,
-    },
-  ) => {
-    // Create event handlers.
-    const onDelete = (
-      target,
-      path,
-    ) => update(id, name + '.' + path.join('.'))
-    const onGet = (
-      target,
-      path,
-    ) => attribute.accessed(id, name + '.' + path.join('.'))
-    const onSet = (
-      target,
-      path,
-    ) => update(id, name + '.' + path.join('.'))
-
-    // Add event listeners.
-    proxy.addEventListener('delete', onDelete)
-    proxy.addEventListener('get', onGet)
-    proxy.addEventListener('set', onSet)
-
-    // Wrap in a revocable proxy.
-    const revocable = RevocableProxy(state, {})
-
-    return {
-      value: revocable.proxy,
-
-      // Remove event listeners.
-      destroy: (
-      ) => {
-        proxy.removeEventListener('delete', onDelete)
-        proxy.removeEventListener('get', onGet)
-        proxy.removeEventListener('set', onSet)
-
-        // Revoke access to state.
-        revocable.revoke()
-      },
-    }
-  },
+  create: createState(
+    name,
+    id,
+    state,
+    proxy,
+  ),
 })

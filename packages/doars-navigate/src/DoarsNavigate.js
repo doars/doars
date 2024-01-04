@@ -1,5 +1,8 @@
-import Doars from '@doars/doars/src/Doars.js'
-import createNavigateDirective from './factories/directives/navigate.js'
+/**
+ * @typedef {import('@doars/doars').default} Doars
+ */
+
+import createNavigateDirective from './directives/navigate.js'
 
 /**
  * Create plugin instance.
@@ -12,23 +15,20 @@ const DoarsNavigate = function (
 ) {
   // Clone options.
   options = Object.assign({
-    cacheInterval: 60 * 1e3,
-    cacheMaxAge: 30 * 60 * 1e3,
     fetchOptions: {},
-    headerTitle: null,
     intersectionMargin: '0px',
     intersectionThreshold: 0,
+    navigateDirectiveName: 'navigate',
   }, options)
 
   // Set private variables.
   let isEnabled = false
   // Store contexts and directives.
-  let navigateDirective
+  const navigateDirective = createNavigateDirective(options)
 
   const onEnable = (
   ) => {
     // Create and add contexts and directives.
-    navigateDirective = createNavigateDirective(options)
     library.addDirectives(-1, navigateDirective)
   }
 
@@ -36,7 +36,6 @@ const DoarsNavigate = function (
   ) => {
     // Remove contexts and directives.
     library.removeDirective(navigateDirective)
-    navigateDirective = null
   }
 
   this.disable = (

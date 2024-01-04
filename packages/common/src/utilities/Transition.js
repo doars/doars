@@ -12,14 +12,14 @@ const TRANSITION_NAME = '-transition:'
 /**
  * Transition an element.
  * @param {string} type Type of transition, for example 'in' and 'out'.
- * @param {string} prefix Directive prefix.
+ * @param {object} libraryOptions Library options.
  * @param {HTMLElement} element Element to transition.
  * @param {Function} callback Function to call after transition is done.
  * @returns {TransitionEnd | undefined} Function to immediately end the transition.
  */
 export const transition = (
   type,
-  prefix,
+  libraryOptions,
   element,
   callback = null,
 ) => {
@@ -32,7 +32,7 @@ export const transition = (
   }
 
   // Transition attribute name.
-  const transitionName = prefix + TRANSITION_NAME + type
+  const transitionDirectiveName = libraryOptions.prefix + TRANSITION_NAME + type
 
   // Setup dispatcher function.
   const dispatchEvent = (phase) => {
@@ -50,7 +50,7 @@ export const transition = (
   const selectors = {}
 
   // Process transition during attribute.
-  name = transitionName
+  name = transitionDirectiveName
   value = element.getAttribute(name)
   // Parse and apply returned selector.
   if (value) {
@@ -59,7 +59,7 @@ export const transition = (
   }
 
   // Process transition from attribute.
-  name = transitionName + '.from'
+  name = transitionDirectiveName + '.from'
   value = element.getAttribute(name)
   // Parse and apply returned selector.
   if (value) {
@@ -85,7 +85,7 @@ export const transition = (
     }
 
     // Process transition to attribute.
-    name = transitionName + '.to'
+    name = transitionDirectiveName + '.to'
     value = element.getAttribute(name)
     // Parse and apply returned selector.
     if (value) {
@@ -184,32 +184,32 @@ export const transition = (
 
 /**
  * Transition an element in.
- * @param {string} prefix Directive prefix.
+ * @param {object} libraryOptions Library options.
  * @param {HTMLElement} element Element to transition.
  * @param {Function} callback Function to call after transition is done.
  * @returns {TransitionEnd | undefined} Function to immediately end the transition.
  */
 export const transitionIn = (
-  prefix,
+  libraryOptions,
   element,
   callback,
 ) => {
-  return transition('in', prefix, element, callback)
+  return transition('in', libraryOptions, element, callback)
 }
 
 /**
  * Transition an element out.
- * @param {string} prefix Directive prefix.
+ * @param {object} libraryOptions Library options.
  * @param {HTMLElement} element Element to transition.
  * @param {Function} callback Function to call after transition is done.
  * @returns {TransitionEnd | undefined} Function to immediately end the transition.
  */
 export const transitionOut = (
-  prefix,
+  libraryOptions,
   element,
   callback,
 ) => {
-  return transition('out', prefix, element, callback)
+  return transition('out', libraryOptions, element, callback)
 }
 
 export default {

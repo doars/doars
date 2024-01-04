@@ -1,5 +1,10 @@
-// Import symbols.
-import { ON } from '../symbols.js'
+/**
+ * @typedef {import('../Directive.js').Directive} Directive
+ * @typedef {import('../Doars.js').DoarsOptions} DoarsOptions
+ */
+
+// Symbols.
+const ON = Symbol('ON')
 
 // Declare constants.
 const CANCEL_EVENTS = {
@@ -22,32 +27,39 @@ const KEYPRESS_MODIFIERS = [
   'shift',
 ]
 
-export default {
-  name: 'on',
+/**
+ * Create the on directive.
+ * @param {DoarsOptions} options Library options.
+ * @returns {Directive} The directive.
+ */
+export default ({
+  onDirectiveName,
+}) => ({
+  name: onDirectiveName,
 
   update: (
     component,
-    attribute, {
-      processExpression,
-    },
+    attribute,
+    processExpression,
   ) => {
     // Deconstruct attribute.
-    let name = attribute.getKeyRaw()
+    const directive = attribute.getDirective()
+    let eventName = attribute.getKeyRaw()
 
     // Check if required key is set.
-    if (!name) {
-      console.warn('Doars: `on` directive must have a key.')
+    if (!eventName) {
+      console.warn('Doars: "' + directive + '" directive must have a key.')
       return
     }
 
     // Process keyboard events.
     let key
-    if (name.startsWith('keydown-')) {
-      key = name.substring(8).toLowerCase()
-      name = 'keydown'
-    } else if (name.startsWith('keyup-')) {
-      key = name.substring(6).toLowerCase()
-      name = 'keyup'
+    if (eventName.startsWith('keydown-')) {
+      key = eventName.substring(8).toLowerCase()
+      eventName = 'keydown'
+    } else if (eventName.startsWith('keyup-')) {
+      key = eventName.substring(6).toLowerCase()
+      eventName = 'keyup'
     }
 
     // Deconstruct attribute.
@@ -62,7 +74,10 @@ export default {
       }
 
       // Remove existing listener so we don't listen twice.
-      attribute[ON].target.removeEventListener(name, attribute[ON].handler)
+      attribute[ON].target.removeEventListener(
+        attribute[ON].eventName,
+        attribute[ON].handler,
+      )
 
       // Clear any ongoing timeouts.
       if (attribute[ON].timeout) {
@@ -79,15 +94,15 @@ export default {
     // Process modifiers.
 
     // Set listener options.
-    const options = {}
+    const listenerOptions = {}
     if (modifiers.capture) {
-      options.capture = true
+      listenerOptions.capture = true
     }
     if (modifiers.once) {
-      options.once = true
+      listenerOptions.once = true
     }
     if (modifiers.passive && !modifiers.prevent) {
-      options.passive = true
+      listenerOptions.passive = true
     }
 
     // Process execution modifiers.
@@ -164,7 +179,7 @@ export default {
       }
 
       // For keyboard events check the key is pressed.
-      if ((name === 'keydown' || name === 'keyup') && key) {
+      if ((eventName === 'keydown' || eventName === 'keyup') && key) {
         // Check if all key press modifiers are held.
         for (const keypressModifier of keypressModifiers) {
           if (!event[keypressModifier + 'Key']) {
@@ -197,10 +212,16 @@ export default {
       const execute = (
       ) => {
         // Execute value using a copy of the attribute since this attribute should not update based on what contexts will be accessed.
-        processExpression(component, attribute.clone(), value, {
-          $event: event,
-          $events: attribute[ON].buffer,
-        }, { return: false })
+        processExpression(
+          component,
+          attribute.clone(),
+          value,
+          {
+            $event: event,
+            $events: attribute[ON].buffer,
+          },
+          { return: false },
+        )
 
         // Reset the buffer.
         attribute[ON].buffer = []
@@ -234,11 +255,11 @@ export default {
         // Execute the event when let go after the given time has exceeded.
         case EXECUTION_MODIFIERS.HELD:
           // Check if cancelable.
-          if (!(name in CANCEL_EVENTS)) {
-            console.warn('Doars: `on` directive, event of name "' + name + '" is not cancelable and can not have "held" modifier.')
+          if (!(eventName in CANCEL_EVENTS)) {
+            console.warn('Doars: "' + directive + '" directive, event of name "' + eventName + '" is not cancelable and can not have "held" modifier.')
             return
           }
-          const cancelHeldName = CANCEL_EVENTS[name]
+          const cancelHeldName = CANCEL_EVENTS[eventName]
 
           // Store time of holding down.
           const nowHeld = window.performance.now()
@@ -299,11 +320,11 @@ export default {
         // Execute event when keys have been held down for the given time.
         case EXECUTION_MODIFIERS.HOLD:
           // Check if cancelable.
-          if (!(name in CANCEL_EVENTS)) {
-            console.warn('Doars: `on` directive, event of name "' + name + '" is not cancelable and can not have "hold" modifier.')
+          if (!(eventName in CANCEL_EVENTS)) {
+            console.warn('Doars: "' + directive + '" directive, event of name "' + eventName + '" is not cancelable and can not have "hold" modifier.')
             return
           }
-          const cancelHoldName = CANCEL_EVENTS[name]
+          const cancelHoldName = CANCEL_EVENTS[eventName]
 
           attribute[ON].cancel = (
             cancelEvent,
@@ -390,11 +411,16 @@ export default {
       execute()
     }
 
-    target.addEventListener(name, handler, options)
+    target.addEventListener(
+      eventName,
+      handler,
+      listenerOptions,
+    )
 
     // Store listener data on the component.
     attribute[ON] = {
       buffer: [],
+      eventName,
       handler,
       target,
       timeout: attribute[ON] ? attribute[ON].timeout : undefined,
@@ -412,18 +438,18 @@ export default {
       return
     }
 
-    // Deconstruct attribute.
-    const key = attribute.getKeyRaw()
-
     // Remove existing listener.
     attribute[ON].target
-      .removeEventListener(key, attribute[ON].handler)
+      .removeEventListener(
+        attribute[ON].eventName,
+        attribute[ON].handler,
+      )
 
     // Clear any ongoing callbacks and timeouts.
     if (attribute[ON].cancel) {
       attribute[ON].target
         .removeEventListener(
-          CANCEL_EVENTS[key],
+          CANCEL_EVENTS[attribute[ON].eventName],
           attribute[ON].cancel,
         )
     }
@@ -434,4 +460,4 @@ export default {
     // Delete directive data.
     delete attribute[ON]
   },
-}
+})

@@ -1,18 +1,32 @@
 // Import utilities.
 import { isPromise } from '@doars/common/src/utilities/Promise.js'
+import {
+  transitionIn,
+  transitionOut,
+} from '@doars/common/src/utilities/Transition.js'
 
-export default {
-  name: 'show',
+/**
+ * @typedef {import('../Directive.js').Directive} Directive
+ * @typedef {import('../Doars.js').DoarsOptions} DoarsOptions
+ */
+
+/**
+ * Create the show directive.
+ * @param {DoarsOptions} options Library options.
+ * @returns {Directive} The directive.
+ */
+export default ({
+  showDirectiveName,
+}) => ({
+  name: showDirectiveName,
 
   update: (
     component,
-    attribute, {
-      processExpression,
-      transitionIn,
-      transitionOut,
-    },
+    attribute,
+    processExpression,
   ) => {
-    // Deconstruct attribute.
+    // Deconstruct component and attribute.
+    const libraryOptions = component.getLibrary().getOptions()
     const element = attribute.getElement()
 
     const set = (
@@ -29,9 +43,9 @@ export default {
       let transition
       if (data.result) {
         element.style.display = null
-        transition = transitionIn(component, element)
+        transition = transitionIn(libraryOptions, element)
       } else {
-        transition = transitionOut(component, element, () => {
+        transition = transitionOut(libraryOptions, element, () => {
           element.style.display = 'none'
         })
       }
@@ -45,7 +59,11 @@ export default {
     }
 
     // Execute attribute value.
-    const result = processExpression(component, attribute, attribute.getValue())
+    const result = processExpression(
+      component,
+      attribute,
+      attribute.getValue(),
+    )
 
     // Get stored data.
     const data = attribute.getData()
@@ -81,4 +99,4 @@ export default {
       set()
     }
   },
-}
+})

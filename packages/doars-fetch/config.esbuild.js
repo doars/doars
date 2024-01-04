@@ -2,16 +2,16 @@ import build from '../../.scripts/esbuild.js'
 
 build([{
   from: 'src/DoarsFetch.js',
-  to: 'dst/doars-fetch.js',
+  to: 'dst/doars-fetch.esm.js',
 }, {
   format: 'iife',
   from: 'src/DoarsFetch.iife.js',
   to: 'dst/doars-fetch.iife.js',
 }])
 
-// targets:
+// Targets:
 //   chrome49
-//   edge14
+//   edge16
 //   firefox39
-//   ios10.3
-//   safari10.1
+//   ios11.2
+//   safari11.1

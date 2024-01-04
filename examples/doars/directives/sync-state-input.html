@@ -10,7 +10,7 @@
 
   <body>
     <div d-state="{ message: 'After' }">
-      <input type="text" d-sync:state="message" value="Initial">
+      <input type="text" d-sync="$state.message" value="Initial">
 
       <div d-text="message">Initial</div>
     </div>

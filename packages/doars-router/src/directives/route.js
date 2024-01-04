@@ -1,21 +1,24 @@
-// Import symbols.
-import { ROUTE } from '../symbols.js'
-
 // Import utilities.
 import closestRouter from '../utilities/closestRouter.js'
 import { insertAfter } from '@doars/common/src/utilities/Element.js'
+import {
+  transitionIn,
+  transitionOut,
+} from '@doars/common/src/utilities/Transition.js'
 
-export default {
-  name: 'route',
+const ROUTE = Symbol('ROUTE')
+
+export default ({
+  routeDirectiveName,
+}) => ({
+  name: routeDirectiveName,
 
   update: (
     component,
-    attribute, {
-      transitionIn,
-      transitionOut,
-    },
+    attribute,
   ) => {
-    // Deconstruct attribute.
+    // Deconstruct component and attribute.
+    const libraryOptions = component.getLibrary().getOptions()
     const element = attribute.getElement()
 
     let router
@@ -57,7 +60,7 @@ export default {
             if (attribute[ROUTE] && attribute[ROUTE].element) {
               // Transition out.
               const routeElement = attribute[ROUTE].element
-              transitionOut(component, routeElement, () => {
+              transitionOut(libraryOptions, routeElement, () => {
                 // Remove node.
                 routeElement.remove()
                 attribute[ROUTE].element = undefined
@@ -65,7 +68,7 @@ export default {
             }
           } else {
             // Transition out and set display none.
-            transitionOut(component, element, () => {
+            transitionOut(libraryOptions, element, () => {
               element.style.display = 'none'
             })
           }
@@ -78,13 +81,13 @@ export default {
           attribute[ROUTE].element = element.nextSibling
 
           // Transition in.
-          transitionIn(component, attribute[ROUTE].element)
+          transitionIn(libraryOptions, attribute[ROUTE].element)
         } else {
           // Remove display none.
           element.style.display = null
 
           // Transition in.
-          transitionIn(component, element)
+          transitionIn(libraryOptions, element)
         }
       }
       attribute[ROUTE].handler = handleChange
@@ -107,13 +110,15 @@ export default {
       transitionOut,
     },
   ) => {
+    const libraryOptions = component.getLibrary().getOptions()
+
     // Deconstruct attribute.
     const element = attribute.getElement()
     if (element.tagName === 'TEMPLATE') {
       if (attribute[ROUTE] && attribute[ROUTE].element) {
         // Transition out.
         const routeElement = attribute[ROUTE].element
-        transitionOut(component, routeElement, () => {
+        transitionOut(libraryOptions, routeElement, () => {
           // Remove node.
           routeElement.remove()
           attribute[ROUTE].element = undefined
@@ -121,7 +126,7 @@ export default {
       }
     } else {
       // Transition out and set display none.
-      transitionOut(component, element, () => {
+      transitionOut(libraryOptions, element, () => {
         element.style.display = 'none'
       })
     }
@@ -140,4 +145,4 @@ export default {
       }
     }
   },
-}
+})

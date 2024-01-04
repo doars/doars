@@ -1,10 +1,14 @@
-// Import contexts.
-import createFetchContext from './factories/contexts/fetch.js'
+/**
+ * @typedef {import('@doars/doars').default} Doars
+ */
+
+import createFetchContext from './contexts/fetch.js'
+import createFetchDirective from './directives/fetch.js'
 
 /**
  * Create plugin instance.
  * @param {Doars} library Doars instance to add onto.
- * @param {Object} options The plugin options.
+ * @param {object} options The plugin options.
  */
 export default function (
   library,
@@ -12,13 +16,10 @@ export default function (
 ) {
   // Clone options.
   options = Object.assign({
+    fetchContextName: '$fetch',
+    fetchDirectiveEvaluate: true,
+    fetchDirectiveName: 'fetch',
     fetchOptions: {},
-
-    encodingConverters: {
-      'application/json': () => { },
-      'application/x-www-form-urlencoded': () => { },
-      'multipart/formdata': () => { },
-    },
   }, options)
   if (options.defaultInit) {
     Object.assign(options.fetchOptions, options.defaultInit)
@@ -27,20 +28,21 @@ export default function (
   // Set private variables.
   let isEnabled = false
   // Store contexts and directives.
-  let fetchContext
+  const fetchContext = createFetchContext(options),
+    fetchDirective = createFetchDirective(options)
 
   const onEnable = (
   ) => {
     // Create and add contexts and directives.
-    fetchContext = createFetchContext(options)
     library.addContexts(0, fetchContext)
+    library.addDirectives(-1, fetchDirective)
   }
 
   const onDisable = (
   ) => {
     // Remove contexts and directives.
     library.removeContexts(fetchContext)
-    fetchContext = null
+    library.removeDirective(fetchDirective)
   }
 
   this.disable = (

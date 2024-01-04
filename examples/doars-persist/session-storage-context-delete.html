@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doars persist session storage delete example</title>
+    <link rel="stylesheet" href="/examples/style.css">
+  </head>
+
+  <body>
+    <div d-state="{}" d-initialized="$sessionStorage.hello = null">
+    </div>
+
+    <script src="/packages/doars/dst/doars.iife.js"></script>
+    <script src="/packages/doars-persist/dst/doars-persist.iife.js"></script>
+    <script>
+      // Wait for the DOM to be interactive.
+      document.addEventListener('DOMContentLoaded', () => {
+        // Setup a library instance.
+        const doars = new window.Doars()
+
+        // Add plugin.
+        window.DoarsPersist(doars)
+
+        // Enable library.
+        doars.enable()
+      })
+    </script>
+  </body>
+
+</html>

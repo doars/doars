@@ -1,37 +1,34 @@
-// Import contexts.
-import createContextUpdate from './factories/contexts/createUpdate.js'
+/**
+ * @typedef {import('@doars/doars').default} Doars
+ */
 
-// Import directives.
-import createDirectiveUpdate from './factories/directives/createUpdate.js'
-
-// Import updater.
+import createUpdateContext from './contexts/update.js'
+import createUpdateDirective from './directives/update.js'
 import Updater from './Updater.js'
 
 /**
  * Create plugin instance.
  * @param {Doars} library Doars instance to add onto.
- * @param {Object} options The plugin options.
+ * @param {object} options The plugin options.
  */
 export default function (
   library,
   options = null,
 ) {
   // Clone options.
-  options = Object.assign({}, options)
+  options = Object.assign({
+    defaultOrder: 500,
+    stepMinimum: 0,
+    updateContextName: '$update',
+    updateDirectiveName: 'update',
+  }, options)
 
   // Set private variables.
   let isEnabled = false
-  let contextUpdate, directiveUpdate, updater
-
-  const onEnable = (
-  ) => {
-    // Create and add directive.
-    const [_directiveUpdate, update] = createDirectiveUpdate(options)
-    directiveUpdate = _directiveUpdate
-    library.addDirectives(-1, directiveUpdate)
-
-    // Setup update loop.
-    updater = new Updater(options, () => {
+  // Setup update loop.
+  const updater = new Updater(
+    options,
+    () => {
       // Update all directives.
       update()
 
@@ -49,31 +46,27 @@ export default function (
         id: updater.getId(),
         path: 'passed',
       }])
-    })
+    },
+  )
+  const contextUpdate = createUpdateContext(options, updater)
+  const [directiveUpdate, update] = createUpdateDirective(options)
 
-    // Create and add context.
-    contextUpdate = createContextUpdate(updater)
+  const onEnable = (
+  ) => {
+    // Add contexts and directives.
     library.addContexts(0, contextUpdate)
-
+    library.addDirectives(-1, directiveUpdate)
     // Enable updater.
     updater.enable()
   }
 
   const onDisable = (
   ) => {
-    // Remove context.
+    // Remove contexts and directives.
     library.removeContexts(contextUpdate)
-
-    // Remove directive.
     library.removeDirectives(directiveUpdate)
-
     // Disable updater.
     updater.disable()
-
-    // Reset private variables.
-    contextUpdate = null
-    directiveUpdate = null
-    updater = null
   }
 
   this.disable = (

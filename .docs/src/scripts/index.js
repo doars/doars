@@ -1,7 +1,10 @@
 import Doars from '@doars/doars'
 
-// Setup doars instance.
-const setup = function () {
+/**
+ * Setup doars instance.
+ */
+const setup = (
+) => {
   (new Doars()).enable()
 }
 
@@ -12,6 +15,10 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
   document.addEventListener('DOMContentLoaded', setup, { once: true, passive: true })
 }
 
+/**
+ * Set a piece of text to the devices clipboard.
+ * @param {string} text Text to set in the clipboard.
+ */
 window.copyToClipboard = (text) => {
   // Create element and set content.
   const element = document.createElement('textarea')

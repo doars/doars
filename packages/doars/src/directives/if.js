@@ -1,30 +1,48 @@
 // Import utilities.
 import { insertAfter } from '@doars/common/src/utilities/Element.js'
 import { isPromise } from '@doars/common/src/utilities/Promise.js'
+import { readdScripts } from '@doars/common/src/utilities/Script.js'
+import {
+  transitionIn,
+  transitionOut,
+} from '@doars/common/src/utilities/Transition.js'
 
-export default {
-  name: 'if',
+/**
+ * @typedef {import('../Directive.js').Directive} Directive
+ * @typedef {import('../Doars.js').DoarsOptions} DoarsOptions
+ */
+
+/**
+ * Create the if directive.
+ * @param {DoarsOptions} options Library options.
+ * @returns {Directive} The directive.
+ */
+export default ({
+  allowInlineScript,
+  ifDirectiveName,
+}) => ({
+  name: ifDirectiveName,
 
   update: (
     component,
-    attribute, {
-      processExpression,
-      transitionIn,
-      transitionOut,
-    },
+    attribute,
+    processExpression,
   ) => {
-    // Deconstruct attribute.
+    // Deconstruct component and attribute.
+    const libraryOptions = component.getLibrary().getOptions()
+    const directive = attribute.getDirective()
+    const modifiers = attribute.getModifiers()
     const template = attribute.getElement()
 
     // Check if placed on a template tag.
     if (template.tagName !== 'TEMPLATE') {
-      console.warn('Doars: `if` directive must be placed on a `<template>` tag.')
+      console.warn('Doars: "' + directive + '" must be placed on a `<template>`.')
       return
     }
 
     // Check if it only has one child.
     if (template.childCount > 1) {
-      console.warn('Doars: `if` directive must have a single child node.')
+      console.warn('Doars: "' + directive + '" must have one child.')
       return
     }
 
@@ -48,7 +66,7 @@ export default {
             transition()
           }
 
-          transition = transitionOut(component, element, () => {
+          transition = transitionOut(libraryOptions, element, () => {
             element.remove()
           })
         }
@@ -66,9 +84,12 @@ export default {
         insertAfter(template, element)
         // Get HTMLElement reference instead of DocumentFragment.
         element = template.nextElementSibling
+        if (allowInlineScript || modifiers.script) {
+          readdScripts(element)
+        }
 
         // Transition element in.
-        transition = transitionIn(component, element)
+        transition = transitionIn(libraryOptions, element)
       }
 
       // Store results.
@@ -81,7 +102,11 @@ export default {
     }
 
     // Execute expression.
-    const result = processExpression(component, attribute, attribute.getValue())
+    const result = processExpression(
+      component,
+      attribute,
+      attribute.getValue(),
+    )
 
     // Get stored data.
     const data = attribute.getData()
@@ -122,9 +147,13 @@ export default {
 
     // If the element exists then transition out and remove the element.
     if (data.element) {
-      transitionOut(component, data.element, () => {
-        data.element.remove()
-      })
+      transitionOut(
+        component.getLibrary().getOptions(),
+        data.element,
+        () => {
+          data.element.remove()
+        },
+      )
     }
   },
-}
+})

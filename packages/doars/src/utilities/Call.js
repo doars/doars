@@ -3,6 +3,20 @@ import { getDeeply } from '@doars/common/src/utilities/Object.js'
 
 const PATH_VALIDATOR = /^[a-z$_]+[0-9a-z$_]*(?:\.[a-z$_]+[0-9a-z$_]*)*$/is
 
+/**
+ * @typedef {import('../Attribute.js').default} Attribute
+ * @typedef {import('../Component.js').default} Component
+ */
+
+/**
+ * Executes value in the correct context.
+ * @param {Component} component Instance of the component.
+ * @param {Attribute} attribute Instance of the attribute.
+ * @param {string} expression Expression to execute.
+ * @param {object|null} extra Optional extra context items.
+ * @param {object|null} options Optional options object.
+ * @returns {any} Result of expression.
+ */
 export const call = (
   component,
   attribute,
@@ -10,6 +24,11 @@ export const call = (
   extra = null,
   options = null,
 ) => {
+  // Override default with given options.
+  options = Object.assign({
+    return: true,
+  }, options)
+
   // Create contexts.
   const [contexts, destroyContexts] = createAutoContexts(component, attribute, extra)
 
@@ -34,7 +53,9 @@ export const call = (
   // Cleanup contexts.
   destroyContexts()
 
-  return result
+  if (options.return) {
+    return result
+  }
 }
 
 export default {

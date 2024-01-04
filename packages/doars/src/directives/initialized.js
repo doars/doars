@@ -1,6 +1,19 @@
-// Import symbols.
-import { INITIALIZED } from '../symbols.js'
+// Symbols.
+const INITIALIZED = Symbol('INITIALIZED')
 
+/**
+ * @typedef {import('../Attribute.js').default} Attribute
+ * @typedef {import('../Component.js').default} Component
+ * @typedef {import('../Directive.js').Directive} Directive
+ * @typedef {import('../Doars.js').DoarsOptions} DoarsOptions
+ */
+
+/**
+ * Destroys the directive.
+ * @param {Component} component The component the directive is part of.
+ * @param {Attribute} attribute The attribute the directive is part of.
+ * @returns {undefined}
+ */
 const destroy = (
   component,
   attribute,
@@ -21,14 +34,20 @@ const destroy = (
   delete attribute[INITIALIZED]
 }
 
-export default {
-  name: 'initialized',
+/**
+ * Create the initialized directive.
+ * @param {DoarsOptions} options Library options.
+ * @returns {Directive} The directive.
+ */
+export default ({
+  initializedDirectiveName,
+}) => ({
+  name: initializedDirectiveName,
 
   update: (
     component,
-    attribute, {
-      processExpression,
-    },
+    attribute,
+    processExpression,
   ) => {
     // Deconstruct component.
     const element = component.getElement()
@@ -58,9 +77,13 @@ export default {
       }
 
       // Execute value using a copy of the attribute since this attribute does not need to update based on what it accesses.
-      processExpression(component, attribute.clone(), value, {}, {
-        return: false,
-      })
+      processExpression(
+        component,
+        attribute.clone(),
+        value,
+        {},
+        { return: false },
+      )
 
       // Call destroy.
       destroy(component, attribute)
@@ -79,4 +102,4 @@ export default {
   },
 
   destroy,
-}
+})

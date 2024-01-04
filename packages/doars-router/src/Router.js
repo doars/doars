@@ -5,6 +5,13 @@ import { pathToRegexp } from 'path-to-regexp'
 import EventDispatcher from '@doars/common/src/events/EventDispatcher.js'
 
 export default class Router extends EventDispatcher {
+  /**
+   * @param {object} options Router options.
+   * - {string} basePath = '' - Base path of the routes.
+   * - {string} path = '' - Initial active path.
+   * - {object} pathToRegexp = {} - Path-to-RegExp options used for parsing route paths.
+   * - {boolean} updateHistory = false - Whether to update the [History API](https://developer.mozilla.org/docs/Web/API/History_API).
+   */
   constructor(
     options = {},
   ) {
@@ -36,9 +43,9 @@ export default class Router extends EventDispatcher {
 
     /**
      * Update route.
-     * @param {String} url URL.
-     * @param {String} _path Path.
-     * @param {String} _route Route.
+     * @param {string} url The base URL to update.
+     * @param {string} newPath The new path to update to.
+     * @param {string} newRoute The new route to update to.
      */
     const updateRoute = (
       url,
@@ -66,7 +73,7 @@ export default class Router extends EventDispatcher {
 
     /**
      * Get router id.
-     * @returns {Symbol} Unique identifier.
+     * @returns {symbol} Unique identifier.
      */
     this.getId = (
     ) => {
@@ -75,7 +82,7 @@ export default class Router extends EventDispatcher {
 
     /**
      * Get current path.
-     * @returns {String} path.
+     * @returns {string} path.
      */
     this.getPath = (
     ) => {
@@ -84,7 +91,7 @@ export default class Router extends EventDispatcher {
 
     /**
      * Get current route.
-     * @returns {String} Route.
+     * @returns {string} Route.
      */
     this.getRoute = (
     ) => {
@@ -93,7 +100,7 @@ export default class Router extends EventDispatcher {
 
     /**
      * Get observed routes.
-     * @returns {Array<String>} List of routers.
+     * @returns {Array<string>} List of routers.
      */
     this.getRoutes = (
     ) => {
@@ -124,7 +131,7 @@ export default class Router extends EventDispatcher {
 
     /**
      * Add route.
-     * @param {String} _route Route pattern.
+     * @param {string} _route Route pattern.
      */
     this.addRoute = (
       _route,
@@ -147,7 +154,7 @@ export default class Router extends EventDispatcher {
 
     /**
      * Remove route.
-     * @param {String} _route Route pattern.
+     * @param {string} _route Route pattern.
      */
     this.removeRoute = (
       _route,
@@ -170,7 +177,7 @@ export default class Router extends EventDispatcher {
 
     /**
      * Set current route.
-     * @param {String} url URL path.
+     * @param {string} url URL path.
      */
     this.setPath = (
       url,

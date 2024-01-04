@@ -1,8 +1,18 @@
 # CHANGELOG.md
 
+## 3.0.0
+
+- Added `esm` suffix back onto ESM builds.
+- Added `morph` modifier to the `html` directive.
+- Added `store` context.
+- Added type definitions.
+- Changed `reference` directive to run as an expression.
+- Fixed issue in `sync` directive for paths.
+- Removed utility object parameter from create function of contexts.
+
 ## 2.1.0
 
-- Add outer modifier.
+- Add `outer` modifier to `html` directive.
 
 ## 2.0.0
 

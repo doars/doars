@@ -3,16 +3,28 @@ import { setAttribute, setAttributes } from '@doars/common/src/utilities/Attribu
 import { isPromise } from '@doars/common/src/utilities/Promise.js'
 import { parseSelector } from '@doars/common/src/utilities/String.js'
 
-export default {
-  name: 'attribute',
+/**
+ * @typedef {import('../Directive.js').Directive} Directive
+ * @typedef {import('../Doars.js').DoarsOptions} DoarsOptions
+ */
+
+/**
+ * Create the attribute directive.
+ * @param {DoarsOptions} options Library options.
+ * @returns {Directive} The directive.
+ */
+export default ({
+  attributeDirectiveName,
+}) => ({
+  name: attributeDirectiveName,
 
   update: (
     component,
-    attribute, {
-      processExpression,
-    },
+    attribute,
+    processExpression,
   ) => {
     // Deconstruct attribute.
+    const directive = attribute.getDirective()
     const element = attribute.getElement()
     const modifiers = attribute.getModifiers()
 
@@ -21,7 +33,7 @@ export default {
     ) => {
       if (modifiers.selector) {
         if (typeof (value) !== 'string') {
-          console.error('Doars: Value returned to attribute directive must be a string if the selector modifier is set.')
+          console.error('Doars: Value returned to "' + directive + '" directive must be a string if the selector modifier is set.')
           return
         }
         value = parseSelector(value)
@@ -38,7 +50,7 @@ export default {
         if (typeof (value) === 'object' && !Array.isArray(value)) {
           setAttributes(element, value)
         } else {
-          console.error('Doars: Value returned to attribute directive of invalid type.')
+          console.error('Doars: Value returned to "' + directive + '" directive of invalid type.')
         }
 
         return
@@ -49,7 +61,11 @@ export default {
     }
 
     // Execute attribute value.
-    const result = processExpression(component, attribute, attribute.getValue())
+    const result = processExpression(
+      component,
+      attribute,
+      attribute.getValue(),
+    )
 
     // Store results.
     attribute.setData(result)
@@ -71,4 +87,4 @@ export default {
       set(result)
     }
   },
-}
+})

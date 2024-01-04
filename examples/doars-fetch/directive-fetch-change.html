@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doars fetch fetch example</title>
+  </head>
+
+  <body>
+    <form d-state d-fetch.on-change="'./directive-fetch-change-result.html'">
+      <div>
+        <input type="text" name="input">
+      </div>
+
+      <div>
+        <textarea name="textarea"></textarea>
+      </div>
+
+      <div>
+        <select name="select">
+          <option value="a" selected>Option A</option>
+          <option value="b">Option B</option>
+        </select>
+      </div>
+
+      <button type="submit">
+        Submit
+      </button>
+    </form>
+
+    <script src="/packages/doars/dst/doars.iife.js"></script>
+    <script src="/packages/doars-fetch/dst/doars-fetch.iife.js"></script>
+    <script>
+      // Wait for the DOM to be interactive.
+      document.addEventListener('DOMContentLoaded', () => {
+        // Setup a library instance.
+        const doars = new window.Doars()
+
+        // Add plugin.
+        window.DoarsFetch(doars)
+
+        // Enable library.
+        doars.enable()
+      })
+    </script>
+  </body>
+
+</html>

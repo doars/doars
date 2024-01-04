@@ -4,6 +4,19 @@ import {
   REFERENCES_CACHE,
 } from '../symbols.js'
 
+/**
+ * @typedef {import('../Attribute.js').default} Attribute
+ * @typedef {import('../Component.js').default} Component
+ * @typedef {import('../Directive.js').Directive} Directive
+ * @typedef {import('../Doars.js').DoarsOptions} DoarsOptions
+ */
+
+/**
+ * Destroys the directive.
+ * @param {Component} component The component the directive is part of.
+ * @param {Attribute} attribute The attribute the directive is part of.
+ * @returns {undefined}
+ */
 const destroy = (
   component,
   attribute,
@@ -26,7 +39,7 @@ const destroy = (
   const componentId = component.getId()
 
   // Deconstruct attribute.
-  const value = attribute.getValue().trim()
+  const name = component[REFERENCES][attributeId].name
 
   // Remove reference from object.
   delete component[REFERENCES][attributeId]
@@ -42,34 +55,58 @@ const destroy = (
   // Trigger references update.
   library.update([{
     id: componentId,
-    path: '$references.' + value,
+    path: '$references.' + name,
   }])
 }
 
-export default {
-  name: 'reference',
+/**
+ * Create the reference directive.
+ * @param {DoarsOptions} options Library options.
+ * @returns {Directive} The directive.
+ */
+export default ({
+  referenceDirectiveName,
+}) => ({
+  name: referenceDirectiveName,
 
   update: (
     component,
     attribute,
+    processExpression,
   ) => {
-    // Deconstruct attribute.
-    const value = attribute.getValue().trim()
-
-    // Check if value is a valid variable name.
-    if (!/^[_$a-z]{1}[_\-$a-z0-9]{0,}$/i.test(value)) {
-      destroy(component, attribute)
-      console.warn('Doars: `reference` directive\'s value not a valid variable name: "' + value + '".')
-      return
-    }
-
     // Deconstruct component.
     const library = component.getLibrary()
     const componentId = component.getId()
 
     // Deconstruct attribute.
+    const directive = attribute.getDirective()
     const element = attribute.getElement()
     const attributeId = attribute.getId()
+
+    const {
+      referenceIndicatorEvaluate,
+    } = library.getOptions()
+
+    // Process attribute name.
+    let name = attribute.getValue()
+    name = referenceIndicatorEvaluate
+      ? processExpression(
+        component,
+        attribute,
+        name,
+      )
+      : name.trim()
+
+    // Check if value is a valid variable name.
+    if (
+      !name ||
+      typeof (name) !== 'string' ||
+      !/^[_$a-z]{1}[_\-$a-z0-9]{0,}$/i.test(name)
+    ) {
+      destroy(component, attribute)
+      console.warn('Doars: "' + directive + '" directive\'s value not a valid variable name: "' + name.toString() + '".')
+      return
+    }
 
     // Check if references object exists.
     if (!component[REFERENCES]) {
@@ -79,7 +116,7 @@ export default {
     // Store reference.
     component[REFERENCES][attributeId] = {
       element,
-      name: value,
+      name,
     }
 
     // Remove context cache.
@@ -88,9 +125,9 @@ export default {
     // Trigger references update.
     library.update([{
       id: componentId,
-      path: '$references.' + value,
+      path: '$references.' + name,
     }])
   },
 
   destroy,
-}
+})

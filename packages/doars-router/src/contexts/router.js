@@ -7,8 +7,10 @@ import { ROUTER } from '../symbols'
 // Import utilities.
 import closestRouter from '../utilities/closestRouter.js'
 
-export default {
-  name: '$router',
+export default ({
+  routerContextName,
+}) => ({
+  name: routerContextName,
 
   create: (
     component,
@@ -59,4 +61,4 @@ export default {
       },
     }
   },
-}
+})

@@ -7,14 +7,16 @@ import Attribute from './Attribute.js'
 // Import proxy dispatcher.
 import ProxyDispatcher from '@doars/common/src/events/ProxyDispatcher.js'
 
+// Import types.
+import Doars from './Doars.js'
+
 // Import utilities.
 import { closestComponent } from './utilities/Component.js'
-import {
-  transition,
-  transitionIn,
-  transitionOut,
-} from '@doars/common/src/utilities/Transition.js'
 import { walk } from '@doars/common/src/utilities/Element.js'
+
+/**
+ * @typedef {import('./Doars.js').default} Doars
+ */
 
 export default class Component {
   /**
@@ -30,36 +32,24 @@ export default class Component {
     const id = Symbol('ID_COMPONENT')
 
     // Deconstruct library options.
-    const { prefix, processor } = library.getOptions()
+    const {
+      prefix,
+      stateDirectiveName,
+    } = library.getOptions()
 
     // Get the expression processor.
-    const processorType = typeof (processor)
-    let processExpression
-    if (processorType === 'function') {
-      processExpression = processor
-    } else if (processorType === 'string' && library.constructor[processor + 'Expression']) {
-      processExpression = library.constructor[processor + 'Expression']
-    } else {
-      console.warn('Doars: Expression processor not found. Using fallback instead.')
-      processExpression = library.constructor.executeExpression ?? library.constructor.interpretExpression ?? library.constructor.callExpression
-    }
-    if (!processExpression) {
-      console.error('Doars: No expression processor available. Process option: ', process)
-    }
-
-    // Create a immutable object with the directive utilities.
-    const directiveUtilities = Object.freeze({
-      processExpression,
-      transition,
-      transitionIn,
-      transitionOut,
-    })
+    const processExpression = library.getProcessor()
 
     // create private variables.
-    let attributes = [], hasUpdated = false, isInitialized = false, data, proxy, state
+    let attributes = [],
+      hasUpdated = false,
+      isInitialized = false,
+      data,
+      proxy,
+      state
 
     // Check if element has a state attribute.
-    if (!element.attributes[prefix + '-state']) {
+    if (!element.attributes[prefix + '-' + stateDirectiveName]) {
       console.error('Doars: element given to component does not contain a state attribute!')
       return
     }
@@ -82,6 +72,23 @@ export default class Component {
           path: 'children',
         }])
       }
+    }
+
+    /**
+     * Dispatch an event from this component.
+     * @param {string} name Name of the event.
+     * @param {any} detail Event details.
+     */
+    const dispatchEvent = (
+      name,
+      detail,
+    ) => {
+      element.dispatchEvent(
+        new CustomEvent(prefix + '-' + name, {
+          detail,
+          bubbles: true,
+        }),
+      )
     }
 
     /**
@@ -113,7 +120,7 @@ export default class Component {
 
     /**
      * Get component id.
-     * @returns {Symbol} Unique identifier.
+     * @returns {symbol} Unique identifier.
      */
     this.getId = (
     ) => {
@@ -178,12 +185,20 @@ export default class Component {
       // Set as enabled.
       isInitialized = true
 
+      const { stateDirectiveName } = this.getLibrary().getOptions()
+
       // Get component's state attribute.
-      const componentName = prefix + '-state'
+      const componentName = prefix + '-' + stateDirectiveName
       const value = element.attributes[componentName].value
 
       // Process expression for generating the state using a mock attribute.
-      data = value ? processExpression(this, new Attribute(this, element, null, value), value) : {}
+      data = value
+        ? processExpression(
+          this,
+          new Attribute(this, element, null, value),
+          value,
+        )
+        : {}
       if (data === null) {
         data = {}
       } else if (typeof (data) !== 'object' || Array.isArray(data)) {
@@ -222,7 +237,7 @@ export default class Component {
           // Clean up attribute if the directive has a destroy function.
           const directive = directives[attribute.getKey()]
           if (directive) {
-            directive.destroy(this, attribute, directiveUtilities)
+            directive.destroy(this, attribute, processExpression)
           }
 
           // Destroy the attribute.
@@ -301,8 +316,8 @@ export default class Component {
     /**
      * Create and add an attribute. Assumes this attribute has not been added before.
      * @param {HTMLElement} element Attribute element.
-     * @param {String} name Name of the attribute.
-     * @param {String} value Value of the attribute.
+     * @param {string} name Name of the attribute.
+     * @param {string} value Value of the attribute.
      * @returns {Attribute} New attribute.
      */
     this.addAttribute = (
@@ -353,7 +368,7 @@ export default class Component {
       // Attribute has been removed, call the destroy directive.
       const directive = directives[attribute.getKey()]
       if (directive && directive.destroy) {
-        directive.destroy(this, attribute, directiveUtilities)
+        directive.destroy(this, attribute, processExpression)
       }
 
       // Remove attribute from list.
@@ -371,9 +386,14 @@ export default class Component {
     this.scanAttributes = (
       element,
     ) => {
+      const {
+        stateDirectiveName,
+        ignoreDirectiveName,
+      } = this.getLibrary().getOptions()
+
       // Get component's state attribute.
-      const componentName = prefix + '-state'
-      const ignoreName = prefix + '-ignore'
+      const componentName = prefix + '-' + stateDirectiveName
+      const ignoreName = prefix + '-' + ignoreDirectiveName
 
       // Store new attributes.
       const newAttributes = []
@@ -416,7 +436,7 @@ export default class Component {
       // Process directive on attribute.
       const directive = directives[attribute.getDirective()]
       if (directive) {
-        directive.update(this, attribute, directiveUtilities)
+        directive.update(this, attribute, processExpression)
       }
     }
 
@@ -455,7 +475,7 @@ export default class Component {
 
     /**
      * Start updating the component's attributes.
-     * @param {Array<Object>} triggers List of triggers.
+     * @param {Array<object>} triggers List of triggers.
      */
     this.update = (
       triggers,
@@ -487,22 +507,6 @@ export default class Component {
           id,
         })
       }
-    }
-
-    /**
-     * Dispatch an event from this component.
-     * @param {String} name Name of the event.
-     */
-    const dispatchEvent = (
-      name,
-      detail,
-    ) => {
-      element.dispatchEvent(
-        new CustomEvent(prefix + '-' + name, {
-          detail,
-          bubbles: true,
-        }),
-      )
     }
   }
 }

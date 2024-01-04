@@ -1,13 +1,24 @@
 import { isPromise } from '@doars/common/src/utilities/Promise.js'
 
-export default {
-  name: 'text',
+/**
+ * @typedef {import('../Directive.js').Directive} Directive
+ * @typedef {import('../Doars.js').DoarsOptions} DoarsOptions
+ */
+
+/**
+ * Create the text directive.
+ * @param {DoarsOptions} options Library options.
+ * @returns {Directive} The directive.
+ */
+export default ({
+  textDirectiveName,
+}) => ({
+  name: textDirectiveName,
 
   update: (
     component,
-    attribute, {
-      processExpression,
-    },
+    attribute,
+    processExpression,
   ) => {
     // Deconstruct attribute.
     const element = attribute.getElement()
@@ -25,7 +36,11 @@ export default {
     }
 
     // Execute value and retrieve result.
-    const result = processExpression(component, attribute, attribute.getValue())
+    const result = processExpression(
+      component,
+      attribute,
+      attribute.getValue(),
+    )
 
     // Store results.
     attribute.setData(result)
@@ -47,4 +62,4 @@ export default {
       set(result)
     }
   },
-}
+})

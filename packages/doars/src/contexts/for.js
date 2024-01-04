@@ -1,17 +1,29 @@
+// Import polyfill.
+import RevocableProxy from '@doars/common/src/polyfills/RevocableProxy.js'
 // Import symbols.
 import { FOR } from '../symbols.js'
 
-export default {
-  deconstruct: true,
+/**
+ * @typedef {import('../Context.js').Context} Context
+ * @typedef {import('../Doars.js').DoarsOptions} DoarsOptions
+ */
 
-  name: '$for',
+/**
+ * Create the for context.
+ * @param {DoarsOptions} options Library options.
+ * @returns {Context} The context.
+ */
+export default ({
+  forContextDeconstruct,
+  forContextName,
+}) => ({
+  deconstruct: forContextDeconstruct,
+
+  name: forContextName,
 
   create: (
     component,
     attribute,
-    update, {
-      RevocableProxy,
-    },
   ) => {
     // Exit early in parent contexts.
     if (component !== attribute.getComponent()) {
@@ -70,4 +82,4 @@ export default {
       },
     }
   },
-}
+})

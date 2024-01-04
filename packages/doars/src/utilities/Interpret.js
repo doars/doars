@@ -1,6 +1,23 @@
 import { createAutoContexts } from './Context.js'
-import { parse, run } from '@doars/interpret'
+import {
+  parse,
+  run,
+} from '@doars/interpret'
 
+/**
+ * @typedef {import('../Attribute.js').default} Attribute
+ * @typedef {import('../Component.js').default} Component
+ */
+
+/**
+ * Executes value in the correct context.
+ * @param {Component} component Instance of the component.
+ * @param {Attribute} attribute Instance of the attribute.
+ * @param {string} expression Expression to execute.
+ * @param {object|null} extra Optional extra context items.
+ * @param {object|null} options Optional options object.
+ * @returns {any} Result of expression.
+ */
 export const interpret = (
   component,
   attribute,

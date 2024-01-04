@@ -10,7 +10,7 @@
 
   <body>
     <div d-state="{ message: 'General Kenobi.' }"
-      d-initialized="setTimeout(() => { $inContext(({$state}) => { console.log($state.message) }) }, 500)"></div>
+      d-initialized="setTimeout(() => { $inContext(({ $state }) => { console.log($state.message) }) }, 500)"></div>
 
     <script src="/packages/doars/dst/doars.iife.js"></script>
     <script>

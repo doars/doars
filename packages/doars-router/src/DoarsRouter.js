@@ -1,43 +1,63 @@
-// Import contexts.
-import contextRouter from './contexts/router.js'
+/**
+ * @typedef {import('@doars/doars').default} Doars
+ */
 
-// Import directives.
-import createDirectiveRouter from './factories/directives/router.js'
-import directiveRoute from './directives/route.js'
-import directiveRouteTo from './directives/routeTo.js'
-
-// Import utilities.
 import { deepAssign } from '@doars/common/src/utilities/Object.js'
+
+import createRouterContext from './contexts/router.js'
+import createRouteDirective from './directives/route.js'
+import createRouterDirective from './directives/router.js'
+import createRouteToDirective from './directives/routeTo.js'
 
 /**
  * Create plugin instance.
  * @param {Doars} library Doars instance to add onto.
- * @param {Object} options The plugin options.
+ * @param {object} options The plugin options.
  */
 export default function (
   library,
   options = null,
 ) {
   // Clone options.
-  options = deepAssign({}, options)
+  options = deepAssign({
+    basePath: '',
+    path: '',
+    pathToRegexp: {},
+    updateHistory: false,
+
+    routerContextName: '$router',
+    routeDirectiveName: 'route',
+    routerDirectiveName: 'router',
+    routeToDirectiveName: 'route-to',
+  }, options)
 
   // Set private variables.
   let isEnabled = false
-  let directiveRouter
+  const routerContext = createRouterContext(options),
+    routeDirective = createRouteDirective(options),
+    routerDirective = createRouterDirective(options),
+    routeToDirective = createRouteToDirective(options)
 
   const onEnable = (
   ) => {
     // Add contexts and directives.
-    library.addContexts(0, contextRouter)
-    directiveRouter = createDirectiveRouter(options)
-    library.addDirectives(-1, directiveRouter, directiveRoute, directiveRouteTo)
+    library.addContexts(0, routerContext)
+    library.addDirectives(
+      -1,
+      routeDirective,
+      routerDirective,
+      routeToDirective,
+    )
   }
   const onDisable = (
   ) => {
     // Remove contexts and directives.
-    library.removeContexts(contextRouter)
-    library.removeDirectives(directiveRouter, directiveRoute, directiveRouteTo)
-    directiveRouter = null
+    library.removeContexts(routerContext)
+    library.removeDirectives(
+      routeDirective,
+      routerDirective,
+      routeToDirective,
+    )
   }
 
   this.disable = (

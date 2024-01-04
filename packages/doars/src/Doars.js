@@ -5,31 +5,36 @@ import { ATTRIBUTES, COMPONENT } from './symbols.js'
 import Component from './Component.js'
 
 // Import contexts.
-import contextChildren from './contexts/children.js'
-import contextComponent from './contexts/component.js'
-import contextElement from './contexts/element.js'
-import contextDispatch from './contexts/dispatch.js'
-import contextFor from './contexts/for.js'
-import contextInContext from './contexts/inContext.js'
-import contextNextTick from './contexts/nextTick.js'
-import contextParent from './contexts/parent.js'
-import contextReferences from './contexts/references.js'
-import contextState from './contexts/state.js'
+import createChildrenContext from './contexts/children.js'
+import createComponentContext from './contexts/component.js'
+import createElementContext from './contexts/element.js'
+import createDispatchContext from './contexts/dispatch.js'
+import createForContext from './contexts/for.js'
+import createInContextContext from './contexts/inContext.js'
+import createNextSiblingContext from './contexts/nextSibling.js'
+import createNextTickContext from './contexts/nextTick.js'
+import createParentContext from './contexts/parent.js'
+import createPreviousSiblingContext from './contexts/previousSibling.js'
+import createReferencesContext from './contexts/references.js'
+import createSiblingsContext from './contexts/siblings.js'
+import createStateContext from './contexts/state.js'
+import createStoreContext from './contexts/store.js'
+import createWatchContext from './contexts/watch.js'
 
 // Import directives.
-import directiveAttribute from './directives/attribute.js'
-import directiveCloak from './directives/cloak.js'
-import directiveFor from './directives/for.js'
-import directiveHtml from './directives/html.js'
-import directiveIf from './directives/if.js'
-import directiveInitialized from './directives/initialized.js'
-import directiveOn from './directives/on.js'
-import directiveReference from './directives/reference.js'
-import directiveSelect from './directives/select.js'
-import directiveShow from './directives/show.js'
-import directiveSync from './directives/sync.js'
-import directiveText from './directives/text.js'
-import directiveWatch from './directives/watch.js'
+import createAttributeDirective from './directives/attribute.js'
+import createCloakDirective from './directives/cloak.js'
+import createForDirective from './directives/for.js'
+import createHtmlDirective from './directives/html.js'
+import createIfDirective from './directives/if.js'
+import createInitializedDirective from './directives/initialized.js'
+import createOnDirective from './directives/on.js'
+import createReferenceDirective from './directives/reference.js'
+import createSelectDirective from './directives/select.js'
+import createShowDirective from './directives/show.js'
+import createSyncDirective from './directives/sync.js'
+import createTextDirective from './directives/text.js'
+import createWatchDirective from './directives/watch.js'
 
 // Import event dispatcher.
 import EventDispatcher from '@doars/common/src/events/EventDispatcher.js'
@@ -38,10 +43,144 @@ import EventDispatcher from '@doars/common/src/events/EventDispatcher.js'
 import { closestComponent } from './utilities/Component.js'
 import { walk } from '@doars/common/src/utilities/Element.js'
 
+/**
+ * @typedef {import('./Attribute.js').default} Attribute
+ * @typedef {import('./Context.js').Context} Context
+ * @typedef {import('./Directive.js').Directive} Directive
+ */
+
+/**
+ * @callback ExpressionProcessor Executes value in the correct context.
+ * @param {Component} component Instance of the component.
+ * @param {Attribute} attribute Instance of the attribute.
+ * @param {string} expression Expression to execute.
+ * @param {object|null} extra Optional extra context items.
+ * @param {object|null} options Optional options object.
+ * @returns {any} Result of expression.
+ */
+
+/**
+ * @typedef {{[key:string]:Directive}} ContextMap Object that maps names of contexts to the context.
+ */
+/**
+ * @typedef {{[key:string]:Directive}} DirectiveMap Object that maps names of directives to the directive.
+ */
+
+/**
+ * @typedef Trigger
+ * @type {object}
+ * @property {string|symbol} id The identifier of the changed resource.
+ * @property {string} path The path leading to the changed value on the resource.
+ */
+
+/**
+ * @typedef _DoarsOptions
+ * @type {object}
+ * @property {?string} prefix The prefix of the directive's attribute names.
+ * @property {?string} processor The expression processor to use.
+ * @property {?HTMLElement|string} root The element or selector of an element to scan and keep track of.
+ * @property {?boolean} allowInlineScript When setting the innerHTML or outerHTML inline scripts are not automatically ran. Enabling this wil ensure the inline scripts are executed.
+ * @property {?boolean} forContextDeconstruct Whether to require the `$for` prefix when trying to accessing data from the for context.
+ * @property {?boolean} stateContextDeconstruct Whether to require the `$state` prefix when trying to accessing data from the state context.
+ * @property {?boolean} storeContextDeconstruct Whether to require the `$store` prefix when trying to accessing data from the store context.
+ * @property {?object} storeContextInitial The initial data of the data store context.
+ * @property {?boolean} indicatorDirectiveEvaluate If set to false the indicator directive's value is read as a string literal instead of an expression to process.
+ * @property {?boolean} referenceDirectiveEvaluate If set to false the reference directive's value is read as a string literal instead of an expression to process.
+ * @property {?boolean} targetDirectiveEvaluate If set to false the target directive's value is read as a string literal instead of an expression to process.
+ * @property {?string} childrenContextName The name of the children context.
+ * @property {?string} componentContextName The name of the component context.
+ * @property {?string} dispatchContextName The name of the dispatch context.
+ * @property {?string} elementContextName The name of the element context.
+ * @property {?string} forContextName The name of the for context.
+ * @property {?string} inContextContextName The name of the inContext context.
+ * @property {?string} nextSiblingContextName The name of the next sibling context.
+ * @property {?string} nextTickContextName The name of the nextTick context.
+ * @property {?string} parentContextName The name of the parent context.
+ * @property {?string} previousSiblingContextName The name of the previous sibling context.
+ * @property {?string} referencesContextName The name of the references context.
+ * @property {?string} siblingsContextName The name of the siblings context.
+ * @property {?string} stateContextName The name of the state context.
+ * @property {?string} storeContextName The name of the store context.
+ * @property {?string} watchContextName The name of the watch context.
+ * @property {?string} attributeDirectiveName The name of the attribute directive.
+ * @property {?string} cloakDirectiveName The name of the cloak directive.
+ * @property {?string} forDirectiveName The name of the for directive.
+ * @property {?string} htmlDirectiveName The name of the html directive.
+ * @property {?string} ifDirectiveName The name of the if directive.
+ * @property {?string} ignoreDirectiveName The name of the ignore directive.
+ * @property {?string} indicatorDirectiveName The name of the indicator directive.
+ * @property {?string} initializedDirectiveName The name of the initialized directive.
+ * @property {?string} onDirectiveName The name of the on directive.
+ * @property {?string} referenceDirectiveName The name of the reference directive.
+ * @property {?string} selectDirectiveName The name of the select directive.
+ * @property {?string} showDirectiveName The name of the show directive.
+ * @property {?string} stateDirectiveName The name of the state directive.
+ * @property {?string} syncDirectiveName The name of the sync directive.
+ * @property {?string} targetDirectiveName The name of the target directive.
+ * @property {?string} textDirectiveName The name of the text directive.
+ * @property {?string} transitionDirectiveName The name of the transition directive.
+ * @property {?string} watchDirectiveName The name of the watch directive.
+ * @property {?string} redirectHeaderName The name of the redirect header.
+ * @property {?string} requestHeaderName The name of the request header.
+ * @property {?string} titleHeaderName The name of the title header.
+ */
+
+/**
+ * @typedef DoarsOptions
+ * @type {object}
+ * @property {string} prefix The prefix of the directive's attribute names.
+ * @property {string} processor The expression processor to use.
+ * @property {HTMLElement|string} root The element or selector of an element to scan and keep track of.
+ * @property {boolean} allowInlineScript When setting the innerHTML or outerHTML inline scripts are not automatically ran. Enabling this wil ensure the inline scripts are executed.
+ * @property {boolean} forContextDeconstruct Whether to require the `$for` prefix when trying to accessing data from the for context.
+ * @property {boolean} stateContextDeconstruct Whether to require the `$state` prefix when trying to accessing data from the state context.
+ * @property {boolean} storeContextDeconstruct Whether to require the `$store` prefix when trying to accessing data from the store context.
+ * @property {object} storeContextInitial The initial data of the data store context.
+ * @property {boolean} indicatorDirectiveEvaluate If set to false the indicator directive's value is read as a string literal instead of an expression to process.
+ * @property {boolean} referenceDirectiveEvaluate If set to false the reference directive's value is read as a string literal instead of an expression to process.
+ * @property {boolean} targetDirectiveEvaluate If set to false the target directive's value is read as a string literal instead of an expression to process.
+ * @property {string} childrenContextName The name of the children context.
+ * @property {string} componentContextName The name of the component context.
+ * @property {string} dispatchContextName The name of the dispatch context.
+ * @property {string} elementContextName The name of the element context.
+ * @property {string} forContextName The name of the for context.
+ * @property {string} inContextContextName The name of the inContext context.
+ * @property {string} nextSiblingContextName The name of the next sibling context.
+ * @property {string} nextTickContextName The name of the nextTick context.
+ * @property {string} parentContextName The name of the parent context.
+ * @property {string} previousSiblingContextName The name of the previous sibling context.
+ * @property {string} referencesContextName The name of the references context.
+ * @property {string} siblingsContextName The name of the siblings context.
+ * @property {string} stateContextName The name of the state context.
+ * @property {string} storeContextName The name of the store context.
+ * @property {string} watchContextName The name of the watch context.
+ * @property {string} attributeDirectiveName The name of the attribute directive.
+ * @property {string} cloakDirectiveName The name of the cloak directive.
+ * @property {string} forDirectiveName The name of the for directive.
+ * @property {string} htmlDirectiveName The name of the html directive.
+ * @property {string} ifDirectiveName The name of the if directive.
+ * @property {string} ignoreDirectiveName The name of the ignore directive.
+ * @property {string} indicatorDirectiveName The name of the indicator directive.
+ * @property {string} initializedDirectiveName The name of the initialized directive.
+ * @property {string} onDirectiveName The name of the on directive.
+ * @property {string} referenceDirectiveName The name of the reference directive.
+ * @property {string} selectDirectiveName The name of the select directive.
+ * @property {string} showDirectiveName The name of the show directive.
+ * @property {string} stateDirectiveName The name of the state directive.
+ * @property {string} syncDirectiveName The name of the sync directive.
+ * @property {string} targetDirectiveName The name of the target directive.
+ * @property {string} textDirectiveName The name of the text directive.
+ * @property {string} transitionDirectiveName The name of the transition directive.
+ * @property {string} watchDirectiveName The name of the watch directive.
+ * @property {string} redirectHeaderName The name of the redirect header.
+ * @property {string} requestHeaderName The name of the request header.
+ * @property {string} titleHeaderName The name of the title header.
+ */
+
 export default class Doars extends EventDispatcher {
   /**
    * Create instance.
-   * @param {Object} options Options.
+   * @param {_DoarsOptions} options Options.
    */
   constructor(
     options,
@@ -49,14 +188,69 @@ export default class Doars extends EventDispatcher {
     super()
 
     // Deconstruct options.
-    let { prefix, root } = options = Object.assign({
+    let {
+      prefix,
+      processor,
+      root,
+    } = options = Object.freeze(Object.assign({
       prefix: 'd',
       processor: 'execute',
       root: document.body,
-    }, options)
+
+      allowInlineScript: false,
+      forContextDeconstruct: true,
+      stateContextDeconstruct: true,
+      storeContextDeconstruct: false,
+      storeContextInitial: {},
+      indicatorDirectiveEvaluate: true,
+      referenceDirectiveEvaluate: true,
+      targetDirectiveEvaluate: true,
+
+      // Context names must pass regex: /^[_$a-z]{1}[_$a-z0-9]{0,}$/i.test(name)
+      childrenContextName: '$children',
+      componentContextName: '$component',
+      dispatchContextName: '$dispatch',
+      elementContextName: '$element',
+      forContextName: '$for',
+      inContextContextName: '$inContext',
+      nextSiblingContextName: '$nextSibling',
+      nextTickContextName: '$nextTick',
+      parentContextName: '$parent',
+      previousSiblingContextName: '$previousSibling',
+      referencesContextName: '$references',
+      siblingsContextName: '$siblings',
+      stateContextName: '$state',
+      storeContextName: '$store',
+      watchContextName: '$watch',
+
+      // Directive names must pass regex: /^[_\-$a-z]{1}[_\-$a-z0-9]{0,}$/i.test(name)
+      attributeDirectiveName: 'attribute',
+      cloakDirectiveName: 'cloak',
+      forDirectiveName: 'for',
+      htmlDirectiveName: 'html',
+      ifDirectiveName: 'if',
+      ignoreDirectiveName: 'ignore',
+      indicatorDirectiveName: 'indicator',
+      initializedDirectiveName: 'initialized',
+      onDirectiveName: 'on',
+      referenceDirectiveName: 'reference',
+      selectDirectiveName: 'select',
+      showDirectiveName: 'show',
+      stateDirectiveName: 'state',
+      syncDirectiveName: 'sync',
+      targetDirectiveName: 'target',
+      textDirectiveName: 'text',
+      transitionDirectiveName: 'transition',
+      watchDirectiveName: 'watch',
+
+      // Header names must pass regex: /^[_\-$a-z]{1}[_\-$a-z0-9]{0,}$/i.test(name)
+      redirectHeaderName: 'redirect',
+      requestHeaderName: 'request',
+      titleHeaderName: 'title',
+    }, options))
     // If root is a string assume it is a selector.
     if (typeof (root) === 'string') {
-      options.root = root = document.querySelector(root)
+      root = options.root = document.querySelector(root)
     }
     // Validate options.
     if (!prefix) {
@@ -80,48 +274,77 @@ export default class Doars extends EventDispatcher {
     const id = Symbol('ID_DOARS')
 
     // Create private variables.
-    let isEnabled = false, isUpdating = false, mutations, observer, triggers
+    let isEnabled = false,
+      isUpdating = false,
+      mutations,
+      observer,
+      triggers
 
+    /** @type {Array<Component>} */
     const components = []
-    const contextsBase = {}, contexts = [
-      contextChildren,
-      contextComponent,
-      contextElement,
-      contextDispatch,
-      contextInContext,
-      contextNextTick,
-      contextParent,
-      contextReferences,
+    const
+      contextsBase = {},
+      contexts = [
+        createChildrenContext(options),
+        createComponentContext(options),
+        createElementContext(options),
+        createDispatchContext(options),
+        createInContextContext(options),
+        createNextSiblingContext(options),
+        createNextTickContext(options),
+        createParentContext(options),
+        createPreviousSiblingContext(options),
+        createReferencesContext(options),
+        createSiblingsContext(options),
+        createWatchContext(options),
 
-      // Order of `state` before `for` context is important for deconstruction.
-      contextState,
-      contextFor,
-    ]
+        // Order of `store`, `state` and `for` context is important for deconstruction.
+        createStoreContext(options),
+        createStateContext(options),
+        createForContext(options),
+      ]
     const directives = [
       // Must happen first as other directives can rely on it.
-      directiveReference,
+      createReferenceDirective(options),
 
       // Then execute those that modify the document tree, since it could make other directives redundant and save on processing.
-      directiveAttribute,
-      directiveFor,
-      directiveHtml,
-      directiveIf,
-      directiveText,
+      createAttributeDirective(options),
+      createForDirective(options),
+      createHtmlDirective(options),
+      createIfDirective(options),
+      createTextDirective(options),
 
       // Order does not matter any more.
-      directiveCloak,
-      directiveInitialized,
-      directiveOn,
-      directiveSelect,
-      directiveShow,
-      directiveSync,
-      directiveWatch,
+      createCloakDirective(options),
+      createInitializedDirective(options),
+      createOnDirective(options),
+      createSelectDirective(options),
+      createShowDirective(options),
+      createSyncDirective(options),
+      createWatchDirective(options),
     ]
-    let directivesNames, directivesObject, directivesRegexp
+    let directivesNames,
+      directivesObject,
+      directivesRegexp
+
+    // Get the expression processor.
+    const processorType = typeof (processor)
+    let processExpression
+    if (processorType === 'function') {
+      processExpression = processor
+    } else if (processorType === 'string' && this.constructor[processor + 'Expression']) {
+      processExpression = this.constructor[processor + 'Expression']
+    } else {
+      console.warn('Doars: Expression processor not found. Using fallback instead.')
+      processExpression = this.constructor.executeExpression ?? this.constructor.interpretExpression ?? this.constructor.callExpression
+    }
+    if (!processExpression) {
+      console.error('Doars: No expression processor available. Process option: ', process)
+    }
 
     /**
      * Get the unique identifier.
-     * @returns {Symbol} Unique identifier.
+     * @returns {symbol} Unique identifier.
      */
     this.getId = (
     ) => {
@@ -130,7 +353,7 @@ export default class Doars extends EventDispatcher {
 
     /**
      * Get the current options.
-     * @returns {Object} Current options.
+     * @returns {DoarsOptions} Current options.
      */
     this.getOptions = (
     ) => {
@@ -141,7 +364,7 @@ export default class Doars extends EventDispatcher {
 
     /**
      * Whether this is currently enabled.
-     * @returns {Boolean} Whether the library is enabled.
+     * @returns {boolean} Whether the library is enabled.
      */
     this.getEnabled = (
     ) => {
@@ -189,9 +412,14 @@ export default class Doars extends EventDispatcher {
         subtree: true,
       })
 
+      const {
+        stateDirectiveName,
+        ignoreDirectiveName,
+      } = this.getOptions()
+
       // Scan for components.
-      const componentName = prefix + '-state'
-      const ignoreName = prefix + '-ignore'
+      const componentName = prefix + '-' + stateDirectiveName
+      const ignoreName = prefix + '-' + ignoreDirectiveName
       const componentElements = [...root.querySelectorAll('[' + componentName + ']')]
       // Remove any elements that should be ignored.
       for (let i = componentElements.length - 1; i >= 0; i--) {
@@ -295,7 +523,7 @@ export default class Doars extends EventDispatcher {
 
     /**
      * Remove components from instance.
-     * @param  {...Component} components Component to remove.
+     * @param  {...Component} _components Components to remove.
      * @returns {Array<HTMLElement>} List of elements of removed components.
      */
     const removeComponents = (
@@ -330,16 +558,16 @@ export default class Doars extends EventDispatcher {
 
     /**
      * Get simple contexts.
-     * @returns {Object} Stored simple contexts.
+     * @returns {ContextMap} Stored simple contexts.
      */
     this.getSimpleContexts = (
     ) => Object.assign({}, contextsBase)
 
     /**
      * Add a value directly to the contexts without needing to use an object or having to deal with indices.
-     * @param {String} name Property name under which to add the context.
-     * @param {Any} value The value to add, null removes the context.
-     * @returns {Boolean} Whether the value was successfully set.
+     * @param {string} name Property name under which to add the context.
+     * @param {Context} value The value to add, null removes the context.
+     * @returns {boolean} Whether the value was successfully set.
      */
     this.setSimpleContext = (
       name,
@@ -371,8 +599,8 @@ export default class Doars extends EventDispatcher {
 
     /**
      * Adds simple contexts by looping through the object and calling the the setSimpleContext function with the data.
-     * @param {Object} contexts An object where the key is the name for the simple context and the value the simple context.
-     * @returns {Object} Which simple context was successfully set.
+     * @param {Array<Context>} contexts An object where the key is the name for the simple context and the value the simple context.
+     * @returns {Array<Context>} Which simple context was successfully set.
      */
     this.setSimpleContexts = (
       contexts,
@@ -390,16 +618,16 @@ export default class Doars extends EventDispatcher {
 
     /**
      * Get list contexts.
-     * @returns {Array<Object>} List of contexts.
+     * @returns {Array<Context>} List of contexts.
      */
     this.getContexts = (
     ) => [...contexts]
 
     /**
      * Add contexts at the index. *Can only be called when NOT enabled.*
-     * @param {Number} index Index to start adding at.
-     * @param {...Object} _contexts List of contexts to add.
-     * @returns {Array<Object>} List of added contexts.
+     * @param {number} index Index to start adding at.
+     * @param {...Context} _contexts List of contexts to add.
+     * @returns {Array<Context>|undefined} List of added contexts.
      */
     this.addContexts = (
       index,
@@ -443,8 +671,8 @@ export default class Doars extends EventDispatcher {
 
     /**
      * Remove contexts. *Can only be called when NOT enabled.*
-     * @param {...Object} _contexts List of contexts to remove.
-     * @returns {Array<Object>} List of removed contexts.
+     * @param {...Context} _contexts List of contexts to remove.
+     * @returns {Array<Context>|undefined} List of removed contexts.
      */
     this.removeContexts = (
       ..._contexts
@@ -481,29 +709,29 @@ export default class Doars extends EventDispatcher {
 
     /**
      * Get list directives.
-     * @returns {Array<Object>} List of directives.
+     * @returns {Array<Directive>} List of directives.
      */
     this.getDirectives = (
     ) => [...directives]
 
     /**
      * Get list of directive names.
-     * @returns {Array<String>} List of directive names.
+     * @returns {Array<string>} List of directive names.
      */
     this.getDirectivesNames = (
     ) => [...directivesNames]
 
     /**
      * Get object of directives with the directive name as key.
-     * @returns {Object} Object of directives.
+     * @returns {DirectiveMap} Object of directives.
      */
     this.getDirectivesObject = (
     ) => Object.assign({}, directivesObject)
 
     /**
      * Check whether a name matches that of a directive.
-     * @param {String} attributeName Name of the attribute to match.
-     * @returns {Boolean} Whether the name matches that of a directive.
+     * @param {string} attributeName Name of the attribute to match.
+     * @returns {boolean} Whether the name matches that of a directive.
      */
     this.isDirectiveName = (
       attributeName,
@@ -511,9 +739,9 @@ export default class Doars extends EventDispatcher {
 
     /**
      * Add directives at the index. *Can only be called when NOT enabled.*
-     * @param {Number} index Index to start adding at.
-     * @param  {...Object} _directives List of directives to add.
-     * @returns {Array<Object>} List of added directives.
+     * @param {number} index Index to start adding at.
+     * @param  {...Directive} _directives List of directives to add.
+     * @returns {Array<Directive>|undefined} List of added directives.
      */
     this.addDirectives = (
       index,
@@ -560,8 +788,8 @@ export default class Doars extends EventDispatcher {
 
     /**
      * Remove directives. *Can only be called when NOT enabled.*
-     * @param  {...Object} _directives List of directives to remove.
-     * @returns {Array<Object>} List of removed directives.
+     * @param  {...Directive} _directives List of directives to remove.
+     * @returns {Array<Directive>|undefined} List of removed directives.
      */
     this.removeDirectives = (
       ..._directives
@@ -599,9 +827,13 @@ export default class Doars extends EventDispatcher {
 
     /* Update */
 
+    this.getProcessor = () => {
+      return processExpression
+    }
+
     /**
      * Update directives based on triggers. *Can only be called when enabled.*
-     * @param {Array<Object>} _triggers List of triggers to update with.
+     * @param {Array<Trigger>} _triggers List of triggers to update with.
      */
     this.update = (
       _triggers,
@@ -615,7 +847,10 @@ export default class Doars extends EventDispatcher {
         // Add new triggers to existing triggers.
         for (const trigger of _triggers) {
           // Deconstruct new trigger.
-          const { id, path } = trigger
+          const {
+            id,
+            path,
+          } = trigger
 
           // Create list at id if not already there.
           if (!(id in triggers)) {
@@ -642,14 +877,14 @@ export default class Doars extends EventDispatcher {
         return
       }
 
-      this.dispatchEvent('updating', [this])
-
       // Set as updating.
       isUpdating = true
 
       // Move update triggers to local scope only.
-      _triggers = triggers
+      _triggers = Object.freeze(triggers)
       triggers = {}
+
+      this.dispatchEvent('updating', [this, _triggers])
 
       // Update each component and collect any triggers.
       for (const component of components) {
@@ -662,8 +897,8 @@ export default class Doars extends EventDispatcher {
 
       // If there are triggers again then update again.
       if (Object.getOwnPropertySymbols(triggers).length > 0) {
-        console.warn('Doars: during an update another update has been triggered. Normally this should not happen unless an expression in one of the directives is modifying a state which could cause a infinite loop!')
-        // Use an animation frame to delay the update to prevent freezing.
+        console.warn('Doars: during an update another update has been triggered. This should not happen unless an expression in one of the directives is causing a infinite loop by mutating the state.')
+        // Use an animation frame to delay the update to prevent freezing and hope it resolves itself.
         window.requestAnimationFrame(() => this.update())
         return
       }
@@ -674,7 +909,7 @@ export default class Doars extends EventDispatcher {
         return
       }
 
-      this.dispatchEvent('updated', [this])
+      this.dispatchEvent('updated', [this, _triggers])
     }
 
     /**
@@ -704,9 +939,14 @@ export default class Doars extends EventDispatcher {
       newMutations = [...mutations]
       mutations = []
 
+      const {
+        stateDirectiveName,
+        ignoreDirectiveName,
+      } = this.getOptions()
+
       // Construct component name.
-      const componentName = prefix + '-state'
-      const ignoreName = prefix + '-ignore'
+      const componentName = prefix + '-' + stateDirectiveName
+      const ignoreName = prefix + '-' + ignoreDirectiveName
 
       // Store new attribute and elements that define new components.
       const componentsToAdd = []

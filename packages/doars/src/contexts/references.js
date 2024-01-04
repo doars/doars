@@ -1,20 +1,30 @@
+// Import polyfill.
+import RevocableProxy from '@doars/common/src/polyfills/RevocableProxy.js'
 // Import symbols.
 import { REFERENCES, REFERENCES_CACHE } from '../symbols.js'
 
-export default {
-  name: '$references',
+/**
+ * @typedef {import('../Context.js').Context} Context
+ * @typedef {import('../Doars.js').DoarsOptions} DoarsOptions
+ */
+
+/**
+ * Create the references context.
+ * @param {DoarsOptions} options Library options.
+ * @returns {Context} The context.
+ */
+export default ({
+  referencesContextName,
+}) => ({
+  name: referencesContextName,
 
   create: (
     component,
     attribute,
-    update, {
-      RevocableProxy,
-    },
   ) => {
     // Exit early if no references exist.
     if (!component[REFERENCES]) {
       return {
-        key: '$references',
         value: [],
       }
     }
@@ -60,4 +70,4 @@ export default {
       },
     }
   },
-}
+})

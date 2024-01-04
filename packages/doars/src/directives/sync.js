@@ -1,20 +1,36 @@
-// Import symbols.
-import { SYNC } from '../symbols.js'
 import { createAutoContexts } from '../utilities/Context.js'
-import { getDeeply, setDeeply } from '@doars/common/src/utilities/Object.js'
+import {
+  getDeeply,
+  setDeeply,
+} from '@doars/common/src/utilities/Object.js'
 import { escapeHtml } from '@doars/common/src/utilities/String.js'
 
-export default {
-  name: 'sync',
+/**
+ * @typedef {import('../Directive.js').Directive} Directive
+ * @typedef {import('../Doars.js').DoarsOptions} DoarsOptions
+ */
+
+// Symbols.
+const SYNC = Symbol('SYNC')
+
+/**
+ * Create the sync directive.
+ * @param {DoarsOptions} options Library options.
+ * @returns {Directive} The directive.
+ */
+export default ({
+  syncDirectiveName,
+}) => ({
+  name: syncDirectiveName,
 
   update: (
     component,
-    attribute, {
-      processExpression,
-    },
+    attribute,
+    processExpression,
   ) => {
     // Deconstruct attribute.
     const element = attribute.getElement()
+    const directive = attribute.getDirective()
 
     // Store whether this call is an update.
     const isNew = !attribute[SYNC]
@@ -27,7 +43,7 @@ export default {
         element.tagName !== 'SELECT' &&
         element.tagName !== 'TEXTAREA'
       ) {
-        console.warn('Doars: `sync` directive must be placed on an `<input>`, `<select>`, `<textarea>` tag, or a content editable `div`.')
+        console.warn('Doars: "' + directive + '" directive must be placed on an `<input>`, `<select>`, `<textarea>` tag, or a content editable `div`.')
         return
       }
     }
@@ -41,10 +57,10 @@ export default {
 
     // Check if value is a valid variable name.
     if (!/^[_$a-z]{1}[._$a-z0-9]{0,}$/i.test(value)) {
-      console.warn('Doars: `sync` directive\'s value not a valid variable name: "' + value + '".')
+      console.warn('Doars: "' + directive + '" directive\'s value not a valid variable name "' + value + '".')
       return
     }
-    value = value.split('.')
+    const valueSplit = value.split('.')
 
     if (isNew) {
       // Set handler that updates data based of node tag.
@@ -54,8 +70,15 @@ export default {
           handler = (
           ) => {
             // Update value.
-            const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone())
-            setDeeply(contexts, value, escapeHtml(element.innerText))
+            const [contexts, destroyContexts] = createAutoContexts(
+              component,
+              attribute.clone(),
+            )
+            setDeeply(
+              contexts,
+              valueSplit,
+              escapeHtml(element.innerText),
+            )
             destroyContexts()
           }
           break
@@ -63,19 +86,21 @@ export default {
         case 'INPUT':
           handler = (
           ) => {
-            const attributeClone = attribute.clone()
             const elementValue = escapeHtml(element.value)
             // Setup contexts.
-            const [contexts, destroyContexts] = createAutoContexts(component, attributeClone)
+            const [contexts, destroyContexts] = createAutoContexts(
+              component,
+              attribute.clone(),
+            )
 
             if (element.type === 'checkbox') {
               // Get current value.
-              const dataValue = getDeeply(contexts, value)
+              const dataValue = getDeeply(contexts, valueSplit)
 
               // Update value.
               if (element.checked) {
                 if (!dataValue) {
-                  setDeeply(contexts, value, [elementValue])
+                  setDeeply(contexts, valueSplit, [elementValue])
                 } if (!dataValue.includes(element.value)) {
                   dataValue.push(elementValue)
                 }
@@ -87,17 +112,17 @@ export default {
               }
             } else if (element.type === 'radio') {
               // Get current value.
-              const dataValue = getDeeply(contexts, value)
+              const dataValue = getDeeply(contexts, valueSplit)
 
               if (element.checked) {
                 if (dataValue !== element.value) {
-                  setDeeply(contexts, value, elementValue)
+                  setDeeply(contexts, valueSplit, elementValue)
                 }
               } else if (dataValue === element.value) {
-                setDeeply(contexts, value, null)
+                setDeeply(contexts, valueSplit, null)
               }
             } else {
-              setDeeply(contexts, value, elementValue)
+              setDeeply(contexts, valueSplit, elementValue)
             }
 
             // Cleanup contexts.
@@ -109,8 +134,15 @@ export default {
           handler = (
           ) => {
             // Update value.
-            const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone())
-            setDeeply(contexts, value, escapeHtml(element.innerText))
+            const [contexts, destroyContexts] = createAutoContexts(
+              component,
+              attribute.clone(),
+            )
+            setDeeply(
+              contexts,
+              valueSplit,
+              escapeHtml(element.innerText),
+            )
             destroyContexts()
           }
           break
@@ -119,7 +151,10 @@ export default {
           handler = (
           ) => {
             // Create contexts.
-            const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone())
+            const [contexts, destroyContexts] = createAutoContexts(
+              component,
+              attribute.clone(),
+            )
 
             if (element.multiple) {
               // Combine options.
@@ -130,10 +165,10 @@ export default {
                 )
               }
               // Update value.
-              setDeeply(contexts, value, [elementValues.join('\',\'')])
+              setDeeply(contexts, valueSplit, [elementValues.join('\',\'')])
             } else {
               // Update value.
-              setDeeply(contexts, value, escapeHtml(element.selectedOptions[0].value))
+              setDeeply(contexts, valueSplit, escapeHtml(element.selectedOptions[0].value))
             }
 
             // Cleanup contexts.
@@ -149,7 +184,11 @@ export default {
       attribute[SYNC] = handler
     }
 
-    const dataValue = processExpression(component, attribute, value)
+    const dataValue = processExpression(
+      component,
+      attribute.clone(),
+      value,
+    )
     switch (element.tagName) {
       case 'DIV':
       case 'TEXTAREA':
@@ -237,4 +276,4 @@ export default {
     // Remove data from attribute.
     delete attribute[SYNC]
   },
-}
+})

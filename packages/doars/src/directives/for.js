@@ -4,14 +4,24 @@ import { FOR } from '../symbols.js'
 // Import utilities.
 import { insertAfter } from '@doars/common/src/utilities/Element.js'
 import { isPromise } from '@doars/common/src/utilities/Promise.js'
+import { readdScripts } from '@doars/common/src/utilities/Script.js'
 import { parseForExpression } from '@doars/common/src/utilities/String.js'
-import { transitionIn, transitionOut } from '@doars/common/src/utilities/Transition.js'
+import {
+  transitionIn,
+  transitionOut,
+} from '@doars/common/src/utilities/Transition.js'
+
+/**
+ * @typedef {import('../Component.js').default} Component
+ * @typedef {import('../Directive.js').Directive} Directive
+ * @typedef {import('../Doars.js').DoarsOptions} DoarsOptions
+ */
 
 /**
  * Add values add object by name in given order.
- * @param {Array<String>} names Names of values.
- * @param  {...Any} values Values to add to object.
- * @returns {Object} Resulting object with values at names.
+ * @param {Array<string>} names Names of values.
+ * @param  {...any} values Values to add to object.
+ * @returns {object} Resulting object with values at names.
  */
 const createVariables = (
   names,
@@ -30,24 +40,29 @@ const createVariables = (
 /**
  * Finds the index of an element in list matching the value.
  * @param {HTMLElement} elements List of elements to search through.
- * @param {Any} value Value to compare to.
- * @param {Number} index The index to start searching after.
+ * @param {any} value Value to compare to.
+ * @param {number} offset The index to start searching after.
+ * @returns {number} Index of value in elements.
  */
 const indexInSiblings = (
   elements,
   value,
-  index = -1,
+  offset = -1,
 ) => {
-  index++
-  if (index >= elements.length) {
+  offset++
+  if (offset >= elements.length) {
     return -1
   }
 
-  if (elements[index][FOR].value === value) {
-    return index
+  if (elements[offset][FOR].value === value) {
+    return offset
   }
 
-  return indexInSiblings(elements, value, index)
+  return indexInSiblings(
+    elements,
+    value,
+    offset,
+  )
 }
 
 /**
@@ -56,9 +71,11 @@ const indexInSiblings = (
  * @param {Function} update Update trigger function.
  * @param {DocumentFragment} template Template of items.
  * @param {Array<HTMLElement>} elements Existing item elements.
- * @param {Number} index Index to start looking from.
- * @param {Any} value Value of item to add.
- * @param {Object} variables Variables associated with item.
+ * @param {number} index Index to start looking from.
+ * @param {any} value Value of item to add.
+ * @param {object} variables Variables associated with item.
+ * @param {boolean} allowInlineScript Whether to allow inline scripts.
+ * @returns {void}
  */
 const setAfter = (
   component,
@@ -68,7 +85,10 @@ const setAfter = (
   index,
   value,
   variables,
+  allowInlineScript,
 ) => {
+  const libraryOptions = component.getLibrary().getOptions()
+
   const existingIndex = indexInSiblings(elements, value, index)
   if (existingIndex >= 0) {
     // Exit early it is already in place.
@@ -95,9 +115,12 @@ const setAfter = (
   insertAfter(sibling, element)
   // Get HTMLElement reference instead of DocumentFragment.
   element = sibling.nextElementSibling
+  if (allowInlineScript) {
+    readdScripts(element)
+  }
 
   // Transition in.
-  transitionIn(component, element)
+  transitionIn(libraryOptions, element)
 
   // Store data.
   element[FOR] = {
@@ -112,8 +135,9 @@ const setAfter = (
 
 /**
  * Removes elements after maximum length.
+ * @param {Component} component Component the elements are part of.
  * @param {Array<HTMLElement>} elements List of existing elements.
- * @param {Number} maxLength Maximum number of elements.
+ * @param {number} maxLength Maximum number of elements.
  */
 const removeAfter = (
   component,
@@ -125,6 +149,8 @@ const removeAfter = (
     return
   }
 
+  const libraryOptions = component.getLibrary().getOptions()
+
   // Iterate over exceeding elements.
   for (let i = elements.length - 1; i >= maxLength; i--) {
     // Remove element from list.
@@ -132,33 +158,42 @@ const removeAfter = (
     elements.splice(i, 1)
 
     // Transition out.
-    transitionOut(component, element, () => {
+    transitionOut(libraryOptions, element, () => {
       element.remove()
     })
   }
 }
 
-export default {
-  name: 'for',
+/**
+ * Create the for directive.
+ * @param {DoarsOptions} options Library options.
+ * @returns {Directive} The directive.
+ */
+export default ({
+  allowInlineScript,
+  forDirectiveName,
+}) => ({
+  name: forDirectiveName,
 
   update: (
     component,
-    attribute, {
-      processExpression,
-    },
+    attribute,
+    processExpression,
   ) => {
     // Deconstruct attribute.
+    const directive = attribute.getDirective()
     const template = attribute.getElement()
+    const modifiers = attribute.getModifiers()
 
     // Check if placed on a template tag.
     if (template.tagName !== 'TEMPLATE') {
-      console.warn('Doars: `for` directive must be placed on a `<template>` tag.')
+      console.warn('Doars: "' + directive + '" directive must be placed on a TEMPLATE tag.')
       return
     }
 
     const expression = parseForExpression(attribute.getValue())
     if (!expression) {
-      console.error('Doars: Error in `for` expression: ', attribute.getValue())
+      console.error('Doars: Error in "' + directive + '" expression: ', attribute.getValue())
       return
     }
 
@@ -188,7 +223,7 @@ export default {
             const variables = createVariables(expression.variables, index)
 
             // Add element based on data after previously iterated value.
-            setAfter(component, update, template, elements, index - 1, iterable, variables)
+            setAfter(component, update, template, elements, index - 1, iterable, variables, allowInlineScript || modifiers.script)
           }
 
           // Remove old values.
@@ -202,7 +237,7 @@ export default {
             const variables = createVariables(expression.variables, value, index)
 
             // Add element based on data after previously iterated value.
-            setAfter(component, update, template, elements, index - 1, value, variables)
+            setAfter(component, update, template, elements, index - 1, value, variables, allowInlineScript || modifiers.script)
           }
 
           // Remove old values.
@@ -225,7 +260,7 @@ export default {
               const variables = createVariables(expression.variables, value, index)
 
               // Add element based on data after previously iterated value.
-              setAfter(component, update, template, elements, index - 1, value, variables)
+              setAfter(component, update, template, elements, index - 1, value, variables, allowInlineScript || modifiers.script)
             }
           } else {
             const keys = Object.keys(iterable)
@@ -240,7 +275,7 @@ export default {
               const variables = createVariables(expression.variables, key, value, index)
 
               // Add element based on data after previously iterated value.
-              setAfter(component, update, template, elements, index - 1, value, variables)
+              setAfter(component, update, template, elements, index - 1, value, variables, allowInlineScript || modifiers.script)
             }
           }
 
@@ -269,7 +304,11 @@ export default {
       result = Number(expression.iterable)
     } else {
       // Get iterable data, and this will automatically mark the data as being accessed by this component.
-      result = processExpression(component, attribute, expression.iterable)
+      result = processExpression(
+        component,
+        attribute,
+        expression.iterable,
+      )
     }
 
     // Get stored data.
@@ -312,11 +351,15 @@ export default {
       // Iterate over generated elements.
       for (const element of data.elements) {
         // Transition out.
-        transitionOut(component, element, () => {
-          // Remove element.
-          element.remove()
-        })
+        transitionOut(
+          component.getLibrary().getOptions(),
+          element,
+          () => {
+            // Remove element.
+            element.remove()
+          },
+        )
       }
     }
   },
-}
+})

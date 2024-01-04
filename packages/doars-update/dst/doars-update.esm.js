@@ -1,15 +1,18 @@
-// src/factories/contexts/createUpdate.js
-var createUpdate_default = (updater) => {
+// src/contexts/update.js
+var update_default = ({
+  updateContextName
+}, updater) => {
   const id = updater.getId();
   const proxy = updater.getProxy();
   const time = updater.getTime();
   return {
-    name: "$update",
+    name: updateContextName,
     create: (component, attribute) => {
       const onGet = (target, path) => attribute.accessed(id, path.join("."));
       proxy.addEventListener("get", onGet);
       return {
         value: time,
+        // Remove event listeners.
         destroy: () => {
           proxy.removeEventListener("get", onGet);
         }
@@ -18,30 +21,26 @@ var createUpdate_default = (updater) => {
   };
 };
 
-// src/factories/directives/createUpdate.js
-var createUpdate_default2 = (options) => {
-  options = Object.assign({
-    defaultOrder: 500
-  }, options);
+// src/directives/update.js
+var update_default2 = ({
+  defaultOrder,
+  updateDirectiveName
+}) => {
   const itemIds = [];
   const items = [];
   const directive = {
-    name: "update",
-    update: function(component, attribute, {
-      processExpression
-    }) {
-      if (!this._execute) {
-        this._execute = processExpression;
+    name: updateDirectiveName,
+    update: (component, attribute, processExpression) => {
+      if (!directive._execute) {
+        directive._execute = processExpression;
       }
       const id = attribute.getId();
       if (itemIds.indexOf(id) >= 0) {
         return;
       }
-      let {
-        order
-      } = attribute.getModifiers();
+      let { order } = attribute.getModifiers();
       if (!order) {
-        order = options.defaultOrder;
+        order = defaultOrder;
       }
       let index = 0;
       for (let i = 0; i < items.length; i++) {
@@ -71,24 +70,46 @@ var createUpdate_default2 = (options) => {
       }
     }
   };
-  return [directive, () => {
-    for (const item of items) {
-      directive._execute(item.component, item.attribute.clone(), item.attribute.getValue(), {}, {
-        return: false
-      });
+  return [
+    directive,
+    () => {
+      for (const item of items) {
+        directive._execute(
+          item.component,
+          item.attribute.clone(),
+          item.attribute.getValue(),
+          {},
+          {
+            return: false
+          }
+        );
+      }
     }
-  }];
+  ];
 };
 
 // ../common/src/polyfills/RevocableProxy.js
-var REFLECTION_METHODS = ["apply", "construct", "defineProperty", "deleteProperty", "get", "getOwnPropertyDescriptor", "getPrototypeOf", "isExtensible", "ownKeys", "preventExtensions", "set", "setPrototypeOf"];
+var PROXY_TRAPS = [
+  "apply",
+  "construct",
+  "defineProperty",
+  "deleteProperty",
+  "get",
+  "getOwnPropertyDescriptor",
+  "getPrototypeOf",
+  "has",
+  "isExtensible",
+  "ownKeys",
+  "preventExtensions",
+  "set",
+  "setPrototypeOf"
+];
 var RevocableProxy_default = (target, handler) => {
   let revoked = false;
   const revocableHandler = {};
-  for (const key of REFLECTION_METHODS) {
+  for (const key of PROXY_TRAPS) {
     revocableHandler[key] = (...parameters) => {
       if (revoked) {
-        console.error("illegal operation attempted on a revoked proxy");
         return;
       }
       if (key in handler) {
@@ -107,6 +128,9 @@ var RevocableProxy_default = (target, handler) => {
 
 // ../common/src/events/EventDispatcher.js
 var EventDispatcher = class {
+  /**
+   * Create instance.
+   */
   constructor() {
     let events = {};
     this.addEventListener = (name, callback, options = null) => {
@@ -162,10 +186,13 @@ var EventDispatcher = class {
     };
   }
 };
-var EventDispatcher_default = EventDispatcher;
 
 // ../common/src/events/ProxyDispatcher.js
-var ProxyDispatcher = class extends EventDispatcher_default {
+var ProxyDispatcher = class extends EventDispatcher {
+  /**
+   * Creates a proxy dispatcher instance.
+   * @param {ProxyOptions} options Options for proxy dispatcher.
+   */
   constructor(options = {}) {
     super();
     options = Object.assign({
@@ -237,17 +264,21 @@ var ProxyDispatcher = class extends EventDispatcher_default {
     };
   }
 };
-var ProxyDispatcher_default = ProxyDispatcher;
 
 // src/Updater.js
 var Updater = class {
-  constructor(options, callback) {
-    options = Object.assign({
-      stepMinimum: 0
-    }, options);
+  /**
+   * @param {object} options Updater options.
+   * @param {number} options.stepMinimum Minimum duration of a tick in milliseconds.
+   * @param {UpdateCallback} callback Called every update tick.
+   */
+  constructor({
+    stepMinimum
+  }, callback) {
     const id = Symbol("ID_UPDATE");
     let isEnabled = false, request;
-    const proxy = new ProxyDispatcher_default({
+    const proxy = new ProxyDispatcher({
+      // We don't care when they are updated, we have a callback for that. They should never be updated by the user anyway.
       delete: false,
       set: false
     });
@@ -264,7 +295,7 @@ var Updater = class {
         return;
       }
       const deltaMs = timeAbsolute - time.lastMs;
-      if (deltaMs <= options.stepMinimum) {
+      if (deltaMs <= stepMinimum) {
         return;
       }
       time.lastMs = time.currentMs;
@@ -311,14 +342,16 @@ var Updater = class {
 
 // src/DoarsUpdate.js
 function DoarsUpdate_default(library, options = null) {
-  options = Object.assign({}, options);
+  options = Object.assign({
+    defaultOrder: 500,
+    stepMinimum: 0,
+    updateContextName: "$update",
+    updateDirectiveName: "update"
+  }, options);
   let isEnabled = false;
-  let contextUpdate, directiveUpdate, updater;
-  const onEnable = function() {
-    const [_directiveUpdate, update] = createUpdate_default2(options);
-    directiveUpdate = _directiveUpdate;
-    library.addDirectives(-1, directiveUpdate);
-    updater = new Updater(options, () => {
+  const updater = new Updater(
+    options,
+    () => {
       update();
       library.update([{
         id: updater.getId(),
@@ -333,27 +366,28 @@ function DoarsUpdate_default(library, options = null) {
         id: updater.getId(),
         path: "passed"
       }]);
-    });
-    contextUpdate = createUpdate_default(updater);
+    }
+  );
+  const contextUpdate = update_default(options, updater);
+  const [directiveUpdate, update] = update_default2(options);
+  const onEnable = () => {
     library.addContexts(0, contextUpdate);
+    library.addDirectives(-1, directiveUpdate);
     updater.enable();
   };
-  const onDisable = function() {
+  const onDisable = () => {
     library.removeContexts(contextUpdate);
     library.removeDirectives(directiveUpdate);
     updater.disable();
-    contextUpdate = null;
-    directiveUpdate = null;
-    updater = null;
   };
-  this.disable = function() {
+  this.disable = () => {
     if (!library.getEnabled() && isEnabled) {
       isEnabled = false;
       library.removeEventListener("enabling", onEnable);
       library.removeEventListener("disabling", onDisable);
     }
   };
-  this.enable = function() {
+  this.enable = () => {
     if (!isEnabled) {
       isEnabled = true;
       library.addEventListener("enabling", onEnable);

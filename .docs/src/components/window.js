@@ -10,10 +10,10 @@ import { render as r } from '../utils/RenderUtils.js'
  * @param {...string} children Rendered elements to add as children.
  * @returns {string} Resulting HTML structure.
  */
-export default function (
+export default (
   options,
   ...children
-) {
+) => {
   return r('div', {
     class: 'bg-grey-0 mt-2 overflow-x-auto text-white rounded-1 shadow-lg',
   }, [

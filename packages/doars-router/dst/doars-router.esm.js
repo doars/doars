@@ -1,12 +1,60 @@
+// ../common/src/utilities/Object.js
+var deepAssign = (target, ...sources) => {
+  if (!sources.length) {
+    return target;
+  }
+  const source = sources.shift();
+  if (isObject(target) && isObject(source)) {
+    for (const key in source) {
+      if (isObject(source[key])) {
+        if (!target[key]) {
+          Object.assign(target, {
+            [key]: {}
+          });
+        }
+        deepAssign(target[key], source[key]);
+      } else if (Array.isArray(source[key])) {
+        target[key] = source[key].map((value) => {
+          if (isObject(value)) {
+            return deepAssign({}, value);
+          }
+          return value;
+        });
+      } else {
+        Object.assign(target, {
+          [key]: source[key]
+        });
+      }
+    }
+  }
+  return deepAssign(target, ...sources);
+};
+var isObject = (value) => {
+  return value && typeof value === "object" && !Array.isArray(value);
+};
+
 // ../common/src/polyfills/RevocableProxy.js
-var REFLECTION_METHODS = ["apply", "construct", "defineProperty", "deleteProperty", "get", "getOwnPropertyDescriptor", "getPrototypeOf", "isExtensible", "ownKeys", "preventExtensions", "set", "setPrototypeOf"];
+var PROXY_TRAPS = [
+  "apply",
+  "construct",
+  "defineProperty",
+  "deleteProperty",
+  "get",
+  "getOwnPropertyDescriptor",
+  "getPrototypeOf",
+  "has",
+  "isExtensible",
+  "ownKeys",
+  "preventExtensions",
+  "set",
+  "setPrototypeOf"
+];
 var RevocableProxy_default = (target, handler) => {
   let revoked = false;
   const revocableHandler = {};
-  for (const key of REFLECTION_METHODS) {
+  for (const key of PROXY_TRAPS) {
     revocableHandler[key] = (...parameters) => {
       if (revoked) {
-        console.error("illegal operation attempted on a revoked proxy");
         return;
       }
       if (key in handler) {
@@ -24,56 +72,7 @@ var RevocableProxy_default = (target, handler) => {
 };
 
 // src/symbols.js
-var ROUTE_TO = Symbol("ROUTE_TO");
 var ROUTER = Symbol("ROUTER");
-var ROUTE = Symbol("ROUTE");
-
-// src/utilities/closestRouter.js
-var closestRouter = (element) => {
-  if (!element.parentElement) {
-    return;
-  }
-  element = element.parentElement;
-  if (element[ROUTER]) {
-    return element[ROUTER];
-  }
-  return closestRouter(element);
-};
-var closestRouter_default = closestRouter;
-
-// src/contexts/router.js
-var router_default = {
-  name: "$router",
-  create: (component, attribute) => {
-    const element = attribute.getElement();
-    let router = null;
-    const revocable = RevocableProxy_default({}, {
-      get: (target, propertyKey, receiver) => {
-        if (router === null) {
-          if (element[ROUTER]) {
-            router = element[ROUTER];
-          } else {
-            router = closestRouter_default(element);
-          }
-          if (!router) {
-            router = false;
-          }
-        }
-        attribute.accessed(router.getId(), "");
-        if (!router) {
-          return;
-        }
-        return Reflect.get(router, propertyKey, receiver);
-      }
-    });
-    return {
-      value: revocable.proxy,
-      destroy: () => {
-        revocable.revoke();
-      }
-    };
-  }
-};
 
 // ../../node_modules/path-to-regexp/dist.es2015/index.js
 function lexer(str) {
@@ -82,35 +81,19 @@ function lexer(str) {
   while (i < str.length) {
     var char = str[i];
     if (char === "*" || char === "+" || char === "?") {
-      tokens.push({
-        type: "MODIFIER",
-        index: i,
-        value: str[i++]
-      });
+      tokens.push({ type: "MODIFIER", index: i, value: str[i++] });
       continue;
     }
     if (char === "\\") {
-      tokens.push({
-        type: "ESCAPED_CHAR",
-        index: i++,
-        value: str[i++]
-      });
+      tokens.push({ type: "ESCAPED_CHAR", index: i++, value: str[i++] });
       continue;
     }
     if (char === "{") {
-      tokens.push({
-        type: "OPEN",
-        index: i,
-        value: str[i++]
-      });
+      tokens.push({ type: "OPEN", index: i, value: str[i++] });
       continue;
     }
     if (char === "}") {
-      tokens.push({
-        type: "CLOSE",
-        index: i,
-        value: str[i++]
-      });
+      tokens.push({ type: "CLOSE", index: i, value: str[i++] });
       continue;
     }
     if (char === ":") {
@@ -118,7 +101,13 @@ function lexer(str) {
       var j = i + 1;
       while (j < str.length) {
         var code = str.charCodeAt(j);
-        if (code >= 48 && code <= 57 || code >= 65 && code <= 90 || code >= 97 && code <= 122 || code === 95) {
+        if (
+          // `0-9`
+          code >= 48 && code <= 57 || // `A-Z`
+          code >= 65 && code <= 90 || // `a-z`
+          code >= 97 && code <= 122 || // `_`
+          code === 95
+        ) {
           name += str[j++];
           continue;
         }
@@ -126,11 +115,7 @@ function lexer(str) {
       }
       if (!name)
         throw new TypeError("Missing parameter name at ".concat(i));
-      tokens.push({
-        type: "NAME",
-        index: i,
-        value: name
-      });
+      tokens.push({ type: "NAME", index: i, value: name });
       i = j;
       continue;
     }
@@ -164,25 +149,13 @@ function lexer(str) {
         throw new TypeError("Unbalanced pattern at ".concat(i));
       if (!pattern)
         throw new TypeError("Missing pattern at ".concat(i));
-      tokens.push({
-        type: "PATTERN",
-        index: i,
-        value: pattern
-      });
+      tokens.push({ type: "PATTERN", index: i, value: pattern });
       i = j;
       continue;
     }
-    tokens.push({
-      type: "CHAR",
-      index: i,
-      value: str[i++]
-    });
+    tokens.push({ type: "CHAR", index: i, value: str[i++] });
   }
-  tokens.push({
-    type: "END",
-    index: i,
-    value: ""
-  });
+  tokens.push({ type: "END", index: i, value: "" });
   return tokens;
 }
 function parse(str, options) {
@@ -281,6 +254,7 @@ function regexpToRegexp(path, keys) {
   var execResult = groupsRegex.exec(path.source);
   while (execResult) {
     keys.push({
+      // Use parenthesized substring match if available, index otherwise
       name: execResult[1] || index++,
       prefix: "",
       suffix: "",
@@ -365,6 +339,9 @@ function pathToRegexp(path, keys, options) {
 
 // ../common/src/events/EventDispatcher.js
 var EventDispatcher = class {
+  /**
+   * Create instance.
+   */
   constructor() {
     let events = {};
     this.addEventListener = (name, callback, options = null) => {
@@ -420,10 +397,16 @@ var EventDispatcher = class {
     };
   }
 };
-var EventDispatcher_default = EventDispatcher;
 
 // src/Router.js
-var Router = class extends EventDispatcher_default {
+var Router = class extends EventDispatcher {
+  /**
+   * @param {object} options Router options.
+   * - {string} basePath = '' - Base path of the routes.
+   * - {string} path = '' - Initial active path.
+   * - {object} pathToRegexp = {} - Path-to-RegExp options used for parsing route paths.
+   * - {boolean} updateHistory = false - Whether to update the [History API](https://developer.mozilla.org/docs/Web/API/History_API).
+   */
   constructor(options = {}) {
     super();
     const id = Symbol("ID_ROUTER");
@@ -511,39 +494,54 @@ var Router = class extends EventDispatcher_default {
     };
   }
 };
-var Router_default = Router;
 
-// src/factories/directives/router.js
-var router_default2 = (routerOptions) => {
-  return {
-    name: "router",
-    update: (component, attribute, {
-      processExpression
-    }) => {
-      const element = attribute.getElement();
-      let router = element[ROUTER];
-      if (!router) {
-        const options = Object.assign({}, routerOptions, processExpression(component, attribute.clone(), attribute.getValue()));
-        router = element[ROUTER] = new Router_default(options);
-      }
-    },
-    destroy: (component, attribute) => {
-      const element = attribute.getElement();
-      const router = element[ROUTER];
-      if (!router) {
-        return;
-      }
-      delete element[ROUTER];
-      const id = router.getId();
-      router.destroy();
-      const library = component.getLibrary();
-      library.update([{
-        id,
-        path: ""
-      }]);
+// src/utilities/closestRouter.js
+var closestRouter = (element) => {
+  if (element.parentElement) {
+    element = element.parentElement;
+    if (element[ROUTER]) {
+      return element[ROUTER];
     }
-  };
+    return closestRouter(element);
+  }
 };
+var closestRouter_default = closestRouter;
+
+// src/contexts/router.js
+var router_default = ({
+  routerContextName
+}) => ({
+  name: routerContextName,
+  create: (component, attribute) => {
+    const element = attribute.getElement();
+    let router = null;
+    const revocable = RevocableProxy_default({}, {
+      get: (target, propertyKey, receiver) => {
+        if (router === null) {
+          if (element[ROUTER]) {
+            router = element[ROUTER];
+          } else {
+            router = closestRouter_default(element);
+          }
+          if (!router) {
+            router = false;
+          }
+        }
+        attribute.accessed(router.getId(), "");
+        if (!router) {
+          return;
+        }
+        return Reflect.get(router, propertyKey, receiver);
+      }
+    });
+    return {
+      value: revocable.proxy,
+      destroy: () => {
+        revocable.revoke();
+      }
+    };
+  }
+});
 
 // ../common/src/utilities/Element.js
 var insertAfter = (reference, node) => {
@@ -554,13 +552,192 @@ var insertAfter = (reference, node) => {
   }
 };
 
+// ../common/src/utilities/String.js
+var parseSelector = (selector) => {
+  if (typeof selector === "string") {
+    selector = selector.split(/(?=\.)|(?=#)|(?=\[)/);
+  }
+  if (!Array.isArray(selector)) {
+    console.error("Doars: parseSelector expects Array of string or a single string.");
+    return;
+  }
+  const attributes = {};
+  for (let selectorSegment of selector) {
+    selectorSegment = selectorSegment.trim();
+    switch (selectorSegment[0]) {
+      case "#":
+        attributes.id = selectorSegment.substring(1);
+        break;
+      case ".":
+        selectorSegment = selectorSegment.substring(1);
+        if (!attributes.class) {
+          attributes.class = [];
+        }
+        if (!attributes.class.includes(selectorSegment)) {
+          attributes.class.push(selectorSegment);
+        }
+        break;
+      case "[":
+        const [full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
+        attributes[key] = value;
+        break;
+    }
+  }
+  return attributes;
+};
+
+// ../common/src/utilities/Attribute.js
+var addAttributes = (element, data) => {
+  for (const name in data) {
+    if (name === "class") {
+      for (const className of data.class) {
+        element.classList.add(className);
+      }
+      continue;
+    }
+    element.setAttribute(name, data[name]);
+  }
+};
+var removeAttributes = (element, data) => {
+  for (const name in data) {
+    if (name === "class") {
+      for (const className of data.class) {
+        element.classList.remove(className);
+      }
+      continue;
+    }
+    if (data[name] && element.attributes[name] !== data[name]) {
+      continue;
+    }
+    element.removeAttribute(name);
+  }
+};
+
+// ../common/src/utilities/Transition.js
+var TRANSITION_NAME = "-transition:";
+var transition = (type, libraryOptions, element, callback = null) => {
+  if (element.nodeType !== 1) {
+    if (callback) {
+      callback();
+    }
+    return;
+  }
+  const transitionDirectiveName = libraryOptions.prefix + TRANSITION_NAME + type;
+  const dispatchEvent = (phase) => {
+    element.dispatchEvent(
+      new CustomEvent("transition-" + phase)
+    );
+    element.dispatchEvent(
+      new CustomEvent("transition-" + type + "-" + phase)
+    );
+  };
+  let name, value, timeout, requestFrame;
+  let isDone = false;
+  const selectors = {};
+  name = transitionDirectiveName;
+  value = element.getAttribute(name);
+  if (value) {
+    selectors.during = parseSelector(value);
+    addAttributes(element, selectors.during);
+  }
+  name = transitionDirectiveName + ".from";
+  value = element.getAttribute(name);
+  if (value) {
+    selectors.from = parseSelector(value);
+    addAttributes(element, selectors.from);
+  }
+  dispatchEvent("start");
+  requestFrame = requestAnimationFrame(() => {
+    requestFrame = null;
+    if (isDone) {
+      return;
+    }
+    if (selectors.from) {
+      removeAttributes(element, selectors.from);
+      selectors.from = void 0;
+    }
+    name = transitionDirectiveName + ".to";
+    value = element.getAttribute(name);
+    if (value) {
+      selectors.to = parseSelector(value);
+      addAttributes(element, selectors.to);
+    } else if (!selectors.during) {
+      dispatchEvent("end");
+      if (callback) {
+        callback();
+      }
+      isDone = true;
+      return;
+    }
+    const styles = getComputedStyle(element);
+    let duration = Number(styles.transitionDuration.replace(/,.*/, "").replace("s", "")) * 1e3;
+    if (duration === 0) {
+      duration = Number(styles.animationDuration.replace("s", "")) * 1e3;
+    }
+    timeout = setTimeout(() => {
+      timeout = null;
+      if (isDone) {
+        return;
+      }
+      if (selectors.during) {
+        removeAttributes(element, selectors.during);
+        selectors.during = void 0;
+      }
+      if (selectors.to) {
+        removeAttributes(element, selectors.to);
+        selectors.to = void 0;
+      }
+      dispatchEvent("end");
+      if (callback) {
+        callback();
+      }
+      isDone = true;
+    }, duration);
+  });
+  return () => {
+    if (!isDone) {
+      return;
+    }
+    isDone = true;
+    if (selectors.during) {
+      removeAttributes(element, selectors.during);
+      selectors.during = void 0;
+    }
+    if (selectors.from) {
+      removeAttributes(element, selectors.from);
+      selectors.from = void 0;
+    } else if (selectors.to) {
+      removeAttributes(element, selectors.to);
+      selectors.to = void 0;
+    }
+    if (requestFrame) {
+      cancelAnimationFrame(requestFrame);
+      requestFrame = null;
+    } else if (timeout) {
+      clearTimeout(timeout);
+      timeout = null;
+    }
+    dispatchEvent("end");
+    if (callback) {
+      callback();
+    }
+  };
+};
+var transitionIn = (libraryOptions, element, callback) => {
+  return transition("in", libraryOptions, element, callback);
+};
+var transitionOut = (libraryOptions, element, callback) => {
+  return transition("out", libraryOptions, element, callback);
+};
+
 // src/directives/route.js
-var route_default = {
-  name: "route",
-  update: (component, attribute, {
-    transitionIn,
-    transitionOut
-  }) => {
+var ROUTE = Symbol("ROUTE");
+var route_default = ({
+  routeDirectiveName
+}) => ({
+  name: routeDirectiveName,
+  update: (component, attribute) => {
+    const libraryOptions = component.getLibrary().getOptions();
     const element = attribute.getElement();
     let router;
     const setup = () => {
@@ -584,13 +761,13 @@ var route_default = {
           if (element.tagName === "TEMPLATE") {
             if (attribute[ROUTE] && attribute[ROUTE].element) {
               const routeElement = attribute[ROUTE].element;
-              transitionOut(component, routeElement, () => {
+              transitionOut(libraryOptions, routeElement, () => {
                 routeElement.remove();
                 attribute[ROUTE].element = void 0;
               });
             }
           } else {
-            transitionOut(component, element, () => {
+            transitionOut(libraryOptions, element, () => {
               element.style.display = "none";
             });
           }
@@ -598,10 +775,10 @@ var route_default = {
           const templateInstance = document.importNode(element.content, true);
           insertAfter(element, templateInstance);
           attribute[ROUTE].element = element.nextSibling;
-          transitionIn(component, attribute[ROUTE].element);
+          transitionIn(libraryOptions, attribute[ROUTE].element);
         } else {
           element.style.display = null;
-          transitionIn(component, element);
+          transitionIn(libraryOptions, element);
         }
       };
       attribute[ROUTE].handler = handleChange;
@@ -612,19 +789,20 @@ var route_default = {
     setup();
   },
   destroy: (component, attribute, {
-    transitionOut
+    transitionOut: transitionOut2
   }) => {
+    const libraryOptions = component.getLibrary().getOptions();
     const element = attribute.getElement();
     if (element.tagName === "TEMPLATE") {
       if (attribute[ROUTE] && attribute[ROUTE].element) {
         const routeElement = attribute[ROUTE].element;
-        transitionOut(component, routeElement, () => {
+        transitionOut2(libraryOptions, routeElement, () => {
           routeElement.remove();
           attribute[ROUTE].element = void 0;
         });
       }
     } else {
-      transitionOut(component, element, () => {
+      transitionOut2(libraryOptions, element, () => {
         element.style.display = "none";
       });
     }
@@ -639,12 +817,52 @@ var route_default = {
       }
     }
   }
-};
+});
+
+// src/directives/router.js
+var router_default2 = (options) => ({
+  name: options.routerDirectiveName,
+  update: (component, attribute, processExpression) => {
+    const element = attribute.getElement();
+    let router = element[ROUTER];
+    if (!router) {
+      router = element[ROUTER] = new Router(
+        Object.assign(
+          {},
+          options,
+          processExpression(
+            component,
+            attribute,
+            attribute.getValue()
+          )
+        )
+      );
+    }
+  },
+  destroy: (component, attribute) => {
+    const element = attribute.getElement();
+    const router = element[ROUTER];
+    if (!router) {
+      return;
+    }
+    delete element[ROUTER];
+    const id = router.getId();
+    router.destroy();
+    const library = component.getLibrary();
+    library.update([{
+      id,
+      path: ""
+    }]);
+  }
+});
 
 // src/directives/routeTo.js
+var ROUTE_TO = Symbol("ROUTE_TO");
 var CLICK = "click";
-var routeTo_default = {
-  name: "route-to",
+var routeTo_default = ({
+  routeToDirectiveName
+}) => ({
+  name: routeToDirectiveName,
   update: (component, attribute) => {
     const element = attribute.getElement();
     const modifiers = attribute.getModifiers();
@@ -653,7 +871,10 @@ var routeTo_default = {
       if (attribute[ROUTE_TO].value === value) {
         return;
       }
-      attribute[ROUTE_TO].target.removeEventListener(CLICK, attribute[ROUTE_TO].handler);
+      attribute[ROUTE_TO].target.removeEventListener(
+        CLICK,
+        attribute[ROUTE_TO].handler
+      );
     }
     const handler = (event) => {
       if (modifiers.self && event.target !== element) {
@@ -685,66 +906,47 @@ var routeTo_default = {
     element.removeEventListener(CLICK, attribute[ROUTE_TO].handler);
     delete attribute[ROUTE_TO];
   }
-};
-
-// ../common/src/utilities/Object.js
-var deepAssign = (target, ...sources) => {
-  if (!sources.length) {
-    return target;
-  }
-  const source = sources.shift();
-  if (isObject(target) && isObject(source)) {
-    for (const key in source) {
-      if (isObject(source[key])) {
-        if (!target[key]) {
-          Object.assign(target, {
-            [key]: {}
-          });
-        }
-        deepAssign(target[key], source[key]);
-      } else if (Array.isArray(source[key])) {
-        target[key] = source[key].map((value) => {
-          if (isObject(value)) {
-            return deepAssign({}, value);
-          }
-          return value;
-        });
-      } else {
-        Object.assign(target, {
-          [key]: source[key]
-        });
-      }
-    }
-  }
-  return deepAssign(target, ...sources);
-};
-var isObject = (value) => {
-  return value && typeof value === "object" && !Array.isArray(value);
-};
+});
 
 // src/DoarsRouter.js
 function DoarsRouter_default(library, options = null) {
-  options = deepAssign({}, options);
+  options = deepAssign({
+    basePath: "",
+    path: "",
+    pathToRegexp: {},
+    updateHistory: false,
+    routerContextName: "$router",
+    routeDirectiveName: "route",
+    routerDirectiveName: "router",
+    routeToDirectiveName: "route-to"
+  }, options);
   let isEnabled = false;
-  let directiveRouter;
-  const onEnable = function() {
-    library.addContexts(0, router_default);
-    directiveRouter = router_default2(options);
-    library.addDirectives(-1, directiveRouter, route_default, routeTo_default);
+  const routerContext = router_default(options), routeDirective = route_default(options), routerDirective = router_default2(options), routeToDirective = routeTo_default(options);
+  const onEnable = () => {
+    library.addContexts(0, routerContext);
+    library.addDirectives(
+      -1,
+      routeDirective,
+      routerDirective,
+      routeToDirective
+    );
   };
-  const onDisable = function() {
-    library.removeContexts(router_default);
-    library.removeDirectives(directiveRouter, route_default, routeTo_default);
-    directiveRouter = null;
+  const onDisable = () => {
+    library.removeContexts(routerContext);
+    library.removeDirectives(
+      routeDirective,
+      routerDirective,
+      routeToDirective
+    );
   };
-  this.disable = function() {
+  this.disable = () => {
     if (!library.getEnabled() && isEnabled) {
       isEnabled = false;
       library.removeEventListener("enabling", onEnable);
       library.removeEventListener("disabling", onDisable);
     }
   };
-  this.enable = function() {
+  this.enable = () => {
     if (!isEnabled) {
       isEnabled = true;
       library.addEventListener("enabling", onEnable);

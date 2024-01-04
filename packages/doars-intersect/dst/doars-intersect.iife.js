@@ -1,19 +1,17 @@
 (() => {
-  // src/symbols.js
-  var INTERSECT = Symbol("VIEW");
-
-  // src/factories/directives/intersect.js
+  // src/directives/intersect.js
+  var INTERSECT = Symbol("INTERSECT");
   var EXECUTION_MODIFIERS = {
     NONE: 0,
     BUFFER: 1,
     DEBOUNCE: 2,
     THROTTLE: 3
   };
-  var intersect_default = (observer) => ({
-    name: "intersect",
-    update: (component, attribute, {
-      processExpression
-    }) => {
+  var intersect_default = ({
+    intersectDirectiveName
+  }, observer) => ({
+    name: intersectDirectiveName,
+    update: (component, attribute, processExpression) => {
       const element = attribute.getElement();
       const key = attribute.getKey();
       const value = attribute.getValue();
@@ -59,9 +57,13 @@
           return;
         }
         const execute = () => {
-          processExpression(component, attribute.clone(), value, {
-            $event: event
-          }, { return: false });
+          processExpression(
+            component,
+            attribute.clone(),
+            value,
+            { $event: event },
+            { return: false }
+          );
           attribute[INTERSECT].buffer = [];
         };
         attribute[INTERSECT].buffer.push(event);
@@ -113,14 +115,9 @@
   var IntersectionObserver = class _IntersectionObserver {
     /**
      * Create observer instance.
-     * @param {Object} options Intersection observer options.
+     * @param {object} options Intersection observer options.
      */
     constructor(options = null) {
-      options = Object.assign({
-        root: null,
-        rootMargin: "0px",
-        threshold: 0
-      }, options);
       const items = /* @__PURE__ */ new WeakMap();
       const intersect = (entries) => {
         for (const entry of entries) {
@@ -156,21 +153,33 @@
 
   // src/DoarsIntersect.js
   function DoarsIntersect_default(library, options = null) {
-    options = Object.assign({}, options);
+    options = Object.assign({
+      intersectDirectiveName: "intersect",
+      intersectionRoot: null,
+      intersectionMargin: "0px",
+      intersectionThreshold: 0
+    }, options);
     let isEnabled = false;
-    let directiveView, intersectionObserver;
+    let intersectionDirective, intersectionObserver;
     const onEnable = () => {
       const _options = Object.assign({}, options);
       if (!_options.root) {
         _options.root = library.getOptions().root;
       }
-      intersectionObserver = new IntersectionObserver(options);
-      directiveView = intersect_default(intersectionObserver);
-      library.addDirectives(-1, directiveView);
+      intersectionObserver = new IntersectionObserver({
+        root: options.intersectionRoot ? options.intersectionRoot : library.getOptions().root,
+        rootMargin: options.intersectionMargin,
+        threshold: options.intersectionThreshold
+      });
+      intersectionDirective = intersect_default(
+        options,
+        intersectionObserver
+      );
+      library.addDirectives(-1, intersectionDirective);
     };
     const onDisable = () => {
-      library.removeDirectives(directiveView);
-      directiveView = null;
+      library.removeDirectives(intersectionDirective);
+      intersectionDirective = null;
       intersectionObserver = null;
     };
     this.disable = () => {

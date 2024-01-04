@@ -50,29 +50,16 @@ Use as much or as little as you want. Doars can easily be added to an existing s
 
 This mono-repository includes the core library as well as several plugins. See the full list below or the packages directory.
 
-| Name                                                                                                       | Description                                                                                                                                         |
-| ---------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [@doars/doars](https://github.com/doars/doars/tree/main/packages/doars#readme)                             | The core library, it manages the components and plugins as well as includes the basic contexts and directives.                                      |
-| [@doars/doars-alias](https://github.com/doars/doars/tree/main/packages/doars-alias#readme)                 | Plugin for creating aliases or renaming any context or directive.                                                                                   |
-| [@doars/doars-cookies](https://github.com/doars/doars/tree/main/packages/doars-cookies#readme)             | Plugin that adds a cookies context to get and set browser cookies.                                                                                  |
-| [@doars/doars-local-storage](https://github.com/doars/doars/tree/main/packages/doars-local-storage#readme) | Plugin that adds a local storage context to get values from and set values in local storage.                                                        |
-| [@doars/doars-fetch](https://github.com/doars/doars/tree/main/packages/doars-fetch#readme)                 | Plugin that adds a fetch context that handles parsing the returned content.                                                                         |
-| [@doars/doars-intersect](https://github.com/doars/doars/tree/main/packages/doars-intersect#readme)         | Plugin that adds an intersect directive for reacting to intersection changes.                                                                       |
-| [@doars/doars-morph](https://github.com/doars/doars/tree/main/packages/doars-morph#readme)                 | Plugin that adds a morph context and directive that instead of setting directly to the innerHTML of an element morphs the DOM to the new structure. |
-| [@doars/doars-navigate](https://github.com/doars/doars/tree/main/packages/doars-navigate#readme)           | Plugin that adds a navigation directive that loads pages without unloading the current page by listening to anchor tags.                            |
-| [@doars/doars-router](https://github.com/doars/doars/tree/main/packages/doars-router#readme)               | Plugin that adds a router context with set of directives to control it.                                                                             |
-| [@doars/doars-store](https://github.com/doars/doars/tree/main/packages/doars-store#readme)                 | Plugin that adds a store context for global state management.                                                                                       |
-| [@doars/doars-update](https://github.com/doars/doars/tree/main/packages/doars-update#readme)               | Plugin that adds an update loop context and directive.                                                                                              |
-
-## Ideas
-
-- Memoization context for faster updates.
-- Watch context in addition to the directive.
-- Handling form submissions to allow in page changes.
-- Add section loading directive to the navigate plugin where another page gets loaded in below the directive.
-- Visibility directives similar to intersection plugin.
-- Realtime shared state between clients using WebRTC.
-- Sensor access via context and react to changes via directives (Accelerometer, etc.)
+| Name                                                                                                       | Description                                                                                                              |
+| ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| [@doars/doars](https://github.com/doars/doars/tree/main/packages/doars#readme)                             | The core library, it manages the components and plugins as well as includes the basic contexts and directives.           |
+| [@doars/doars-cookies](https://github.com/doars/doars/tree/main/packages/doars-cookies#readme)             | Plugin that adds a cookies context to get and set browser cookies.                                                       |
+| [@doars/doars-fetch](https://github.com/doars/doars/tree/main/packages/doars-fetch#readme)                 | Plugin that adds a fetch context that handles parsing the returned content.                                              |
+| [@doars/doars-intersect](https://github.com/doars/doars/tree/main/packages/doars-intersect#readme)         | Plugin that adds an intersect directive for reacting to intersection changes.                                            |
+| [@doars/doars-local-storage](https://github.com/doars/doars/tree/main/packages/doars-local-storage#readme) | Plugin that adds cookies, local storage, and sessions storage contexts to get and set persistent data.                   |
+| [@doars/doars-navigate](https://github.com/doars/doars/tree/main/packages/doars-navigate#readme)           | Plugin that adds a navigation directive that loads pages without unloading the current page by listening to anchor tags. |
+| [@doars/doars-router](https://github.com/doars/doars/tree/main/packages/doars-router#readme)               | Plugin that adds a router context with set of directives to control it.                                                  |
+| [@doars/doars-update](https://github.com/doars/doars/tree/main/packages/doars-update#readme)               | Plugin that adds an update loop context and directive.                                                                   |
 
 ## Contributing
 
@@ -81,3 +68,10 @@ If you are using the library and are running into an problem that you don't know
 ## In the wild
 
 If you are using Doars then please [let me know](https://rondekker.com#contact), I would love to hear about it!
+
+## Ideas
+
+- Input masking plugin for formatting dates, money et cetera.
+- Visibility directives similar to intersection plugin.
+- Sensor plugin for accessing the accelerometer, gyroscope et cetera.
+- Realtime shared state between clients using WebRTC.

@@ -17,7 +17,8 @@ import { render as r } from '../utils/RenderUtils.js'
 const iconCopy = readFileSync('src/icons/copy-outline.svg')
 const iconGithub = readFileSync('src/icons/logo-github.svg')
 
-export default function () {
+export default (
+) => {
   return template(
     // Meta data.
     {
@@ -60,11 +61,11 @@ export default function () {
           r('button', {
             class: 'flex-grow md:flex-grow-0',
             'onclick': () => {
-              window.copyToClipboard('https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js')
+              window.copyToClipboard('https://cdn.jsdelivr.net/npm/@doars/doars@3/dst/doars.iife.js')
             },
           }, [
             '&#160;',
-            r('code', 'https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js'),
+            r('code', 'https://cdn.jsdelivr.net/npm/@doars/doars@3/dst/doars.iife.js'),
             '&#160;&#160;',
             iconCopy,
           ]),
@@ -86,7 +87,7 @@ export default function () {
             '  </ol>',
             '',
             '  <!-- Store input as a reference. -->',
-            '  <input type="text" d-reference="input">',
+            '  <input type="text" d-reference="\'input\'">',
             '',
             '  <!-- On click add input value to the messages. -->',
             '  <button d-on:click="messages.push($references.input.value); $references.input.value = \'\'">',
@@ -95,7 +96,7 @@ export default function () {
             '</div>',
             '',
             '<!-- Import library. -->',
-            '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>',
+            '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@3/dst/doars.iife.js"></script>',
             '<script>',
             '  document.addEventListener(\'DOMContentLoaded\', () => {',
             '    // Setup and enable the library.',
@@ -136,7 +137,7 @@ export default function () {
               }, [
                 r('input', {
                   class: 'flex-grow flex-shrink w-full',
-                  'd-reference': 'input',
+                  'd-reference': '\'input\'',
                   type: 'text',
                 }),
                 r('button', {
@@ -182,7 +183,7 @@ export default function () {
             '<button onclick="increment()">Increment</button>',
             '',
             '<!-- Import library. -->',
-            '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>',
+            '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@3/dst/doars.iife.js"></script>',
             '<script>',
             '  // Increment count and set to text directive.',
             '  let count = 0',
@@ -232,7 +233,7 @@ export default function () {
       section([
         r('h2', 'Small in size and quick to update!'),
 
-        r('p', 'Minified and compressed the library is <code><b>9kB</b></code>, and when the state or document changes only relevant directives are executed making updates fast.'),
+        r('p', 'Minified and compressed the library is <code><b>11kB</b></code>, and when the state or document changes only relevant directives are executed making updates fast.'),
       ]),
 
       section([
@@ -260,14 +261,6 @@ export default function () {
           }, 'd-reference', 'Add the element to the component\'s references context.'),
 
           card({
-            href: 'https://github.com/doars/doars/tree/main/packages/doars#d-initialized',
-          }, 'd-initialized', 'Runs once when the component is initialized'),
-
-          card({
-            href: 'https://github.com/doars/doars/tree/main/packages/doars#d-watch',
-          }, 'd-watch', 'Runs every time a value used changes.'),
-
-          card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars#d-on',
           }, 'd-on', 'Listen to events on the document tree.'),
 
@@ -288,8 +281,12 @@ export default function () {
           }, 'd-select', 'Set selected item of a select element or selectable input elements.'),
 
           card({
-            href: 'https://github.com/doars/doars/tree/main/packages/doars#d-sync-state',
-          }, 'd-sync-state', 'Keep the value of an element in sync with a value in the state.'),
+            href: 'https://github.com/doars/doars/tree/main/packages/doars#d-sync',
+          }, 'd-sync', 'Keep the value of an element in sync with a value in the state or store.'),
+
+          card({
+            href: 'https://github.com/doars/doars/tree/main/packages/doars#d-initialized',
+          }, 'd-initialized', 'Runs once when the component is initialized'),
 
           card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars#d-transition',
@@ -306,6 +303,10 @@ export default function () {
           card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars#d-for',
           }, 'd-for', 'Loop over a value and create elements based on a template.'),
+
+          card({
+            href: 'https://github.com/doars/doars/tree/main/packages/doars#d-watch',
+          }, 'd-watch', 'Runs every time a value used changes.'),
 
           card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars#d-cloak',
@@ -330,19 +331,15 @@ export default function () {
         }, [
           card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars#$state',
-          }, '$state', 'Get component\'s state.'),
+          }, '$state', 'Access the component\'s state.'),
+
+          card({
+            href: 'https://github.com/doars/doars/tree/main/packages/doars#$store',
+          }, '$store', 'Access the data store.'),
 
           card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars#$for',
           }, '$for', 'Get variables defined in the for directive.'),
-
-          card({
-            href: 'https://github.com/doars/doars/tree/main/packages/doars#$parent',
-          }, '$parent', 'Context of parent component.'),
-
-          card({
-            href: 'https://github.com/doars/doars/tree/main/packages/doars#$children',
-          }, '$children', 'List of contexts of child components.'),
 
           card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars#$component',
@@ -367,6 +364,26 @@ export default function () {
           card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars#$incontext',
           }, '$inContext', 'Execute a function in context after the existing one has been revoked.'),
+
+          card({
+            href: 'https://github.com/doars/doars/tree/main/packages/doars#$parent',
+          }, '$parent', 'Context of parent component.'),
+
+          card({
+            href: 'https://github.com/doars/doars/tree/main/packages/doars#$children',
+          }, '$children', 'List of contexts of child components.'),
+
+          card({
+            href: 'https://github.com/doars/doars/tree/main/packages/doars#$previoussibling',
+          }, '$children', 'Context of previous sibling component.'),
+
+          card({
+            href: 'https://github.com/doars/doars/tree/main/packages/doars#$siblings',
+          }, '$children', 'List of contexts of sibling components.'),
+
+          card({
+            href: 'https://github.com/doars/doars/tree/main/packages/doars#$nextsibling',
+          }, '$children', 'Context of next sibling component.'),
         ]),
       ]),
 
@@ -414,7 +431,7 @@ export default function () {
               code({}, [
                 '<script type="module">',
                 '  // Import library.',
-                '  import doars from \'https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.esm.js\'',
+                '  import doars from \'https://cdn.jsdelivr.net/npm/@doars/doars@3/dst/doars.esm.js\'',
                 '',
                 '  // Setup and enable the library.',
                 '  const doars = new Doars()',
@@ -430,7 +447,7 @@ export default function () {
             }, [
               code({}, [
                 '<!-- Import library. -->',
-                '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>',
+                '<script src="https://cdn.jsdelivr.net/npm/@doars/doars@3/dst/doars.iife.js"></script>',
                 '<script>',
                 '  document.addEventListener(\'DOMContentLoaded\', () => {',
                 '    // Setup and enable the library.',
@@ -456,40 +473,24 @@ export default function () {
           alignOnHover: true,
         }, [
           card({
-            href: 'https://github.com/doars/doars/tree/main/packages/doars-store#readme',
-          }, '@doars/doars-store', 'Adds a store context for global state management.'),
-
-          card({
-            href: 'https://github.com/doars/doars/tree/main/packages/doars-intersect#readme',
-          }, '@doars/doars-intersect', 'Adds an intersect directive for reacting to intersection changes.'),
-
-          card({
-            href: 'https://github.com/doars/doars/tree/main/packages/doars-morph#readme',
-          }, '@doars/doars-morph', 'Adds a morph context and directive that instead of setting directly to the innerHTML of an element morphs the DOM to the new structure.'),
+            href: 'https://github.com/doars/doars/tree/main/packages/doars-fetch#readme',
+          }, '@doars/doars-fetch', 'Adds a fetch context and directive that handles communication with servers.'),
 
           card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars-navigate#readme',
           }, '@doars/doars-navigate', 'Adds a navigation directive that loads pages without unloading the current page by listening to anchor tags.'),
 
           card({
+            href: 'https://github.com/doars/doars/tree/main/packages/doars-persist#readme',
+          }, '@doars/doars-persist', 'Adds cookies, local storage, and sessions storage contexts to get and set persistent data.'),
+
+          card({
+            href: 'https://github.com/doars/doars/tree/main/packages/doars-intersect#readme',
+          }, '@doars/doars-intersect', 'Adds an intersect directive for reacting to intersection changes.'),
+
+          card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars-router#readme',
           }, '@doars/doars-router', 'Adds a router context with set of directives to control it.'),
-
-          card({
-            href: 'https://github.com/doars/doars/tree/main/packages/doars-fetch#readme',
-          }, '@doars/doars-fetch', 'Adds a fetch context that handles parsing the returned content.'),
-
-          card({
-            href: 'https://github.com/doars/doars/tree/main/packages/doars-cookies#readme',
-          }, '@doars/doars-cookies', 'Plugin that adds a cookies context to get and set browser cookies.'),
-
-          card({
-            href: 'https://github.com/doars/doars/tree/main/packages/doars-local-storage#readme',
-          }, '@doars/doars-local-storage', 'Plugin that adds a local storage context to get values from and set values in local storage.'),
-
-          card({
-            href: 'https://github.com/doars/doars/tree/main/packages/doars-alias#readme',
-          }, '@doars/doars-alias', 'Create aliases for or rename any context or directive.'),
 
           card({
             href: 'https://github.com/doars/doars/tree/main/packages/doars-update#readme',

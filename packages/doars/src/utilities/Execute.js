@@ -1,13 +1,19 @@
+// Import context.
 import { createContexts } from './Context.js'
+
+/**
+ * @typedef {import('../Attribute.js').default} Attribute
+ * @typedef {import('../Component.js').default} Component
+ */
 
 /**
  * Executes value in the correct context.
  * @param {Component} component Instance of the component.
  * @param {Attribute} attribute Instance of the attribute.
- * @param {String} expression Expression to execute.
- * @param {Object} extra Optional extra context items.
- * @param {Object} options Optional options object.
- * @returns {Any} Result of expression.
+ * @param {string} expression Expression to execute.
+ * @param {object|null} extra Optional extra context items.
+ * @param {object|null} options Optional options object.
+ * @returns {any} Result of expression.
  */
 export const execute = (
   component,
@@ -31,7 +37,17 @@ export const execute = (
   }
 
   // Create function context.
-  let { after, before, contexts, destroy } = createContexts(component, attribute, update, extra)
+  let {
+    after,
+    before,
+    contexts,
+    destroy,
+  } = createContexts(
+    component,
+    attribute,
+    update,
+    extra,
+  )
 
   // Apply options.
   if (options.return) {

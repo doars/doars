@@ -1,26 +1,31 @@
+/**
+ * @typedef {import('../Attribute.js').default} Attribute
+ * @typedef {import('../Component.js').default} Component
+ * @typedef {import('../Context.js').DestroyFunction} DestroyFunction
+ * @typedef {import('../Context.js').UpdateFunction} UpdateFunction
+ * @typedef {import('../Doars.js').ContextMap} ContextMap
+ */
+
 // Import polyfill.
 import RevocableProxy from '@doars/common/src/polyfills/RevocableProxy.js'
 
 /**
- * Create an object with utility function.
- * @returns {Object} Utilities.
+ * @typedef CreatedContexts
+ * @type {object}
+ * @property {ContextMap} contexts The contexts.
+ * @property {() => never} destroy Destroy callback.
+ * @property {string} before Text to place before function definition.
+ * @property {string} after Text to place after function definition.
+ * @property {Array<string>} deconstructed List of context names to deconstruct.
  */
-const createContextUtilities = (
-) => {
-  return {
-    createContexts,
-    createContextsProxy,
-    RevocableProxy,
-  }
-}
 
 /**
  * Create component's contexts for an attributes expression.
  * @param {Component} component Instance of the component.
  * @param {Attribute} attribute Instance of the attribute.
- * @param {Function} update Called when update needs to be invoked.
- * @param {Object} extra Optional extra context items.
- * @returns {Array<Object, Function>} Expressions contexts and destroy functions.
+ * @param {UpdateFunction} update Called when update needs to be invoked.
+ * @param {object|null} extra Optional extra context items.
+ * @returns {CreatedContexts} Expressions contexts and destroy functions.
  */
 export const createContexts = (
   component,
@@ -34,11 +39,13 @@ export const createContexts = (
   // Start with the simple contexts.
   const contexts = library.getSimpleContexts()
 
+  /** @type {Array<string>} */
   const deconstructed = []
   let after = '', before = ''
   // Iterate over all contexts.
   const creatableContexts = library.getContexts()
   // Store destroy functions.
+  /** @type {Array<DestroyFunction>} */
   const destroyFunctions = []
   for (const creatableContext of creatableContexts) {
     if (!creatableContext || !creatableContext.name) {
@@ -46,7 +53,11 @@ export const createContexts = (
     }
 
     // Get context result.
-    const result = creatableContext.create(component, attribute, update, createContextUtilities())
+    const result = creatableContext.create(
+      component,
+      attribute,
+      update,
+    )
     if (!result || !result.value) {
       continue
     }
@@ -80,7 +91,7 @@ export const createContexts = (
     ) => {
       // Call all destroy functions.
       for (const destroyFunction of destroyFunctions) {
-        destroyFunction(createContextUtilities())
+        destroyFunction()
       }
     },
 
@@ -94,8 +105,8 @@ export const createContexts = (
  * Create component's contexts only after the context gets used.
  * @param {Component} component Instance of the component.
  * @param {Attribute} attribute Instance of the attribute.
- * @param {Object} extra Optional extra context items.
- * @param {Function} update Called when update needs to be invoked.
+ * @param {UpdateFunction} update Called when update needs to be invoked.
+ * @param {object|undefined} extra Optional extra context items.
  * @returns {Proxy} Expressions contexts' proxy.
  */
 export const createContextsProxy = (
@@ -155,6 +166,12 @@ export const createContextsProxy = (
   }
 }
 
+/**
+ * @param {Component} component Instance of the component.
+ * @param {Attribute} attribute Instance of the attribute.
+ * @param {object|undefined} extra Optional extra context items.
+ * @returns {Array<ContextMap|() => never>} Contexts and destroy function.
+ */
 export const createAutoContexts = (
   component,
   attribute,
@@ -170,7 +187,15 @@ export const createAutoContexts = (
   }
 
   // Create function context.
-  const { contexts, destroy } = createContexts(component, attribute, update, extra)
+  const {
+    contexts,
+    destroy,
+  } = createContexts(
+    component,
+    attribute,
+    update,
+    extra,
+  )
 
   return [contexts, () => {
     // Invoke destroy.

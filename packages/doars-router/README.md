@@ -43,8 +43,8 @@ library.
 
 ```HTML
 <!-- Import library. -->
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars-router@2/dst/doars-router.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@3/dst/doars.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars-router@3/dst/doars-router.iife.js"></script>
 <script type="application/javascript">
   document.addEventListener('DOMContentLoaded', () => {
     // Setup a library instance.
@@ -59,10 +59,7 @@ library.
 </script>
 ```
 
-> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-router@2/dst/doars-router.esm.js)
-> and
-> [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-router@2/dst/doars-router.iife.js)
-> builds are also available via the jsDelivr CDN.
+> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-router@3/dst/doars-router.esm.js) and [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-router@3/dst/doars-router.iife.js) builds are available via the jsDelivr CDN.
 
 ## Directives
 
@@ -72,9 +69,7 @@ are added by the plugin.
 
 ### d-route
 
-Define a new route, which will automatically be added to the closest router in
-the document. The directive's value should be the path of the route to set
-active.
+Define a new route, which will automatically be added to the closest router in the document. The directive's value should be the path of the route to set active.
 
 #### Examples
 
@@ -92,10 +87,7 @@ active.
 
 ### d-router
 
-Define an new router, which will manage all routes directly below it in the
-document. The directive's value can optionally be a function expression
-returning an object in the for of [router options](#router-options). The
-returned options will override the default options given to the plugin.
+Define an new router, which will manage all routes directly below it in the document. The directive's value can optionally be a function expression returning an object in the for of [router options](#router-options). The returned options will override the default options given to the plugin.
 
 #### Examples
 
@@ -113,17 +105,13 @@ returned options will override the default options given to the plugin.
 
 ### d-route-to
 
-Navigate to the specified route when the user clicks on or in the element with
-this directive. The directive's value should be the path to navigate to.
+Navigate to the specified route when the user clicks on or in the element with this directive. The directive's value should be the path to navigate to.
 
 #### Modifiers
 
-- `{Boolean} prevent = false` Whether to call `preventDefault` on the event
-  invoking the route change.
-- `{Boolean} self = false` Whether the target of the event invoking the route
-  change must be the directive's element itself and not an underlying element.
-- `{Boolean} stop = false` Whether to call `stopPropagation` on the event
-  invoking the route change.
+- `{boolean} prevent = false` Whether to call `preventDefault` on the event invoking the route change.
+- `{boolean} self = false` Whether the target of the event invoking the route change must be the directive's element itself and not an underlying element.
+- `{boolean} stop = false` Whether to call `stopPropagation` on the event invoking the route change.
 
 #### Examples
 
@@ -141,15 +129,11 @@ this directive. The directive's value should be the path to navigate to.
 
 ## Contexts
 
-The following
-[contexts](https://github.com/doars/doars/tree/main/packages/doars#contexts) are
-added by the plugin.
+The following [contexts](https://github.com/doars/doars/tree/main/packages/doars#contexts) are added by the plugin.
 
 ### \$router
 
-Access the closest [Router](#router) instance. The closest router is retrieved
-by going up in the document tree looking for a [`d-router`](#d-router)
-directive.
+Access the closest [Router](#router) instance. The closest router is retrieved by going up in the document tree looking for a [`d-router`](#d-router) directive.
 
 #### Examples
 
@@ -165,7 +149,7 @@ directive.
 
 - `constructor` Create plugin instance.
   - `@param {Doars} library` A doars library instance.
-  - `@param {Object} options = null` [See router options](#router-options).
+  - `@param {object} options = null` [See router options](#router-options).
   - `@returns {DoarsRouter}`
 - `disable` Disables the plugin. Can only be called when the doars is disabled.
 - `enable` Enables the plugin. Can only be called when the doars is disabled.
@@ -176,62 +160,57 @@ Extends the
 [`EventDispatcher`](https://github.com/doars/doars/tree/main/packages/doars#eventdispatcher).
 
 - `constructor` Create router instance.
-  - `@param {Object} options = null` [See router options](#router-options).
+  - `@param {object} options = null` [See router options](#router-options).
   - `@returns {Router}`
 
 ##### Router options
 
-- `{String} basePath = ''` Base path of the routes.
-- `{String} path = ''` Initial active path.
-- `{Object} pathToRegexp = {}` [Path-to-RegExp options](#path-to-regexp-options)
+- `{string} basePath = ''` Base path of the routes.
+- `{string} path = ''` Initial active path.
+- `{object} pathToRegexp = {}` [Path-to-RegExp options](#path-to-regexp-options)
   used for parsing route paths.
-- `{Boolean} updateHistory = false` Whether to update the
+- `{boolean} updateHistory = false` Whether to update the
   [History API](https://developer.mozilla.org/docs/Web/API/History_API).
+- `{string} routerContextName = '$router'` The name of the router context.
+- `{string} routeDirectiveName = '$router'` The name of the route directive.
+- `{string} routerDirectiveName = '$router'` The name of the router directive.
+- `{string} routeToDirectiveName = '$router'` The name of the route to directive.
 
 ##### Path-to-RegExp options
 
-- `{Boolean} sensitive = false` Whether the regular expression will be case
-  sensitive.
-- `{Boolean} strict = false` Whether the regular expression won't allow an
-  optional trailing delimiter to match.
-- `{Boolean} end = true` Whether the regular expression will match to the end of
-  the string.
-- `{Boolean} start = true` Whether the regular expression will match from the
-  beginning of the string.
-- `{String} delimiter = '/#?'` The default delimiter for segments, for example
-  `[^/#?]` for `:named` patterns.
-- `{String} endsWith = null` Optional character, or list of characters, to treat
-  as "end" characters.
-- `{Function} encode = (x) => x` A function to encode strings before inserting
-  into the regular expression.
-- `{String} prefixes = './'` List of characters to automatically consider
-  prefixes when parsing.
+- `{boolean} sensitive = false` Whether the regular expression will be case sensitive.
+- `{boolean} strict = false` Whether the regular expression won't allow an optional trailing delimiter to match.
+- `{boolean} end = true` Whether the regular expression will match to the end of the string.
+- `{boolean} start = true` Whether the regular expression will match from the beginning of the string.
+- `{string} delimiter = '/#?'` The default delimiter for segments, for example `[^/#?]` for `:named` patterns.
+- `{string} endsWith = null` Optional character, or list of characters, to treat as "end" characters.
+- `{function} encode = (x) => x` A function to encode strings before inserting into the regular expression.
+- `{string} prefixes = './'` List of characters to automatically consider prefixes when parsing.
 
 > See [Path-to-RegExp](https://github.com/pillarjs/path-to-regexp#readme) for
 > more information.
 
 ##### Router events
 
-The following events are dispatched by a `Router` and can be listened to by
-calling the `addEventListener(/* name, callback, options */)` function on the
-instance.
+The following events are dispatched by a `Router` and can be listened to by calling the `addEventListener(/* name, callback, options */)` function on the instance.
 
 - `added` When a new router is registered.
   - `@param {Router} router` Router instance.
-  - `@param {String} route` Added route.
+  - `@param {string} route` Added route.
 - `changed` When the route is changed.
   - `@param {Router} router` Router instance.
-  - `@param {String} route` Current route.
-  - `@param {String} path` Current path.
+  - `@param {string} route` Current route.
+  - `@param {string} path` Current path.
 - `destroyed` When this instance is destroyed.
   - `@param {Router} router` Router instance.
 - `removed` When an existing route is unregistered.
   - `@param {Router} router` Router instance.
-  - `@param {String} route` Removed route.
+  - `@param {string} route` Removed route.
 
 ## Compatible versions
 
 | `@doars/doars-router` version | `@doars/doars` version |
 | ----------------------------- | ---------------------- |
-| `1.x`                         | `1.x`                  |
+| `3.x`                         | `3.x`                  |
 | `2.x`                         | `2.x`                  |
+| `1.x`                         | `1.x`                  |

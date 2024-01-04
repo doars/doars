@@ -37,8 +37,8 @@ const run = async (
         'chrome51', // 'chrome49',
         'edge20', // edge12
         'firefox53', // 'firefox39',
-        'ios11', // 'ios10.2',
-        'safari11', // 'safari10',
+        'ios11.2', // 'ios10.2',
+        'safari11.1', // 'safari10',
       ] : [],
     }, options, buildOptions)
 

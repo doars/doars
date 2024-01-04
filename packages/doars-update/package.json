@@ -10,7 +10,7 @@
     "doars",
     "update"
   ],
-  "version": "2.0.0",
+  "version": "3.0.0",
   "license": "MIT",
   "type": "module",
   "main": "src/DoarsUpdate.js",
@@ -42,8 +42,10 @@
     "CHANGELOG.md",
     "README.md"
   ],
-  "devDependencies": {},
+  "devDependencies": {
+    "@doars/doars": "^3.0.0"
+  },
   "dependencies": {
-    "@doars/common": "^1.1.0"
+    "@doars/common": "^1.3.0"
   }
 }

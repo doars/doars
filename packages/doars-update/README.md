@@ -38,13 +38,12 @@ doars.enable()
 
 ### IIFE build from jsDelivr
 
-Add the IIFE build to the page from for example the jsDelivr CDN and enable the
-library.
+Add the IIFE build to the page from for example the jsDelivr CDN and enable the library.
 
 ```HTML
 <!-- Import library. -->
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars-update@2/dst/doars-update.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@3/dst/doars.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars-update@3/dst/doars-update.iife.js"></script>
 <script type="application/javascript">
   document.addEventListener('DOMContentLoaded', () => {
     // Setup a library instance.
@@ -59,29 +58,21 @@ library.
 </script>
 ```
 
-> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-update@2/dst/doars-update.esm.js)
-> and
-> [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-update@2/dst/doars-update.iife.js)
-> builds are also available via the jsDelivr CDN.
+> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-update@3/dst/doars-update.esm.js) and [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-update@3/dst/doars-update.iife.js) builds are available via the jsDelivr CDN.
 
 ## Directives
 
-The following
-[directives](https://github.com/doars/doars/tree/main/packages/doars#directives)
-are added by the plugin.
+The following [directives](https://github.com/doars/doars/tree/main/packages/doars#directives) are added by the plugin.
 
 ### d-update
 
-Executes the attribute each iteration of the update loop. The directive's value
-should be a function expression.
+Executes the attribute each iteration of the update loop. The directive's value should be a function expression.
 
 #### Modifiers
 
 The directive supports the following modifiers.
 
-- `{Number} order = {options.defaultOrder}` The execution order of the
-  directive. To change the default order see the
-  [plugin options](#doarsupdate-options).
+- `{number} order = {options.defaultOrder}` The execution order of the directive. To change the default order see the [plugin options](#doarsupdate-options).
 
 #### Examples
 
@@ -95,26 +86,22 @@ The directive supports the following modifiers.
 
 ## Contexts
 
-The following
-[contexts](https://github.com/doars/doars/tree/main/packages/doars#contexts) are
-added by the plugin.
+The following [contexts](https://github.com/doars/doars/tree/main/packages/doars#contexts) are added by the plugin.
 
 ### \$update
 
-Get information about the most recent update iteration. The context is an
-`Object` that contains the following properties.
+Get information about the most recent update iteration. The context is an `object` that contains the following properties.
 
-- `{Number} current` Current update time in seconds.
-- `{Number} currentMs` Current update time in milliseconds.
-- `{Number} delta` Time in between the previous and current update in seconds.
-- `{Number} deltaMs` Time in between the previous and current update in
-  milliseconds.
-- `{Number} last` Previous update time in seconds.
-- `{Number} lastMs` Previous update time in milliseconds.
-- `{Number} passed` Total time passed in seconds.
-- `{Number} passedMs` Total time passed in milliseconds.
-- `{Number} start` Start time of update loop in seconds.
-- `{Number} startMs` Start time of update loop in milliseconds.
+- `{number} current` Current update time in seconds.
+- `{number} currentMs` Current update time in milliseconds.
+- `{number} delta` Time in between the previous and current update in seconds.
+- `{number} deltaMs` Time in between the previous and current update in milliseconds.
+- `{number} last` Previous update time in seconds.
+- `{number} lastMs` Previous update time in milliseconds.
+- `{number} passed` Total time passed in seconds.
+- `{number} passedMs` Total time passed in milliseconds.
+- `{number} start` Start time of update loop in seconds.
+- `{number} startMs` Start time of update loop in milliseconds.
 
 #### Examples
 
@@ -132,21 +119,22 @@ Get information about the most recent update iteration. The context is an
 
 - `constructor` Create plugin instance.
   - `@param {Doars} library` A doars library instance.
-  - `@param {Object} options = null` [See options](#doarsupdate-options).
+  - `@param {object} options = null` [See options](#doarsupdate-options).
   - `@returns {DoarsUpdate}`
 - `disable` Disables the plugin. Can only be called when the doars is disabled.
 - `enable` Enables the plugin. Can only be called when the doars is disabled.
 
 #### DoarsUpdate options
 
-- `{Number} defaultOrder = 500` Default order modifier value of update
-  directive.
-- `{Number} stepMinimum = 0` Minimum amount of time in milliseconds between
-  updates.
+- `{number} defaultOrder = 500` Default order modifier value of update directive.
+- `{number} stepMinimum = 0` Minimum amount of time in milliseconds between updates.
+- `{string} updateContextName = '$update'` The name of the update context.
+- `{string} updateDirectiveName = 'update'` The name of the update directive.
 
 ## Compatible versions
 
 | `@doars/doars-update` version | `@doars/doars` version |
 | ----------------------------- | ---------------------- |
-| `1.x`                         | `1.x`                  |
+| `3.x`                         | `3.x`                  |
 | `2.x`                         | `2.x`                  |
+| `1.x`                         | `1.x`                  |

@@ -2,7 +2,7 @@ import build from '../../.scripts/esbuild.js'
 
 build([{
   from: 'src/index.js',
-  to: 'dst/interpret.js',
+  to: 'dst/interpret.esm.js',
 }, {
   format: 'iife',
   from: 'src/iife.js',

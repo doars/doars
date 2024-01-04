@@ -1,25 +1,37 @@
-export default {
-  name: '$nextTick',
+import { createContexts } from '../utilities/Context.js'
+
+/**
+ * @typedef {import('../Context.js').Context} Context
+ * @typedef {import('../Doars.js').DoarsOptions} DoarsOptions
+ */
+
+/**
+ * Create the nextTick context.
+ * @param {DoarsOptions} options Library options.
+ * @returns {Context} The context.
+ */
+export default ({
+  nextTickContextName,
+}) => ({
+  name: nextTickContextName,
 
   create: (
     component,
     attribute,
-    update, {
-      createContexts,
-    },
+    update,
   ) => {
     // Keep track of callbacks.
     let callbacks
 
     // The setup process is delayed since we only want this code to run if the context is used.
-    let isSetup = false
-    const setup = (
+    let isInitialized = false
+    const initialize = (
     ) => {
       // Exit early if already setup.
-      if (isSetup) {
+      if (isInitialized) {
         return
       }
-      isSetup = true
+      isInitialized = true
 
       // Deconstruct component.
       const library = component.getLibrary()
@@ -34,7 +46,10 @@ export default {
         stopListening()
 
         // Create function context.
-        const { contexts, destroy } = createContexts(component, attribute, update, {})
+        const {
+          contexts,
+          destroy,
+        } = createContexts(component, attribute, update, {})
 
         // Invoke all callbacks.
         for (const callback of callbacks) {
@@ -69,11 +84,11 @@ export default {
         callback,
       ) => {
         // Do delayed setup now.
-        setup()
+        initialize()
 
         // Add callback to list.
         callbacks.push(callback)
       },
     }
   },
-}
+})

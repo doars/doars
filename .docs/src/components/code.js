@@ -13,10 +13,10 @@ const { highlight } = hljs
  * @param {...string} children Rendered elements to add as children.
  * @returns {string} Resulting HTML structure.
  */
-export default function (
+export default (
   options,
   ...children
-) {
+) => {
   // Override default options.
   options = Object.assign({
     language: 'xml',

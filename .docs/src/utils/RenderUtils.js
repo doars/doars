@@ -12,7 +12,18 @@ const SELF_CLOSING_TAGS = [
   'wbr',
 ]
 
-export const render = function (tag, attributes, ...children) {
+/**
+ * Render an element as a HTML string.
+ * @param {string} tag Tag name of the element
+ * @param {{key:string,string} | string} attributes Attributes of the element or a rendered element to be added as a child.
+ * @param {...string} children Rendered elements to add as children.
+ * @returns {string} Resulting HTML structure.
+ */
+export const render = (
+  tag,
+  attributes,
+  ...children
+) => {
   // Start element.
   let element = '<' + tag
 

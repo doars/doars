@@ -1,11 +1,13 @@
 (() => {
-  // src/factories/contexts/createUpdate.js
-  var createUpdate_default = (updater) => {
+  // src/contexts/update.js
+  var update_default = ({
+    updateContextName
+  }, updater) => {
     const id = updater.getId();
     const proxy = updater.getProxy();
     const time = updater.getTime();
     return {
-      name: "$update",
+      name: updateContextName,
       create: (component, attribute) => {
         const onGet = (target, path) => attribute.accessed(id, path.join("."));
         proxy.addEventListener("get", onGet);
@@ -20,18 +22,16 @@
     };
   };
 
-  // src/factories/directives/createUpdate.js
-  var createUpdate_default2 = (options) => {
-    options = Object.assign({
-      defaultOrder: 500
-    }, options);
+  // src/directives/update.js
+  var update_default2 = ({
+    defaultOrder,
+    updateDirectiveName
+  }) => {
     const itemIds = [];
     const items = [];
     const directive = {
-      name: "update",
-      update: (component, attribute, {
-        processExpression
-      }) => {
+      name: updateDirectiveName,
+      update: (component, attribute, processExpression) => {
         if (!directive._execute) {
           directive._execute = processExpression;
         }
@@ -41,7 +41,7 @@
         }
         let { order } = attribute.getModifiers();
         if (!order) {
-          order = options.defaultOrder;
+          order = defaultOrder;
         }
         let index = 0;
         for (let i = 0; i < items.length; i++) {
@@ -90,7 +90,7 @@
   };
 
   // ../common/src/polyfills/RevocableProxy.js
-  var REFLECTION_METHODS = [
+  var PROXY_TRAPS = [
     "apply",
     "construct",
     "defineProperty",
@@ -98,6 +98,7 @@
     "get",
     "getOwnPropertyDescriptor",
     "getPrototypeOf",
+    "has",
     "isExtensible",
     "ownKeys",
     "preventExtensions",
@@ -107,10 +108,9 @@
   var RevocableProxy_default = (target, handler) => {
     let revoked = false;
     const revocableHandler = {};
-    for (const key of REFLECTION_METHODS) {
+    for (const key of PROXY_TRAPS) {
       revocableHandler[key] = (...parameters) => {
         if (revoked) {
-          console.error("proxy revoked");
           return;
         }
         if (key in handler) {
@@ -190,6 +190,10 @@
 
   // ../common/src/events/ProxyDispatcher.js
   var ProxyDispatcher = class extends EventDispatcher {
+    /**
+     * Creates a proxy dispatcher instance.
+     * @param {ProxyOptions} options Options for proxy dispatcher.
+     */
     constructor(options = {}) {
       super();
       options = Object.assign({
@@ -264,10 +268,14 @@
 
   // src/Updater.js
   var Updater = class {
-    constructor(options, callback) {
-      options = Object.assign({
-        stepMinimum: 0
-      }, options);
+    /**
+     * @param {object} options Updater options.
+     * @param {number} options.stepMinimum Minimum duration of a tick in milliseconds.
+     * @param {UpdateCallback} callback Called every update tick.
+     */
+    constructor({
+      stepMinimum
+    }, callback) {
       const id = Symbol("ID_UPDATE");
       let isEnabled = false, request;
       const proxy = new ProxyDispatcher({
@@ -288,7 +296,7 @@
           return;
         }
         const deltaMs = timeAbsolute - time.lastMs;
-        if (deltaMs <= options.stepMinimum) {
+        if (deltaMs <= stepMinimum) {
           return;
         }
         time.lastMs = time.currentMs;
@@ -335,14 +343,16 @@
 
   // src/DoarsUpdate.js
   function DoarsUpdate_default(library, options = null) {
-    options = Object.assign({}, options);
+    options = Object.assign({
+      defaultOrder: 500,
+      stepMinimum: 0,
+      updateContextName: "$update",
+      updateDirectiveName: "update"
+    }, options);
     let isEnabled = false;
-    let contextUpdate, directiveUpdate, updater;
-    const onEnable = () => {
-      const [_directiveUpdate, update] = createUpdate_default2(options);
-      directiveUpdate = _directiveUpdate;
-      library.addDirectives(-1, directiveUpdate);
-      updater = new Updater(options, () => {
+    const updater = new Updater(
+      options,
+      () => {
         update();
         library.update([{
           id: updater.getId(),
@@ -357,18 +367,19 @@
           id: updater.getId(),
           path: "passed"
         }]);
-      });
-      contextUpdate = createUpdate_default(updater);
+      }
+    );
+    const contextUpdate = update_default(options, updater);
+    const [directiveUpdate, update] = update_default2(options);
+    const onEnable = () => {
       library.addContexts(0, contextUpdate);
+      library.addDirectives(-1, directiveUpdate);
       updater.enable();
     };
     const onDisable = () => {
       library.removeContexts(contextUpdate);
       library.removeDirectives(directiveUpdate);
       updater.disable();
-      contextUpdate = null;
-      directiveUpdate = null;
-      updater = null;
     };
     this.disable = () => {
       if (!library.getEnabled() && isEnabled) {

@@ -72,7 +72,6 @@ export default (
   for (const key of PROXY_TRAPS) {
     revocableHandler[key] = (...parameters) => {
       if (revoked) {
-        console.error('proxy revoked')
         return
       }
 

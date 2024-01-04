@@ -1,18 +1,11 @@
 export default class IntersectionObserver {
   /**
    * Create observer instance.
-   * @param {Object} options Intersection observer options.
+   * @param {object} options Intersection observer options.
    */
   constructor(
     options = null,
   ) {
-    // Overwrite default options.
-    options = Object.assign({
-      root: null,
-      rootMargin: '0px',
-      threshold: 0,
-    }, options)
-
     // Store data per element.
     const items = new WeakMap()
 

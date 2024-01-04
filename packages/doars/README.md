@@ -53,7 +53,7 @@ Add the IIFE build to the page from for example the jsDelivr CDN and enable the 
 
 ```HTML
 <!-- Import library. -->
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@3/dst/doars.iife.js"></script>
 <script type="application/javascript">
   document.addEventListener('DOMContentLoaded', () => {
     // Setup an instance.
@@ -65,7 +65,7 @@ Add the IIFE build to the page from for example the jsDelivr CDN and enable the 
 </script>
 ```
 
-> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.esm.js) and [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js) builds are also available via the jsDelivr CDN.
+> [ESM](https://cdn.jsdelivr.net/npm/@doars/doars@3/dst/doars.esm.js) and [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars@3/dst/doars.iife.js) builds are available via the jsDelivr CDN.
 
 ## Directives overview
 
@@ -86,22 +86,35 @@ Add the IIFE build to the page from for example the jsDelivr CDN and enable the 
 | [d-sync](#d-sync)               | Keep the value of an element in sync with a value in the state.     |
 | [d-text](#d-text)               | Set the inner text or text content of the element.                  |
 | [d-transition](#d-transition)   | Change attributes on an element when being hidden or shown.         |
-| [d-watch](#d-watch)             | Runs every time a value used changes.                               |
+| [d-watch](#d-watch)             | Runs every time a used value has been changed.                      |
 
 ## Contexts overview
 
-| Name                        | Description                                                         |
-| --------------------------- | ------------------------------------------------------------------- |
-| [\$children](#children)     | List of contexts of child components.                               |
-| [\$component](#component)   | Component's root element.                                           |
-| [\$dispatch](#dispatch)     | Dispatch custom event on the element.                               |
-| [\$element](#element)       | Directive's element.                                                |
-| [\$for](#for)               | Get variables defined in the for directive.                         |
-| [\$inContext](#inContext)   | Call a function in context after the existing one has been revoked. |
-| [\$nextTick](#nextTick)     | Call a function after updates are done processing.                  |
-| [\$parent](#parent)         | Context of parent component.                                        |
-| [\$references](#references) | List of referenced elements in the component.                       |
-| [\$state](#state)           | Get component's state.                                              |
+| Name                                   | Description                                                         |
+| -------------------------------------- | ------------------------------------------------------------------- |
+| [\$children](#children)                | List of contexts of child components.                               |
+| [\$component](#component)              | Component's root element.                                           |
+| [\$dispatch](#dispatch)                | Dispatch custom event on the element.                               |
+| [\$element](#element)                  | Directive's element.                                                |
+| [\$for](#for)                          | Get variables defined in the for directive.                         |
+| [\$inContext](#inContext)              | Call a function in context after the existing one has been revoked. |
+| [\$nextSiblings](#nextsibling)         | Context of next sibling component.                                  |
+| [\$nextTick](#nextTick)                | Call a function after updates are done processing.                  |
+| [\$parent](#parent)                    | Context of parent component.                                        |
+| [\$previousSiblings](#previoussibling) | Context of previous sibling component.                              |
+| [\$references](#references)            | List of referenced elements in the component.                       |
+| [\$siblings](#siblings)                | List of contexts of sibling components.                             |
+| [\$state](#state)                      | Access the component's state.                                       |
+| [\$store](#store)                      | Access the data store.                                              |
+| [\$watch](#watch)                      | Call a function when the specified value changes.                   |
+
+### Header overview
+
+| Name                  | Description                                        |
+| --------------------- | -------------------------------------------------- |
+| [redirect](#redirect) | Redirects the page location to the header's value. |
+| [request](#request)   | Indicates the request is done via this library.    |
+| [title](#title)       | Changes the page title to the header's value.      |
 
 ## Directives
 
@@ -117,7 +130,7 @@ Set an attribute's value or multiple attributes at once by returning an object. 
 
 #### d-attribute modifiers
 
-- `{Boolean} selector = false` Return a CSS style selector instead of a specific value or object.
+- `{boolean} selector = false` Return a CSS style selector instead of a specific value or object.
 
 #### d-attribute examples
 
@@ -187,8 +200,9 @@ Set the inner HTML of the element. The directive's value should be a function ex
 
 #### d-html modifiers
 
-- `{Boolean} decode = false` If the returned type is a string the value will's special HTML characters will be decoded. For example `&gt;` will become `>`.
-- `{Boolean} outer = false` Set the result to `outerHTML` instead of the `innerHTML`.
+- `{boolean} decode = false` If the returned type is a string the value will's special HTML characters will be decoded. For example `&gt;` will become `>`.
+- `{boolean} morph = false` Whether to convert the old document structure to the new, or to fully overwrite the existing structure with the new.
+- `{boolean} outer = false` Set the result to `outerHTML` instead of the `innerHTML`.
 
 #### d-html examples
 
@@ -279,25 +293,25 @@ The directive's name is the event name to listen to. When listen to the `keydown
 
 #### d-on modifiers
 
-- `{Number} buffer = null` Buffer multiple events together whereby the value is the amount of calls to bundle together. All events will be made available in an $events context and the most recent event is also available in the $event context. If set without a specific value then 5 will be used.
-- `{Boolean} capture = false` Whether the `capture` option needs to be enabled when listening to the event.
-- `{Boolean} cmd = false` See meta modifier.
-- `{Boolean} code = false` Whether the keyboard event's key or code property should be checked.
-- `{Number} debounce = null` Only fire the event if another event hasn't been invoked in the amount of time in milliseconds specified. All events will be made available in an $events context and the most recent event is also available in the $event context. If set without a specific value then 500 will be used.
-- `{Boolean} document = false` Listen for the event on the document, instead of the element the directive is placed on.
-- `{Number} held = null` Only fire the event if the key, mouse, or pointer was held down for the amount of time in milliseconds specified. This modifier can only be used in combination with the `keydown`, `mousedown`, and `pointerdown` events.
-- `{Number} hold = null` Only fire the event after the amount of time specified has been elapsed and the key, mouse, or pointer has been held down. This modifier can only be used in combination with the `keydown`, `mousedown`, and `pointerdown` events. The key difference with the held modifier is this fires as soon as the time has elapsed.
-- `{Boolean} meta = false` Whether the meta (command or windows) key needs to held for the directive to fire.
-- `{Boolean} once = false` WWhether the `once` option needs to be enabled when listening to the event.
-- `{Boolean} outside = false` Whether the event needs to have happened outside the element it is applied on.
-- `{Boolean} passive = false` Whether the `passive` option needs to be enabled when listening to the event.
-- `{Boolean} prevent = false` Whether to call `preventDefault` on the event invoking the route change.
-- `{Boolean} repeat = false` Whether to allow repeat calls of the event. Repeat calls are detriment by the [`KeyboardEvent.repeat`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/repeat) property.
-- `{Boolean} self = false` Whether the target of the event invoking the route change must be the directive's element itself and not an underlying element.
-- `{Boolean} stop = false` Whether to call `stopPropagation` on the event invoking the route change.
-- `{Boolean} super = false` See `meta` modifier.
-- `{Number} throttle = null` Prevent the event from firing again for the amount of time in milliseconds specified. All events will be made available in an $events context and the most recent event is also available in the $event context. If set without a specific value then 500 will be used.
-- `{Boolean} window = false` Listen for the event on the window, instead of the element the directive is placed on.
+- `{number} buffer = null` Buffer multiple events together whereby the value is the amount of calls to bundle together. All events will be made available in an $events context and the most recent event is also available in the $event context. If set without a specific value then 5 will be used.
+- `{boolean} capture = false` Whether the `capture` option needs to be enabled when listening to the event.
+- `{boolean} cmd = false` See meta modifier.
+- `{boolean} code = false` Whether the keyboard event's key or code property should be checked.
+- `{number} debounce = null` Only fire the event if another event hasn't been invoked in the amount of time in milliseconds specified. All events will be made available in an $events context and the most recent event is also available in the $event context. If set without a specific value then 500 will be used.
+- `{boolean} document = false` Listen for the event on the document, instead of the element the directive is placed on.
+- `{number} held = null` Only fire the event if the key, mouse, or pointer was held down for the amount of time in milliseconds specified. This modifier can only be used in combination with the `keydown`, `mousedown`, and `pointerdown` events.
+- `{number} hold = null` Only fire the event after the amount of time specified has been elapsed and the key, mouse, or pointer has been held down. This modifier can only be used in combination with the `keydown`, `mousedown`, and `pointerdown` events. The key difference with the held modifier is this fires as soon as the time has elapsed.
+- `{boolean} meta = false` Whether the meta (command or windows) key needs to held for the directive to fire.
+- `{boolean} once = false` WWhether the `once` option needs to be enabled when listening to the event.
+- `{boolean} outside = false` Whether the event needs to have happened outside the element it is applied on.
+- `{boolean} passive = false` Whether the `passive` option needs to be enabled when listening to the event.
+- `{boolean} prevent = false` Whether to call `preventDefault` on the event invoking the route change.
+- `{boolean} repeat = false` Whether to allow repeat calls of the event. Repeat calls are detriment by the [`KeyboardEvent.repeat`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/repeat) property.
+- `{boolean} self = false` Whether the target of the event invoking the route change must be the directive's element itself and not an underlying element.
+- `{boolean} stop = false` Whether to call `stopPropagation` on the event invoking the route change.
+- `{boolean} super = false` See `meta` modifier.
+- `{number} throttle = null` Prevent the event from firing again for the amount of time in milliseconds specified. All events will be made available in an $events context and the most recent event is also available in the $event context. If set without a specific value then 500 will be used.
+- `{boolean} window = false` Listen for the event on the window, instead of the element the directive is placed on.
 
 Only one of the following five modifiers can be used at a time `buffer`, `held` `hold`, `debounce`, or `throttle`.
 
@@ -331,7 +345,7 @@ Add the element to the component's references context. The directive's value sho
 
 ```HTML
 <!-- Make the element accessible under $references.myElement. -->
-<div d-reference="myElement"></div>
+<div d-reference="'myElement'"></div>
 ```
 
 ### d-select
@@ -446,6 +460,17 @@ Keep the value of an element in sync with a value in the state. It works on inpu
 <input type="text" name="message" d-sync:state="message" />
 ```
 
+<input type="text" name="message" d-sync="$store.message" />
+```
+
+```HTML
+<input type="text" name="status" d-sync="$store.messenger.status" />
+```
+
+```HTML
+<input type="text" name="message" d-sync:store="message" />
+```
+
 ```HTML
 <input type="text" name="message" d-sync="message" />
 ```
@@ -456,7 +481,7 @@ Set the inner text or text content of the element. The directive's value should 
 
 #### d-text modifiers
 
-- `{Boolean} content = false` Whether to write to `textContent` instead of `innerText`. See [the MDN docs for the differences between `innerText` and `textContent`](https://developer.mozilla.org/docs/Web/API/Node/textContent#differences_from_innertext).
+- `{boolean} content = false` Whether to write to `textContent` instead of `innerText`. See [the MDN docs for the differences between `innerText` and `textContent`](https://developer.mozilla.org/docs/Web/API/Node/textContent#differences_from_innertext).
 
 #### d-text examples
 
@@ -485,8 +510,8 @@ The duration of the transition depends on the transition duration or animation d
 
 One of the following modifiers can be applied. If both are applied the directive is ignored.
 
-- `{Boolean} from = false` Will only be applied on the first frame of the transition.
-- `{Boolean} to = false` Will only be applied on the last frame of the transition.
+- `{boolean} from = false` Will only be applied on the first frame of the transition.
+- `{boolean} to = false` Will only be applied on the last frame of the transition.
 
 Not using a modifier means the selector is applied during the entire transitioning period.
 
@@ -499,7 +524,7 @@ Not using a modifier means the selector is applied during the entire transitioni
 
 ### d-watch
 
-Runs every time a value used changes. The directive's name is ignored so multiple watch directive's can be applied to the same element. The directive's value should be a function expression.
+Runs every time a used value has been changed. The directive's name is ignored so multiple watch directive's can be applied to the same element. The directive's value should be a function expression.
 
 #### d-watch examples
 
@@ -554,8 +579,8 @@ Dispatch custom event on the element.
 
 - Type: `Function`
 - Parameters:
-  - `{String} name` Name of the event.
-  - `{Object} detail = {}` Detail data of the event.
+  - `{string} name` Name of the event.
+  - `{object} detail = {}` Detail data of the event.
 
 #### \$dispatch examples
 
@@ -631,6 +656,22 @@ Call a function in context after the existing one has been revoked. Whereby the 
 "></div>
 ```
 
+### \$nextSibling
+
+Context of next sibling component.
+
+- Type: `object`
+
+#### \$nextSibling examples
+
+```HTML
+<div d-state="{}">
+  <!-- On initialization sets the message property on the sibling component's state. -->
+  <div d-initialized="$nextSibling.$state.message = 'hello world'"></div>
+</div>
+<div d-state="{ message: null }"></div>
+```
+
 ### \$nextTick
 
 Call a function after updates are done processing. Whereby the first parameter of the callback method will be an object containing the contexts.
@@ -653,34 +694,71 @@ Call a function after updates are done processing. Whereby the first parameter o
 
 Context of parent component.
 
-- Type: `Object`
+- Type: `object`
 
 #### \$parent examples
 
 ```HTML
-<!-- On initialization sets the accessible property on the parent component's state to true. -->
-<div d-initialized="$parent.state.accessible = true"></div>
+<div d-state="{ message: null }">
+  <div d-state="{}">
+    <!-- On initialization sets the message property on the parent component's state. -->
+    <div d-initialized="$parent.$state.message = 'hello world'"></div>
+  </div>
+</div>
+```
+
+### \$previousSibling
+
+Context of previous sibling component.
+
+- Type: `object`
+
+#### \$previousSibling examples
+
+```HTML
+<div d-state="{ message: null }"></div>
+<div d-state="{}">
+  <!-- On initialization sets the message property on the sibling component's state. -->
+  <div d-initialized="$previousSibling.$state.message = 'hello world'"></div>
+</div>
 ```
 
 ### \$references
 
 List of referenced elements in the component.
 
-- Type: `Object<String, HTMLElement>`
+- Type: `object<string, HTMLElement>`
 
 #### \$references examples
 
 ```HTML
 <!-- On initialization logs the reference named 'otherElement' to the console. -->
-<div d-reference="otherElement"></div>
+<div d-reference="'otherElement'"></div>
 <div d-initialized="console.log($references.otherElement)"></div>
+```
+
+### \$siblings
+
+List of contexts of sibling components
+
+- Type: `object`
+
+#### \$siblings examples
+
+```HTML
+<div d-state="{ message: 'hello' }"></div>
+<div d-state="{}">
+  <!-- Set the text to the joined messages of the sibling components. -->
+  <div d-text="$siblings.map(({ $state }) => $state.message).join(' ')"></div>
+</div>
+<div d-state="{ message: 'world' }"></div>
 ```
 
 ### \$state
 
-Get component's state. This context gets deconstruct automatically so when accessing the properties you do not need to prefix it with `$state`. Do note the `$state` context will be checked after the `$for` context since the `$state` context is inserted before the for context. This means that when a property exists on both the state and the for contexts the value from the for will be returned.
+Access the component's state. This context gets deconstruct automatically so when accessing the properties you do not need to prefix it with `$state`. Do note the `$state` context will be checked after the `$for` context since the `$state` context is inserted before the for context. This means that when a property exists on both the state and the for contexts the value from the for will be returned.
 
-- Type: `Object`
+- Type: `object`
 
 #### \$state examples
 
@@ -699,6 +777,67 @@ Get component's state. This context gets deconstruct automatically so when acces
 <div d-text="message"></div>
 ```
 
+### \$store
+
+Access the data store. This context does not automatically get deconstructed this requires the `storeContextDeconstruct` option to be set to true. Doing this will allow accessing the properties to do not need the `$store` prefix. Do note the `$store` context will be checked after the `$for` and `$state` context since the `$store` context is inserted before the for and state context. This means that when a property exists on both the state and the for or store contexts the value from the for or state will be returned.
+
+- Type: `object`
+
+#### \$store examples
+
+```HTML
+<!-- Read from the data store. -->
+<div d-text="$store.message"></div>
+```
+
+```HTML
+<!-- Write to the data store. -->
+<div d-on:click="$store.message = 'Hello there!'"></div>
+```
+
+```HTML
+<!-- Access directly if the deconstruct option is set to true. -->
+<div d-text="message"></div>
+```
+
+```HTML
+<!-- If the deconstruct option is set, but the same key exists on the state. -->
+<div d-state="{ message: 'Hello there!' }">
+  <!-- Then 'Hello there!' will be read instead of the value from the data store. -->
+  <div d-text="message"></div>
+</div>
+```
+
+### \$watch
+
+Call a function when the specified value changes. The function takes in a string which resolves to the value to watch. Then when the value is changed the second parameter, the callback function is called. Do note the callback is no invoked when defined, if this needs to be done simply call the function returned by the `$watch(...)` call again like so `$wath(...)()`.
+
+#### \$watch examples
+
+```HTML
+<!-- Keep track of the count, and log to the console whenever the count changes. -->
+<div d-state="{ count: 0 }" d-initialized="$watch('count', ({ $state }) => { console.log($state.count) })">
+  <!-- Increment the count whenever the button is clicked. -->
+  <button type="button" d-on:click="count++">Increment</button>
+</div>
+```
+
+## Headers
+
+Some contexts and directives can perform requests, headers can be used to inform the server of the requests origin as well as the response headers can perform additional actions in the client. The most notable examples are the [fetch](https://github.com/doars/doars/tree/main/packages/doars-fetch#readme) and [navigate](https://github.com/doars/doars/tree/main/packages/doars-navigate#readme) plugins. Because these share the same headers they are specified in the options of the main library.
+
+### Redirect
+
+Response header that is able to redirects the page to the header's value. Useful when you want to redirect the user to a different webpage after the request has been completed.
+
+### Request
+
+Request header that indicates the request is done via this library. This way the server can take a different action depending on the origin of the request. The value of the header is the name of the context or directive on who is handling the request.
+
+### Title
+
+Response header that changes the page title to the header's value. Useful when the request changes the page's content enough where it should be seen as a different page.
+
 ## Simple contexts
 
 A simple context is a context that is added using the setSimpleContext function on the Doars instance. The advantage are they can be easily added or removed using a single function. The disadvantages are they do not have access to the attribute and component, as well as a destroy function called after every expression processed. Therefore simple contexts are best used for values that need to be accessible to every context and do not require any life cycle management or information about the attribute or component the value is used in.
@@ -715,7 +854,7 @@ The simple contexts are used as the base to build the full context from. This me
 </div>
 
 <!-- Import library. -->
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@3/dst/doars.iife.js"></script>
 <script type="application/javascript">
   document.addEventListener('DOMContentLoaded', () => {
     // Setup an instance.
@@ -752,7 +891,7 @@ Some directives can return JavaScript expressions. The expressions are given to 
 The execute function uses the [`Function` constructor](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function) to process the expressions. Which is similar to the [`eval` function](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/eval) in that it is not very safe to use, nor recommended. This processor function does not work when a [Content Security Policy](https://developer.mozilla.org/docs/Web/HTTP/CSP) is set that does not contain `unsafe-eval`. That being said this process method does allow for running any expression you might want, since it uses the JavaScript interpreter directly.
 
 ```HTML
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@3/dst/doars.iife.js"></script>
 ```
 
 ```JavaScript
@@ -768,7 +907,7 @@ The interpret function uses a [custom interpreter](https://github.com/doars/doar
 Because the interpret processor does not use the `Function` constructor it can be used when a [Content Security Policy](https://developer.mozilla.org/docs/Web/HTTP/CSP) is setup without `unsafe-eval`. However the interpreter is essentially a way to get around the policy and should not be used without taking the accompanying risks into consideration.
 
 ```HTML
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars-interpret.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@3/dst/doars-interpret.iife.js"></script>
 ```
 
 ```JavaScript
@@ -782,7 +921,7 @@ The call function is the simplest processor and also the most limiting one. Inst
 Because the call processor does not try to run an arbitrary expression it is the most secure option out of all of the build-in.
 
 ```HTML
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars-call.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@3/dst/doars-call.iife.js"></script>
 ```
 
 ```JavaScript
@@ -798,7 +937,7 @@ import Doars from '@doars/doars/src/DoarsCall.js'
     Log message
   </button>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@3/dst/doars.iife.js"></script>
 <script type="application/javascript">
   document.addEventListener('DOMContentLoaded', () => {
     // Setup an instance.
@@ -814,7 +953,7 @@ import Doars from '@doars/doars/src/DoarsCall.js'
     Log message
   </button>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@doars/doars@2/dst/doars-call.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@doars/doars@3/dst/doars-call.iife.js"></script>
 <script type="application/javascript">
   document.addEventListener('DOMContentLoaded', () => {
     // Setup an instance.
@@ -847,22 +986,22 @@ Base class extended by several other classes in order to dispatch events.
 - `constructor` Create instance.
   - `@returns {EventDispatcher}`
 - `addEventListener` Add callback to event.
-  - `@param {String} name` Event name.
+  - `@param {string} name` Event name.
   - `@param {Function} callback` Callback to invoke when the event is
     dispatched.
-  - `@param {Object} options` Event listener options.
-    - `{Boolean} once = false` Removes the callback after it has been invoked.
+  - `@param {object} options` Event listener options.
+    - `{boolean} once = false` Removes the callback after it has been invoked.
 - `removeEventListener` Remove callback from event.
-  - `@param {String} name` Event name.
+  - `@param {string} name` Event name.
   - `@param {Function} callback` Callback to remove.
 - `removeEventListeners` Remove all callbacks to an event.
-  - `@param {String} name` Event name.
+  - `@param {string} name` Event name.
 - `removeAllEventListeners` Remove all callbacks of the event dispatcher.
 - `dispatchEvent` Trigger event callbacks.
-  - `@param {String} name` Event name.
+  - `@param {string} name` Event name.
   - `@param {Array<Any>} parameters` List of parameters to pass to the callback.
-  - `@param {Object} options` Dispatch options.
-    - `{Boolean} reverse = false` Invokes event callbacks in reverse order from
+  - `@param {object} options` Dispatch options.
+    - `{boolean} reverse = false` Invokes event callbacks in reverse order from
       which they were added.
 
 ### ProxyDispatcher
@@ -870,68 +1009,65 @@ Base class extended by several other classes in order to dispatch events.
 Sends out events when an object it keeps track of get accessed of mutated. Extends the [`EventDispatcher`](#eventdispatcher).
 
 - `constructor` Create instance.
-  - `@param {Object} options = {}` Options.
-    - `{Boolean} delete = true` Whether to dispatch delete events.
-    - `{Boolean} get = true` Whether to dispatch get events.
-    - `{Boolean} set = true` Whether to dispatch set events.
+  - `@param {object} options = {}` Options.
+    - `{boolean} delete = true` Whether to dispatch delete events.
+    - `{boolean} get = true` Whether to dispatch get events.
+    - `{boolean} set = true` Whether to dispatch set events.
   - `@returns {ProxyDispatcher}`
 - `add` Add object to proxy dispatcher.
-  - `@param {Object} target` Object to add.
+  - `@param {object} target` Object to add.
   - `@returns {Proxy}`
 - `remove` Remove object from proxy dispatcher.
-  - `@param {Object} target` Object to remove.
+  - `@param {object} target` Object to remove.
 
 #### ProxyDispatcher events
 
 - `delete` When an property is deleted from a tracked object.
-  - `@param {Object} target` The root object the property has been deleted from.
+  - `@param {object} target` The root object the property has been deleted from.
   - `@param {Array<String>} path` Path segments leading to the deleted property.
 - `get` When a property is retrieved on a tracked object.
-  - `@param {Object} target` The root object the property has been retrieved
+  - `@param {object} target` The root object the property has been retrieved
     from.
   - `@param {Array<String>} path` Path segments leading to the retrieved
     property.
-  - `@param {Any} receiver`
+  - `@param {any} receiver`
 - `set` When a value is set on a tracked object.
-  - `@param {Object} target` The root object the property has been set on.
+  - `@param {object} target` The root object the property has been set on.
   - `@param {Array<String>} path` Path segments leading to the set property.
-  - `@param {Any} value` Value of the set property.
-  - `@param {Any} receiver`
+  - `@param {any} value` Value of the set property.
+  - `@param {any} receiver`
 
 ### Doars
 
 Extends the [`EventDispatcher`](#eventdispatcher).
 
 - `constructor` Create instance.
-  - `@param {Object} options = null` Options.
-    - `{String} prefix = 'd'` The prefix of the directive's attribute names.
-    - `{Function|String} processor = 'execute'` The expression processor to use. By default it will grab either the `executeExpression` and `evaluateExpression` function located on the Doars constructor, with a preferences for the execute function if both are available. To set the preferred processor to `evaluateExpression` use `'evaluate'`. If a function is set that function will be used instead.
-    - `{HTMLElement|String} root = document.body.firstElementChild` The element to scan and keep track of. If a string is provided it will be used as a query selector to find the element.
+  - `@param {object} options = null` [See options](#doars-options).
   - `@returns {Doars}`
 - `getEnabled` Whether this is currently enabled.
-  - `@returns {Boolean}` Whether the library is enabled.
+  - `@returns {boolean}` Whether the library is enabled.
 - `getId` Get the unique identifier.
   - `@returns {Symbol}` Unique identifier.
 - `getOptions` Get the current options.
-  - `@returns {Object}` Current options.
+  - `@returns {object}` Current options.
 - `enable` Enable the library.
   - `@returns {Doars}` This instance.
 - `disable` Disable the library. Disabling the library does not return everything back to the state is was before enabling it. Listeners will be removed, modifications to the document will not be undone. For instance the
   `cloak` attribute once removed will not return.
   - `@returns {Doars}` This instance.
 - `getSimpleContexts` Get simple contexts.
-  - `@returns {Object}` Stored simple contexts.
+  - `@returns {object}` Stored simple contexts.
 - `setSimpleContext` Add a value directly to the contexts without needing to use an object or having to deal with indices.
-  - `@param {String} name` Property name under which to add the context.
-  - `@param {Any} value = null` The value to add, null removes the context.
-  - `@returns {Boolean}` Whether the value was successfully set.
+  - `@param {string} name` Property name under which to add the context.
+  - `@param {any} value = null` The value to add, null removes the context.
+  - `@returns {boolean}` Whether the value was successfully set.
 - `setSimpleContexts` Adds simple contexts by looping through the object and calling the the setSimpleContext function with the data.
-  - `@param {Object} contexts` An object where the key is the name for the simple context and the value the simple context.
-  - `@returns {Object}` Which simple context was successfully set.
+  - `@param {object} contexts` An object where the key is the name for the simple context and the value the simple context.
+  - `@returns {object}` Which simple context was successfully set.
 - `getContexts` Get list of contexts.
   - `@returns {Array<Object>}` List of contexts.
 - `addContexts` Add contexts at the index. _Can only be called when NOT enabled._
-  - `@param {Number} index` Index to start adding at.
+  - `@param {number} index` Index to start adding at.
   - `@param {...Object} contexts` List of contexts to add.
   - `@returns {Array<Object>}` List of added contexts.
 - `removeContexts` Remove contexts. _Can only be called when NOT enabled._
@@ -942,12 +1078,12 @@ Extends the [`EventDispatcher`](#eventdispatcher).
 - `getDirectivesNames` Get list of directive names.
   - `@returns {Array<String>}` List of directive names.
 - `getDirectivesObject` Get object of directives with the directive name as key.
-  - `@returns {Object}` Object of directives.
+  - `@returns {object}` Object of directives.
 - `isDirectiveName` Check whether a name matches that of a directive.
-  - `@param {String} attributeName` Name of the attribute to match.
-  - `@returns {Boolean}` Whether the name matches that of a directive.
+  - `@param {string} attributeName` Name of the attribute to match.
+  - `@returns {boolean}` Whether the name matches that of a directive.
 - `addDirective` Add directives at the index. _Can only be called when NOT enabled._
-  - `@param {Number} index` Index to start adding at.
+  - `@param {number} index` Index to start adding at.
   - `@param {...Object} directives` List of directives to add.
   - `@returns {Array<Object>}` List of added directives.
 - `removeDirectives` Remove directives. _Can only be called when NOT enabled._
@@ -955,6 +1091,60 @@ Extends the [`EventDispatcher`](#eventdispatcher).
   - `@returns {Array<Object>}` List of removed directives.
 - `update` Update directives based on triggers. _Can only be called when enabled._
   - `@param {Array<Object>} triggers` List of triggers to update with.
+
+#### Doars options
+
+- `{string} prefix = 'd'` The prefix of the directive's attribute names.
+- `{function|string} processor = 'execute'` The expression processor to use. By default it will grab either the `executeExpression` and `evaluateExpression` function located on the Doars constructor, with a preferences for the execute function if both are available. To set the preferred processor to `evaluateExpression` use `'evaluate'`. If a function is set that function will be used instead.
+- `{HTMLElement|string} root = document.body.firstElementChild` The element or selector of an element to scan and keep track of.
+
+- `{boolean} allowInlineScript = false` When setting the innerHTML or outerHTML inline scripts are not automatically ran. Enabling this wil ensure the inline scripts are executed.
+- `{boolean} forContextDeconstruct = true` Whether to require the `$for` prefix when trying to accessing data from the for context.
+- `{boolean} stateContextDeconstruct = true` Whether to require the `$state` prefix when trying to accessing data from the state context.
+- `{boolean} storeContextDeconstruct = false` Whether to require the `$store` prefix when trying to accessing data from the store context.
+- `{object} storeContextInitial = {}` The initial data of the data store context.
+- `{boolean} indicatorDirectiveEvaluate = true` If set to false the indicator directive's value is read as a string literal instead of an expression to process.
+- `{boolean} referenceDirectiveEvaluate = true` If set to false the reference directive's value is read as a string literal instead of an expression to process.
+- `{boolean} targetDirectiveEvaluate = true` If set to false the target directive's value is read as a string literal instead of an expression to process.
+
+- `{string} childrenContextName = '$children'` The name of the children context.
+- `{string} componentContextName = '$component'` The name of the component context.
+- `{string} dispatchContextName = '$dispatch'` The name of the dispatch context.
+- `{string} elementContextName = '$element'` The name of the element context.
+- `{string} forContextName = '$for'` The name of the for context.
+- `{string} inContextContextName = '$inContext'` The name of the inContext context.
+- `{string} nextSiblingContextName = '$nextSibling'` The name of the next sibling context.
+- `{string} nextTickContextName = '$nextTick'` The name of the nextTick context.
+- `{string} parentContextName = '$parent'` The name of the parent context.
+- `{string} previousSiblingContextName = '$previousSibling'` The name of the previous sibling context.
+- `{string} referencesContextName = '$references'` The name of the references context.
+- `{string} siblingsContextName = '$siblings'` The name of the siblings context.
+- `{string} stateContextName = '$state'` The name of the state context.
+- `{string} storeContextName = '$store'` The name of the store context.
+- `{string} watchContextName = '$watch'` The name of the watch context.
+
+- `{string} attributeDirectiveName = 'attribute'` The name of the attribute directive.
+- `{string} cloakDirectiveName = 'cloak'` The name of the cloak directive.
+- `{string} forDirectiveName = 'for'` The name of the for directive.
+- `{string} htmlDirectiveName = 'html'` The name of the html directive.
+- `{string} ifDirectiveName = 'if'` The name of the if directive.
+- `{string} ignoreDirectiveName = 'ignore'` The name of the ignore directive.
+- `{string} indicatorDirectiveName = 'indicator'` The name of the indicator directive.
+- `{string} initializedDirectiveName = 'initialized'` The name of the initialized directive.
+- `{string} onDirectiveName = 'on'` The name of the on directive.
+- `{string} referenceDirectiveName = 'reference'` The name of the reference directive.
+- `{string} selectDirectiveName = 'select'` The name of the select directive.
+- `{string} showDirectiveName = 'show'` The name of the show directive.
+- `{string} stateDirectiveName = 'state'` The name of the state directive.
+- `{string} syncDirectiveName = 'sync'` The name of the sync directive.
+- `{string} targetDirectiveName = 'target'` The name of the target directive.
+- `{string} textDirectiveName = 'text'` The name of the text directive.
+- `{string} transitionDirectiveName = 'transition'` The name of the transition directive.
+- `{string} watchDirectiveName = 'watch'` The name of the watch directive.
+
+- `{string} redirectHeaderName = 'redirect'` The name of the redirect header.
+- `{string} requestHeaderName = 'request'` The name of the request header.
+- `{string} titleHeaderName = 'title'` The name of the title header.
 
 #### Doars events
 
@@ -978,10 +1168,10 @@ The following events are dispatched by the library and can be listened to by cal
   - `@param {Array<HTMLElements>} removedElements` List of removed components.
 - `contexts-added` When one or more contexts are added.
   - `@param {Doars} doars` Library instance.
-  - `@param {Object} addedContexts` List of added contexts.
+  - `@param {object} addedContexts` List of added contexts.
 - `contexts-removed` When one or more contexts are removed.
   - `@param {Doars} doars` Library instance.
-  - `@param {Object} removedContexts` List of removed contexts.
+  - `@param {object} removedContexts` List of removed contexts.
 - `simple-context-added` When a simple context is added.
   - `@param {Doars} doars` Library instance.
   - `@param {string} name` Name of simple context.
@@ -991,10 +1181,10 @@ The following events are dispatched by the library and can be listened to by cal
   - `@param {string} name` Name of simple context.
 - `directives-added` When one or more directives are added.
   - `@param {Doars} doars` Library instance.
-  - `@param {Object} addedDirectives` List of added directives.
+  - `@param {object} addedDirectives` List of added directives.
 - `directives-removed` When one or more directives are removed.
   - `@param {Doars} doars` Library instance.
-  - `@param {Object} removedDirectives` List of removed directives.
+  - `@param {object} removedDirectives` List of removed directives.
 
 ### Component
 
@@ -1021,12 +1211,12 @@ The following events are dispatched by the component and can be listened to by c
 
 - `d-destroyed` When this instance is destroyed.
   - `@param {CustomEvent} event` Event data.
-    - `{Object} detail` Event details.
+    - `{object} detail` Event details.
       - `{HTMLElement} element` Component's root element.
       - `{Symbol} id` Component's unique identifier.
 - `d-updated` When one or more attributes on the component have been updated.
   - `@param {CustomEvent} event` Event data.
-    - `{Object} detail` Event details.
+    - `{object} detail` Event details.
       - `{HTMLElement} element` Component's root element.
       - `{Symbol} id` Component's unique identifier.
       - `{Array<Attribute>} updatedAttributes` List of updated attributes.
@@ -1042,26 +1232,26 @@ Extends the [`EventDispatcher`](#eventdispatcher).
 - `getId` Get attribute id.
   - `@returns {Symbol}` Unique identifier.
 - `getDirective` Get the directive this attribute matches.
-  - `@returns {String}` Directive name.
+  - `@returns {string}` Directive name.
 - `getKey` Get the optional key of the attribute.
-  - `@returns {String}` Key.
+  - `@returns {string}` Key.
 - `getKeyRaw` Get the optional key of the attribute before being processed.
-  - `@returns {String}` Raw key.
+  - `@returns {string}` Raw key.
 - `getModifiers` Get the optional modifiers of the attribute.
-  - `@returns {Object}` Modifiers object
+  - `@returns {object}` Modifiers object
 - `getModifiersRaw` Get the optional modifiers of the attribute before being processed.
   - `@returns {Array<String>}` List of raw modifiers.
 - `getName` Get attribute's name.
-  - `@returns {String}` Attribute name.
+  - `@returns {string}` Attribute name.
 - `getValue` Get the attribute's value.
-  - `@returns {String}` Value.
+  - `@returns {string}` Value.
 - `accessed` Mark an item as accessed.
   - `@param {Symbol} id` Unique identifier.
-  - `@param {String} path` Context path.
+  - `@param {string} path` Context path.
 - `hasAccessed` Check if attribute accessed any of the item's paths.
   - `@param {Symbol} id` Unique identifier.
   - `@param {Array<String>} paths` Contexts path.
-  - `@returns {Boolean}` Whether any item's path was accessed.
+  - `@returns {boolean}` Whether any item's path was accessed.
 - `clone` Creates a clone of the attribute without copying over the id and accessed values.
   - `@returns {Attribute}` Cloned attribute.
 
@@ -1076,7 +1266,7 @@ The following events are dispatched by an `Attribute` and can be listened to by 
 - `accessed` When a new item is marked as accessed.
   - `@param {Attribute} attribute` The attribute instance.
   - `@param {Symbol} id` The accessed's unique identifier.
-  - `@param {String} path` The accessed's context path.
+  - `@param {string} path` The accessed's context path.
 
 ## Writing contexts
 

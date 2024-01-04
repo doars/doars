@@ -5,12 +5,12 @@
   },
   "name": "@doars/doars-fetch",
   "packagename": "DoarsFetch",
-  "description": "Doars plugin that adds a fetch context that handles parsing the returned content.",
+  "description": "Doars plugin that adds a fetch context and directive that handles communication with servers.",
   "keywords": [
     "doars",
     "fetch"
   ],
-  "version": "2.1.0",
+  "version": "3.0.0",
   "license": "MIT",
   "type": "module",
   "main": "src/DoarsFetch.js",
@@ -42,8 +42,10 @@
     "CHANGELOG.md",
     "README.md"
   ],
-  "devDependencies": {},
+  "devDependencies": {
+    "@doars/doars": "^3.0.0"
+  },
   "dependencies": {
-    "@doars/common": "^1.1.0"
+    "@doars/common": "^1.3.0"
   }
 }

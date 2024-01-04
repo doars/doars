@@ -1,24 +1,31 @@
-// Import directives.
-import createDirectiveIntersect from './factories/directives/intersect.js'
+/**
+ * @typedef {import('@doars/doars').default} Doars
+ */
 
-// Import observer.
+import createIntersectDirective from './directives/intersect.js'
 import IntersectionObserver from './IntersectionObserver.js'
 
 /**
  * Create plugin instance.
  * @param {Doars} library Doars instance to add onto.
- * @param {Object} options The plugin options.
+ * @param {object} options The plugin options.
  */
 export default function (
   library,
   options = null,
 ) {
   // Clone options.
-  options = Object.assign({}, options)
+  options = Object.assign({
+    intersectDirectiveName: 'intersect',
+    intersectionRoot: null,
+    intersectionMargin: '0px',
+    intersectionThreshold: 0,
+  }, options)
 
   // Set private variables.
   let isEnabled = false
-  let directiveView, intersectionObserver
+  let intersectionDirective,
+    intersectionObserver
 
   const onEnable = (
   ) => {
@@ -29,19 +36,27 @@ export default function (
     }
 
     // Setup observer.
-    intersectionObserver = new IntersectionObserver(options)
+    intersectionObserver = new IntersectionObserver({
+      root: options.intersectionRoot
+        ? options.intersectionRoot
+        : library.getOptions().root,
+      rootMargin: options.intersectionMargin,
+      threshold: options.intersectionThreshold,
+    })
 
     // Create and add directive.
-    directiveView = createDirectiveIntersect(intersectionObserver)
-    library.addDirectives(-1, directiveView)
+    intersectionDirective = createIntersectDirective(
+      options,
+      intersectionObserver,
+    )
+    library.addDirectives(-1, intersectionDirective)
   }
 
   const onDisable = (
   ) => {
     // Remove directive.
-    library.removeDirectives(directiveView)
-    directiveView = null
-
+    library.removeDirectives(intersectionDirective)
+    intersectionDirective = null
     // Remove observer.
     intersectionObserver = null
   }
