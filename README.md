@@ -50,16 +50,15 @@ Use as much or as little as you want. Doars can easily be added to an existing s
 
 This mono-repository includes the core library as well as several plugins. See the full list below or the packages directory.
 
-| Name                                                                                                       | Description                                                                                                              |
-| ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| [@doars/doars](https://github.com/doars/doars/tree/main/packages/doars#readme)                             | The core library, it manages the components and plugins as well as includes the basic contexts and directives.           |
-| [@doars/doars-cookies](https://github.com/doars/doars/tree/main/packages/doars-cookies#readme)             | Plugin that adds a cookies context to get and set browser cookies.                                                       |
-| [@doars/doars-fetch](https://github.com/doars/doars/tree/main/packages/doars-fetch#readme)                 | Plugin that adds a fetch context that handles parsing the returned content.                                              |
-| [@doars/doars-intersect](https://github.com/doars/doars/tree/main/packages/doars-intersect#readme)         | Plugin that adds an intersect directive for reacting to intersection changes.                                            |
-| [@doars/doars-local-storage](https://github.com/doars/doars/tree/main/packages/doars-local-storage#readme) | Plugin that adds cookies, local storage, and sessions storage contexts to get and set persistent data.                   |
-| [@doars/doars-navigate](https://github.com/doars/doars/tree/main/packages/doars-navigate#readme)           | Plugin that adds a navigation directive that loads pages without unloading the current page by listening to anchor tags. |
-| [@doars/doars-router](https://github.com/doars/doars/tree/main/packages/doars-router#readme)               | Plugin that adds a router context with set of directives to control it.                                                  |
-| [@doars/doars-update](https://github.com/doars/doars/tree/main/packages/doars-update#readme)               | Plugin that adds an update loop context and directive.                                                                   |
+| Name                                                                                               | Description                                                                                                              |
+| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| [@doars/doars](https://github.com/doars/doars/tree/main/packages/doars#readme)                     | The core library, it manages the components and plugins as well as includes the basic contexts and directives.           |
+| [@doars/doars-fetch](https://github.com/doars/doars/tree/main/packages/doars-fetch#readme)         | Plugin that adds a fetch context that handles parsing the returned content.                                              |
+| [@doars/doars-intersect](https://github.com/doars/doars/tree/main/packages/doars-intersect#readme) | Plugin that adds an intersect directive for reacting to intersection changes.                                            |
+| [@doars/doars-navigate](https://github.com/doars/doars/tree/main/packages/doars-navigate#readme)   | Plugin that adds a navigation directive that loads pages without unloading the current page by listening to anchor tags. |
+| [@doars/doars-persist](https://github.com/doars/doars/tree/main/packages/doars-persist#readme)     | Plugin that adds cookies, local storage, and sessions storage contexts to get and set persistent data.                   |
+| [@doars/doars-router](https://github.com/doars/doars/tree/main/packages/doars-router#readme)       | Plugin that adds a router context with set of directives to control it.                                                  |
+| [@doars/doars-update](https://github.com/doars/doars/tree/main/packages/doars-update#readme)       | Plugin that adds an update loop context and directive.                                                                   |
 
 ## Contributing
 
