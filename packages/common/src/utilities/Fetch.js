@@ -163,7 +163,106 @@ export const simplifyType = (
   }
 }
 
+const cacheListeners = {}
+
+/**
+ *
+ * @param {string} url Fetch URL.
+ * @param {Request} options Fetch options.
+ * @param {string} returnType Simplified type name the data should be converted to.
+ * @returns {Promise<any>} Resulting data.
+ */
+export const fetchAndParse = (
+  url,
+  options,
+  returnType,
+) => new Promise((
+  resolve,
+  reject,
+) => {
+  fetch(url, options)
+    .then((response) => {
+      if (
+        response.status < 200 ||
+        response.status >= 500
+      ) {
+        const listeners = cacheListeners[url.location]
+        delete cacheListeners[url.location]
+
+        reject(response)
+
+        // Reject other listeners as well.
+        for (const listener of listeners) {
+          listener.reject(response)
+        }
+        return
+      }
+
+      // Automatically base return type on header.
+      if (returnType === 'auto') {
+        returnType = responseType(response, options)
+      }
+      // Parse response based on return type.
+      if (returnType) {
+        response = parseResponse(response, returnType)
+      }
+      response
+        .then((responseValue) => {
+          // Add response to cache.
+          const result = {
+            headers: response.headers,
+            value: responseValue,
+          }
+
+          // Get other listeners.
+          const listeners = cacheListeners[url.location]
+          delete cacheListeners[url.location]
+
+          // Resolve promise.
+          resolve(result)
+
+          // Inform listeners of update.
+          if (listeners) {
+            for (const listener of listeners) {
+              listener.resolve(result)
+            }
+          }
+        })
+        .catch((error) => {
+          // Get other listeners.
+          const listeners = cacheListeners[url.location]
+          delete cacheListeners[url.location]
+
+          // Reject promise.
+          reject(error)
+
+          // Inform listeners of update.
+          if (listeners) {
+            for (const listener of listeners) {
+              listener.reject(error)
+            }
+          }
+        })
+    })
+    .catch((error) => {
+      // Get other listeners.
+      const listeners = cacheListeners[url.location]
+      delete cacheListeners[url.location]
+
+      // Reject promise.
+      reject(error)
+
+      // Inform listeners of update.
+      if (listeners) {
+        for (const listener of listeners) {
+          listener.reject(error)
+        }
+      }
+    })
+})
+
 export default {
+  fetchAndParse,
   parseResponse,
   responseType,
   simplifyType,

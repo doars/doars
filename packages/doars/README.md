@@ -1097,7 +1097,6 @@ Extends the [`EventDispatcher`](#eventdispatcher).
 - `{string} prefix = 'd'` The prefix of the directive's attribute names.
 - `{function|string} processor = 'execute'` The expression processor to use. By default it will grab either the `executeExpression` and `evaluateExpression` function located on the Doars constructor, with a preferences for the execute function if both are available. To set the preferred processor to `evaluateExpression` use `'evaluate'`. If a function is set that function will be used instead.
 - `{HTMLElement|string} root = document.body.firstElementChild` The element or selector of an element to scan and keep track of.
-
 - `{boolean} allowInlineScript = false` When setting the innerHTML or outerHTML inline scripts are not automatically ran. Enabling this wil ensure the inline scripts are executed.
 - `{boolean} forContextDeconstruct = true` Whether to require the `$for` prefix when trying to accessing data from the for context.
 - `{boolean} stateContextDeconstruct = true` Whether to require the `$state` prefix when trying to accessing data from the state context.
@@ -1106,7 +1105,6 @@ Extends the [`EventDispatcher`](#eventdispatcher).
 - `{boolean} indicatorDirectiveEvaluate = true` If set to false the indicator directive's value is read as a string literal instead of an expression to process.
 - `{boolean} referenceDirectiveEvaluate = true` If set to false the reference directive's value is read as a string literal instead of an expression to process.
 - `{boolean} targetDirectiveEvaluate = true` If set to false the target directive's value is read as a string literal instead of an expression to process.
-
 - `{string} childrenContextName = '$children'` The name of the children context.
 - `{string} componentContextName = '$component'` The name of the component context.
 - `{string} dispatchContextName = '$dispatch'` The name of the dispatch context.
@@ -1122,7 +1120,6 @@ Extends the [`EventDispatcher`](#eventdispatcher).
 - `{string} stateContextName = '$state'` The name of the state context.
 - `{string} storeContextName = '$store'` The name of the store context.
 - `{string} watchContextName = '$watch'` The name of the watch context.
-
 - `{string} attributeDirectiveName = 'attribute'` The name of the attribute directive.
 - `{string} cloakDirectiveName = 'cloak'` The name of the cloak directive.
 - `{string} forDirectiveName = 'for'` The name of the for directive.
@@ -1141,7 +1138,6 @@ Extends the [`EventDispatcher`](#eventdispatcher).
 - `{string} textDirectiveName = 'text'` The name of the text directive.
 - `{string} transitionDirectiveName = 'transition'` The name of the transition directive.
 - `{string} watchDirectiveName = 'watch'` The name of the watch directive.
-
 - `{string} redirectHeaderName = 'redirect'` The name of the redirect header.
 - `{string} requestHeaderName = 'request'` The name of the request header.
 - `{string} titleHeaderName = 'title'` The name of the title header.

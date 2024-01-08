@@ -108,161 +108,8 @@
         return "xml";
     }
   };
-
-  // ../common/src/utilities/Cache.js
-  var HEADER_DATE = "Date";
-  var HEADER_CACHE_CONTROL = "Cache-Control";
-  var CACHE_CLEAN_INTERVAL = 5 * 60 * 1e3;
-  var CACHE_INVALIDATION_CLAUSES = [
-    "no-cache",
-    "must-revalidate",
-    "no-store"
-  ];
-  var CACHE_NAME = "doars";
-  var cacheCleanCounter = 0;
-  var cacheCleanInterval = null;
   var cacheListeners = {};
-  var validCacheFromHeaders = (headers) => {
-    if (!headers.has(HEADER_DATE) || !headers.has(HEADER_CACHE_CONTROL)) {
-      return false;
-    }
-    const cacheDate = new Date(headers.get(HEADER_DATE));
-    const currentDate = /* @__PURE__ */ new Date();
-    if (cacheDate > currentDate) {
-      return false;
-    }
-    const cacheControl = headers.get(HEADER_CACHE_CONTROL).split(",");
-    let cacheMaxAge = 0;
-    for (const cacheControlItem of cacheControl) {
-      if (cacheControlItem.trim().startsWith("max-age=")) {
-        cacheMaxAge = parseInt(cacheControlItem.split("=")[1].trim(), 10);
-      }
-      if (cacheControlItem.trim().startsWith("s-maxage=")) {
-        cacheMaxAge = parseInt(cacheControlItem.split("=")[1].trim(), 10);
-        break;
-      }
-    }
-    if (cacheMaxAge <= 0) {
-      return false;
-    }
-    const expireDate = new Date(cacheDate.getTime() + cacheMaxAge * 1e3);
-    return expireDate >= currentDate;
-  };
-  var getFromCache = (url, options, returnType) => new Promise((resolve, reject) => {
-    if (!options.method || String.prototype.toUpperCase.call(options.method) === "GET") {
-      caches.open(CACHE_NAME).then((cache) => {
-        cache.match(url).then((cachedResponse) => {
-          if (cachedResponse) {
-            if (validCacheFromHeaders(cachedResponse.headers)) {
-              if (returnType === "auto") {
-                returnType = responseType(cachedResponse, options);
-              }
-              if (returnType) {
-                cachedResponse = parseResponse(cachedResponse, returnType);
-              }
-              cachedResponse.then((cachedResponseValue) => {
-                resolve({
-                  headers: cachedResponse.headers,
-                  value: cachedResponseValue
-                });
-              });
-              return;
-            }
-            cache.delete(url);
-          }
-          if (Object.prototype.hasOwnProperty.call(cacheListeners, url.location)) {
-            cacheListeners[url.location].push({
-              resolve,
-              reject
-            });
-            return;
-          } else {
-            cacheListeners[url.location] = [];
-          }
-          fetch(url, options).then((response) => {
-            if (response.status < 200 || response.status >= 500) {
-              const listeners = cacheListeners[url.location];
-              delete cacheListeners[url.location];
-              reject(response);
-              for (const listener of listeners) {
-                listener.reject(response);
-              }
-              return;
-            }
-            let allowCache = true;
-            if (response.headers.has(HEADER_CACHE_CONTROL)) {
-              const cacheControl = response.headers.get(HEADER_CACHE_CONTROL).split(",");
-              let maxAge = 0;
-              for (const cacheControlItem of cacheControl) {
-                const cacheClause = cacheControlItem.trim();
-                if (CACHE_INVALIDATION_CLAUSES.indexOf(cacheClause) >= 0) {
-                  allowCache = false;
-                  break;
-                }
-                if (cacheClause.startsWith("s-maxage=")) {
-                  maxAge = parseInt(cacheClause.split("=")[1].trim(), 10);
-                  if (maxAge <= 0) {
-                    allowCache = false;
-                    break;
-                  }
-                }
-                if (cacheClause.startsWith("max-age=") && maxAge <= 0) {
-                  maxAge = parseInt(cacheClause.split("=")[1].trim(), 10);
-                  if (maxAge <= 0) {
-                    allowCache = false;
-                    break;
-                  }
-                }
-              }
-            }
-            if (allowCache) {
-              cache.put(url, response.clone());
-            } else {
-              cache.delete(url);
-            }
-            if (returnType === "auto") {
-              returnType = responseType(response, options);
-            }
-            if (returnType) {
-              response = parseResponse(response, returnType);
-            }
-            response.then((responseValue) => {
-              const result = {
-                headers: response.headers,
-                value: responseValue
-              };
-              const listeners = cacheListeners[url.location];
-              delete cacheListeners[url.location];
-              resolve(result);
-              if (listeners) {
-                for (const listener of listeners) {
-                  listener.resolve(result);
-                }
-              }
-            }).catch((error) => {
-              const listeners = cacheListeners[url.location];
-              delete cacheListeners[url.location];
-              reject(error);
-              if (listeners) {
-                for (const listener of listeners) {
-                  listener.reject(error);
-                }
-              }
-            });
-          }).catch((error) => {
-            const listeners = cacheListeners[url.location];
-            delete cacheListeners[url.location];
-            reject(error);
-            if (listeners) {
-              for (const listener of listeners) {
-                listener.reject(error);
-              }
-            }
-          });
-        }).catch(reject);
-      }).catch(reject);
-      return;
-    }
+  var fetchAndParse = (url, options, returnType) => new Promise((resolve, reject) => {
     fetch(url, options).then((response) => {
       if (response.status < 200 || response.status >= 500) {
         const listeners = cacheListeners[url.location];
@@ -313,31 +160,6 @@
       }
     });
   });
-  var startCacheCleaner = () => {
-    if (cacheCleanCounter > 0) {
-      cacheCleanCounter++;
-      return;
-    }
-    cacheCleanInterval = setInterval(() => {
-      caches.open(CACHE_NAME).then((cache) => {
-        cache.keys().then((cacheKeys) => {
-          for (const cacheKey of cacheKeys) {
-            cache.match(cacheKey).then((cachedResponse) => {
-              if (!validCacheFromHeaders(cachedResponse.headers)) {
-                cache.delete(cacheKey);
-              }
-            });
-          }
-        });
-      });
-    }, CACHE_CLEAN_INTERVAL);
-  };
-  var stopCacheCleaner = () => {
-    cacheCleanCounter--;
-    if (cacheCleanCounter <= 0 && cacheCleanInterval) {
-      clearInterval(cacheCleanInterval);
-    }
-  };
 
   // ../common/src/utilities/Html.js
   var DECODE_LOOKUP = {
@@ -906,7 +728,6 @@
         if (element[NAVIGATE]) {
           return;
         }
-        startCacheCleaner();
         const library = component.getLibrary();
         const libraryOptions = library.getOptions();
         const directive = attribute.getDirective();
@@ -944,7 +765,7 @@
           dispatchEvent("-started", {
             url
           });
-          getFromCache(
+          fetchAndParse(
             url,
             Object.assign({}, fetchOptions, {
               headers: Object.assign({}, fetchOptions.headers, fetchHeaders)
@@ -1101,7 +922,7 @@
             dispatchEvent("-started", {
               url
             });
-            getFromCache(
+            fetchAndParse(
               url,
               Object.assign({}, fetchOptions, {
                 headers: Object.assign({}, fetchOptions.headers, fetchHeaders)
@@ -1140,7 +961,7 @@
                   dispatchEvent("-started", {
                     url
                   });
-                  getFromCache(
+                  fetchAndParse(
                     url,
                     Object.assign({}, fetchOptions, {
                       headers: Object.assign({}, fetchOptions.headers, fetchHeaders)
@@ -1209,7 +1030,6 @@
         if (!attribute[NAVIGATE]) {
           return;
         }
-        stopCacheCleaner();
         attribute[NAVIGATE].element.removeEventListener(
           "click",
           attribute[NAVIGATE].loadHandler

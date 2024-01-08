@@ -1,5 +1,10 @@
 # CHANGELOG.md
 
+## 2.0.0
+
+- Removed cache utilities.
+- Added fetch and parse utility.
+
 ## 1.3.0
 
 - Added create state factory function.

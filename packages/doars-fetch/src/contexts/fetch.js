@@ -1,11 +1,5 @@
 // Import utilities.
-import {
-  getFromCache,
-} from '@doars/common/src/utilities/Cache.js'
-import {
-  parseResponse,
-  responseType,
-} from '@doars/common/src/utilities/Fetch.js'
+import { fetchAndParse } from '@doars/common/src/utilities/Fetch.js'
 import { deepAssign } from '@doars/common/src/utilities/Object.js'
 
 export default ({
@@ -27,43 +21,20 @@ export default ({
         }
 
         // Extract optional return type.
-        let returnType = options.returnType ? options.returnType : null
+        const returnType = options.returnType ? options.returnType : null
         delete options.returnType
 
         // Perform and process fetch request.
-        if (
-          !options.method ||
-          String.prototype.toUpperCase.call(options.method) === 'GET'
-        ) {
-          return getFromCache(
-            url,
-            options,
-            responseType,
-          )
-            .then((result) => {
-              if (result && result.value) {
-                return result.value
-              }
-            })
-        } else {
-          return fetch(
-            url,
-            options,
-          )
-            .then((
-              response,
-            ) => {
-              // Automatically base return type on header.
-              if (returnType === 'auto') {
-                returnType = responseType(response, options)
-              }
-              // Parse response based on return type.
-              if (returnType) {
-                response = parseResponse(response, returnType)
-              }
-              return response
-            })
-        }
+        return fetchAndParse(
+          url,
+          options,
+          returnType,
+        )
+          .then((result) => {
+            if (result && result.value) {
+              return result.value
+            }
+          })
       },
     }
   },

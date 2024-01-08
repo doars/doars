@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 3.0.2
+
+- Updated to use new fetch and parse utility.
+
 ## 3.0.0
 
 - Added `esm` suffix back onto ESM builds.

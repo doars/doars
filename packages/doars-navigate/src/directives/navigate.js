@@ -7,11 +7,7 @@
  */
 
 // Import utilities.
-import {
-  getFromCache,
-  startCacheCleaner,
-  stopCacheCleaner,
-} from '@doars/common/src/utilities/Cache.js'
+import { fetchAndParse } from '@doars/common/src/utilities/Fetch.js'
 import { decode } from '@doars/common/src/utilities/Html.js'
 import {
   hideIndicator,
@@ -52,8 +48,6 @@ export default ({
       if (element[NAVIGATE]) {
         return
       }
-
-      startCacheCleaner()
 
       // Destruct component.
       const library = component.getLibrary()
@@ -111,7 +105,7 @@ export default ({
           url,
         })
 
-        getFromCache(
+        fetchAndParse(
           url,
           Object.assign({}, fetchOptions, {
             headers: Object.assign({}, fetchOptions.headers, fetchHeaders),
@@ -323,7 +317,7 @@ export default ({
             url,
           })
 
-          getFromCache(
+          fetchAndParse(
             url,
             Object.assign({}, fetchOptions, {
               headers: Object.assign({}, fetchOptions.headers, fetchHeaders),
@@ -367,7 +361,7 @@ export default ({
                   url,
                 })
 
-                getFromCache(
+                fetchAndParse(
                   url,
                   Object.assign({}, fetchOptions, {
                     headers: Object.assign({}, fetchOptions.headers, fetchHeaders),
@@ -463,8 +457,6 @@ export default ({
       if (!attribute[NAVIGATE]) {
         return
       }
-
-      stopCacheCleaner()
 
       // Remove existing listener.
       attribute[NAVIGATE].element.removeEventListener(

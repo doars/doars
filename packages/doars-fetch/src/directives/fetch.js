@@ -7,11 +7,7 @@
  */
 
 // Import utilities.
-import {
-  getFromCache,
-  startCacheCleaner,
-  stopCacheCleaner,
-} from '@doars/common/src/utilities/Cache.js'
+import { fetchAndParse } from '@doars/common/src/utilities/Fetch.js'
 import {
   fromString as elementFromString,
   insertAfter,
@@ -234,7 +230,7 @@ export default ({
         url,
       })
 
-      getFromCache(
+      fetchAndParse(
         url,
         Object.assign({}, fetchOptions, _fetchOptions, {
           headers: Object.assign({}, _fetchOptions.headers, fetchHeaders),
@@ -499,8 +495,6 @@ export default ({
       listenerOptions,
     )
 
-    startCacheCleaner()
-
     attribute[FETCH] = {
       buffer: [],
       eventName,
@@ -519,8 +513,6 @@ export default ({
     if (!attribute[FETCH]) {
       return
     }
-
-    stopCacheCleaner()
 
     // Remove existing listener.
     attribute[FETCH].target.removeEventListener(
