@@ -1,6 +1,7 @@
 <div align="center">
 
 ![Project logo](.docs/src/assets/icons/256-round.png)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdoars%2Fdoars.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdoars%2Fdoars?ref=badge_shield)
 
 </div>
 
@@ -74,3 +75,7 @@ If you are using Doars then please [let me know](https://rondekker.com#contact),
 - Visibility directives similar to intersection plugin.
 - Sensor plugin for accessing the accelerometer, gyroscope et cetera.
 - Realtime shared state between clients using WebRTC.
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdoars%2Fdoars.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdoars%2Fdoars?ref=badge_large)
