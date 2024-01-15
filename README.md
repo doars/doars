@@ -70,6 +70,7 @@ If you are using Doars then please [let me know](https://rondekker.com#contact),
 
 ## Ideas
 
+- Polling modifier for fetch directive.
 - Input masking plugin for formatting dates, money et cetera.
 - Visibility directives similar to intersection plugin.
 - Sensor plugin for accessing the accelerometer, gyroscope et cetera.

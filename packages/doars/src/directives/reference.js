@@ -84,12 +84,12 @@ export default ({
     const attributeId = attribute.getId()
 
     const {
-      referenceIndicatorEvaluate,
+      referenceDirectiveEvaluate,
     } = library.getOptions()
 
     // Process attribute name.
     let name = attribute.getValue()
-    name = referenceIndicatorEvaluate
+    name = referenceDirectiveEvaluate
       ? processExpression(
         component,
         attribute,

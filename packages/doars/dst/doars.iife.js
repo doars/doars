@@ -2699,10 +2699,10 @@
       const element = attribute.getElement();
       const attributeId = attribute.getId();
       const {
-        referenceIndicatorEvaluate
+        referenceDirectiveEvaluate
       } = library.getOptions();
       let name = attribute.getValue();
-      name = referenceIndicatorEvaluate ? processExpression(
+      name = referenceDirectiveEvaluate ? processExpression(
         component,
         attribute,
         name

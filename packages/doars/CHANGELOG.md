@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 3.0.3
+
+- Fixed reading of `referenceDirectiveEvaluate` function.
+
 ## 3.0.0
 
 - Added `esm` suffix back onto ESM builds.
