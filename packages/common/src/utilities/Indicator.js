@@ -1,4 +1,3 @@
-import { insertAfter } from './Element.js'
 import {
   transitionIn,
   transitionOut,
@@ -108,7 +107,7 @@ export const showIndicator = (
   // Create new element from template.
   let indicatorElement = document.importNode(indicatorTemplate.content, true)
   // Add element after the template element.
-  insertAfter(indicatorTemplate, indicatorElement)
+  indicatorTemplate.insertAdjacentElement('afterend', indicatorElement)
   // Get HTMLElement reference instead of DocumentFragment.
   indicatorElement = indicatorTemplate.nextElementSibling
   attribute.indicator = {

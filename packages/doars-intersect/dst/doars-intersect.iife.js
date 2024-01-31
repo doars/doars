@@ -5,11 +5,12 @@
     NONE: 0,
     BUFFER: 1,
     DEBOUNCE: 2,
-    THROTTLE: 3
+    THROTTLE: 5,
+    DELAY: 6
   };
   var intersect_default = ({
     intersectDirectiveName
-  }, observer) => ({
+  }, intersectionDispatcher) => ({
     name: intersectDirectiveName,
     update: (component, attribute, processExpression) => {
       const element = attribute.getElement();
@@ -19,7 +20,7 @@
         if (attribute[INTERSECT].value === value) {
           return;
         }
-        observer.remove(element, attribute[INTERSECT].handler);
+        intersectionDispatcher.remove(element, attribute[INTERSECT].handler);
         if (attribute[INTERSECT].timeout) {
           clearTimeout(attribute[INTERSECT].timeout);
         }
@@ -41,6 +42,11 @@
         executionModifier = EXECUTION_MODIFIERS.THROTTLE;
         if (modifiers.throttle === true) {
           modifiers.throttle = 500;
+        }
+      } else if (modifiers.delay) {
+        executionModifier = EXECUTION_MODIFIERS.DELAY;
+        if (modifiers.delay === true) {
+          modifiers.delay = 500;
         }
       }
       const handler = (event) => {
@@ -85,11 +91,13 @@
           }
           execute();
           attribute[INTERSECT].lastExecution = now;
+        } else if (EXECUTION_MODIFIERS.DELAY) {
+          attribute[INTERSECT].timeout = setTimeout(execute, modifiers.delay);
         } else {
           execute();
         }
       };
-      observer.add(element, handler);
+      intersectionDispatcher.add(element, handler);
       attribute[INTERSECT] = {
         buffer: [],
         handler,
@@ -103,7 +111,7 @@
         return;
       }
       const element = attribute.getElement();
-      observer.remove(element, attribute[INTERSECT].handler);
+      intersectionDispatcher.remove(element, attribute[INTERSECT].handler);
       if (attribute[INTERSECT].timeout) {
         clearTimeout(attribute[INTERSECT].timeout);
       }
@@ -111,8 +119,8 @@
     }
   });
 
-  // src/IntersectionObserver.js
-  var IntersectionObserver = class _IntersectionObserver {
+  // ../common/src/polyfills/IntersectionDispatcher.js
+  var IntersectionDispatcher = class {
     /**
      * Create observer instance.
      * @param {object} options Intersection observer options.
@@ -126,13 +134,13 @@
           }
         }
       };
-      const intersectionObserver = new _IntersectionObserver(intersect, options);
+      const observer = new window.IntersectionObserver(intersect, options);
       this.add = (element, callback) => {
         if (!items.has(element)) {
           items.set(element, []);
         }
         items.get(element).push(callback);
-        intersectionObserver.observe(element);
+        observer.observe(element);
       };
       this.remove = (element, callback) => {
         if (!items.has(element)) {
@@ -145,7 +153,7 @@
         }
         if (list.length === 0) {
           items.delete(element);
-          intersectionObserver.unobserve(element);
+          observer.unobserve(element);
         }
       };
     }
@@ -160,27 +168,20 @@
       intersectionThreshold: 0
     }, options);
     let isEnabled = false;
-    let intersectionDirective, intersectionObserver;
+    const intersectionDispatcher = new IntersectionDispatcher({
+      root: options.intersectionRoot ? options.intersectionRoot : library.getOptions().root,
+      rootMargin: options.intersectionMargin,
+      threshold: options.intersectionThreshold
+    });
+    const intersectionDirective = intersect_default(
+      options,
+      intersectionDispatcher
+    );
     const onEnable = () => {
-      const _options = Object.assign({}, options);
-      if (!_options.root) {
-        _options.root = library.getOptions().root;
-      }
-      intersectionObserver = new IntersectionObserver({
-        root: options.intersectionRoot ? options.intersectionRoot : library.getOptions().root,
-        rootMargin: options.intersectionMargin,
-        threshold: options.intersectionThreshold
-      });
-      intersectionDirective = intersect_default(
-        options,
-        intersectionObserver
-      );
       library.addDirectives(-1, intersectionDirective);
     };
     const onDisable = () => {
       library.removeDirectives(intersectionDirective);
-      intersectionDirective = null;
-      intersectionObserver = null;
     };
     this.disable = () => {
       if (!library.getEnabled() && isEnabled) {

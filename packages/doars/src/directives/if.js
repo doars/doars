@@ -1,5 +1,4 @@
 // Import utilities.
-import { insertAfter } from '@doars/common/src/utilities/Element.js'
 import { isPromise } from '@doars/common/src/utilities/Promise.js'
 import { readdScripts } from '@doars/common/src/utilities/Script.js'
 import {
@@ -81,7 +80,7 @@ export default ({
         // Create new element from template.
         element = document.importNode(template.content, true)
         // Add element after the template element.
-        insertAfter(template, element)
+        template.insertAdjacentElement('afterend', element)
         // Get HTMLElement reference instead of DocumentFragment.
         element = template.nextElementSibling
         if (allowInlineScript || modifiers.script) {

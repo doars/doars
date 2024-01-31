@@ -2,7 +2,6 @@
 import { FOR } from '../symbols.js'
 
 // Import utilities.
-import { insertAfter } from '@doars/common/src/utilities/Element.js'
 import { isPromise } from '@doars/common/src/utilities/Promise.js'
 import { readdScripts } from '@doars/common/src/utilities/Script.js'
 import { parseForExpression } from '@doars/common/src/utilities/String.js'
@@ -97,10 +96,10 @@ const setAfter = (
     }
 
     // Get existing element to move.
-    const element = elements[existingIndex]
+    const element = elements[existingIndex];
 
     // Move element after element at index or directly after the template.
-    insertAfter(elements[index] ? elements[index] : template, element)
+    (elements[index] ? elements[index] : template).insertAdjacentElement('afterend', element)
 
     // Update all attributes using this for item's data.
     update(element[FOR].id)
@@ -112,7 +111,7 @@ const setAfter = (
   let element = document.importNode(template.content, true)
   // Add element after template or element at index.
   const sibling = index === -1 ? template : elements[index]
-  insertAfter(sibling, element)
+  sibling.insertAdjacentElement('afterend', element)
   // Get HTMLElement reference instead of DocumentFragment.
   element = sibling.nextElementSibling
   if (allowInlineScript) {

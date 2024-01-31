@@ -226,8 +226,7 @@ var fetch_default = ({
 // ../common/src/utilities/Element.js
 var fromString = (string) => {
   const stringStart = string.substring(0, 15).toLowerCase();
-  const isDocument = stringStart.startsWith("<!doctype html>") || stringStart.startsWith("<html>");
-  if (isDocument) {
+  if (stringStart.startsWith("<!doctype html>") || stringStart.startsWith("<html>")) {
     const html = document.createElement("html");
     html.innerHTML = string;
     return html;
@@ -235,16 +234,6 @@ var fromString = (string) => {
   const template = document.createElement("template");
   template.innerHTML = string;
   return template.content.childNodes[0];
-};
-var insertAfter = (reference, node) => {
-  if (reference.nextSibling) {
-    reference.parentNode.insertBefore(node, reference.nextSibling);
-  } else {
-    reference.parentNode.appendChild(node);
-  }
-};
-var insertBefore = (reference, node) => {
-  reference.parentNode.insertBefore(reference, node);
 };
 var isSame = (a, b) => {
   if (a.isSameNode && a.isSameNode(b)) {
@@ -258,7 +247,41 @@ var isSame = (a, b) => {
   }
   return false;
 };
-var walk = (element, filter) => {
+var select = (node, component, attribute, processExpression) => {
+  const libraryOptions = component.getLibrary().getOptions();
+  const element = attribute.getElement();
+  const directive = attribute.getDirective();
+  const attributeName = libraryOptions.prefix + "-" + directive + "-" + libraryOptions.selectFromElementDirectiveName;
+  if (!element.hasAttribute(attributeName)) {
+    return node;
+  }
+  let selector = null;
+  if (libraryOptions.selectFromElementDirectiveEvaluate) {
+    selector = processExpression(
+      component,
+      attribute,
+      element.getAttribute(attributeName)
+    );
+    if (typeof selector !== "string") {
+      console.warn("Doars: `" + attributeName + "` must return a string.");
+      return null;
+    }
+  } else {
+    selector = element.getAttribute(attributeName);
+  }
+  if (selector) {
+    const asString = typeof node === "string";
+    if (asString) {
+      node = fromString(node);
+    }
+    node = node.querySelector(selector);
+    if (asString && node) {
+      return node.outerHTML;
+    }
+  }
+  return node;
+};
+var walk = (node, filter) => {
   let index = -1;
   let iterator = null;
   return () => {
@@ -271,10 +294,10 @@ var walk = (element, filter) => {
     let child = null;
     do {
       index++;
-      if (index >= element.childElementCount) {
+      if (index >= node.childElementCount) {
         return null;
       }
-      child = element.children[index];
+      child = node.children[index];
     } while (!filter(child));
     if (child.childElementCount) {
       iterator = walk(child, filter);
@@ -599,7 +622,7 @@ var showIndicator = (component, attribute, processExpression) => {
     }
   }
   let indicatorElement = document.importNode(indicatorTemplate.content, true);
-  insertAfter(indicatorTemplate, indicatorElement);
+  indicatorTemplate.insertAdjacentElement("afterend", indicatorElement);
   indicatorElement = indicatorTemplate.nextElementSibling;
   attribute.indicator = {
     indicatorElement,
@@ -716,7 +739,7 @@ var _updateChildren = (existingNode, newNode) => {
       existingNode.removeChild(existingChild);
       i--;
     } else if (!existingChild) {
-      existingNode.appendChild(newChild);
+      existingNode.append(newChild);
       offset++;
     } else if (isSame(existingChild, newChild)) {
       morphed = _updateTree(existingChild, newChild);
@@ -790,11 +813,11 @@ var readdScripts = (...elements) => {
 // src/utilities/Xml.js
 var serializeFormData = (formData) => {
   const xml = document.createElement("xml");
-  formData.forEach((value, key) => {
+  xml.append(...formData.map((value, key) => {
     const element = document.createElement(key);
     element.textContent = value;
-    xml.appendChild(element);
-  });
+    return element;
+  }));
   const serializer = new XMLSerializer();
   return serializer.serializeToString(xml);
 };
@@ -805,13 +828,16 @@ var EXECUTION_MODIFIERS = {
   NONE: 0,
   BUFFER: 1,
   DEBOUNCE: 2,
-  THROTTLE: 5
+  THROTTLE: 5,
+  DELAY: 6
 };
 var fetch_default2 = ({
   fetchOptions,
   fetchDirectiveEvaluate,
-  fetchDirectiveName
-}) => ({
+  fetchDirectiveName,
+  intersectionEvent,
+  loadedEvent
+}, intersectionDispatcher) => ({
   name: fetchDirectiveName,
   update: (component, attribute, processExpression) => {
     const library = component.getLibrary();
@@ -822,6 +848,7 @@ var fetch_default2 = ({
     const value = attribute.getValue();
     const isForm = element.tagName === "FORM";
     const isButton = element.tagName === "BUTTON";
+    const isInput = element.tagName === "INPUT" || element.tagName === "SELECT";
     if (attribute[FETCH]) {
       if (attribute[FETCH].value === value) {
         return;
@@ -834,10 +861,6 @@ var fetch_default2 = ({
         clearTimeout(attribute[FETCH].timeout);
       }
       delete attribute[FETCH];
-    }
-    let eventName = isForm ? "submit" : "click";
-    if (modifiers.on) {
-      eventName = modifiers.on;
     }
     const encoding = modifiers.encoding ? modifiers.encoding.toLowerCase() : "urlencoded";
     const method = modifiers.method ? modifiers.method.toUpperCase() : "GET";
@@ -868,6 +891,24 @@ var fetch_default2 = ({
       if (modifiers.throttle === true) {
         modifiers.throttle = 500;
       }
+    } else if (modifiers.delay) {
+      executionModifier = EXECUTION_MODIFIERS.DELAY;
+      if (modifiers.delay === true) {
+        modifiers.delay = 500;
+      }
+    }
+    if (modifiers.poll === true) {
+      modifiers.poll = 6e4;
+    }
+    let eventName = "click";
+    if (modifiers.on) {
+      eventName = modifiers.on;
+    } else if (isForm) {
+      eventName = "submit";
+    } else if (isInput) {
+      eventName = "change";
+    } else if (modifiers.poll) {
+      eventName = loadedEvent;
     }
     const fetchHeaders = {
       [libraryOptions.prefix + "-" + libraryOptions.requestHeaderName]: directive,
@@ -937,7 +978,7 @@ var fetch_default2 = ({
       dispatchEvent("-started", {
         url
       });
-      fetchAndParse(
+      return fetchAndParse(
         url,
         Object.assign({}, fetchOptions, _fetchOptions, {
           headers: Object.assign({}, _fetchOptions.headers, fetchHeaders)
@@ -972,53 +1013,99 @@ var fetch_default2 = ({
           }
         }
         if (position === "append") {
-          const child = fromString(html);
-          target.appendChild(child);
+          const child = select(
+            fromString(html),
+            component,
+            attribute,
+            processExpression
+          );
+          target.append(child);
           if (libraryOptions.allowInlineScript || modifiers.script) {
             readdScripts(child);
           }
         } else if (position === "prepend") {
-          const child = fromString(html);
+          const child = select(
+            fromString(html),
+            component,
+            attribute,
+            processExpression
+          );
           target.prepend(child);
           if (libraryOptions.allowInlineScript || modifiers.script) {
             readdScripts(child);
           }
         } else if (position === "after") {
-          const child = fromString(html);
-          insertAfter(target, child);
+          const child = select(
+            fromString(html),
+            component,
+            attribute,
+            processExpression
+          );
+          target.insertAdjacentElement("afterend", child);
           if (libraryOptions.allowInlineScript || modifiers.script) {
             readdScripts(child);
           }
         } else if (position === "before") {
-          const child = fromString(html);
-          insertBefore(target, child);
+          const child = select(
+            fromString(html),
+            component,
+            attribute,
+            processExpression
+          );
+          target.insertAdjacentElement("beforebegin", child);
           if (libraryOptions.allowInlineScript || modifiers.script) {
             readdScripts(child);
           }
         } else if (position === "outer") {
           if (modifiers.morph) {
-            morphTree(target, html);
+            morphTree(
+              target,
+              select(
+                fromString(html),
+                component,
+                attribute,
+                processExpression
+              )
+            );
           } else if (target.outerHTML !== html) {
-            target.outerHTML = html;
+            target.outerHTML = select(
+              html,
+              component,
+              attribute,
+              processExpression
+            );
             if (libraryOptions.allowInlineScript || modifiers.script) {
               readdScripts(target);
             }
           }
         } else if (modifiers.morph) {
           if (target.children.length === 0) {
-            target.appendChild(document.createElement("div"));
+            target.append(document.createElement("div"));
           } else if (target.children.length > 1) {
             for (let i = target.children.length - 1; i >= 1; i--) {
               target.children[i].remove();
             }
           }
-          const root = morphTree(target.children[0], html);
+          const root = morphTree(
+            target.children[0],
+            select(
+              fromString(html),
+              component,
+              attribute,
+              processExpression
+            )
+          );
           if (!target.children[0].isSameNode(root)) {
             target.children[0].remove();
-            target.appendChild(root);
+            target.append(root);
           }
         } else if (target.innerHTML !== html) {
-          target.innerHTML = html;
+          target.innerHTML = select(
+            html,
+            component,
+            attribute,
+            processExpression
+          );
           if (libraryOptions.allowInlineScript || modifiers.script) {
             readdScripts(...target.children);
           }
@@ -1055,18 +1142,20 @@ var fetch_default2 = ({
       });
     };
     let isLoading = false;
-    const handler = (event) => {
-      if (modifiers.self && event.target !== element) {
+    let handler = (event) => new Promise((resolve) => {
+      if (modifiers.self && event && event.target !== element) {
+        resolve();
         return;
       }
       if (isForm && !element.reportValidity()) {
         dispatchEvent("-invalid");
+        resolve();
         return;
       }
-      if (isForm && eventName === "submit" || isButton && element.getAttribute("type", "button") && eventName === "click" || modifiers.prevent) {
+      if ((isForm && eventName === "submit" || isButton && element.getAttribute("type", "button") && eventName === "click" || modifiers.prevent) && event) {
         event.preventDefault();
       }
-      if (modifiers.stop) {
+      if (modifiers.stop && event) {
         event.stopPropagation();
       }
       const execute = () => {
@@ -1086,6 +1175,7 @@ var fetch_default2 = ({
         }
         attribute[FETCH].buffer = [];
         if (!url) {
+          resolve();
           return;
         }
         isLoading = true;
@@ -1094,19 +1184,17 @@ var fetch_default2 = ({
           attribute,
           processExpression
         );
-        if (isPromise(url)) {
-          url.then((url2) => requestHandler(url2));
-        } else {
-          requestHandler(url);
-        }
+        (isPromise(url) ? url.then((url2) => requestHandler(url2)) : requestHandler(url)).finally(() => resolve());
       };
       if (isLoading) {
+        resolve();
         return;
       }
       attribute[FETCH].buffer.push(event);
       switch (executionModifier) {
         case EXECUTION_MODIFIERS.BUFFER:
           if (attribute[FETCH].buffer.length < modifiers.buffer) {
+            resolve();
             return;
           }
           execute();
@@ -1121,19 +1209,54 @@ var fetch_default2 = ({
         case EXECUTION_MODIFIERS.THROTTLE:
           const nowThrottle = window.performance.now();
           if (attribute[FETCH].lastExecution && nowThrottle - attribute[FETCH].lastExecution < modifiers.throttle) {
+            resolve();
             return;
           }
           execute();
           attribute[FETCH].lastExecution = nowThrottle;
           return;
+        case EXECUTION_MODIFIERS.DELAY:
+          attribute[FETCH].timeout = setTimeout(execute, modifiers.delay);
+          return;
       }
       execute();
-    };
-    element.addEventListener(
-      eventName,
-      handler,
-      listenerOptions
-    );
+    });
+    if (modifiers.poll) {
+      const _handler = handler;
+      handler = () => {
+        attribute[FETCH].timeout = setTimeout(() => {
+          _handler(null).finally(() => {
+            if (attribute[FETCH]) {
+              handler();
+            }
+          });
+        }, modifiers.poll);
+      };
+    }
+    if (intersectionEvent && eventName === intersectionEvent) {
+      const _handler = handler;
+      handler = () => {
+        if (listenerOptions.once) {
+          intersectionDispatcher.remove(
+            element,
+            handler
+          );
+        }
+        _handler();
+      };
+      intersectionDispatcher.add(
+        element,
+        intersectionDispatcher
+      );
+    } else if (eventName === loadedEvent) {
+      handler();
+    } else {
+      element.addEventListener(
+        eventName,
+        handler,
+        listenerOptions
+      );
+    }
     attribute[FETCH] = {
       buffer: [],
       eventName,
@@ -1151,6 +1274,12 @@ var fetch_default2 = ({
       attribute[FETCH].eventName,
       attribute[FETCH].handler
     );
+    if (intersectionEvent && intersectionDispatcher) {
+      intersectionDispatcher.remove(
+        attribute[FETCH].target,
+        attribute[FETCH].handler
+      );
+    }
     if (attribute[FETCH].timeout) {
       clearTimeout(attribute[FETCH].timeout);
     }
@@ -1162,19 +1291,69 @@ var fetch_default2 = ({
   }
 });
 
+// ../common/src/polyfills/IntersectionDispatcher.js
+var IntersectionDispatcher = class {
+  /**
+   * Create observer instance.
+   * @param {object} options Intersection observer options.
+   */
+  constructor(options = null) {
+    const items = /* @__PURE__ */ new WeakMap();
+    const intersect = (entries) => {
+      for (const entry of entries) {
+        for (const callback of items.get(entry.target)) {
+          callback(entry);
+        }
+      }
+    };
+    const observer = new window.IntersectionObserver(intersect, options);
+    this.add = (element, callback) => {
+      if (!items.has(element)) {
+        items.set(element, []);
+      }
+      items.get(element).push(callback);
+      observer.observe(element);
+    };
+    this.remove = (element, callback) => {
+      if (!items.has(element)) {
+        return;
+      }
+      const list = items.get(element);
+      const index = list.indexOf(callback);
+      if (index >= 0) {
+        list.splice(index, 1);
+      }
+      if (list.length === 0) {
+        items.delete(element);
+        observer.unobserve(element);
+      }
+    };
+  }
+};
+
 // src/DoarsFetch.js
 function DoarsFetch_default(library, options = null) {
   options = Object.assign({
     fetchContextName: "$fetch",
     fetchDirectiveEvaluate: true,
     fetchDirectiveName: "fetch",
-    fetchOptions: {}
+    fetchOptions: {},
+    intersectionEvent: "intersect",
+    intersectionRoot: null,
+    intersectionMargin: "0px",
+    intersectionThreshold: 0,
+    loadedEvent: "load"
   }, options);
   if (options.defaultInit) {
     Object.assign(options.fetchOptions, options.defaultInit);
   }
   let isEnabled = false;
-  const fetchContext = fetch_default(options), fetchDirective = fetch_default2(options);
+  const intersectionDispatcher = options.intersectionEvent ? new IntersectionDispatcher({
+    root: options.intersectionRoot ? options.intersectionRoot : library.getOptions().root,
+    rootMargin: options.intersectionMargin,
+    threshold: options.intersectionThreshold
+  }) : null;
+  const fetchContext = fetch_default(options), fetchDirective = fetch_default2(options, intersectionDispatcher);
   const onEnable = () => {
     library.addContexts(0, fetchContext);
     library.addDirectives(-1, fetchDirective);

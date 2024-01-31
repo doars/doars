@@ -1,6 +1,5 @@
 // Import utilities.
 import closestRouter from '../utilities/closestRouter.js'
-import { insertAfter } from '@doars/common/src/utilities/Element.js'
 import {
   transitionIn,
   transitionOut,
@@ -76,7 +75,7 @@ export default ({
           // Create new element from template.
           const templateInstance = document.importNode(element.content, true)
           // Add element after the template element.
-          insertAfter(element, templateInstance)
+          element.insertAdjacentElement('afterend', templateInstance)
           // Get HTMLElement reference instead of DocumentFragment.
           attribute[ROUTE].element = element.nextSibling
 

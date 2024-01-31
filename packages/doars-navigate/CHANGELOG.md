@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 3.1.0
+
+- Added `d-navigate-select` directive.
+
 ## 3.0.1
 
 - Updated to use new fetch and parse utility.

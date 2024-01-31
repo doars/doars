@@ -95,6 +95,12 @@ The simplest way to get an element is to use this directive in combination with 
 
 > The `indicator` name can be changed in the options of the Doars library, not via the plugin options.
 
+### d-navigate-select
+
+Set this directive on the same element as the `d-navigate` directive to select part of the retrieved data as the new content instead of the entire body. The directive should return the selector of an element.
+
+> The `select` name can be changed in the options of the Doars library, not via the plugin options.
+
 ### d-navigate-target
 
 Set this directive on the same element as the `d-navigate` directive to specify another element as the target to update when a link is clicked. The directive should return an element or the selector of an element. If a string is returned the element should exist inside the element with this directive on it.
@@ -103,7 +109,7 @@ The simplest way to get an element is to use this directive in combination with 
 
 > The `target` name can be changed in the options of the Doars library, not via the plugin options.
 
-#### Examples
+### d-navigate examples
 
 ```HTML
 <!-- On click replaces the div with the /example.html page contents. -->
@@ -124,7 +130,14 @@ The simplest way to get an element is to use this directive in combination with 
 <div d-navigation d-navigation-indicator="$references.indicator">
   <a href="/example.html">Go to example</a>
 
-  <div d-reference="'indicator'">Loading...</div>
+  <template d-reference="'indicator'">Loading...</template>
+</div>
+```
+
+```HTML
+<!-- On click replaces the target node with the main element directly inside the body of the /example.html page. -->
+<div d-navigation d-navigation-select="'body>main'">
+  <a href="/example.html">Go to example</a>
 </div>
 ```
 

@@ -86,6 +86,7 @@ import { walk } from '@doars/common/src/utilities/Element.js'
  * @property {?object} storeContextInitial The initial data of the data store context.
  * @property {?boolean} indicatorDirectiveEvaluate If set to false the indicator directive's value is read as a string literal instead of an expression to process.
  * @property {?boolean} referenceDirectiveEvaluate If set to false the reference directive's value is read as a string literal instead of an expression to process.
+ * @property {?boolean} selectFromElementDirectiveEvaluate If set to false the select from element directive's value is read as a string literal instead of an expression to process.
  * @property {?boolean} targetDirectiveEvaluate If set to false the target directive's value is read as a string literal instead of an expression to process.
  * @property {?string} childrenContextName The name of the children context.
  * @property {?string} componentContextName The name of the component context.
@@ -113,6 +114,7 @@ import { walk } from '@doars/common/src/utilities/Element.js'
  * @property {?string} onDirectiveName The name of the on directive.
  * @property {?string} referenceDirectiveName The name of the reference directive.
  * @property {?string} selectDirectiveName The name of the select directive.
+ * @property {?string} selectFromElementDirectiveName The name of the select from element directive.
  * @property {?string} showDirectiveName The name of the show directive.
  * @property {?string} stateDirectiveName The name of the state directive.
  * @property {?string} syncDirectiveName The name of the sync directive.
@@ -138,6 +140,7 @@ import { walk } from '@doars/common/src/utilities/Element.js'
  * @property {object} storeContextInitial The initial data of the data store context.
  * @property {boolean} indicatorDirectiveEvaluate If set to false the indicator directive's value is read as a string literal instead of an expression to process.
  * @property {boolean} referenceDirectiveEvaluate If set to false the reference directive's value is read as a string literal instead of an expression to process.
+ * @property {boolean} selectFromElementDirectiveEvaluate If set to false the select from element directive's value is read as a string literal instead of an expression to process.
  * @property {boolean} targetDirectiveEvaluate If set to false the target directive's value is read as a string literal instead of an expression to process.
  * @property {string} childrenContextName The name of the children context.
  * @property {string} componentContextName The name of the component context.
@@ -165,6 +168,7 @@ import { walk } from '@doars/common/src/utilities/Element.js'
  * @property {string} onDirectiveName The name of the on directive.
  * @property {string} referenceDirectiveName The name of the reference directive.
  * @property {string} selectDirectiveName The name of the select directive.
+ * @property {string} selectFromElementDirectiveName The name of the select from element directive.
  * @property {string} showDirectiveName The name of the show directive.
  * @property {string} stateDirectiveName The name of the state directive.
  * @property {string} syncDirectiveName The name of the sync directive.
@@ -204,6 +208,7 @@ export default class Doars extends EventDispatcher {
       storeContextInitial: {},
       indicatorDirectiveEvaluate: true,
       referenceDirectiveEvaluate: true,
+      selectFromElementDirectiveEvaluate: true,
       targetDirectiveEvaluate: true,
 
       // Context names must pass regex: /^[_$a-z]{1}[_$a-z0-9]{0,}$/i.test(name)
@@ -235,6 +240,7 @@ export default class Doars extends EventDispatcher {
       onDirectiveName: 'on',
       referenceDirectiveName: 'reference',
       selectDirectiveName: 'select',
+      selectFromElementDirectiveName: 'select',
       showDirectiveName: 'show',
       stateDirectiveName: 'state',
       syncDirectiveName: 'sync',

@@ -75,9 +75,10 @@ Executes the attribute when an intersection change is observed on the element. T
 
 The directive supports the following modifiers.
 
-- `{number} buffer = 5` Amount of times it has to be triggered before the directive is called.
-- `{number} debounce = 500` Time in milliseconds the element needs to have been in view before the expression is executed.
-- `{number} throttle = 500` Time in milliseconds before the directive can be executed again.
+- `{number} buffer = null` Amount of times it has to be triggered before the directive is called.  If set without a specific value then 5 will be used.
+- `{number} debounce = null` Time in milliseconds the element needs to have been in view before the expression is executed. If set without a specific value then 500 will be used.
+- `{number} delay = null` Time in milliseconds the expression is executed after the element has been in view. If set without a specific value then 500 will be used.
+- `{number} throttle = null` Time in milliseconds before the directive can be executed again. If set without a specific value then 500 will be used.
 
 #### Examples
 

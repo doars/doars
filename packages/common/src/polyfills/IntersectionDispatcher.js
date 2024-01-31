@@ -1,4 +1,4 @@
-export default class IntersectionObserver {
+export default class IntersectionDispatcher {
   /**
    * Create observer instance.
    * @param {object} options Intersection observer options.
@@ -25,7 +25,7 @@ export default class IntersectionObserver {
     }
 
     // Create intersection observer.
-    const intersectionObserver = new IntersectionObserver(intersect, options)
+    const observer = new window.IntersectionObserver(intersect, options)
 
     /**
      * Add element to observe.
@@ -43,7 +43,7 @@ export default class IntersectionObserver {
       items.get(element).push(callback)
 
       // Start observing element.
-      intersectionObserver.observe(element)
+      observer.observe(element)
     }
 
     /**
@@ -71,7 +71,7 @@ export default class IntersectionObserver {
         items.delete(element)
 
         // Stop observing element.
-        intersectionObserver.unobserve(element)
+        observer.unobserve(element)
       }
     }
   }

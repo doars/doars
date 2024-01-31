@@ -1,5 +1,10 @@
 # CHANGELOG.md
 
+## 3.1.0
+
+- Added `delay` modifier to `intersect` directive.
+- Using intersection dispatcher from common library.
+
 ## 3.0.0
 
 - Added `esm` suffix back onto ESM builds.

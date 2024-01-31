@@ -298,6 +298,7 @@ The directive's name is the event name to listen to. When listen to the `keydown
 - `{boolean} cmd = false` See meta modifier.
 - `{boolean} code = false` Whether the keyboard event's key or code property should be checked.
 - `{number} debounce = null` Only fire the event if another event hasn't been invoked in the amount of time in milliseconds specified. All events will be made available in an $events context and the most recent event is also available in the $event context. If set without a specific value then 500 will be used.
+- `{number} delay = null` Amount of time to delay the firing of the directive by. If set without a specific value then 500 will be used.
 - `{boolean} document = false` Listen for the event on the document, instead of the element the directive is placed on.
 - `{number} held = null` Only fire the event if the key, mouse, or pointer was held down for the amount of time in milliseconds specified. This modifier can only be used in combination with the `keydown`, `mousedown`, and `pointerdown` events.
 - `{number} hold = null` Only fire the event after the amount of time specified has been elapsed and the key, mouse, or pointer has been held down. This modifier can only be used in combination with the `keydown`, `mousedown`, and `pointerdown` events. The key difference with the held modifier is this fires as soon as the time has elapsed.
@@ -1104,6 +1105,7 @@ Extends the [`EventDispatcher`](#eventdispatcher).
 - `{object} storeContextInitial = {}` The initial data of the data store context.
 - `{boolean} indicatorDirectiveEvaluate = true` If set to false the indicator directive's value is read as a string literal instead of an expression to process.
 - `{boolean} referenceDirectiveEvaluate = true` If set to false the reference directive's value is read as a string literal instead of an expression to process.
+- `{boolean} selectFromElementDirectiveEvaluate = true` If set to false the select from element directive's value is read as a string literal instead of an expression to process.
 - `{boolean} targetDirectiveEvaluate = true` If set to false the target directive's value is read as a string literal instead of an expression to process.
 - `{string} childrenContextName = '$children'` The name of the children context.
 - `{string} componentContextName = '$component'` The name of the component context.
@@ -1131,6 +1133,7 @@ Extends the [`EventDispatcher`](#eventdispatcher).
 - `{string} onDirectiveName = 'on'` The name of the on directive.
 - `{string} referenceDirectiveName = 'reference'` The name of the reference directive.
 - `{string} selectDirectiveName = 'select'` The name of the select directive.
+- `{string} selectFromElementDirectiveName = 'select'` The name of the select from element directive.
 - `{string} showDirectiveName = 'show'` The name of the show directive.
 - `{string} stateDirectiveName = 'state'` The name of the state directive.
 - `{string} syncDirectiveName = 'sync'` The name of the sync directive.

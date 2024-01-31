@@ -9,7 +9,7 @@
     "doars",
     "common"
   ],
-  "version": "2.0.0",
+  "version": "2.1.0",
   "license": "MIT",
   "type": "module",
   "homepage": "https://github.com/doars/doars/tree/main/packages/common#readme",
@@ -38,7 +38,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@doars/doars": "^3.0.0"
+    "@doars/doars": "^3.0.3"
   },
   "dependencies": {}
 }

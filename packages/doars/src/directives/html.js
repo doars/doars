@@ -44,7 +44,7 @@ export default ({
           child.remove()
         }
 
-        element.appendChild(
+        element.append(
           html.cloneNode(true),
         )
         return
@@ -59,7 +59,7 @@ export default ({
           } else {
             // Ensure element only has one child.
             if (element.children.length === 0) {
-              element.appendChild(document.createElement('div'))
+              element.append(document.createElement('div'))
             } else if (element.children.length > 1) {
               for (let i = element.children.length - 1; i >= 1; i--) {
                 element.children[i].remove()
@@ -70,7 +70,7 @@ export default ({
             const root = morphTree(element.children[0], html)
             if (!element.children[0].isSameNode(root)) {
               element.children[0].remove()
-              element.appendChild(root)
+              element.append(root)
             }
           }
         } else if (modifiers.outer) {

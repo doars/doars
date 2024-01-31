@@ -14,7 +14,7 @@
     "view",
     "viewport"
   ],
-  "version": "3.0.0",
+  "version": "3.1.0",
   "license": "MIT",
   "type": "module",
   "main": "src/DoarsIntersect.js",
@@ -47,7 +47,9 @@
     "README.md"
   ],
   "devDependencies": {
-    "@doars/doars": "^3.0.0"
+    "@doars/doars": "^3.0.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@doars/common": "^2.1.0"
+  }
 }

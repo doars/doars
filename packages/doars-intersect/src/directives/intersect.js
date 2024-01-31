@@ -4,12 +4,13 @@ const EXECUTION_MODIFIERS = {
   NONE: 0,
   BUFFER: 1,
   DEBOUNCE: 2,
-  THROTTLE: 3,
+  THROTTLE: 5,
+  DELAY: 6,
 }
 
 export default ({
   intersectDirectiveName,
-}, observer,
+}, intersectionDispatcher,
 ) => ({
   name: intersectDirectiveName,
 
@@ -31,7 +32,7 @@ export default ({
       }
 
       // Stop observing the element.
-      observer.remove(element, attribute[INTERSECT].handler)
+      intersectionDispatcher.remove(element, attribute[INTERSECT].handler)
       // Clear any ongoing timeouts.
       if (attribute[INTERSECT].timeout) {
         clearTimeout(attribute[INTERSECT].timeout)
@@ -59,6 +60,11 @@ export default ({
       executionModifier = EXECUTION_MODIFIERS.THROTTLE
       if (modifiers.throttle === true) {
         modifiers.throttle = 500
+      }
+    } else if (modifiers.delay) {
+      executionModifier = EXECUTION_MODIFIERS.DELAY
+      if (modifiers.delay === true) {
+        modifiers.delay = 500
       }
     }
 
@@ -133,6 +139,9 @@ export default ({
 
         // Store new latest execution time.
         attribute[INTERSECT].lastExecution = now
+      } else if (EXECUTION_MODIFIERS.DELAY) {
+        // Setup timeout and execute expression when it finishes.
+        attribute[INTERSECT].timeout = setTimeout(execute, modifiers.delay)
       } else {
         // Execute expression.
         execute()
@@ -140,7 +149,7 @@ export default ({
     }
 
     // Start observing the element.
-    observer.add(element, handler)
+    intersectionDispatcher.add(element, handler)
 
     // Store handler.
     attribute[INTERSECT] = {
@@ -165,7 +174,7 @@ export default ({
     const element = attribute.getElement()
 
     // Stop observing the element.
-    observer.remove(element, attribute[INTERSECT].handler)
+    intersectionDispatcher.remove(element, attribute[INTERSECT].handler)
     // Clear any ongoing timeouts.
     if (attribute[INTERSECT].timeout) {
       clearTimeout(attribute[INTERSECT].timeout)

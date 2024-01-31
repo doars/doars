@@ -4,28 +4,21 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doars navigate target example</title>
+    <title>Doars on key down delay example</title>
     <link rel="stylesheet" href="/examples/style.css">
   </head>
 
   <body>
-    <div d-state="{}" d-navigate d-navigate-target="$references.target">
-      <a href="click-target-result.html">test</a>
-
-      <div d-reference="target"></div>
+    <div d-state="{}">
+      <input type="text" d-on:keydown.delay="console.log('Key down')">
     </div>
 
     <script src="/packages/doars/dst/doars.iife.js"></script>
-    <script src="/packages/doars-navigate/dst/doars-navigate.iife.js"></script>
     <script>
       // Wait for the DOM to be interactive.
       document.addEventListener('DOMContentLoaded', () => {
         // Setup a library instance.
         const doars = new window.Doars()
-
-        // Add plugin.
-        window.DoarsNavigate(doars)
-
         // Enable library.
         doars.enable()
       })

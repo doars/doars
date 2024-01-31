@@ -8,6 +8,10 @@
 
 // Import utilities.
 import { fetchAndParse } from '@doars/common/src/utilities/Fetch.js'
+import {
+  fromString as elementFromString,
+  select as selectFromElement,
+} from '@doars/common/src/utilities/Element'
 import { decode } from '@doars/common/src/utilities/Html.js'
 import {
   hideIndicator,
@@ -165,11 +169,19 @@ export default ({
             // Update target.
             if (modifiers.morph) {
               if (modifiers.outer) {
-                morphTree(target, html)
+                morphTree(
+                  target,
+                  selectFromElement(
+                    elementFromString(html),
+                    component,
+                    attribute,
+                    processExpression,
+                  ),
+                )
               } else {
                 // Ensure element only has one child.
                 if (target.children.length === 0) {
-                  target.appendChild(document.createElement('div'))
+                  target.append(document.createElement('div'))
                 } else if (target.children.length > 1) {
                   for (let i = target.children.length - 1; i >= 1; i--) {
                     target.children[i].remove()
@@ -177,21 +189,39 @@ export default ({
                 }
 
                 // Morph first child to given target tree.
-                const root = morphTree(target.children[0], html)
+                const root = morphTree(
+                  target.children[0],
+                  selectFromElement(
+                    elementFromString(html),
+                    component,
+                    attribute,
+                    processExpression,
+                  ),
+                )
                 if (!target.children[0].isSameNode(root)) {
                   target.children[0].remove()
-                  target.appendChild(root)
+                  target.append(root)
                 }
               }
             } else if (modifiers.outer) {
               if (target.outerHTML !== html) {
-                target.outerHTML = html
+                target.outerHTML = selectFromElement(
+                  html,
+                  component,
+                  attribute,
+                  processExpression,
+                )
                 if (libraryOptions.allowInlineScript || modifiers.script) {
                   readdScripts(target)
                 }
               }
             } else if (target.innerHTML !== html) {
-              target.innerHTML = html
+              target.innerHTML = selectFromElement(
+                html,
+                component,
+                attribute,
+                processExpression,
+              )
               if (libraryOptions.allowInlineScript || modifiers.script) {
                 readdScripts(...target.children)
               }

@@ -5,7 +5,7 @@ var FOR = Symbol("FOR");
 var REFERENCES = Symbol("REFERENCES");
 var REFERENCES_CACHE = Symbol("REFERENCES_CACHE");
 
-// ../packages/common/src/events/EventDispatcher.js
+// ../packages/doars/node_modules/@doars/common/src/events/EventDispatcher.js
 var EventDispatcher = class {
   /**
    * Create instance.
@@ -66,7 +66,7 @@ var EventDispatcher = class {
   }
 };
 
-// ../packages/common/src/utilities/String.js
+// ../packages/doars/node_modules/@doars/common/src/utilities/String.js
 var escapeHtml = (text) => {
   return text.replace(/\\/g, "\\\\").replace(/\\'/g, "\\'").replace(/\\"/g, '\\"').replace(/\n/g, "\\n");
 };
@@ -304,7 +304,7 @@ var Attribute = class _Attribute extends EventDispatcher {
   }
 };
 
-// ../packages/common/src/polyfills/RevocableProxy.js
+// ../packages/doars/node_modules/@doars/common/src/polyfills/RevocableProxy.js
 var PROXY_TRAPS = [
   "apply",
   "construct",
@@ -342,7 +342,7 @@ var RevocableProxy_default = (target, handler) => {
   };
 };
 
-// ../packages/common/src/events/ProxyDispatcher.js
+// ../packages/doars/node_modules/@doars/common/src/events/ProxyDispatcher.js
 var ProxyDispatcher = class extends EventDispatcher {
   /**
    * Creates a proxy dispatcher instance.
@@ -431,7 +431,7 @@ var closestComponent = (element2) => {
   }
 };
 
-// ../packages/common/src/utilities/Element.js
+// ../packages/doars/node_modules/@doars/common/src/utilities/Element.js
 var fromString = (string) => {
   const stringStart = string.substring(0, 15).toLowerCase();
   const isDocument = stringStart.startsWith("<!doctype html>") || stringStart.startsWith("<html>");
@@ -443,13 +443,6 @@ var fromString = (string) => {
   const template = document.createElement("template");
   template.innerHTML = string;
   return template.content.childNodes[0];
-};
-var insertAfter = (reference, node) => {
-  if (reference.nextSibling) {
-    reference.parentNode.insertBefore(node, reference.nextSibling);
-  } else {
-    reference.parentNode.appendChild(node);
-  }
 };
 var isSame = (a, b) => {
   if (a.isSameNode && a.isSameNode(b)) {
@@ -1204,7 +1197,7 @@ var siblings_default = ({
   }
 });
 
-// ../packages/common/src/factories/createState.js
+// ../packages/doars/node_modules/@doars/common/src/factories/createState.js
 var createState_default = (name, id, state, proxy) => {
   return (component, attribute, update) => {
     const onDelete = (target, path) => update(id, name + "." + path.join("."));
@@ -1255,7 +1248,7 @@ var state_default = ({
   }
 });
 
-// ../packages/common/src/utilities/Object.js
+// ../packages/doars/node_modules/@doars/common/src/utilities/Object.js
 var deepAssign = (target, ...sources) => {
   if (!sources.length) {
     return target;
@@ -1311,7 +1304,7 @@ var setDeeply = (object, path, value) => {
   object[path[i]] = value;
 };
 
-// ../packages/common/src/factories/createStateContext.js
+// ../packages/doars/node_modules/@doars/common/src/factories/createStateContext.js
 var createStateContext_default = (name, id, state, proxy, deconstruct) => ({
   deconstruct,
   name,
@@ -1455,7 +1448,7 @@ var watch_default = ({
   }
 });
 
-// ../packages/common/src/utilities/Attribute.js
+// ../packages/doars/node_modules/@doars/common/src/utilities/Attribute.js
 var addAttributes = (element2, data) => {
   for (const name in data) {
     if (name === "class") {
@@ -1576,7 +1569,7 @@ var setAttributes = (element2, data) => {
   }
 };
 
-// ../packages/common/src/utilities/Promise.js
+// ../packages/doars/node_modules/@doars/common/src/utilities/Promise.js
 var nativePromise = Function.prototype.toString.call(
   Function
   /* A native object */
@@ -1634,7 +1627,7 @@ var attribute_default = ({
   }
 });
 
-// ../packages/common/src/utilities/Transition.js
+// ../packages/doars/node_modules/@doars/common/src/utilities/Transition.js
 var TRANSITION_NAME = "-transition:";
 var transition = (type, libraryOptions, element2, callback = null) => {
   if (element2.nodeType !== 1) {
@@ -1766,7 +1759,7 @@ var cloak_default = ({
   }
 });
 
-// ../packages/common/src/utilities/Script.js
+// ../packages/doars/node_modules/@doars/common/src/utilities/Script.js
 var _readdScript = (element2) => {
   if (element2.tagName !== "SCRIPT" || element2.hasAttribute("src")) {
     return false;
@@ -1825,13 +1818,13 @@ var setAfter = (component, update, template, elements, index, value, variables, 
       return;
     }
     const element3 = elements[existingIndex];
-    insertAfter(elements[index] ? elements[index] : template, element3);
+    (elements[index] ? elements[index] : template).insertAdjacentElement("afterend", element3);
     update(element3[FOR].id);
     return;
   }
   let element2 = document.importNode(template.content, true);
   const sibling = index === -1 ? template : elements[index];
-  insertAfter(sibling, element2);
+  sibling.insertAdjacentElement("afterend", element2);
   element2 = sibling.nextElementSibling;
   if (allowInlineScript) {
     readdScripts(element2);
@@ -1978,7 +1971,7 @@ var for_default2 = ({
   }
 });
 
-// ../packages/common/src/utilities/Html.js
+// ../packages/doars/node_modules/@doars/common/src/utilities/Html.js
 var DECODE_LOOKUP = {
   "&amp;": "&",
   "&#38;": "&",
@@ -2001,7 +1994,7 @@ var decode = (string) => {
   });
 };
 
-// ../packages/common/src/utilities/Morph.js
+// ../packages/doars/node_modules/@doars/common/src/utilities/Morph.js
 var morphNode = (existingNode, newNode) => {
   const nodeType = newNode.nodeType;
   const nodeName = newNode.nodeName;
@@ -2163,7 +2156,7 @@ var html_default = ({
         for (const child of element2.children) {
           child.remove();
         }
-        element2.appendChild(
+        element2.append(
           html.cloneNode(true)
         );
         return;
@@ -2174,7 +2167,7 @@ var html_default = ({
             morphTree(element2, html);
           } else {
             if (element2.children.length === 0) {
-              element2.appendChild(document.createElement("div"));
+              element2.append(document.createElement("div"));
             } else if (element2.children.length > 1) {
               for (let i = element2.children.length - 1; i >= 1; i--) {
                 element2.children[i].remove();
@@ -2183,7 +2176,7 @@ var html_default = ({
             const root = morphTree(element2.children[0], html);
             if (!element2.children[0].isSameNode(root)) {
               element2.children[0].remove();
-              element2.appendChild(root);
+              element2.append(root);
             }
           }
         } else if (modifiers.outer) {
@@ -2259,7 +2252,7 @@ var if_default = ({
           transition2();
         }
         element2 = document.importNode(template.content, true);
-        insertAfter(template, element2);
+        template.insertAdjacentElement("afterend", element2);
         element2 = template.nextElementSibling;
         if (allowInlineScript || modifiers.script) {
           readdScripts(element2);
@@ -2374,7 +2367,8 @@ var EXECUTION_MODIFIERS = {
   DEBOUNCE: 2,
   HELD: 3,
   HOLD: 4,
-  THROTTLE: 5
+  THROTTLE: 5,
+  DELAY: 6
 };
 var KEYPRESS_MODIFIERS = [
   "alt",
@@ -2452,6 +2446,11 @@ var on_default = ({
       executionModifier = EXECUTION_MODIFIERS.THROTTLE;
       if (modifiers.throttle === true) {
         modifiers.throttle = 500;
+      }
+    } else if (modifiers.delay) {
+      executionModifier = EXECUTION_MODIFIERS.DELAY;
+      if (modifiers.delay === true) {
+        modifiers.delay = 500;
       }
     }
     const keypressModifiers = [];
@@ -2626,6 +2625,13 @@ var on_default = ({
           execute2();
           attribute[ON].lastExecution = nowThrottle;
           return;
+        case EXECUTION_MODIFIERS.DELAY:
+          attribute[ON].prevent = true;
+          attribute[ON].timeout = setTimeout(() => {
+            attribute[ON].prevent = false;
+            execute2();
+          }, modifiers.delay);
+          return;
       }
       execute2();
     };
@@ -2698,10 +2704,10 @@ var reference_default = ({
     const element2 = attribute.getElement();
     const attributeId = attribute.getId();
     const {
-      referenceIndicatorEvaluate
+      referenceDirectiveEvaluate
     } = library.getOptions();
     let name = attribute.getValue();
-    name = referenceIndicatorEvaluate ? processExpression(
+    name = referenceDirectiveEvaluate ? processExpression(
       component,
       attribute,
       name
@@ -3112,6 +3118,7 @@ var Doars = class extends EventDispatcher {
       storeContextInitial: {},
       indicatorDirectiveEvaluate: true,
       referenceDirectiveEvaluate: true,
+      selectFromElementDirectiveEvaluate: true,
       targetDirectiveEvaluate: true,
       // Context names must pass regex: /^[_$a-z]{1}[_$a-z0-9]{0,}$/i.test(name)
       childrenContextName: "$children",
@@ -3141,6 +3148,7 @@ var Doars = class extends EventDispatcher {
       onDirectiveName: "on",
       referenceDirectiveName: "reference",
       selectDirectiveName: "select",
+      selectFromElementDirectiveName: "select",
       showDirectiveName: "show",
       stateDirectiveName: "state",
       syncDirectiveName: "sync",

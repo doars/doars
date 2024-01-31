@@ -1,5 +1,10 @@
 # CHANGELOG.md
 
+## 3.1.0
+
+- Added delay modifier to `on` directive.
+- Added `selectFromElementDirectiveName` and `selectFromElementDirectiveEvaluate` option.
+
 ## 3.0.3
 
 - Fixed reading of `referenceDirectiveEvaluate` function.

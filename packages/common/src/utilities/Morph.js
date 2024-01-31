@@ -220,7 +220,7 @@ const _updateChildren = (
 
       // There is no old child, add new.
     } else if (!existingChild) {
-      existingNode.appendChild(newChild)
+      existingNode.append(newChild)
       offset++
 
       // Both nodes are the same, morph.

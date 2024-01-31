@@ -1,4 +1,10 @@
 /**
+ * @typedef {import('@doars/doars/src/Attribute.js').default} Attribute
+ * @typedef {import('@doars/doars/src/Component.js').default} Component
+ * @typedef {import('@doars/doars/src/Directive.js').ProcessExpression} ProcessExpression
+ */
+
+/**
  * Convert string to HTML element.
  * @param {string} string Element contents.
  * @returns {HTMLElement} HTML element part of a document fragment.
@@ -7,11 +13,10 @@ export const fromString = (
   string,
 ) => {
   const stringStart = string.substring(0, 15).toLowerCase()
-  const isDocument = (
+  if (
     stringStart.startsWith('<!doctype html>') ||
     stringStart.startsWith('<html>')
-  )
-  if (isDocument) {
+  ) {
     const html = document.createElement('html')
     html.innerHTML = string
     return html
@@ -20,34 +25,6 @@ export const fromString = (
   const template = document.createElement('template')
   template.innerHTML = string
   return template.content.childNodes[0]
-}
-
-/**
- * Inserts an element after the reference element opposite of insertBefore and more reliable then ChildNode.after().
- * @param {HTMLElement} reference Node to insert after.
- * @param {Node} node Node to insert.
- */
-export const insertAfter = (
-  reference,
-  node,
-) => {
-  if (reference.nextSibling) {
-    reference.parentNode.insertBefore(node, reference.nextSibling)
-  } else {
-    reference.parentNode.appendChild(node)
-  }
-}
-
-/**
- * Inserts an element before the reference element,
- * @param {HTMLElement} reference Node to insert before.
- * @param {Node} node Node to insert.
- */
-export const insertBefore = (
-  reference,
-  node,
-) => {
-  reference.parentNode.insertBefore(reference, node)
 }
 
 /**
@@ -76,6 +53,57 @@ export const isSame = (
 }
 
 /**
+ * Select a section of the element.
+ * @param {HTMLElement|string} node Element to select from.
+ * @param {Component} component Instance of the component.
+ * @param {Attribute} attribute Instance of the attribute.
+ * @param {ProcessExpression} processExpression Function to process an expression with.
+ * @returns {HTMLElement|string|null} The selection of the node based on the select directive, if a string was entered in to the function it will also be returned as a string.
+ */
+export const select = (
+  node,
+  component,
+  attribute,
+  processExpression,
+) => {
+  const libraryOptions = component.getLibrary().getOptions()
+  const element = attribute.getElement()
+  const directive = attribute.getDirective()
+
+  const attributeName = libraryOptions.prefix + '-' + directive + '-' + libraryOptions.selectFromElementDirectiveName
+  if (!element.hasAttribute(attributeName)) {
+    return node
+  }
+  let selector = null
+  if (libraryOptions.selectFromElementDirectiveEvaluate) {
+    selector = processExpression(
+      component,
+      attribute,
+      element.getAttribute(attributeName),
+    )
+    if (typeof (selector) !== 'string') {
+      console.warn('Doars: `' + attributeName + '` must return a string.')
+      return null
+    }
+  } else {
+    selector = element.getAttribute(attributeName)
+  }
+  if (selector) {
+    const asString = typeof (node) === 'string'
+    if (asString) {
+      node = fromString(node)
+    }
+
+    node = node.querySelector(selector)
+
+    if (asString && node) {
+      return node.outerHTML
+    }
+  }
+  return node
+}
+
+/**
  * @callback WalkIterate Returns a new child element or null when all items have been iterated on.
  * @returns {HTMLElement|null}
  */
@@ -88,12 +116,12 @@ export const isSame = (
 
 /**
  * Iterate over all descendants of a given node.
- * @param {HTMLElement} element Element to walk over.
+ * @param {HTMLElement} node Element to walk over.
  * @param {WalkFilter} filter Filter function, return false to skip element.
  * @returns {WalkIterate} Iterator function. Call until a non-truthy value is returned.
  */
 export const walk = (
-  element,
+  node,
   filter,
 ) => {
   let index = -1
@@ -112,11 +140,11 @@ export const walk = (
     let child = null
     do {
       index++
-      if (index >= element.childElementCount) {
+      if (index >= node.childElementCount) {
         return null
       }
 
-      child = element.children[index]
+      child = node.children[index]
     } while (!filter(child))
 
     // Setup iterator for child.
@@ -131,7 +159,7 @@ export const walk = (
 
 export default {
   fromString,
-  insertAfter,
   isSame,
+  select,
   walk,
 }

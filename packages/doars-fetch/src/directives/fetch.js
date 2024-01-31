@@ -4,14 +4,14 @@
  * @typedef {import('@doars/doars/src/Component.js').default} Component
  * @typedef {import('@doars/doars/src/Directive.js').Directive} Directive
  * @typedef {import('@doars/doars/src/Directive.js').DirectiveUtilities} DirectiveUtilities
+ * @typedef {import('@doars/common/src/polyfills/IntersectionDispatcher.js').default} IntersectionDispatcher
  */
 
 // Import utilities.
 import { fetchAndParse } from '@doars/common/src/utilities/Fetch.js'
 import {
   fromString as elementFromString,
-  insertAfter,
-  insertBefore,
+  select as selectFromElement,
 } from '@doars/common/src/utilities/Element'
 import { decode } from '@doars/common/src/utilities/Html.js'
 import {
@@ -31,6 +31,7 @@ const EXECUTION_MODIFIERS = {
   BUFFER: 1,
   DEBOUNCE: 2,
   THROTTLE: 5,
+  DELAY: 6,
 }
 
 /**
@@ -42,13 +43,18 @@ const EXECUTION_MODIFIERS = {
 
 /**
  * @param {DirectiveOptions} options Options used for creating the directive.
+ * @param {IntersectionDispatcher} intersectionDispatcher An intersection event dispatcher that directives can listen to.
  * @returns {Directive} Created fetch directive.
  */
 export default ({
   fetchOptions,
   fetchDirectiveEvaluate,
   fetchDirectiveName,
-}) => ({
+
+  intersectionEvent,
+
+  loadedEvent,
+}, intersectionDispatcher) => ({
   name: fetchDirectiveName,
 
   update: (
@@ -69,6 +75,7 @@ export default ({
     // Handle forms differently since the form values need to be used.
     const isForm = element.tagName === 'FORM'
     const isButton = element.tagName === 'BUTTON'
+    const isInput = element.tagName === 'INPUT' || element.tagName === 'SELECT'
 
     // Check if existing listener exists.
     if (attribute[FETCH]) {
@@ -94,10 +101,6 @@ export default ({
 
     // Process modifiers.
 
-    let eventName = isForm ? 'submit' : 'click'
-    if (modifiers.on) {
-      eventName = modifiers.on
-    }
     const encoding = (modifiers.encoding ? modifiers.encoding.toLowerCase() : 'urlencoded')
     const method = (modifiers.method ? modifiers.method.toUpperCase() : 'GET')
     const position = (modifiers.position ? modifiers.position.toLowerCase() : null)
@@ -131,6 +134,26 @@ export default ({
       if (modifiers.throttle === true) {
         modifiers.throttle = 500
       }
+    } else if (modifiers.delay) {
+      executionModifier = EXECUTION_MODIFIERS.DELAY
+      if (modifiers.delay === true) {
+        modifiers.delay = 500
+      }
+    }
+
+    if (modifiers.poll === true) {
+      modifiers.poll = 60000 // One minute.
+    }
+
+    let eventName = 'click'
+    if (modifiers.on) {
+      eventName = modifiers.on
+    } else if (isForm) {
+      eventName = 'submit'
+    } else if (isInput) {
+      eventName = 'change'
+    } else if (modifiers.poll) {
+      eventName = loadedEvent
     }
 
     const fetchHeaders = {
@@ -230,7 +253,7 @@ export default ({
         url,
       })
 
-      fetchAndParse(
+      return fetchAndParse(
         url,
         Object.assign({}, fetchOptions, _fetchOptions, {
           headers: Object.assign({}, _fetchOptions.headers, fetchHeaders),
@@ -272,34 +295,67 @@ export default ({
 
           // Update target.
           if (position === 'append') {
-            const child = elementFromString(html)
-            target.appendChild(child)
+            const child = selectFromElement(
+              elementFromString(html),
+              component,
+              attribute,
+              processExpression,
+            )
+            target.append(child)
             if (libraryOptions.allowInlineScript || modifiers.script) {
               readdScripts(child)
             }
           } else if (position === 'prepend') {
-            const child = elementFromString(html)
+            const child = selectFromElement(
+              elementFromString(html),
+              component,
+              attribute,
+              processExpression,
+            )
             target.prepend(child)
             if (libraryOptions.allowInlineScript || modifiers.script) {
               readdScripts(child)
             }
           } else if (position === 'after') {
-            const child = elementFromString(html)
-            insertAfter(target, child)
+            const child = selectFromElement(
+              elementFromString(html),
+              component,
+              attribute,
+              processExpression,
+            )
+            target.insertAdjacentElement('afterend', child)
             if (libraryOptions.allowInlineScript || modifiers.script) {
               readdScripts(child)
             }
           } else if (position === 'before') {
-            const child = elementFromString(html)
-            insertBefore(target, child)
+            const child = selectFromElement(
+              elementFromString(html),
+              component,
+              attribute,
+              processExpression,
+            )
+            target.insertAdjacentElement('beforebegin', child)
             if (libraryOptions.allowInlineScript || modifiers.script) {
               readdScripts(child)
             }
           } else if (position === 'outer') {
             if (modifiers.morph) {
-              morphTree(target, html)
+              morphTree(
+                target,
+                selectFromElement(
+                  elementFromString(html),
+                  component,
+                  attribute,
+                  processExpression,
+                ),
+              )
             } else if (target.outerHTML !== html) {
-              target.outerHTML = html
+              target.outerHTML = selectFromElement(
+                html,
+                component,
+                attribute,
+                processExpression,
+              )
               if (libraryOptions.allowInlineScript || modifiers.script) {
                 readdScripts(target)
               }
@@ -307,7 +363,7 @@ export default ({
           } else if (modifiers.morph) {
             // Ensure element only has one child.
             if (target.children.length === 0) {
-              target.appendChild(document.createElement('div'))
+              target.append(document.createElement('div'))
             } else if (target.children.length > 1) {
               for (let i = target.children.length - 1; i >= 1; i--) {
                 target.children[i].remove()
@@ -315,13 +371,26 @@ export default ({
             }
 
             // Morph first child to given target tree.
-            const root = morphTree(target.children[0], html)
+            const root = morphTree(
+              target.children[0],
+              selectFromElement(
+                elementFromString(html),
+                component,
+                attribute,
+                processExpression,
+              ),
+            )
             if (!target.children[0].isSameNode(root)) {
               target.children[0].remove()
-              target.appendChild(root)
+              target.append(root)
             }
           } else if (target.innerHTML !== html) {
-            target.innerHTML = html
+            target.innerHTML = selectFromElement(
+              html,
+              component,
+              attribute,
+              processExpression,
+            )
             if (libraryOptions.allowInlineScript || modifiers.script) {
               readdScripts(...target.children)
             }
@@ -376,29 +445,33 @@ export default ({
      * @param {Event} event Document event to handle.
      * @returns {void}
      */
-    const handler = (
+    let handler = (
       event,
-    ) => {
+    ) => new Promise((resolve) => {
       // Only fire when self is provided if the target is the element itself.
-      if (modifiers.self && event.target !== element) {
+      if (modifiers.self && event && event.target !== element) {
+        resolve()
         return
       }
 
       if (isForm && !element.reportValidity()) {
         dispatchEvent('-invalid')
+        resolve()
         return
       }
 
       // Prevent the default event action.
       if (
-        (isForm && eventName === 'submit') ||
-        (isButton && element.getAttribute('type', 'button') && eventName === 'click') ||
-        modifiers.prevent
+        (
+          (isForm && eventName === 'submit') ||
+          (isButton && element.getAttribute('type', 'button') && eventName === 'click') ||
+          modifiers.prevent
+        ) && event
       ) {
         event.preventDefault()
       }
       // Stop propagation if the stop modifier is present.
-      if (modifiers.stop) {
+      if (modifiers.stop && event) {
         event.stopPropagation()
       }
 
@@ -423,6 +496,7 @@ export default ({
         attribute[FETCH].buffer = []
 
         if (!url) {
+          resolve()
           return
         }
         isLoading = true
@@ -431,16 +505,17 @@ export default ({
           component,
           attribute,
           processExpression,
-        )
+        );
 
-        if (isPromise(url)) {
-          url.then((url) => requestHandler(url))
-        } else {
-          requestHandler(url)
-        }
+        (
+          isPromise(url)
+            ? url.then((url) => requestHandler(url))
+            : requestHandler(url)
+        ).finally(() => resolve())
       }
 
       if (isLoading) {
+        resolve()
         return
       }
 
@@ -452,6 +527,7 @@ export default ({
         case EXECUTION_MODIFIERS.BUFFER:
           // Exit early if buffer is not full.
           if (attribute[FETCH].buffer.length < modifiers.buffer) {
+            resolve()
             return
           }
 
@@ -474,7 +550,10 @@ export default ({
           const nowThrottle = window.performance.now()
 
           // Exit early if throttle time has not passed.
-          if (attribute[FETCH].lastExecution && nowThrottle - attribute[FETCH].lastExecution < modifiers.throttle) {
+          if (
+            attribute[FETCH].lastExecution &&
+            (nowThrottle - attribute[FETCH].lastExecution) < modifiers.throttle) {
+            resolve()
             return
           }
 
@@ -483,17 +562,57 @@ export default ({
           // Store new latest execution time.
           attribute[FETCH].lastExecution = nowThrottle
           return
+
+        case EXECUTION_MODIFIERS.DELAY:
+          // Setup timeout and execute expression when it finishes.
+          attribute[FETCH].timeout = setTimeout(execute, modifiers.delay)
+          return
       }
 
       // Otherwise execute expression immediately.
       execute()
-    }
+    })
 
-    element.addEventListener(
-      eventName,
-      handler,
-      listenerOptions,
-    )
+    if (modifiers.poll) {
+      const _handler = handler
+      handler = () => {
+        attribute[FETCH].timeout = setTimeout(() => {
+          _handler(null)
+            .finally(() => {
+              // If the directive is still active poll again.
+              if (attribute[FETCH]) {
+                handler()
+              }
+            })
+        }, modifiers.poll)
+      }
+    }
+    if (intersectionEvent && eventName === intersectionEvent) {
+      const _handler = handler
+      handler = () => {
+        // Remove after first call.
+        if (listenerOptions.once) {
+          intersectionDispatcher.remove(
+            element,
+            handler,
+          )
+        }
+
+        _handler()
+      }
+      intersectionDispatcher.add(
+        element,
+        intersectionDispatcher,
+      )
+    } else if (eventName === loadedEvent) {
+      handler()
+    } else {
+      element.addEventListener(
+        eventName,
+        handler,
+        listenerOptions,
+      )
+    }
 
     attribute[FETCH] = {
       buffer: [],
@@ -519,6 +638,13 @@ export default ({
       attribute[FETCH].eventName,
       attribute[FETCH].handler,
     )
+    if (intersectionEvent && intersectionDispatcher) {
+      intersectionDispatcher
+        .remove(
+          attribute[FETCH].target,
+          attribute[FETCH].handler,
+        )
+    }
     // Clear any ongoing timeouts.
     if (attribute[FETCH].timeout) {
       clearTimeout(attribute[FETCH].timeout)

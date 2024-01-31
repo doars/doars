@@ -3,7 +3,7 @@
  */
 
 import createIntersectDirective from './directives/intersect.js'
-import IntersectionObserver from './IntersectionObserver.js'
+import IntersectionDispatcher from '@doars/common/src/polyfills/IntersectionDispatcher.js'
 
 /**
  * Create plugin instance.
@@ -17,6 +17,7 @@ export default function (
   // Clone options.
   options = Object.assign({
     intersectDirectiveName: 'intersect',
+
     intersectionRoot: null,
     intersectionMargin: '0px',
     intersectionThreshold: 0,
@@ -24,31 +25,25 @@ export default function (
 
   // Set private variables.
   let isEnabled = false
-  let intersectionDirective,
-    intersectionObserver
+
+  // Setup observer.
+  const intersectionDispatcher = new IntersectionDispatcher({
+    root: options.intersectionRoot
+      ? options.intersectionRoot
+      : library.getOptions().root,
+    rootMargin: options.intersectionMargin,
+    threshold: options.intersectionThreshold,
+  })
+
+  // Create directive.
+  const intersectionDirective = createIntersectDirective(
+    options,
+    intersectionDispatcher,
+  )
 
   const onEnable = (
   ) => {
-    // Overwrite default options.
-    const _options = Object.assign({}, options)
-    if (!_options.root) {
-      _options.root = library.getOptions().root
-    }
-
-    // Setup observer.
-    intersectionObserver = new IntersectionObserver({
-      root: options.intersectionRoot
-        ? options.intersectionRoot
-        : library.getOptions().root,
-      rootMargin: options.intersectionMargin,
-      threshold: options.intersectionThreshold,
-    })
-
-    // Create and add directive.
-    intersectionDirective = createIntersectDirective(
-      options,
-      intersectionObserver,
-    )
+    // Add directive.
     library.addDirectives(-1, intersectionDirective)
   }
 
@@ -56,9 +51,6 @@ export default function (
   ) => {
     // Remove directive.
     library.removeDirectives(intersectionDirective)
-    intersectionDirective = null
-    // Remove observer.
-    intersectionObserver = null
   }
 
   this.disable = (

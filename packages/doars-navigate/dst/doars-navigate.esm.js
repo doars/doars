@@ -160,6 +160,89 @@ var fetchAndParse = (url, options, returnType) => new Promise((resolve, reject) 
   });
 });
 
+// ../common/src/utilities/Element.js
+var fromString = (string) => {
+  const stringStart = string.substring(0, 15).toLowerCase();
+  if (stringStart.startsWith("<!doctype html>") || stringStart.startsWith("<html>")) {
+    const html = document.createElement("html");
+    html.innerHTML = string;
+    return html;
+  }
+  const template = document.createElement("template");
+  template.innerHTML = string;
+  return template.content.childNodes[0];
+};
+var isSame = (a, b) => {
+  if (a.isSameNode && a.isSameNode(b)) {
+    return true;
+  }
+  if (a.type === 3) {
+    return a.nodeValue === b.nodeValue;
+  }
+  if (a.tagName === b.tagName) {
+    return true;
+  }
+  return false;
+};
+var select = (node, component, attribute, processExpression) => {
+  const libraryOptions = component.getLibrary().getOptions();
+  const element = attribute.getElement();
+  const directive = attribute.getDirective();
+  const attributeName = libraryOptions.prefix + "-" + directive + "-" + libraryOptions.selectFromElementDirectiveName;
+  if (!element.hasAttribute(attributeName)) {
+    return node;
+  }
+  let selector = null;
+  if (libraryOptions.selectFromElementDirectiveEvaluate) {
+    selector = processExpression(
+      component,
+      attribute,
+      element.getAttribute(attributeName)
+    );
+    if (typeof selector !== "string") {
+      console.warn("Doars: `" + attributeName + "` must return a string.");
+      return null;
+    }
+  } else {
+    selector = element.getAttribute(attributeName);
+  }
+  if (selector) {
+    const asString = typeof node === "string";
+    if (asString) {
+      node = fromString(node);
+    }
+    node = node.querySelector(selector);
+    if (asString && node) {
+      return node.outerHTML;
+    }
+  }
+  return node;
+};
+var walk = (node, filter) => {
+  let index = -1;
+  let iterator = null;
+  return () => {
+    if (index >= 0 && iterator) {
+      const child2 = iterator();
+      if (child2) {
+        return child2;
+      }
+    }
+    let child = null;
+    do {
+      index++;
+      if (index >= node.childElementCount) {
+        return null;
+      }
+      child = node.children[index];
+    } while (!filter(child));
+    if (child.childElementCount) {
+      iterator = walk(child, filter);
+    }
+    return child;
+  };
+};
+
 // ../common/src/utilities/Html.js
 var DECODE_LOOKUP = {
   "&amp;": "&",
@@ -181,63 +264,6 @@ var decode = (string) => {
   return string.replaceAll(DECODE_REGEXP, (character) => {
     return DECODE_LOOKUP[character];
   });
-};
-
-// ../common/src/utilities/Element.js
-var fromString = (string) => {
-  const stringStart = string.substring(0, 15).toLowerCase();
-  const isDocument = stringStart.startsWith("<!doctype html>") || stringStart.startsWith("<html>");
-  if (isDocument) {
-    const html = document.createElement("html");
-    html.innerHTML = string;
-    return html;
-  }
-  const template = document.createElement("template");
-  template.innerHTML = string;
-  return template.content.childNodes[0];
-};
-var insertAfter = (reference, node) => {
-  if (reference.nextSibling) {
-    reference.parentNode.insertBefore(node, reference.nextSibling);
-  } else {
-    reference.parentNode.appendChild(node);
-  }
-};
-var isSame = (a, b) => {
-  if (a.isSameNode && a.isSameNode(b)) {
-    return true;
-  }
-  if (a.type === 3) {
-    return a.nodeValue === b.nodeValue;
-  }
-  if (a.tagName === b.tagName) {
-    return true;
-  }
-  return false;
-};
-var walk = (element, filter) => {
-  let index = -1;
-  let iterator = null;
-  return () => {
-    if (index >= 0 && iterator) {
-      const child2 = iterator();
-      if (child2) {
-        return child2;
-      }
-    }
-    let child = null;
-    do {
-      index++;
-      if (index >= element.childElementCount) {
-        return null;
-      }
-      child = element.children[index];
-    } while (!filter(child));
-    if (child.childElementCount) {
-      iterator = walk(child, filter);
-    }
-    return child;
-  };
 };
 
 // ../common/src/utilities/String.js
@@ -533,7 +559,7 @@ var showIndicator = (component, attribute, processExpression) => {
     }
   }
   let indicatorElement = document.importNode(indicatorTemplate.content, true);
-  insertAfter(indicatorTemplate, indicatorElement);
+  indicatorTemplate.insertAdjacentElement("afterend", indicatorElement);
   indicatorElement = indicatorTemplate.nextElementSibling;
   attribute.indicator = {
     indicatorElement,
@@ -676,7 +702,7 @@ var _updateChildren = (existingNode, newNode) => {
       existingNode.removeChild(existingChild);
       i--;
     } else if (!existingChild) {
-      existingNode.appendChild(newChild);
+      existingNode.append(newChild);
       offset++;
     } else if (isSame(existingChild, newChild)) {
       morphed = _updateTree(existingChild, newChild);
@@ -811,30 +837,56 @@ var navigate_default = ({
           }
           if (modifiers.morph) {
             if (modifiers.outer) {
-              morphTree(target, html);
+              morphTree(
+                target,
+                select(
+                  fromString(html),
+                  component,
+                  attribute,
+                  processExpression
+                )
+              );
             } else {
               if (target.children.length === 0) {
-                target.appendChild(document.createElement("div"));
+                target.append(document.createElement("div"));
               } else if (target.children.length > 1) {
                 for (let i = target.children.length - 1; i >= 1; i--) {
                   target.children[i].remove();
                 }
               }
-              const root = morphTree(target.children[0], html);
+              const root = morphTree(
+                target.children[0],
+                select(
+                  fromString(html),
+                  component,
+                  attribute,
+                  processExpression
+                )
+              );
               if (!target.children[0].isSameNode(root)) {
                 target.children[0].remove();
-                target.appendChild(root);
+                target.append(root);
               }
             }
           } else if (modifiers.outer) {
             if (target.outerHTML !== html) {
-              target.outerHTML = html;
+              target.outerHTML = select(
+                html,
+                component,
+                attribute,
+                processExpression
+              );
               if (libraryOptions.allowInlineScript || modifiers.script) {
                 readdScripts(target);
               }
             }
           } else if (target.innerHTML !== html) {
-            target.innerHTML = html;
+            target.innerHTML = select(
+              html,
+              component,
+              attribute,
+              processExpression
+            );
             if (libraryOptions.allowInlineScript || modifiers.script) {
               readdScripts(...target.children);
             }

@@ -19,6 +19,7 @@ const EXECUTION_MODIFIERS = {
   HELD: 3,
   HOLD: 4,
   THROTTLE: 5,
+  DELAY: 6,
 }
 const KEYPRESS_MODIFIERS = [
   'alt',
@@ -131,6 +132,11 @@ export default ({
       executionModifier = EXECUTION_MODIFIERS.THROTTLE
       if (modifiers.throttle === true) {
         modifiers.throttle = 500
+      }
+    } else if (modifiers.delay) {
+      executionModifier = EXECUTION_MODIFIERS.DELAY
+      if (modifiers.delay === true) {
+        modifiers.delay = 500
       }
     }
 
@@ -404,6 +410,20 @@ export default ({
 
           // Store new latest execution time.
           attribute[ON].lastExecution = nowThrottle
+          return
+
+        case EXECUTION_MODIFIERS.DELAY:
+          // Prevent repeat calls.
+          attribute[ON].prevent = true
+
+          // Setup timeout and execute expression when it finishes.
+          attribute[ON].timeout = setTimeout(() => {
+            // Allow calls again.
+            attribute[ON].prevent = false
+
+            // Execute expression.
+            execute()
+          }, modifiers.delay)
           return
       }
 

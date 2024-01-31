@@ -7,12 +7,11 @@ export const serializeFormData = (
   formData,
 ) => {
   const xml = document.createElement('xml')
-
-  formData.forEach((value, key) => {
+  xml.append(...formData.map((value, key) => {
     const element = document.createElement(key)
     element.textContent = value
-    xml.appendChild(element)
-  })
+    return element
+  }))
 
   const serializer = new XMLSerializer()
   return serializer.serializeToString(xml)

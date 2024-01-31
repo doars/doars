@@ -4,6 +4,7 @@
 
 import createFetchContext from './contexts/fetch.js'
 import createFetchDirective from './directives/fetch.js'
+import IntersectionDispatcher from '@doars/common/src/polyfills/IntersectionDispatcher.js'
 
 /**
  * Create plugin instance.
@@ -20,6 +21,13 @@ export default function (
     fetchDirectiveEvaluate: true,
     fetchDirectiveName: 'fetch',
     fetchOptions: {},
+
+    intersectionEvent: 'intersect',
+    intersectionRoot: null,
+    intersectionMargin: '0px',
+    intersectionThreshold: 0,
+
+    loadedEvent: 'load',
   }, options)
   if (options.defaultInit) {
     Object.assign(options.fetchOptions, options.defaultInit)
@@ -27,9 +35,23 @@ export default function (
 
   // Set private variables.
   let isEnabled = false
+
+  // Setup observer.
+  const intersectionDispatcher = (
+    options.intersectionEvent
+      ? new IntersectionDispatcher({
+        root: options.intersectionRoot
+          ? options.intersectionRoot
+          : library.getOptions().root,
+        rootMargin: options.intersectionMargin,
+        threshold: options.intersectionThreshold,
+      })
+      : null
+  )
+
   // Store contexts and directives.
   const fetchContext = createFetchContext(options),
-    fetchDirective = createFetchDirective(options)
+    fetchDirective = createFetchDirective(options, intersectionDispatcher)
 
   const onEnable = (
   ) => {

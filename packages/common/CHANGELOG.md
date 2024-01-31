@@ -1,5 +1,10 @@
 # CHANGELOG.md
 
+## 2.1.0
+
+- Added intersection dispatcher.
+- Added `select` function to `Element` utility.
+
 ## 2.0.0
 
 - Removed cache utilities.

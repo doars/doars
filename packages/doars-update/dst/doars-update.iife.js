@@ -89,7 +89,7 @@
     ];
   };
 
-  // ../common/src/polyfills/RevocableProxy.js
+  // node_modules/@doars/common/src/polyfills/RevocableProxy.js
   var PROXY_TRAPS = [
     "apply",
     "construct",
@@ -127,7 +127,7 @@
     };
   };
 
-  // ../common/src/events/EventDispatcher.js
+  // node_modules/@doars/common/src/events/EventDispatcher.js
   var EventDispatcher = class {
     /**
      * Create instance.
@@ -188,7 +188,7 @@
     }
   };
 
-  // ../common/src/events/ProxyDispatcher.js
+  // node_modules/@doars/common/src/events/ProxyDispatcher.js
   var ProxyDispatcher = class extends EventDispatcher {
     /**
      * Creates a proxy dispatcher instance.

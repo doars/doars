@@ -125,35 +125,33 @@ The directive supports the [redirect, request, and title headers](https://github
 
 The directive supports the following modifiers.
 
-- `{number} buffer = 5` Amount of times it has to be triggered before the directive is called.
+- `{number} buffer = null` Amount of times it has to be triggered before the directive is called. If set without a specific value then 5 will be used.
 - `{boolean} capture = false` Whether to set `capture` to true on the event listeners.
-- `{number} debounce = 500` Time in milliseconds the element needs to have been in intersect before the expression is executed.
+- `{number} debounce = null` Time in milliseconds the event needs to have been in triggered before the expression is executed. A second event will overwrite the existing debounce and start the timer again. If set without a specific value then 500 will be used.
 - `{boolean} decode = false` Whether the returned HTML needs to be decoded. Only relevant if special HTML characters are encoded. For example `&` has become `&amp;` or `&#38;`.
+- `{number} delay = null` Time in milliseconds the fetch starts after the event has been triggered. If set without a specific value then 500 will be used.
 - `{boolean} document = false` Whether to update the entire document (`<head>` and `body` tags) and not just the element itself.
 - `{string} encoding = (method === 'HEAD' || method === 'GET') ? 'parameters' : 'urlencoded'` The encoding method for the post data. If the method is either `head` or `get` it will always add the data as url parameters since these request can not have a body, otherwise the default is `application/x-www-form-urlencoded`. Available options are `json`, `multipart`, `parameters`, `urlencoded`, and `xml`.
 - `{boolean} history = false` Whether the history of the tab needs to be updated when a new page is loaded. In other words the URL that the user sees in the navigation bar is updated to reflect the page transition. Do note the `document` modifier also needs to be enabled on the directive for this to be used.
 - `{string} method = 'GET'` The request method to use.
 - `{boolean} morph = false` Whether to convert the old document structure to the new, or to fully overwrite the existing structure with the new.
-- `{string} on = tagName === 'FORM' ? 'submit' : 'click'` The event to listen to.
+- `{string} on` The event to listen to. The default value depends on the element the directive is placed on. For forms this is submit, for inputs this is change, if the `poll` modifier is set it will be `load`. There are also several [special event listeners](#d-fetch-special-event-listeners).
 - `{boolean} once = false` WWhether the `once` option needs to be enabled when listening to the event.
 - `{boolean} passive = false` Whether the `passive` option needs to be enabled when listening to the event.
+- `{number} poll = null` After the event is trigger automatically trigger the fetch request again. If set without a specific value then 60000 (one minute) will be used.
 - `{string} position = 'inner'` Where on the target to apply the fetched content. Available options are `append` (inside the target as the first element), `prepend` (inside the target as the last element), `after` (outside the target after it), `before` (outside the target before it), `outer` (replace the target), and `inner` (replace the target's contents).
 - `{boolean} prevent = false` Whether to call `preventDefault` on the event invoking the route change.
 - `{boolean} script = false` If the `allowInlineScript` option of the main library is not set the effect can still be enabled for this directive.
 - `{boolean} self = false` Whether the target of the event invoking the route change must be the directive's element itself and not an underlying element.
 - `{boolean} stop = false` Whether to stop the click event from propagating further.
-- `{number} throttle = 500` Time in milliseconds before the directive can be executed again.
+- `{number} throttle = null` Time in milliseconds before the directive can be executed again. If set without a specific value then 500 will be used.
 
-#### d-fetch examples
+#### d-fetch special event listeners
 
-```HTML
-<div d-state="{}">
-  <form d-fetch="/contact/form/" method="POST">
-    <button type="submit">
-    </button>
-  </form>
-</div>
-```
+The `on` modifier has several special event listeners that can trigger a fetch request.
+
+- `intersect` This event will trigger when the element enters the viewport. Useful for lazy loading.
+- `load` This event will trigger when the directive is found and read by the core library.
 
 ### d-fetch-indicator
 
@@ -163,6 +161,12 @@ The simplest way to get an element is to use this directive in combination with 
 
 > The `indicator` name can be changed in the options of the Doars library, not via the plugin options.
 
+### d-fetch-select
+
+Set this directive on the same element as the `d-fetch` directive to select part of the retrieved data as the new content instead of the entire body. The directive should return the selector of an element.
+
+> The `select` name can be changed in the options of the Doars library, not via the plugin options.
+
 ### d-fetch-target
 
 Set this directive on the same element as the `d-fetch` directive to specify another element as the target to update when a fetch is invoked. The directive should return an element or the selector of an element. If a string is returned the element should exist inside the element with this directive on it.
@@ -170,6 +174,54 @@ Set this directive on the same element as the `d-fetch` directive to specify ano
 The simplest way to get an element is to use this directive in combination with the `$references` context.
 
 > The `target` name can be changed in the options of the Doars library, not via the plugin options.
+
+### d-fetch examples
+
+```HTML
+<!-- On submit gets from the route. -->
+<form d-fetch="'/contact/form/'">
+  <button type="submit">Submit</button>
+</form>
+```
+
+```HTML
+<!-- On submit gets from the route, but prevents resubmission for a second. -->
+<form d-fetch.throttle-1000="'/contact/form/'">
+  <button type="submit">Submit</button>
+</form>
+```
+
+```HTML
+<!-- On submit gets from the route, and append the contents to the form. -->
+<form d-fetch.append="'/contact/form/'">
+  <button type="submit">Submit</button>
+</form>
+```
+
+```HTML
+<!-- On submit gets from the route, whilst fetching shows the indicator. -->
+<form d-fetch="'/contact/form/'" d-fetch-indicator="$references.indicator">
+  <button type="submit">Submit</button>
+
+  <template d-reference="'indicator'">Fetching...</template>
+</form>
+```
+
+```HTML
+<!-- On submit gets from the route, but selects the main element in body to add as the contents of the form. -->
+<form d-fetch="'/contact/form/'" d-fetch-select="'body>main'">
+  <button type="submit">Submit</button>
+</form>
+```
+
+```HTML
+<!-- On submit gets from the route, and sets the contents to the target. -->
+<form d-fetch="'/contact/form/'" d-fetch-target="$references.target">
+  <button type="submit">Submit</button>
+
+  <div d-reference="'target'"></div>
+</form>
+```
 
 ## Events
 
@@ -215,6 +267,11 @@ Dispatched when the contents has successfully been updated.
 - `{boolean} fetchDirectiveEvaluate = true` If set to false the fetch directive's value is read as a string literal instead of an expression to process.
 - `{string} fetchDirectiveName = 'submit'` The name of the fetch directive.
 - `{object} fetchOptions = {}` Default fetch options to use, the options object provided when calling fetch will be merged with this default.
+- `{string|boolean} intersectionEvent = 'intersect'` The name of the intersect special event listener. To disable the event from ever triggering set this option to false.
+- `{HTMLElement} intersectionRoot = null` The element to be used as the viewport for checking the visibility of the elements. It must be an ancestor of the targeted elements. By default it is the browsers viewport.
+- `{CSS margin property} intersectionMargin = '0px'` Margin around the root.
+- `{number|Array<number>} intersectionThreshold = 0` Thresholds of visibility the directive should be executed. `0` results in as soon as a pixel is in view. `1` results in that the entire element needs to be in view. `[0, 0.5, 1]` results in three possible calls when it is a pixel in view, 50% in view and entirely in view.
+- `{string|boolean} loadedEvent = 'load'` The name of the load special event listener. To disable the event from ever triggering set this option to false.
 
 ## Compatible versions
 

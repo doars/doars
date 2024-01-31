@@ -1,5 +1,5 @@
 (() => {
-  // ../common/src/utilities/Object.js
+  // node_modules/@doars/common/src/utilities/Object.js
   var deepAssign = (target, ...sources) => {
     if (!sources.length) {
       return target;
@@ -34,7 +34,7 @@
     return value && typeof value === "object" && !Array.isArray(value);
   };
 
-  // ../common/src/polyfills/RevocableProxy.js
+  // node_modules/@doars/common/src/polyfills/RevocableProxy.js
   var PROXY_TRAPS = [
     "apply",
     "construct",
@@ -338,7 +338,7 @@
     return stringToRegexp(path, keys, options);
   }
 
-  // ../common/src/events/EventDispatcher.js
+  // node_modules/@doars/common/src/events/EventDispatcher.js
   var EventDispatcher = class {
     /**
      * Create instance.
@@ -544,16 +544,7 @@
     }
   });
 
-  // ../common/src/utilities/Element.js
-  var insertAfter = (reference, node) => {
-    if (reference.nextSibling) {
-      reference.parentNode.insertBefore(node, reference.nextSibling);
-    } else {
-      reference.parentNode.appendChild(node);
-    }
-  };
-
-  // ../common/src/utilities/String.js
+  // node_modules/@doars/common/src/utilities/String.js
   var parseSelector = (selector) => {
     if (typeof selector === "string") {
       selector = selector.split(/(?=\.)|(?=#)|(?=\[)/);
@@ -587,7 +578,7 @@
     return attributes;
   };
 
-  // ../common/src/utilities/Attribute.js
+  // node_modules/@doars/common/src/utilities/Attribute.js
   var addAttributes = (element, data) => {
     for (const name in data) {
       if (name === "class") {
@@ -614,7 +605,7 @@
     }
   };
 
-  // ../common/src/utilities/Transition.js
+  // node_modules/@doars/common/src/utilities/Transition.js
   var TRANSITION_NAME = "-transition:";
   var transition = (type, libraryOptions, element, callback = null) => {
     if (element.nodeType !== 1) {
@@ -774,7 +765,7 @@
             }
           } else if (element.tagName === "TEMPLATE") {
             const templateInstance = document.importNode(element.content, true);
-            insertAfter(element, templateInstance);
+            element.insertAdjacentElement("afterend", templateInstance);
             attribute[ROUTE].element = element.nextSibling;
             transitionIn(libraryOptions, attribute[ROUTE].element);
           } else {

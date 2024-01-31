@@ -6,7 +6,7 @@
   var REFERENCES = Symbol("REFERENCES");
   var REFERENCES_CACHE = Symbol("REFERENCES_CACHE");
 
-  // ../common/src/events/EventDispatcher.js
+  // node_modules/@doars/common/src/events/EventDispatcher.js
   var EventDispatcher = class {
     /**
      * Create instance.
@@ -67,7 +67,7 @@
     }
   };
 
-  // ../common/src/utilities/String.js
+  // node_modules/@doars/common/src/utilities/String.js
   var escapeHtml = (text) => {
     return text.replace(/\\/g, "\\\\").replace(/\\'/g, "\\'").replace(/\\"/g, '\\"').replace(/\n/g, "\\n");
   };
@@ -305,7 +305,7 @@
     }
   };
 
-  // ../common/src/polyfills/RevocableProxy.js
+  // node_modules/@doars/common/src/polyfills/RevocableProxy.js
   var PROXY_TRAPS = [
     "apply",
     "construct",
@@ -343,7 +343,7 @@
     };
   };
 
-  // ../common/src/events/ProxyDispatcher.js
+  // node_modules/@doars/common/src/events/ProxyDispatcher.js
   var ProxyDispatcher = class extends EventDispatcher {
     /**
      * Creates a proxy dispatcher instance.
@@ -432,7 +432,7 @@
     }
   };
 
-  // ../common/src/utilities/Element.js
+  // node_modules/@doars/common/src/utilities/Element.js
   var fromString = (string) => {
     const stringStart = string.substring(0, 15).toLowerCase();
     const isDocument = stringStart.startsWith("<!doctype html>") || stringStart.startsWith("<html>");
@@ -444,13 +444,6 @@
     const template = document.createElement("template");
     template.innerHTML = string;
     return template.content.childNodes[0];
-  };
-  var insertAfter = (reference, node) => {
-    if (reference.nextSibling) {
-      reference.parentNode.insertBefore(node, reference.nextSibling);
-    } else {
-      reference.parentNode.appendChild(node);
-    }
   };
   var isSame = (a, b) => {
     if (a.isSameNode && a.isSameNode(b)) {
@@ -1205,7 +1198,7 @@
     }
   });
 
-  // ../common/src/factories/createState.js
+  // node_modules/@doars/common/src/factories/createState.js
   var createState_default = (name, id, state, proxy) => {
     return (component, attribute, update) => {
       const onDelete = (target, path) => update(id, name + "." + path.join("."));
@@ -1256,7 +1249,7 @@
     }
   });
 
-  // ../common/src/utilities/Object.js
+  // node_modules/@doars/common/src/utilities/Object.js
   var deepAssign = (target, ...sources) => {
     if (!sources.length) {
       return target;
@@ -1312,7 +1305,7 @@
     object[path[i]] = value;
   };
 
-  // ../common/src/factories/createStateContext.js
+  // node_modules/@doars/common/src/factories/createStateContext.js
   var createStateContext_default = (name, id, state, proxy, deconstruct) => ({
     deconstruct,
     name,
@@ -1456,7 +1449,7 @@
     }
   });
 
-  // ../common/src/utilities/Attribute.js
+  // node_modules/@doars/common/src/utilities/Attribute.js
   var addAttributes = (element, data) => {
     for (const name in data) {
       if (name === "class") {
@@ -1577,7 +1570,7 @@
     }
   };
 
-  // ../common/src/utilities/Promise.js
+  // node_modules/@doars/common/src/utilities/Promise.js
   var nativePromise = Function.prototype.toString.call(
     Function
     /* A native object */
@@ -1635,7 +1628,7 @@
     }
   });
 
-  // ../common/src/utilities/Transition.js
+  // node_modules/@doars/common/src/utilities/Transition.js
   var TRANSITION_NAME = "-transition:";
   var transition = (type, libraryOptions, element, callback = null) => {
     if (element.nodeType !== 1) {
@@ -1767,7 +1760,7 @@
     }
   });
 
-  // ../common/src/utilities/Script.js
+  // node_modules/@doars/common/src/utilities/Script.js
   var _readdScript = (element) => {
     if (element.tagName !== "SCRIPT" || element.hasAttribute("src")) {
       return false;
@@ -1826,13 +1819,13 @@
         return;
       }
       const element2 = elements[existingIndex];
-      insertAfter(elements[index] ? elements[index] : template, element2);
+      (elements[index] ? elements[index] : template).insertAdjacentElement("afterend", element2);
       update(element2[FOR].id);
       return;
     }
     let element = document.importNode(template.content, true);
     const sibling = index === -1 ? template : elements[index];
-    insertAfter(sibling, element);
+    sibling.insertAdjacentElement("afterend", element);
     element = sibling.nextElementSibling;
     if (allowInlineScript) {
       readdScripts(element);
@@ -1979,7 +1972,7 @@
     }
   });
 
-  // ../common/src/utilities/Html.js
+  // node_modules/@doars/common/src/utilities/Html.js
   var DECODE_LOOKUP = {
     "&amp;": "&",
     "&#38;": "&",
@@ -2002,7 +1995,7 @@
     });
   };
 
-  // ../common/src/utilities/Morph.js
+  // node_modules/@doars/common/src/utilities/Morph.js
   var morphNode = (existingNode, newNode) => {
     const nodeType = newNode.nodeType;
     const nodeName = newNode.nodeName;
@@ -2164,7 +2157,7 @@
           for (const child of element.children) {
             child.remove();
           }
-          element.appendChild(
+          element.append(
             html.cloneNode(true)
           );
           return;
@@ -2175,7 +2168,7 @@
               morphTree(element, html);
             } else {
               if (element.children.length === 0) {
-                element.appendChild(document.createElement("div"));
+                element.append(document.createElement("div"));
               } else if (element.children.length > 1) {
                 for (let i = element.children.length - 1; i >= 1; i--) {
                   element.children[i].remove();
@@ -2184,7 +2177,7 @@
               const root = morphTree(element.children[0], html);
               if (!element.children[0].isSameNode(root)) {
                 element.children[0].remove();
-                element.appendChild(root);
+                element.append(root);
               }
             }
           } else if (modifiers.outer) {
@@ -2260,7 +2253,7 @@
             transition2();
           }
           element = document.importNode(template.content, true);
-          insertAfter(template, element);
+          template.insertAdjacentElement("afterend", element);
           element = template.nextElementSibling;
           if (allowInlineScript || modifiers.script) {
             readdScripts(element);
@@ -2375,7 +2368,8 @@
     DEBOUNCE: 2,
     HELD: 3,
     HOLD: 4,
-    THROTTLE: 5
+    THROTTLE: 5,
+    DELAY: 6
   };
   var KEYPRESS_MODIFIERS = [
     "alt",
@@ -2453,6 +2447,11 @@
         executionModifier = EXECUTION_MODIFIERS.THROTTLE;
         if (modifiers.throttle === true) {
           modifiers.throttle = 500;
+        }
+      } else if (modifiers.delay) {
+        executionModifier = EXECUTION_MODIFIERS.DELAY;
+        if (modifiers.delay === true) {
+          modifiers.delay = 500;
         }
       }
       const keypressModifiers = [];
@@ -2626,6 +2625,13 @@
             }
             execute2();
             attribute[ON].lastExecution = nowThrottle;
+            return;
+          case EXECUTION_MODIFIERS.DELAY:
+            attribute[ON].prevent = true;
+            attribute[ON].timeout = setTimeout(() => {
+              attribute[ON].prevent = false;
+              execute2();
+            }, modifiers.delay);
             return;
         }
         execute2();
@@ -3113,6 +3119,7 @@
         storeContextInitial: {},
         indicatorDirectiveEvaluate: true,
         referenceDirectiveEvaluate: true,
+        selectFromElementDirectiveEvaluate: true,
         targetDirectiveEvaluate: true,
         // Context names must pass regex: /^[_$a-z]{1}[_$a-z0-9]{0,}$/i.test(name)
         childrenContextName: "$children",
@@ -3142,6 +3149,7 @@
         onDirectiveName: "on",
         referenceDirectiveName: "reference",
         selectDirectiveName: "select",
+        selectFromElementDirectiveName: "select",
         showDirectiveName: "show",
         stateDirectiveName: "state",
         syncDirectiveName: "sync",
