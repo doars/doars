@@ -108,12 +108,10 @@ const setAfter = (
   }
 
   // Create new element from template.
-  let element = document.importNode(template.content, true)
+  const element = document.importNode(template.content, true).firstElementChild
   // Add element after template or element at index.
   const sibling = index === -1 ? template : elements[index]
   sibling.insertAdjacentElement('afterend', element)
-  // Get HTMLElement reference instead of DocumentFragment.
-  element = sibling.nextElementSibling
   if (allowInlineScript) {
     readdScripts(element)
   }

@@ -78,11 +78,9 @@ export default ({
         }
 
         // Create new element from template.
-        element = document.importNode(template.content, true)
+        element = document.importNode(template.content, true).firstElementChild
         // Add element after the template element.
         template.insertAdjacentElement('afterend', element)
-        // Get HTMLElement reference instead of DocumentFragment.
-        element = template.nextElementSibling
         if (allowInlineScript || modifiers.script) {
           readdScripts(element)
         }

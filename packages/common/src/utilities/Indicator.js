@@ -105,11 +105,9 @@ export const showIndicator = (
   }
 
   // Create new element from template.
-  let indicatorElement = document.importNode(indicatorTemplate.content, true)
+  const indicatorElement = document.importNode(indicatorTemplate.content, true).firstElementChild
   // Add element after the template element.
   indicatorTemplate.insertAdjacentElement('afterend', indicatorElement)
-  // Get HTMLElement reference instead of DocumentFragment.
-  indicatorElement = indicatorTemplate.nextElementSibling
   attribute.indicator = {
     indicatorElement,
     // Transition element in.

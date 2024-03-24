@@ -73,11 +73,10 @@ export default ({
           }
         } else if (element.tagName === 'TEMPLATE') {
           // Create new element from template.
-          const templateInstance = document.importNode(element.content, true)
+          const newElement = document.importNode(element.content, true).firstElementChild
           // Add element after the template element.
-          element.insertAdjacentElement('afterend', templateInstance)
-          // Get HTMLElement reference instead of DocumentFragment.
-          attribute[ROUTE].element = element.nextSibling
+          element.insertAdjacentElement('afterend', newElement)
+          attribute[ROUTE].element = element
 
           // Transition in.
           transitionIn(libraryOptions, attribute[ROUTE].element)
