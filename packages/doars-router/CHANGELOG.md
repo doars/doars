@@ -1,4 +1,9 @@
+
 # CHANGELOG.md
+
+## 3.0.1
+
+- Fix error when routing using templates.
 
 ## 3.0.0
 

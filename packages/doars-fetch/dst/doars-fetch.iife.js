@@ -622,9 +622,8 @@
         return;
       }
     }
-    let indicatorElement = document.importNode(indicatorTemplate.content, true);
+    const indicatorElement = document.importNode(indicatorTemplate.content, true).firstElementChild;
     indicatorTemplate.insertAdjacentElement("afterend", indicatorElement);
-    indicatorElement = indicatorTemplate.nextElementSibling;
     attribute.indicator = {
       indicatorElement,
       // Transition element in.

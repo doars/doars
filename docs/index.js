@@ -1822,10 +1822,9 @@ var setAfter = (component, update, template, elements, index, value, variables, 
     update(element3[FOR].id);
     return;
   }
-  let element2 = document.importNode(template.content, true);
+  let element2 = document.importNode(template.content, true).firstElementChild;
   const sibling = index === -1 ? template : elements[index];
   sibling.insertAdjacentElement("afterend", element2);
-  element2 = sibling.nextElementSibling;
   if (allowInlineScript) {
     readdScripts(element2);
   }
@@ -2251,9 +2250,8 @@ var if_default = ({
         if (transition2) {
           transition2();
         }
-        element2 = document.importNode(template.content, true);
+        element2 = document.importNode(template.content, true).firstElementChild;
         template.insertAdjacentElement("afterend", element2);
-        element2 = template.nextElementSibling;
         if (allowInlineScript || modifiers.script) {
           readdScripts(element2);
         }

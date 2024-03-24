@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 3.1.1
+
+- Updated `@doars/common` dependency.
+
 ## 3.1.0
 
 - Added `d-navigate-select` directive.

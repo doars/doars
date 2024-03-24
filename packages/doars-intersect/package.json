@@ -47,9 +47,9 @@
     "README.md"
   ],
   "devDependencies": {
-    "@doars/doars": "^3.0.3"
+    "@doars/doars": "^3.1.1"
   },
   "dependencies": {
-    "@doars/common": "^2.1.0"
+    "@doars/common": "^2.1.1"
   }
 }

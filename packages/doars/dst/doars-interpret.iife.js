@@ -1825,10 +1825,9 @@
       update(element2[FOR].id);
       return;
     }
-    let element = document.importNode(template.content, true);
+    const element = document.importNode(template.content, true).firstElementChild;
     const sibling = index === -1 ? template : elements[index];
     sibling.insertAdjacentElement("afterend", element);
-    element = sibling.nextElementSibling;
     if (allowInlineScript) {
       readdScripts(element);
     }
@@ -2254,9 +2253,8 @@
           if (transition2) {
             transition2();
           }
-          element = document.importNode(template.content, true);
+          element = document.importNode(template.content, true).firstElementChild;
           template.insertAdjacentElement("afterend", element);
-          element = template.nextElementSibling;
           if (allowInlineScript || modifiers.script) {
             readdScripts(element);
           }

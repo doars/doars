@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 2.1.1
+
+- Fix error when using indicators.
+
 ## 2.1.0
 
 - Added intersection dispatcher.

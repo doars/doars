@@ -764,9 +764,9 @@
               });
             }
           } else if (element.tagName === "TEMPLATE") {
-            const templateInstance = document.importNode(element.content, true);
-            element.insertAdjacentElement("afterend", templateInstance);
-            attribute[ROUTE].element = element.nextSibling;
+            const newElement = document.importNode(element.content, true).firstElementChild;
+            element.insertAdjacentElement("afterend", newElement);
+            attribute[ROUTE].element = element;
             transitionIn(libraryOptions, attribute[ROUTE].element);
           } else {
             element.style.display = null;

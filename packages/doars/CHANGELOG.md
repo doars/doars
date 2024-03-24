@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 3.1.1
+
+- Fix error when using `for` and `if` directives.
+
 ## 3.1.0
 
 - Added delay modifier to `on` directive.

@@ -9,7 +9,6 @@
   "scripts": {
     "build": "yarn workspaces run build",
     "docs:build": "yarn workspace @doars/docs run build",
-    "docs:develop": "yarn workspace @doars/docs run develop",
     "lint": "yarn workspaces run lint",
     "release": "yarn workspaces run release",
     "serve": "serve ./",
