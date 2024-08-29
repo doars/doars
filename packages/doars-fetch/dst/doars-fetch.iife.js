@@ -18,6 +18,7 @@
       case "json":
         promise = response.json();
         break;
+      // HTML and xml need to be converted to text before being able to be parsed.
       case "element":
       case "html":
       case "svg":
@@ -31,11 +32,13 @@
     }
     return promise.then((response2) => {
       switch (type) {
+        // Convert from html to HTMLElement inside a document fragment.
         case "element":
           const template = document.createElement("template");
           template.innerHTML = response2;
           response2 = template.content.childNodes[0];
           break;
+        // Parse some values via the DOM parser.
         case "html":
           response2 = new DOMParser().parseFromString(response2, "text/html");
           break;
@@ -109,7 +112,7 @@
     }
   };
   var cacheListeners = {};
-  var fetchAndParse = (url, options, returnType) => new Promise((resolve, reject) => {
+  var fetchAndParse = (url, options, returnType = "auto") => new Promise((resolve, reject) => {
     fetch(url, options).then((response) => {
       if (response.status < 200 || response.status >= 500) {
         const listeners = cacheListeners[url.location];
@@ -120,19 +123,20 @@
         }
         return;
       }
+      const headers = response.headers;
       if (returnType === "auto") {
         returnType = responseType(response, options);
       }
       if (returnType) {
         response = parseResponse(response, returnType);
       }
-      response.then((responseValue) => {
-        const result = {
-          headers: response.headers,
-          value: responseValue
-        };
+      response.then((value) => {
         const listeners = cacheListeners[url.location];
         delete cacheListeners[url.location];
+        const result = {
+          headers,
+          value
+        };
         resolve(result);
         if (listeners) {
           for (const listener of listeners) {
@@ -862,8 +866,8 @@
         }
         delete attribute[FETCH];
       }
-      const encoding = modifiers.encoding ? modifiers.encoding.toLowerCase() : "urlencoded";
-      const method = modifiers.method ? modifiers.method.toUpperCase() : "GET";
+      const encoding = modifiers.encoding ? modifiers.encoding.toLowerCase() : null;
+      const method = modifiers.method ? modifiers.method.toUpperCase() : null;
       const position = modifiers.position ? modifiers.position.toLowerCase() : null;
       const listenerOptions = {};
       if (modifiers.capture) {
@@ -935,12 +939,16 @@
           _fetchOptions.method = method;
         } else if (isForm && element.hasAttribute("method")) {
           _fetchOptions.method = element.getAttribute("method").toUpperCase();
+        } else {
+          _fetchOptions.method = "GET";
         }
         if (isForm) {
           const formData = new FormData(element);
           let _encoding = encoding;
           if (!_encoding && element.hasAttribute("enctype")) {
             _encoding = element.getAttribute("enctype").toLowerCase();
+          } else {
+            _encoding = "urlencoded";
           }
           if (_fetchOptions.method === "HEAD" || _fetchOptions.method === "GET") {
             _encoding = "parameters";
@@ -956,10 +964,12 @@
               _fetchOptions.body = formData;
               break;
             case "parameters":
-              const parameters = new URLSearchParams(formData).toString();
+              url = new URL(url, window.location.href);
+              const parameters = new URLSearchParams(formData);
               for (const [parameterName, parameterValue] of parameters) {
                 url.searchParams.set(parameterName, parameterValue);
               }
+              url = url.toString();
               break;
             case "urlencoded":
             case "application/x-www-form-urlencoded":

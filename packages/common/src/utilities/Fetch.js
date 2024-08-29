@@ -175,7 +175,7 @@ const cacheListeners = {}
 export const fetchAndParse = (
   url,
   options,
-  returnType,
+  returnType = 'auto',
 ) => new Promise((
   resolve,
   reject,
@@ -197,6 +197,7 @@ export const fetchAndParse = (
         }
         return
       }
+      const headers = response.headers
 
       // Automatically base return type on header.
       if (returnType === 'auto') {
@@ -207,18 +208,16 @@ export const fetchAndParse = (
         response = parseResponse(response, returnType)
       }
       response
-        .then((responseValue) => {
-          // Add response to cache.
-          const result = {
-            headers: response.headers,
-            value: responseValue,
-          }
-
+        .then((value) => {
           // Get other listeners.
           const listeners = cacheListeners[url.location]
           delete cacheListeners[url.location]
 
           // Resolve promise.
+          const result = {
+            headers,
+            value,
+          }
           resolve(result)
 
           // Inform listeners of update.

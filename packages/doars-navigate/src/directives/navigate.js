@@ -114,6 +114,7 @@ export default ({
           Object.assign({}, fetchOptions, {
             headers: Object.assign({}, fetchOptions.headers, fetchHeaders),
           }),
+          'text',
         )
           .then(result => {
             // Validate that this is still the active request.
@@ -157,7 +158,10 @@ export default ({
                 } else {
                   target = element.getAttribute(attributeName)
                 }
-                if (target && typeof (target) === 'string') {
+                if (
+                  target &&
+                  typeof (target) === 'string'
+                ) {
                   target = element.querySelector(target)
                 }
               }
@@ -176,7 +180,7 @@ export default ({
                     component,
                     attribute,
                     processExpression,
-                  ),
+                  )
                 )
               } else {
                 // Ensure element only has one child.
@@ -210,42 +214,72 @@ export default ({
                   component,
                   attribute,
                   processExpression,
-                )
-                if (libraryOptions.allowInlineScript || modifiers.script) {
+                ).toString()
+                if (
+                  libraryOptions.allowInlineScript ||
+                  modifiers.script
+                ) {
                   readdScripts(target)
                 }
               }
-            } else if (target.innerHTML !== html) {
-              target.innerHTML = selectFromElement(
-                html,
-                component,
-                attribute,
-                processExpression,
-              )
-              if (libraryOptions.allowInlineScript || modifiers.script) {
-                readdScripts(...target.children)
+            } else {
+              if (target.innerHTML !== html) {
+                target.innerHTML = selectFromElement(
+                  html,
+                  component,
+                  attribute,
+                  processExpression,
+                )
+                if (
+                  libraryOptions.allowInlineScript ||
+                  modifiers.script
+                ) {
+                  readdScripts(...target.children)
+                }
               }
             }
 
             // Get new document link.
-            if (libraryOptions.redirectHeaderName && result.headers.has(libraryOptions.prefix + '-' + libraryOptions.titleHeaderName)) {
-              window.location.href = result.headers.get(libraryOptions.prefix + '-' + libraryOptions.titleHeaderName)
+            if (
+              libraryOptions.redirectHeaderName &&
+              result.headers.has(libraryOptions.prefix + '-' + libraryOptions.redirectHeaderName)
+            ) {
+              window.location.href = result.headers.get(
+                libraryOptions.prefix + '-' + libraryOptions.redirectHeaderName
+              )
               return
             }
 
             // Get new document title.
             let documentTitle = ''
-            if (libraryOptions.titleHeaderName && result.headers.has(libraryOptions.prefix + '-' + libraryOptions.titleHeaderName)) {
-              documentTitle = result.headers.get(libraryOptions.prefix + '-' + libraryOptions.titleHeaderName)
+            if (
+              libraryOptions.titleHeaderName &&
+              result.headers.has(libraryOptions.prefix + '-' + libraryOptions.titleHeaderName)
+            ) {
+              documentTitle = result.headers.get(
+                libraryOptions.prefix + '-' + libraryOptions.titleHeaderName
+              )
+            } else {
+              let htmlParsed = html
+              if (typeof (html) === 'string') {
+                htmlParsed = elementFromString(html)
+              }
+              documentTitle = htmlParsed.querySelector('head > title') ?? ''
+              if (documentTitle) {
+                documentTitle = documentTitle.textContent.trim()
+              }
             }
 
             // Update history api.
-            if (modifiers.document && modifiers.history) {
-              history.pushState({}, documentTitle, url)
+            if (modifiers.history) {
+              history.pushState({}, '', url)
             }
 
             // If document title was not updated via the history update, then set it now.
-            if (documentTitle && document.title !== documentTitle) {
+            if (
+              documentTitle &&
+              document.title !== documentTitle
+            ) {
               document.title = documentTitle
             }
 
@@ -261,8 +295,9 @@ export default ({
               url,
             })
           })
-          .catch(() =>
+          .catch((error) =>
             dispatchEvent('-failed', {
+              error,
               url,
             }),
           )
@@ -272,7 +307,10 @@ export default ({
         event,
       ) => {
         const anchor = event.target.closest('a')
-        if (!anchor || !anchor.hasAttribute('href')) {
+        if (
+          !anchor ||
+          !anchor.hasAttribute('href')
+        ) {
           return
         }
         const href = anchor.getAttribute('href')
@@ -302,12 +340,15 @@ export default ({
       element.addEventListener(
         'click',
         interactionHandler,
-        listenerOptions,
+        Object.assign({ once: true }, listenerOptions),
       )
 
       // Listen to history api if it can target the whole page.
       let historyHandler
-      if (modifiers.document && modifiers.history) {
+      if (
+        modifiers.document &&
+        modifiers.history
+      ) {
         historyHandler = (
           event,
         ) => {
@@ -334,13 +375,20 @@ export default ({
       if (modifiers.preload === 'interact') {
         const preloadHandler = (event) => {
           const anchor = event.target.closest('a')
-          if (!anchor || !anchor.hasAttribute('href')) {
+          if (
+            !anchor ||
+            !anchor.hasAttribute('href')
+          ) {
             return
           }
           const url = new URL(
             anchor.getAttribute('href'),
             window.location,
           )
+          // Ignore remote urls.
+          if (url.origin !== window.location.origin) {
+            return
+          }
 
           // Dispatch navigation started event.
           dispatchEvent('-started', {
@@ -352,15 +400,17 @@ export default ({
             Object.assign({}, fetchOptions, {
               headers: Object.assign({}, fetchOptions.headers, fetchHeaders),
             }),
+            'text',
           )
+            .catch((error) =>
+              dispatchEvent('-failed', {
+                error,
+                url,
+              }),
+            )
         }
         element.addEventListener(
-          'focusin',
-          preloadHandler,
-          Object.assign({ passive: true }, listenerOptions),
-        )
-        element.addEventListener(
-          'pointerenter',
+          'pointerover',
           preloadHandler,
           Object.assign({ passive: true }, listenerOptions),
         )
@@ -368,11 +418,7 @@ export default ({
         destroyPreloader = (
         ) => {
           element.removeEventListener(
-            'focusin',
-            attribute[NAVIGATE].preloadHandler,
-          )
-          element.removeEventListener(
-            'pointerenter',
+            'pointerover',
             attribute[NAVIGATE].preloadHandler,
           )
         }
@@ -385,6 +431,10 @@ export default ({
                   anchor.target.getAttribute('href'),
                   window.location,
                 )
+                // Ignore remote urls.
+                if (url.origin !== window.location.origin) {
+                  return
+                }
 
                 // Dispatch navigation started event.
                 dispatchEvent('-started', {
@@ -396,7 +446,14 @@ export default ({
                   Object.assign({}, fetchOptions, {
                     headers: Object.assign({}, fetchOptions.headers, fetchHeaders),
                   }),
+                  'text',
                 )
+                  .catch((error) =>
+                    dispatchEvent('-failed', {
+                      error,
+                      url,
+                    }),
+                  )
               }
             }
           },

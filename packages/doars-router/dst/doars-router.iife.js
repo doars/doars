@@ -1,5 +1,5 @@
 (() => {
-  // node_modules/@doars/common/src/utilities/Object.js
+  // ../common/src/utilities/Object.js
   var deepAssign = (target, ...sources) => {
     if (!sources.length) {
       return target;
@@ -34,7 +34,7 @@
     return value && typeof value === "object" && !Array.isArray(value);
   };
 
-  // node_modules/@doars/common/src/polyfills/RevocableProxy.js
+  // ../common/src/polyfills/RevocableProxy.js
   var PROXY_TRAPS = [
     "apply",
     "construct",
@@ -338,7 +338,7 @@
     return stringToRegexp(path, keys, options);
   }
 
-  // node_modules/@doars/common/src/events/EventDispatcher.js
+  // ../common/src/events/EventDispatcher.js
   var EventDispatcher = class {
     /**
      * Create instance.
@@ -544,7 +544,7 @@
     }
   });
 
-  // node_modules/@doars/common/src/utilities/String.js
+  // ../common/src/utilities/String.js
   var parseSelector = (selector) => {
     if (typeof selector === "string") {
       selector = selector.split(/(?=\.)|(?=#)|(?=\[)/);
@@ -578,7 +578,7 @@
     return attributes;
   };
 
-  // node_modules/@doars/common/src/utilities/Attribute.js
+  // ../common/src/utilities/Attribute.js
   var addAttributes = (element, data) => {
     for (const name in data) {
       if (name === "class") {
@@ -605,7 +605,7 @@
     }
   };
 
-  // node_modules/@doars/common/src/utilities/Transition.js
+  // ../common/src/utilities/Transition.js
   var TRANSITION_NAME = "-transition:";
   var transition = (type, libraryOptions, element, callback = null) => {
     if (element.nodeType !== 1) {

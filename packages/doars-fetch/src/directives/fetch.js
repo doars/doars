@@ -101,8 +101,8 @@ export default ({
 
     // Process modifiers.
 
-    const encoding = (modifiers.encoding ? modifiers.encoding.toLowerCase() : 'urlencoded')
-    const method = (modifiers.method ? modifiers.method.toUpperCase() : 'GET')
+    const encoding = (modifiers.encoding ? modifiers.encoding.toLowerCase() : null)
+    const method = (modifiers.method ? modifiers.method.toUpperCase() : null)
     const position = (modifiers.position ? modifiers.position.toLowerCase() : null)
 
     // Set listener options.
@@ -195,6 +195,8 @@ export default ({
         _fetchOptions.method = method
       } else if (isForm && element.hasAttribute('method')) {
         _fetchOptions.method = element.getAttribute('method').toUpperCase()
+      } else {
+        _fetchOptions.method = 'GET'
       }
 
       if (isForm) {
@@ -205,6 +207,8 @@ export default ({
           element.hasAttribute('enctype')
         ) {
           _encoding = element.getAttribute('enctype').toLowerCase()
+        } else {
+          _encoding = 'urlencoded'
         }
         if (
           _fetchOptions.method === 'HEAD' ||
@@ -226,10 +230,12 @@ export default ({
             break
 
           case 'parameters':
-            const parameters = new URLSearchParams(formData).toString()
+            url = new URL(url, window.location.href)
+            const parameters = new URLSearchParams(formData)
             for (const [parameterName, parameterValue] of parameters) {
               url.searchParams.set(parameterName, parameterValue)
             }
+            url = url.toString()
             break
 
           case 'urlencoded':

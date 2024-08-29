@@ -196,7 +196,7 @@ export default class Doars extends EventDispatcher {
       prefix,
       processor,
       root,
-    } = options = Object.freeze(Object.assign({
+    } = options = Object.assign({
       prefix: 'd',
       processor: 'execute',
       root: document.body,
@@ -253,11 +253,15 @@ export default class Doars extends EventDispatcher {
       redirectHeaderName: 'redirect',
       requestHeaderName: 'request',
       titleHeaderName: 'title',
-    }, options))
+    }, options)
     // If root is a string assume it is a selector.
     if (typeof (root) === 'string') {
       root = options.root = document.querySelector(root)
     }
+
+    // Prevent further modifications.
+    options = Object.freeze(options)
+
     // Validate options.
     if (!prefix) {
       console.error('Doars: `prefix` option not set.')

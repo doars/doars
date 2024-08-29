@@ -88,7 +88,7 @@ var update_default2 = ({
   ];
 };
 
-// node_modules/@doars/common/src/polyfills/RevocableProxy.js
+// ../common/src/polyfills/RevocableProxy.js
 var PROXY_TRAPS = [
   "apply",
   "construct",
@@ -126,7 +126,7 @@ var RevocableProxy_default = (target, handler) => {
   };
 };
 
-// node_modules/@doars/common/src/events/EventDispatcher.js
+// ../common/src/events/EventDispatcher.js
 var EventDispatcher = class {
   /**
    * Create instance.
@@ -187,7 +187,7 @@ var EventDispatcher = class {
   }
 };
 
-// node_modules/@doars/common/src/events/ProxyDispatcher.js
+// ../common/src/events/ProxyDispatcher.js
 var ProxyDispatcher = class extends EventDispatcher {
   /**
    * Creates a proxy dispatcher instance.

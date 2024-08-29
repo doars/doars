@@ -1,4 +1,4 @@
-// node_modules/@doars/common/src/polyfills/RevocableProxy.js
+// ../common/src/polyfills/RevocableProxy.js
 var PROXY_TRAPS = [
   "apply",
   "construct",
@@ -36,7 +36,7 @@ var RevocableProxy_default = (target, handler) => {
   };
 };
 
-// node_modules/@doars/common/src/events/EventDispatcher.js
+// ../common/src/events/EventDispatcher.js
 var EventDispatcher = class {
   /**
    * Create instance.
@@ -97,7 +97,7 @@ var EventDispatcher = class {
   }
 };
 
-// node_modules/@doars/common/src/events/ProxyDispatcher.js
+// ../common/src/events/ProxyDispatcher.js
 var ProxyDispatcher = class extends EventDispatcher {
   /**
    * Creates a proxy dispatcher instance.
@@ -175,7 +175,7 @@ var ProxyDispatcher = class extends EventDispatcher {
   }
 };
 
-// node_modules/@doars/common/src/factories/createState.js
+// ../common/src/factories/createState.js
 var createState_default = (name, id, state, proxy) => {
   return (component, attribute, update) => {
     const onDelete = (target, path) => update(id, name + "." + path.join("."));
@@ -198,7 +198,7 @@ var createState_default = (name, id, state, proxy) => {
   };
 };
 
-// node_modules/@doars/common/src/factories/createStateContext.js
+// ../common/src/factories/createStateContext.js
 var createStateContext_default = (name, id, state, proxy, deconstruct) => ({
   deconstruct,
   name,

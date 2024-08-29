@@ -18,6 +18,7 @@
       case "json":
         promise = response.json();
         break;
+      // HTML and xml need to be converted to text before being able to be parsed.
       case "element":
       case "html":
       case "svg":
@@ -31,11 +32,13 @@
     }
     return promise.then((response2) => {
       switch (type) {
+        // Convert from html to HTMLElement inside a document fragment.
         case "element":
           const template = document.createElement("template");
           template.innerHTML = response2;
           response2 = template.content.childNodes[0];
           break;
+        // Parse some values via the DOM parser.
         case "html":
           response2 = new DOMParser().parseFromString(response2, "text/html");
           break;
@@ -109,7 +112,7 @@
     }
   };
   var cacheListeners = {};
-  var fetchAndParse = (url, options, returnType) => new Promise((resolve, reject) => {
+  var fetchAndParse = (url, options, returnType = "auto") => new Promise((resolve, reject) => {
     fetch(url, options).then((response) => {
       if (response.status < 200 || response.status >= 500) {
         const listeners = cacheListeners[url.location];
@@ -120,19 +123,20 @@
         }
         return;
       }
+      const headers = response.headers;
       if (returnType === "auto") {
         returnType = responseType(response, options);
       }
       if (returnType) {
         response = parseResponse(response, returnType);
       }
-      response.then((responseValue) => {
-        const result = {
-          headers: response.headers,
-          value: responseValue
-        };
+      response.then((value) => {
         const listeners = cacheListeners[url.location];
         delete cacheListeners[url.location];
+        const result = {
+          headers,
+          value
+        };
         resolve(result);
         if (listeners) {
           for (const listener of listeners) {
@@ -794,8 +798,10 @@
             url,
             Object.assign({}, fetchOptions, {
               headers: Object.assign({}, fetchOptions.headers, fetchHeaders)
-            })
+            }),
+            "text"
           ).then((result) => {
+            var _a;
             if (!attribute[NAVIGATE].identifier || attribute[NAVIGATE].identifier !== identifier) {
               return;
             }
@@ -875,32 +881,47 @@
                   component,
                   attribute,
                   processExpression
-                );
+                ).toString();
                 if (libraryOptions.allowInlineScript || modifiers.script) {
                   readdScripts(target);
                 }
               }
-            } else if (target.innerHTML !== html) {
-              target.innerHTML = select(
-                html,
-                component,
-                attribute,
-                processExpression
-              );
-              if (libraryOptions.allowInlineScript || modifiers.script) {
-                readdScripts(...target.children);
+            } else {
+              if (target.innerHTML !== html) {
+                target.innerHTML = select(
+                  html,
+                  component,
+                  attribute,
+                  processExpression
+                );
+                if (libraryOptions.allowInlineScript || modifiers.script) {
+                  readdScripts(...target.children);
+                }
               }
             }
-            if (libraryOptions.redirectHeaderName && result.headers.has(libraryOptions.prefix + "-" + libraryOptions.titleHeaderName)) {
-              window.location.href = result.headers.get(libraryOptions.prefix + "-" + libraryOptions.titleHeaderName);
+            if (libraryOptions.redirectHeaderName && result.headers.has(libraryOptions.prefix + "-" + libraryOptions.redirectHeaderName)) {
+              window.location.href = result.headers.get(
+                libraryOptions.prefix + "-" + libraryOptions.redirectHeaderName
+              );
               return;
             }
             let documentTitle = "";
             if (libraryOptions.titleHeaderName && result.headers.has(libraryOptions.prefix + "-" + libraryOptions.titleHeaderName)) {
-              documentTitle = result.headers.get(libraryOptions.prefix + "-" + libraryOptions.titleHeaderName);
+              documentTitle = result.headers.get(
+                libraryOptions.prefix + "-" + libraryOptions.titleHeaderName
+              );
+            } else {
+              let htmlParsed = html;
+              if (typeof html === "string") {
+                htmlParsed = fromString(html);
+              }
+              documentTitle = (_a = htmlParsed.querySelector("head > title")) != null ? _a : "";
+              if (documentTitle) {
+                documentTitle = documentTitle.textContent.trim();
+              }
             }
-            if (modifiers.document && modifiers.history) {
-              history.pushState({}, documentTitle, url);
+            if (modifiers.history) {
+              history.pushState({}, "", url);
             }
             if (documentTitle && document.title !== documentTitle) {
               document.title = documentTitle;
@@ -915,7 +936,8 @@
               url
             });
           }).catch(
-            () => dispatchEvent("-failed", {
+            (error) => dispatchEvent("-failed", {
+              error,
               url
             })
           );
@@ -942,7 +964,7 @@
         element.addEventListener(
           "click",
           interactionHandler,
-          listenerOptions
+          Object.assign({ once: true }, listenerOptions)
         );
         let historyHandler;
         if (modifiers.document && modifiers.history) {
@@ -970,6 +992,9 @@
               anchor.getAttribute("href"),
               window.location
             );
+            if (url.origin !== window.location.origin) {
+              return;
+            }
             dispatchEvent("-started", {
               url
             });
@@ -977,26 +1002,23 @@
               url,
               Object.assign({}, fetchOptions, {
                 headers: Object.assign({}, fetchOptions.headers, fetchHeaders)
+              }),
+              "text"
+            ).catch(
+              (error) => dispatchEvent("-failed", {
+                error,
+                url
               })
             );
           };
           element.addEventListener(
-            "focusin",
-            preloadHandler,
-            Object.assign({ passive: true }, listenerOptions)
-          );
-          element.addEventListener(
-            "pointerenter",
+            "pointerover",
             preloadHandler,
             Object.assign({ passive: true }, listenerOptions)
           );
           destroyPreloader = () => {
             element.removeEventListener(
-              "focusin",
-              attribute[NAVIGATE].preloadHandler
-            );
-            element.removeEventListener(
-              "pointerenter",
+              "pointerover",
               attribute[NAVIGATE].preloadHandler
             );
           };
@@ -1009,6 +1031,9 @@
                     anchor.target.getAttribute("href"),
                     window.location
                   );
+                  if (url.origin !== window.location.origin) {
+                    return;
+                  }
                   dispatchEvent("-started", {
                     url
                   });
@@ -1016,6 +1041,12 @@
                     url,
                     Object.assign({}, fetchOptions, {
                       headers: Object.assign({}, fetchOptions.headers, fetchHeaders)
+                    }),
+                    "text"
+                  ).catch(
+                    (error) => dispatchEvent("-failed", {
+                      error,
+                      url
                     })
                   );
                 }

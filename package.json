@@ -18,20 +18,21 @@
     "upgrade": "npm-check-updates --upgrade --target minor && yarn workspaces run upgrade && yarn install"
   },
   "devDependencies": {
-    "@playwright/test": "^1.41.1",
+    "@playwright/test": "^1.46.1",
     "brotli-size": "^4.0.0",
-    "chai": "^4.4.1",
-    "esbuild": "^0.20.0",
-    "eslint": "^8.56.0",
+    "chai": "^4.5.0",
+    "esbuild": "^0.23.1",
+    "eslint": "^8.57.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-jsdoc": "^46.10.1",
     "eslint-plugin-n": "^16.6.2",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^6.1.1",
-    "mocha": "^10.2.0",
-    "npm-check-updates": "^16.14.14",
-    "serve": "^14.2.1"
+    "eslint-plugin-promise": "^6.6.0",
+    "mocha": "^10.7.3",
+    "npm-check-updates": "^16.14.20",
+    "serve": "^14.2.3"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

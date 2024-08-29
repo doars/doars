@@ -5,7 +5,7 @@ var FOR = Symbol("FOR");
 var REFERENCES = Symbol("REFERENCES");
 var REFERENCES_CACHE = Symbol("REFERENCES_CACHE");
 
-// node_modules/@doars/common/src/events/EventDispatcher.js
+// ../common/src/events/EventDispatcher.js
 var EventDispatcher = class {
   /**
    * Create instance.
@@ -66,7 +66,7 @@ var EventDispatcher = class {
   }
 };
 
-// node_modules/@doars/common/src/utilities/String.js
+// ../common/src/utilities/String.js
 var escapeHtml = (text) => {
   return text.replace(/\\/g, "\\\\").replace(/\\'/g, "\\'").replace(/\\"/g, '\\"').replace(/\n/g, "\\n");
 };
@@ -304,7 +304,7 @@ var Attribute = class _Attribute extends EventDispatcher {
   }
 };
 
-// node_modules/@doars/common/src/polyfills/RevocableProxy.js
+// ../common/src/polyfills/RevocableProxy.js
 var PROXY_TRAPS = [
   "apply",
   "construct",
@@ -342,7 +342,7 @@ var RevocableProxy_default = (target, handler) => {
   };
 };
 
-// node_modules/@doars/common/src/events/ProxyDispatcher.js
+// ../common/src/events/ProxyDispatcher.js
 var ProxyDispatcher = class extends EventDispatcher {
   /**
    * Creates a proxy dispatcher instance.
@@ -431,11 +431,10 @@ var closestComponent = (element) => {
   }
 };
 
-// node_modules/@doars/common/src/utilities/Element.js
+// ../common/src/utilities/Element.js
 var fromString = (string) => {
   const stringStart = string.substring(0, 15).toLowerCase();
-  const isDocument = stringStart.startsWith("<!doctype html>") || stringStart.startsWith("<html>");
-  if (isDocument) {
+  if (stringStart.startsWith("<!doctype html>") || stringStart.startsWith("<html>")) {
     const html = document.createElement("html");
     html.innerHTML = string;
     return html;
@@ -456,7 +455,7 @@ var isSame = (a, b) => {
   }
   return false;
 };
-var walk = (element, filter) => {
+var walk = (node, filter) => {
   let index = -1;
   let iterator = null;
   return () => {
@@ -469,10 +468,10 @@ var walk = (element, filter) => {
     let child = null;
     do {
       index++;
-      if (index >= element.childElementCount) {
+      if (index >= node.childElementCount) {
         return null;
       }
-      child = element.children[index];
+      child = node.children[index];
     } while (!filter(child));
     if (child.childElementCount) {
       iterator = walk(child, filter);
@@ -1197,7 +1196,7 @@ var siblings_default = ({
   }
 });
 
-// node_modules/@doars/common/src/factories/createState.js
+// ../common/src/factories/createState.js
 var createState_default = (name, id, state, proxy) => {
   return (component, attribute, update) => {
     const onDelete = (target, path) => update(id, name + "." + path.join("."));
@@ -1248,7 +1247,7 @@ var state_default = ({
   }
 });
 
-// node_modules/@doars/common/src/utilities/Object.js
+// ../common/src/utilities/Object.js
 var deepAssign = (target, ...sources) => {
   if (!sources.length) {
     return target;
@@ -1304,7 +1303,7 @@ var setDeeply = (object, path, value) => {
   object[path[i]] = value;
 };
 
-// node_modules/@doars/common/src/factories/createStateContext.js
+// ../common/src/factories/createStateContext.js
 var createStateContext_default = (name, id, state, proxy, deconstruct) => ({
   deconstruct,
   name,
@@ -1448,7 +1447,7 @@ var watch_default = ({
   }
 });
 
-// node_modules/@doars/common/src/utilities/Attribute.js
+// ../common/src/utilities/Attribute.js
 var addAttributes = (element, data) => {
   for (const name in data) {
     if (name === "class") {
@@ -1569,7 +1568,7 @@ var setAttributes = (element, data) => {
   }
 };
 
-// node_modules/@doars/common/src/utilities/Promise.js
+// ../common/src/utilities/Promise.js
 var nativePromise = Function.prototype.toString.call(
   Function
   /* A native object */
@@ -1627,7 +1626,7 @@ var attribute_default = ({
   }
 });
 
-// node_modules/@doars/common/src/utilities/Transition.js
+// ../common/src/utilities/Transition.js
 var TRANSITION_NAME = "-transition:";
 var transition = (type, libraryOptions, element, callback = null) => {
   if (element.nodeType !== 1) {
@@ -1759,7 +1758,7 @@ var cloak_default = ({
   }
 });
 
-// node_modules/@doars/common/src/utilities/Script.js
+// ../common/src/utilities/Script.js
 var _readdScript = (element) => {
   if (element.tagName !== "SCRIPT" || element.hasAttribute("src")) {
     return false;
@@ -1970,7 +1969,7 @@ var for_default2 = ({
   }
 });
 
-// node_modules/@doars/common/src/utilities/Html.js
+// ../common/src/utilities/Html.js
 var DECODE_LOOKUP = {
   "&amp;": "&",
   "&#38;": "&",
@@ -1993,7 +1992,7 @@ var decode = (string) => {
   });
 };
 
-// node_modules/@doars/common/src/utilities/Morph.js
+// ../common/src/utilities/Morph.js
 var morphNode = (existingNode, newNode) => {
   const nodeType = newNode.nodeType;
   const nodeName = newNode.nodeName;
@@ -2101,7 +2100,7 @@ var _updateChildren = (existingNode, newNode) => {
       existingNode.removeChild(existingChild);
       i--;
     } else if (!existingChild) {
-      existingNode.appendChild(newChild);
+      existingNode.append(newChild);
       offset++;
     } else if (isSame(existingChild, newChild)) {
       morphed = _updateTree(existingChild, newChild);
@@ -2528,6 +2527,7 @@ var on_default = ({
           }
           attribute[ON].timeout = setTimeout(execute2, modifiers.debounce);
           return;
+        // Execute the event when let go after the given time has exceeded.
         case EXECUTION_MODIFIERS.HELD:
           if (!(eventName in CANCEL_EVENTS)) {
             console.warn('Doars: "' + directive + '" directive, event of name "' + eventName + '" is not cancelable and can not have "held" modifier.');
@@ -2570,6 +2570,7 @@ var on_default = ({
           attribute[ON].prevent = true;
           target.addEventListener(cancelHeldName, attribute[ON].cancel, { once: true });
           return;
+        // Execute event when keys have been held down for the given time.
         case EXECUTION_MODIFIERS.HOLD:
           if (!(eventName in CANCEL_EVENTS)) {
             console.warn('Doars: "' + directive + '" directive, event of name "' + eventName + '" is not cancelable and can not have "hold" modifier.');
@@ -3105,7 +3106,7 @@ var Doars = class extends EventDispatcher {
       prefix,
       processor,
       root
-    } = options = Object.freeze(Object.assign({
+    } = options = Object.assign({
       prefix: "d",
       processor: "execute",
       root: document.body,
@@ -3158,10 +3159,11 @@ var Doars = class extends EventDispatcher {
       redirectHeaderName: "redirect",
       requestHeaderName: "request",
       titleHeaderName: "title"
-    }, options));
+    }, options);
     if (typeof root === "string") {
       root = options.root = document.querySelector(root);
     }
+    options = Object.freeze(options);
     if (!prefix) {
       console.error("Doars: `prefix` option not set.");
       return;

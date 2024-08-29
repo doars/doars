@@ -37,7 +37,10 @@ export const isSame = (
   a,
   b,
 ) => {
-  if (a.isSameNode && a.isSameNode(b)) {
+  if (
+    a.isSameNode &&
+    a.isSameNode(b)
+  ) {
     return true
   }
 
@@ -96,7 +99,10 @@ export const select = (
 
     node = node.querySelector(selector)
 
-    if (asString && node) {
+    if (
+      asString &&
+      node
+    ) {
       return node.outerHTML
     }
   }
@@ -129,7 +135,10 @@ export const walk = (
   let iterator = null
   return () => {
     // First go over iterator.
-    if (index >= 0 && iterator) {
+    if (
+      index >= 0 &&
+      iterator
+    ) {
       const child = iterator()
       if (child) {
         return child
