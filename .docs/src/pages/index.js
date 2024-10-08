@@ -512,19 +512,25 @@ export default (
               r('a', {
                 href: 'https://github.com/doars/doars#readme',
                 target: '_blank',
-              }, 'GitHub')
+              }, 'GitHub'),
             ]),
             r('li', [
               r('a', {
                 href: 'https://npmjs.com/org/doars/',
                 target: '_blank',
-              }, 'NPM')
+              }, 'NPM'),
             ]),
             r('li', [
               r('a', {
-                href: 'https://rondekker.com',
+                href: 'https://rondekker.com/',
                 target: '_blank',
-              }, 'From Ron Dekker')
+              }, 'From Ron Dekker'),
+            ]),
+            r('li', [
+              r('a', {
+                href: 'https://rondekker.nl/',
+                target: '_blank',
+              }, 'Van Ron Dekker'),
             ]),
           ]),
         ]),
