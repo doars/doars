@@ -913,6 +913,10 @@ Because the interpret processor does not use [eval](https://developer.mozilla.or
 
 ```JavaScript
 import Doars from '@doars/doars/src/DoarsInterpret.js'
+
+const doars = new Doars({
+  processor: 'interpret',
+})
 ```
 
 ### Call processor
@@ -927,6 +931,10 @@ Because the call processor does not try to run an arbitrary expression it is the
 
 ```JavaScript
 import Doars from '@doars/doars/src/DoarsCall.js'
+
+const doars = new Doars({
+  processor: 'call',
+})
 ```
 
 #### Call processor examples
