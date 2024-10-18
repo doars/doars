@@ -905,7 +905,7 @@ import Doars from '@doars/doars/src/DoarsExecute.js'
 
 The interpret function uses a [custom interpreter](https://github.com/doars/doars/tree/main/packages/interpret#readme) that parses and runs the expression. The interpret does not support all JavaScript features, but any expression that it runs is also valid JavaScript. To see what features are supported see the interpreter's [supported features](https://github.com/doars/doars/tree/main/packages/interpret#supported-features) section.
 
-Because the interpret processor does not use the `Function` constructor it can be used when a [Content Security Policy](https://developer.mozilla.org/docs/Web/HTTP/CSP) is setup without `unsafe-eval`. However the interpreter is essentially a way to get around the policy and should not be used without taking the accompanying risks into consideration.
+Because the interpret processor does not use [eval](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval) or the [`Function` constructor](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/Function) it can be used when a [Content Security Policy](https://developer.mozilla.org/docs/Web/HTTP/CSP) is setup without [`unsafe-eval`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/script-src#unsafe_eval_expressions). However the interpreter is essentially a way to get around the policy and should not be used without taking the accompanying risks into consideration.
 
 ```HTML
 <script src="https://cdn.jsdelivr.net/npm/@doars/doars@3/dst/doars-interpret.iife.js"></script>
