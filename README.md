@@ -59,6 +59,7 @@ This mono-repository includes the core library as well as several plugins. See t
 | [@doars/doars-persist](https://github.com/doars/doars/tree/main/packages/doars-persist#readme)     | Plugin that adds cookies, local storage, and sessions storage contexts to get and set persistent data.                   |
 | [@doars/doars-router](https://github.com/doars/doars/tree/main/packages/doars-router#readme)       | Plugin that adds a router context with set of directives to control it.                                                  |
 | [@doars/doars-update](https://github.com/doars/doars/tree/main/packages/doars-update#readme)       | Plugin that adds an update loop context and directive.                                                                   |
+| [@doars/interpret](https://github.com/doars/doars/tree/main/packages/interpret#readme)             | Interpret a subset of JavaScript expressions without using the eval function or Function constructor.                    |
 
 ## Contributing
 
@@ -72,5 +73,6 @@ If you are using Doars then please [let me know](https://rondekker.com#contact),
 
 - Input masking plugin for formatting dates, money et cetera.
 - Visibility directives similar to intersection plugin.
+- Websocket plugin.
 - Sensor plugin for accessing the accelerometer, gyroscope et cetera.
 - Realtime shared state between clients using WebRTC.

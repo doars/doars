@@ -9,7 +9,7 @@
 
 # @doars/interpret
 
-Interpret a subset JavaScript expression without using the [`eval` function](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/eval) or [`Function` constructor](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function/Function). Allowing it to be used in combination with a strict [Content Security Policy](https://developer.mozilla.org/docs/Web/HTTP/Headers/Content-Security-Policy) that does not contain the `unsafe-eval` option.
+Interpret a subset of JavaScript expressions without using the [`eval` function](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/eval) or [`Function` constructor](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Function/Function). Allowing it to be used in combination with a strict [Content Security Policy](https://developer.mozilla.org/docs/Web/HTTP/Headers/Content-Security-Policy) that does not contain the `unsafe-eval` option.
 
 The interpreter is written for the [@doars/doars library](https://doars.js.org), but can be used elsewhere as well. The features it support are meant to be simple and not allow for much complexity similar to what a formulae in a spreadsheet can do.
 
@@ -81,8 +81,8 @@ As well as several value types and most operators. See an overview below for mor
 - Booleans: `false` and `true`.
 - Strings: `'hello'` and `"there"`.
 - Numbers: `1` and `12.3`.
-- Arrays: `[]`, `['hello']` `['hello', 'there']`.
-- Objects: `{}`, `{ hello: 'there' }`, `{ hello: 'there', general: 'kenobi' }`, `{ [hello]: 'there' }`, `{ hello }` and `{ hello, there }`.
+- Arrays: `[]`, `['hello']`, and `['hello', 'there']`.
+- Objects: `{}`, `{ hello: 'there' }`, `{ hello: 'there', general: 'kenobi' }`, `{ [hello]: 'there' }`, `{ hello }`, and `{ hello, there }`.
 
 ### Operators
 
@@ -92,7 +92,7 @@ As well as several value types and most operators. See an overview below for mor
 - Relation: `1 > 0`, as well as `>`, `<=`, and `>=`.
 - Ternary: `true ? 0 : 1`.
 - Unary: `+1` as well as `-1` and `!false`.
-- Decrement and increment: `--hello` as well as `hello--`, `++hello` and `hello++`.
+- Decrement and increment: `--hello` as well as `hello--`, `++hello`, and `hello++`.
 - Assignment: `hello = 'there'`.
 - Arithmetic assignment: `hello **= 2` as well as `*=`, `/=`, `%=`, `+=`, and `-=`.
 - Logical assignment: `hello ||= 'there'` as well as `&&=` and `??=`.
