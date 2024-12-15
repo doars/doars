@@ -163,8 +163,7 @@ function parse(str, options) {
     options = {};
   }
   var tokens = lexer(str);
-  var _a = options.prefixes, prefixes = _a === void 0 ? "./" : _a;
-  var defaultPattern = "[^".concat(escapeString(options.delimiter || "/#?"), "]+?");
+  var _a = options.prefixes, prefixes = _a === void 0 ? "./" : _a, _b = options.delimiter, delimiter = _b === void 0 ? "/#?" : _b;
   var result = [];
   var key = 0;
   var i = 0;
@@ -188,6 +187,24 @@ function parse(str, options) {
     }
     return result2;
   };
+  var isSafe = function(value2) {
+    for (var _i = 0, delimiter_1 = delimiter; _i < delimiter_1.length; _i++) {
+      var char2 = delimiter_1[_i];
+      if (value2.indexOf(char2) > -1)
+        return true;
+    }
+    return false;
+  };
+  var safePattern = function(prefix2) {
+    var prev = result[result.length - 1];
+    var prevText = prefix2 || (prev && typeof prev === "string" ? prev : "");
+    if (prev && !prevText) {
+      throw new TypeError('Must have text between two parameters, missing text after "'.concat(prev.name, '"'));
+    }
+    if (!prevText || isSafe(prevText))
+      return "[^".concat(escapeString(delimiter), "]+?");
+    return "(?:(?!".concat(escapeString(prevText), ")[^").concat(escapeString(delimiter), "])+?");
+  };
   while (i < tokens.length) {
     var char = tryConsume("CHAR");
     var name = tryConsume("NAME");
@@ -206,7 +223,7 @@ function parse(str, options) {
         name: name || key++,
         prefix,
         suffix: "",
-        pattern: pattern || defaultPattern,
+        pattern: pattern || safePattern(prefix),
         modifier: tryConsume("MODIFIER") || ""
       });
       continue;
@@ -229,7 +246,7 @@ function parse(str, options) {
       mustConsume("CLOSE");
       result.push({
         name: name_1 || (pattern_1 ? key++ : ""),
-        pattern: name_1 && !pattern_1 ? defaultPattern : pattern_1,
+        pattern: name_1 && !pattern_1 ? safePattern(prefix) : pattern_1,
         prefix,
         suffix,
         modifier: tryConsume("MODIFIER") || ""
@@ -303,10 +320,9 @@ function tokensToRegexp(tokens, keys, options) {
           }
         } else {
           if (token.modifier === "+" || token.modifier === "*") {
-            route += "((?:".concat(token.pattern, ")").concat(token.modifier, ")");
-          } else {
-            route += "(".concat(token.pattern, ")").concat(token.modifier);
+            throw new TypeError('Can not repeat "'.concat(token.name, '" without a prefix and suffix'));
           }
+          route += "(".concat(token.pattern, ")").concat(token.modifier);
         }
       } else {
         route += "(?:".concat(prefix).concat(suffix, ")").concat(token.modifier);

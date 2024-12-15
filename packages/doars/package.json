@@ -46,7 +46,7 @@
   ],
   "devDependencies": {},
   "dependencies": {
-    "@doars/common": "^2.1.1",
+    "@doars/common": "^2.1.2",
     "@doars/interpret": "^1.1.0"
   }
 }

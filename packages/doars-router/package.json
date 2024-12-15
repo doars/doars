@@ -47,7 +47,7 @@
     "@doars/doars": "^3.1.1"
   },
   "dependencies": {
-    "@doars/common": "^2.1.1",
-    "path-to-regexp": "^6.2.2"
+    "@doars/common": "^2.1.2",
+    "path-to-regexp": "^6.3.0"
   }
 }

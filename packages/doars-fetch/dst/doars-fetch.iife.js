@@ -4,7 +4,7 @@
     let promise;
     switch (String.prototype.toLowerCase.call(type)) {
       default:
-        console.warn('Unknown response type "' + type + '" used when using the $fetch context.');
+        console.warn('Unknown response type "' + type + '" used.');
         break;
       case "arraybuffer":
         promise = response.arrayBuffer();
@@ -20,6 +20,7 @@
         break;
       // HTML and xml need to be converted to text before being able to be parsed.
       case "element":
+      case "html-partial":
       case "html":
       case "svg":
       case "text":
@@ -34,6 +35,7 @@
       switch (type) {
         // Convert from html to HTMLElement inside a document fragment.
         case "element":
+        case "html-partial":
           const template = document.createElement("template");
           template.innerHTML = response2;
           response2 = template.content.childNodes[0];
@@ -97,6 +99,8 @@
     switch (mimeType) {
       case "text/html":
         return "html";
+      case "text/html-partial":
+        return "html-partial";
       case "text/json":
       case "application/json":
       case "application/ld+json":
@@ -111,57 +115,25 @@
         return "xml";
     }
   };
-  var cacheListeners = {};
-  var fetchAndParse = (url, options, returnType = "auto") => new Promise((resolve, reject) => {
+  var fetchAndParse = (url, options, returnType) => new Promise((resolve, reject) => {
     fetch(url, options).then((response) => {
       if (response.status < 200 || response.status >= 500) {
-        const listeners = cacheListeners[url.location];
-        delete cacheListeners[url.location];
         reject(response);
-        for (const listener of listeners) {
-          listener.reject(response);
-        }
         return;
       }
-      const headers = response.headers;
-      if (returnType === "auto") {
+      if (!returnType || returnType === "auto") {
         returnType = responseType(response, options);
       }
-      if (returnType) {
-        response = parseResponse(response, returnType);
+      const responseParse = parseResponse(response, returnType);
+      if (!responseParse) {
+        throw new Error("No valid response returned.");
       }
-      response.then((value) => {
-        const listeners = cacheListeners[url.location];
-        delete cacheListeners[url.location];
-        const result = {
-          headers,
-          value
-        };
-        resolve(result);
-        if (listeners) {
-          for (const listener of listeners) {
-            listener.resolve(result);
-          }
-        }
-      }).catch((error) => {
-        const listeners = cacheListeners[url.location];
-        delete cacheListeners[url.location];
-        reject(error);
-        if (listeners) {
-          for (const listener of listeners) {
-            listener.reject(error);
-          }
-        }
+      responseParse.then((responseValue) => {
+        response.value = responseValue;
+        resolve(response);
       });
     }).catch((error) => {
-      const listeners = cacheListeners[url.location];
-      delete cacheListeners[url.location];
       reject(error);
-      if (listeners) {
-        for (const listener of listeners) {
-          listener.reject(error);
-        }
-      }
     });
   });
 
@@ -992,12 +964,13 @@
           url,
           Object.assign({}, fetchOptions, _fetchOptions, {
             headers: Object.assign({}, _fetchOptions.headers, fetchHeaders)
-          })
-        ).then((result) => {
+          }),
+          "text"
+        ).then((response) => {
           isLoading = false;
-          let html = result.value;
+          let html = response.value;
           if (modifiers.decode) {
-            html = decode(result.value);
+            html = decode(html);
           }
           let target = null;
           if (modifiers.document) {
@@ -1120,15 +1093,15 @@
               readdScripts(...target.children);
             }
           }
-          if (libraryOptions.redirectHeaderName && result.headers.has(libraryOptions.prefix + "-" + libraryOptions.titleHeaderName)) {
-            window.location.href = result.headers.get(libraryOptions.prefix + "-" + libraryOptions.titleHeaderName);
+          if (libraryOptions.redirectHeaderName && response.headers.has(libraryOptions.prefix + "-" + libraryOptions.redirectHeaderName)) {
+            window.location.href = response.headers.get(libraryOptions.prefix + "-" + libraryOptions.redirectHeaderName);
             return;
           }
           let documentTitle = "";
-          if (libraryOptions.titleHeaderName && result.headers.has(libraryOptions.prefix + "-" + libraryOptions.titleHeaderName)) {
-            documentTitle = result.headers.get(libraryOptions.prefix + "-" + libraryOptions.titleHeaderName);
+          if (libraryOptions.titleHeaderName && response.headers.has(libraryOptions.prefix + "-" + libraryOptions.titleHeaderName)) {
+            documentTitle = response.headers.get(libraryOptions.prefix + "-" + libraryOptions.titleHeaderName);
           }
-          if (modifiers.document && modifiers.history) {
+          if (modifiers.history) {
             history.pushState({}, documentTitle, url);
           }
           if (documentTitle && document.title !== documentTitle) {
@@ -1182,6 +1155,8 @@
             );
           } else if (isForm && element.hasAttribute("action")) {
             url = element.getAttribute("action");
+          } else {
+            url = window.location.href;
           }
           attribute[FETCH].buffer = [];
           if (!url) {

@@ -116,17 +116,17 @@ export default ({
           }),
           'text',
         )
-          .then(result => {
+          .then(response => {
             // Validate that this is still the active request.
             if (
-              !attribute[NAVIGATE].identifier ||
-              attribute[NAVIGATE].identifier !== identifier
+              !attribute[NAVIGATE].identifier
+              || attribute[NAVIGATE].identifier !== identifier
             ) {
               return
             }
 
             // Check if request was successful.
-            if (!result) {
+            if (!response) {
               hideIndicator(
                 component,
                 attribute,
@@ -138,9 +138,9 @@ export default ({
             }
 
             // Decode string.
-            let html = result.value
+            let html = response.value
             if (modifiers.decode) {
-              html = decode(result.value)
+              html = decode(html)
             }
 
             let target = null
@@ -159,8 +159,8 @@ export default ({
                   target = element.getAttribute(attributeName)
                 }
                 if (
-                  target &&
-                  typeof (target) === 'string'
+                  target
+                  && typeof (target) === 'string'
                 ) {
                   target = element.querySelector(target)
                 }
@@ -180,7 +180,7 @@ export default ({
                     component,
                     attribute,
                     processExpression,
-                  )
+                  ),
                 )
               } else {
                 // Ensure element only has one child.
@@ -214,71 +214,56 @@ export default ({
                   component,
                   attribute,
                   processExpression,
-                ).toString()
+                )
                 if (
-                  libraryOptions.allowInlineScript ||
-                  modifiers.script
+                  libraryOptions.allowInlineScript
+                  || modifiers.script
                 ) {
                   readdScripts(target)
                 }
               }
-            } else {
-              if (target.innerHTML !== html) {
-                target.innerHTML = selectFromElement(
-                  html,
-                  component,
-                  attribute,
-                  processExpression,
-                )
-                if (
-                  libraryOptions.allowInlineScript ||
-                  modifiers.script
-                ) {
-                  readdScripts(...target.children)
-                }
+            } else if (target.innerHTML !== html) {
+              target.innerHTML = selectFromElement(
+                html,
+                component,
+                attribute,
+                processExpression,
+              )
+              if (
+                libraryOptions.allowInlineScript
+                || modifiers.script
+              ) {
+                readdScripts(...target.children)
               }
             }
 
             // Get new document link.
             if (
-              libraryOptions.redirectHeaderName &&
-              result.headers.has(libraryOptions.prefix + '-' + libraryOptions.redirectHeaderName)
+              libraryOptions.redirectHeaderName
+              && response.headers.has(libraryOptions.prefix + '-' + libraryOptions.redirectHeaderName)
             ) {
-              window.location.href = result.headers.get(
-                libraryOptions.prefix + '-' + libraryOptions.redirectHeaderName
-              )
+              window.location.href = response.headers.get(libraryOptions.prefix + '-' + libraryOptions.redirectHeaderName)
               return
             }
 
             // Get new document title.
             let documentTitle = ''
             if (
-              libraryOptions.titleHeaderName &&
-              result.headers.has(libraryOptions.prefix + '-' + libraryOptions.titleHeaderName)
+              libraryOptions.titleHeaderName
+              && response.headers.has(libraryOptions.prefix + '-' + libraryOptions.titleHeaderName)
             ) {
-              documentTitle = result.headers.get(
-                libraryOptions.prefix + '-' + libraryOptions.titleHeaderName
-              )
-            } else {
-              let htmlParsed = html
-              if (typeof (html) === 'string') {
-                htmlParsed = elementFromString(html)
-              }
-              documentTitle = htmlParsed.querySelector('head > title') ?? ''
-              if (documentTitle) {
-                documentTitle = documentTitle.textContent.trim()
-              }
+              documentTitle = response.headers.get(libraryOptions.prefix + '-' + libraryOptions.titleHeaderName)
             }
 
             // Update history api.
             if (modifiers.history) {
-              history.pushState({}, '', url)
+              history.pushState({}, documentTitle, url)
             }
 
             // If document title was not updated via the history update, then set it now.
             if (
-              documentTitle &&
-              document.title !== documentTitle
+              documentTitle
+              && document.title !== documentTitle
             ) {
               document.title = documentTitle
             }
@@ -295,9 +280,8 @@ export default ({
               url,
             })
           })
-          .catch((error) =>
+          .catch(() =>
             dispatchEvent('-failed', {
-              error,
               url,
             }),
           )
@@ -308,23 +292,22 @@ export default ({
       ) => {
         const anchor = event.target.closest('a')
         if (
-          !anchor ||
-          !anchor.hasAttribute('href')
+          !anchor
+          || !anchor.hasAttribute('href')
         ) {
           return
         }
         const href = anchor.getAttribute('href')
         const url = new URL(href, window.location)
 
-        // Check if same website.
         if (window.location.hostname !== url.hostname) {
           return
         }
 
         // Exit early if the link is being loaded.
         if (
-          attribute[NAVIGATE].url &&
-          attribute[NAVIGATE].url.href === url.href
+          attribute[NAVIGATE].url
+          && attribute[NAVIGATE].url.href === url.href
         ) {
           return
         }
@@ -340,15 +323,12 @@ export default ({
       element.addEventListener(
         'click',
         interactionHandler,
-        Object.assign({ once: true }, listenerOptions),
+        listenerOptions,
       )
 
       // Listen to history api if it can target the whole page.
       let historyHandler
-      if (
-        modifiers.document &&
-        modifiers.history
-      ) {
+      if (modifiers.document && modifiers.history) {
         historyHandler = (
           event,
         ) => {
@@ -356,8 +336,8 @@ export default ({
 
           // Exit early if the link is being loaded already.
           if (
-            attribute[NAVIGATE].url &&
-            attribute[NAVIGATE].url.href === url.href
+            attribute[NAVIGATE].url
+            && attribute[NAVIGATE].url.href === url.href
           ) {
             return
           }
@@ -376,8 +356,8 @@ export default ({
         const preloadHandler = (event) => {
           const anchor = event.target.closest('a')
           if (
-            !anchor ||
-            !anchor.hasAttribute('href')
+            !anchor
+            || !anchor.hasAttribute('href')
           ) {
             return
           }
@@ -385,10 +365,6 @@ export default ({
             anchor.getAttribute('href'),
             window.location,
           )
-          // Ignore remote urls.
-          if (url.origin !== window.location.origin) {
-            return
-          }
 
           // Dispatch navigation started event.
           dispatchEvent('-started', {
@@ -402,15 +378,14 @@ export default ({
             }),
             'text',
           )
-            .catch((error) =>
-              dispatchEvent('-failed', {
-                error,
-                url,
-              }),
-            )
         }
         element.addEventListener(
-          'pointerover',
+          'focusin',
+          preloadHandler,
+          Object.assign({ passive: true }, listenerOptions),
+        )
+        element.addEventListener(
+          'pointerenter',
           preloadHandler,
           Object.assign({ passive: true }, listenerOptions),
         )
@@ -418,7 +393,11 @@ export default ({
         destroyPreloader = (
         ) => {
           element.removeEventListener(
-            'pointerover',
+            'focusin',
+            attribute[NAVIGATE].preloadHandler,
+          )
+          element.removeEventListener(
+            'pointerenter',
             attribute[NAVIGATE].preloadHandler,
           )
         }
@@ -431,10 +410,6 @@ export default ({
                   anchor.target.getAttribute('href'),
                   window.location,
                 )
-                // Ignore remote urls.
-                if (url.origin !== window.location.origin) {
-                  return
-                }
 
                 // Dispatch navigation started event.
                 dispatchEvent('-started', {
@@ -448,12 +423,6 @@ export default ({
                   }),
                   'text',
                 )
-                  .catch((error) =>
-                    dispatchEvent('-failed', {
-                      error,
-                      url,
-                    }),
-                  )
               }
             }
           },
@@ -468,9 +437,9 @@ export default ({
             for (const mutation of mutations) {
               if (mutation.type === 'attributes') {
                 if (
-                  mutation.attributeName === 'href' &&
-                  mutation.target instanceof HTMLElement &&
-                  mutation.target.tagName === 'A'
+                  mutation.attributeName === 'href'
+                  && mutation.target instanceof HTMLElement
+                  && mutation.target.tagName === 'A'
                 ) {
                   // Start or stop observing the element if the href was added or removed.
                   if (mutation.target.hasAttribute('href')) {
@@ -482,9 +451,9 @@ export default ({
               } else if (mutation.type === 'childList') {
                 for (const node of mutation.addedNodes) {
                   if (
-                    node instanceof HTMLElement &&
-                    node.tagName === 'A' &&
-                    node.hasAttribute('href')
+                    node instanceof HTMLElement
+                    && node.tagName === 'A'
+                    && node.hasAttribute('href')
                   ) {
                     // Start observing the node.
                     intersectionObserver.observe(node)
@@ -494,9 +463,9 @@ export default ({
                 // Stop observing removed nodes.
                 for (const node of mutation.removedNodes) {
                   if (
-                    node instanceof HTMLElement &&
-                    node.tagName === 'A' &&
-                    node.hasAttribute('href')
+                    node instanceof HTMLElement
+                    && node.tagName === 'A'
+                    && node.hasAttribute('href')
                   ) {
                     intersectionObserver.unobserve(node)
                   }

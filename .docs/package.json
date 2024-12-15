@@ -13,13 +13,13 @@
     "@hoast/source-javascript": "^3.2.0",
     "@hoast/source-readfiles": "^3.1.0",
     "autoprefixer": "^10.4.20",
-    "highlight.js": "^11.10.0",
-    "postcss": "^8.4.41",
+    "highlight.js": "^11.11.0",
+    "postcss": "^8.4.49",
     "postcss-import": "^15.1.0",
     "postcss-nesting": "^10.2.0",
     "postcss-reuse": "^2.2.0",
     "postcss-preset-env": "^7.8.3",
-    "tailwindcss": "^3.4.10"
+    "tailwindcss": "^3.4.16"
   },
   "type": "module",
   "scripts": {

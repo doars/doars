@@ -11,7 +11,7 @@ export const parseResponse = (
   let promise
   switch (String.prototype.toLowerCase.call(type)) {
     default:
-      console.warn('Unknown response type "' + type + '" used when using the $fetch context.')
+      console.warn('Unknown response type "' + type + '" used.')
       break
 
     case 'arraybuffer':
@@ -31,7 +31,7 @@ export const parseResponse = (
       break
 
     // HTML and xml need to be converted to text before being able to be parsed.
-    case 'element':
+    case 'element': case 'html-partial':
     case 'html':
     case 'svg':
     case 'text':
@@ -50,7 +50,7 @@ export const parseResponse = (
     ) => {
       switch (type) {
         // Convert from html to HTMLElement inside a document fragment.
-        case 'element':
+        case 'element': case 'html-partial':
           const template = document.createElement('template')
           template.innerHTML = response
           response = template.content.childNodes[0]
@@ -145,6 +145,9 @@ export const simplifyType = (
     case 'text/html':
       return 'html'
 
+    case 'text/html-partial':
+      return 'html-partial'
+
     case 'text/json':
     case 'application/json':
     case 'application/ld+json':
@@ -163,8 +166,6 @@ export const simplifyType = (
   }
 }
 
-const cacheListeners = {}
-
 /**
  *
  * @param {string} url Fetch URL.
@@ -175,90 +176,43 @@ const cacheListeners = {}
 export const fetchAndParse = (
   url,
   options,
-  returnType = 'auto',
-) => new Promise((
+  returnType,
+) => (new Promise((
   resolve,
   reject,
 ) => {
   fetch(url, options)
     .then((response) => {
       if (
-        response.status < 200 ||
-        response.status >= 500
+        response.status < 200
+        || response.status >= 500
       ) {
-        const listeners = cacheListeners[url.location]
-        delete cacheListeners[url.location]
-
         reject(response)
-
-        // Reject other listeners as well.
-        for (const listener of listeners) {
-          listener.reject(response)
-        }
         return
       }
-      const headers = response.headers
 
       // Automatically base return type on header.
-      if (returnType === 'auto') {
+      if (
+        !returnType
+        || returnType === 'auto'
+      ) {
         returnType = responseType(response, options)
       }
       // Parse response based on return type.
-      if (returnType) {
-        response = parseResponse(response, returnType)
+      const responseParse = parseResponse(response, returnType)
+      if (!responseParse) {
+        throw new Error('No valid response returned.')
       }
-      response
-        .then((value) => {
-          // Get other listeners.
-          const listeners = cacheListeners[url.location]
-          delete cacheListeners[url.location]
-
-          // Resolve promise.
-          const result = {
-            headers,
-            value,
-          }
-          resolve(result)
-
-          // Inform listeners of update.
-          if (listeners) {
-            for (const listener of listeners) {
-              listener.resolve(result)
-            }
-          }
-        })
-        .catch((error) => {
-          // Get other listeners.
-          const listeners = cacheListeners[url.location]
-          delete cacheListeners[url.location]
-
-          // Reject promise.
-          reject(error)
-
-          // Inform listeners of update.
-          if (listeners) {
-            for (const listener of listeners) {
-              listener.reject(error)
-            }
-          }
+      responseParse
+        .then(responseValue => {
+          response.value = responseValue
+          resolve(response)
         })
     })
     .catch((error) => {
-      // Get other listeners.
-      const listeners = cacheListeners[url.location]
-      delete cacheListeners[url.location]
-
-      // Reject promise.
       reject(error)
-
-      // Inform listeners of update.
-      if (listeners) {
-        for (const listener of listeners) {
-          listener.reject(error)
-        }
-      }
     })
-})
+}))
 
 export default {
   fetchAndParse,

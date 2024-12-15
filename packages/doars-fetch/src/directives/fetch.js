@@ -75,7 +75,10 @@ export default ({
     // Handle forms differently since the form values need to be used.
     const isForm = element.tagName === 'FORM'
     const isButton = element.tagName === 'BUTTON'
-    const isInput = element.tagName === 'INPUT' || element.tagName === 'SELECT'
+    const isInput = (
+      element.tagName === 'INPUT'
+      || element.tagName === 'SELECT'
+    )
 
     // Check if existing listener exists.
     if (attribute[FETCH]) {
@@ -193,7 +196,10 @@ export default ({
 
       if (method) {
         _fetchOptions.method = method
-      } else if (isForm && element.hasAttribute('method')) {
+      } else if (
+        isForm
+        && element.hasAttribute('method')
+      ) {
         _fetchOptions.method = element.getAttribute('method').toUpperCase()
       } else {
         _fetchOptions.method = 'GET'
@@ -203,16 +209,16 @@ export default ({
         const formData = new FormData(element)
         let _encoding = encoding
         if (
-          !_encoding &&
-          element.hasAttribute('enctype')
+          !_encoding
+          && element.hasAttribute('enctype')
         ) {
           _encoding = element.getAttribute('enctype').toLowerCase()
         } else {
           _encoding = 'urlencoded'
         }
         if (
-          _fetchOptions.method === 'HEAD' ||
-          _fetchOptions.method === 'GET'
+          _fetchOptions.method === 'HEAD'
+          || _fetchOptions.method === 'GET'
         ) {
           _encoding = 'parameters'
         }
@@ -264,14 +270,15 @@ export default ({
         Object.assign({}, fetchOptions, _fetchOptions, {
           headers: Object.assign({}, _fetchOptions.headers, fetchHeaders),
         }),
+        'text',
       )
-        .then((result) => {
+        .then((response) => {
           isLoading = false
 
           // Decode string.
-          let html = result.value
+          let html = response.value
           if (modifiers.decode) {
-            html = decode(result.value)
+            html = decode(html)
           }
 
           /** @type {HTMLElement | null} */
@@ -308,7 +315,10 @@ export default ({
               processExpression,
             )
             target.append(child)
-            if (libraryOptions.allowInlineScript || modifiers.script) {
+            if (
+              libraryOptions.allowInlineScript
+              || modifiers.script
+            ) {
               readdScripts(child)
             }
           } else if (position === 'prepend') {
@@ -319,7 +329,10 @@ export default ({
               processExpression,
             )
             target.prepend(child)
-            if (libraryOptions.allowInlineScript || modifiers.script) {
+            if (
+              libraryOptions.allowInlineScript
+              || modifiers.script
+            ) {
               readdScripts(child)
             }
           } else if (position === 'after') {
@@ -330,7 +343,10 @@ export default ({
               processExpression,
             )
             target.insertAdjacentElement('afterend', child)
-            if (libraryOptions.allowInlineScript || modifiers.script) {
+            if (
+              libraryOptions.allowInlineScript
+              || modifiers.script
+            ) {
               readdScripts(child)
             }
           } else if (position === 'before') {
@@ -341,7 +357,10 @@ export default ({
               processExpression,
             )
             target.insertAdjacentElement('beforebegin', child)
-            if (libraryOptions.allowInlineScript || modifiers.script) {
+            if (
+              libraryOptions.allowInlineScript
+              || modifiers.script
+            ) {
               readdScripts(child)
             }
           } else if (position === 'outer') {
@@ -362,7 +381,10 @@ export default ({
                 attribute,
                 processExpression,
               )
-              if (libraryOptions.allowInlineScript || modifiers.script) {
+              if (
+                libraryOptions.allowInlineScript
+                || modifiers.script
+              ) {
                 readdScripts(target)
               }
             }
@@ -397,30 +419,42 @@ export default ({
               attribute,
               processExpression,
             )
-            if (libraryOptions.allowInlineScript || modifiers.script) {
+            if (
+              libraryOptions.allowInlineScript
+              || modifiers.script
+            ) {
               readdScripts(...target.children)
             }
           }
 
           // Get new document link.
-          if (libraryOptions.redirectHeaderName && result.headers.has(libraryOptions.prefix + '-' + libraryOptions.titleHeaderName)) {
-            window.location.href = result.headers.get(libraryOptions.prefix + '-' + libraryOptions.titleHeaderName)
+          if (
+            libraryOptions.redirectHeaderName
+            && response.headers.has(libraryOptions.prefix + '-' + libraryOptions.redirectHeaderName)
+          ) {
+            window.location.href = response.headers.get(libraryOptions.prefix + '-' + libraryOptions.redirectHeaderName)
             return
           }
 
           // Get new document title.
           let documentTitle = ''
-          if (libraryOptions.titleHeaderName && result.headers.has(libraryOptions.prefix + '-' + libraryOptions.titleHeaderName)) {
-            documentTitle = result.headers.get(libraryOptions.prefix + '-' + libraryOptions.titleHeaderName)
+          if (
+            libraryOptions.titleHeaderName
+            && response.headers.has(libraryOptions.prefix + '-' + libraryOptions.titleHeaderName)
+          ) {
+            documentTitle = response.headers.get(libraryOptions.prefix + '-' + libraryOptions.titleHeaderName)
           }
 
           // Update history api.
-          if (modifiers.document && modifiers.history) {
+          if (modifiers.history) {
             history.pushState({}, documentTitle, url)
           }
 
           // If document title was not updated via the history update, then set it now.
-          if (documentTitle && document.title !== documentTitle) {
+          if (
+            documentTitle
+            && document.title !== documentTitle
+          ) {
             document.title = documentTitle
           }
 
@@ -455,12 +489,19 @@ export default ({
       event,
     ) => new Promise((resolve) => {
       // Only fire when self is provided if the target is the element itself.
-      if (modifiers.self && event && event.target !== element) {
+      if (
+        modifiers.self
+        && event
+        && event.target !== element
+      ) {
         resolve()
         return
       }
 
-      if (isForm && !element.reportValidity()) {
+      if (
+        isForm
+        && !element.reportValidity()
+      ) {
         dispatchEvent('-invalid')
         resolve()
         return
@@ -469,10 +510,18 @@ export default ({
       // Prevent the default event action.
       if (
         (
-          (isForm && eventName === 'submit') ||
-          (isButton && element.getAttribute('type', 'button') && eventName === 'click') ||
-          modifiers.prevent
-        ) && event
+          (
+            isForm
+            && eventName === 'submit'
+          )
+          || (
+            isButton
+            && element.getAttribute('type', 'button')
+            && eventName === 'click'
+          )
+          || modifiers.prevent
+        )
+        && event
       ) {
         event.preventDefault()
       }
@@ -484,7 +533,10 @@ export default ({
       const execute = (
       ) => {
         let url = null
-        if (value && fetchDirectiveEvaluate) {
+        if (
+          value
+          && fetchDirectiveEvaluate
+        ) {
           url = processExpression(
             component,
             attribute,
@@ -494,8 +546,13 @@ export default ({
               $events: attribute[FETCH].buffer,
             },
           )
-        } else if (isForm && element.hasAttribute('action')) {
+        } else if (
+          isForm
+          && element.hasAttribute('action')
+        ) {
           url = element.getAttribute('action')
+        } else {
+          url = window.location.href
         }
 
         // Reset the buffer.
@@ -557,8 +614,9 @@ export default ({
 
           // Exit early if throttle time has not passed.
           if (
-            attribute[FETCH].lastExecution &&
-            (nowThrottle - attribute[FETCH].lastExecution) < modifiers.throttle) {
+            attribute[FETCH].lastExecution
+            && (nowThrottle - attribute[FETCH].lastExecution) < modifiers.throttle
+          ) {
             resolve()
             return
           }

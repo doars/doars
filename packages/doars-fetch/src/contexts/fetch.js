@@ -31,7 +31,10 @@ export default ({
           returnType,
         )
           .then((result) => {
-            if (result && result.value) {
+            if (
+              result
+              && result.value
+            ) {
               return result.value
             }
           })

@@ -10,7 +10,7 @@
     "doars",
     "fetch"
   ],
-  "version": "3.1.1",
+  "version": "3.1.2",
   "license": "MIT",
   "type": "module",
   "main": "src/DoarsFetch.js",
@@ -46,6 +46,6 @@
     "@doars/doars": "^3.1.1"
   },
   "dependencies": {
-    "@doars/common": "^2.1.1"
+    "@doars/common": "^2.1.2"
   }
 }

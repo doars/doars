@@ -1,5 +1,10 @@
 # CHANGELOG.md
 
+## 3.1.2
+
+- Updated `@doars/common` dependency.
+- Added checks to prevent runtime errors when invalid responses are returned.
+
 ## 3.1.1
 
 - Updated `@doars/common` dependency.

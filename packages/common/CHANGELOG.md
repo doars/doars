@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 2.1.2
+
+- Removed fetch de-duplication because it ignored parsing instructions.
+
 ## 2.1.1
 
 - Fix error when using indicators.
