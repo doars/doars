@@ -522,7 +522,7 @@ export default (
             ]),
             r('li', [
               r('a', {
-                href: 'https://rondekker.com/',
+                href: 'https://rondekker.nl/en-gb/',
                 target: '_blank',
               }, 'From Ron Dekker'),
             ]),

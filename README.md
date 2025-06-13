@@ -67,7 +67,7 @@ If you are using the library and are running into an problem that you don't know
 
 ## In the wild
 
-If you are using Doars then please [let me know](https://rondekker.com#contact), I would love to hear about it!
+If you are using _Doars_ then please [let me know](https://rondekker.nl/en-gb#contact), I would love to hear about it!
 
 ## Ideas
 
