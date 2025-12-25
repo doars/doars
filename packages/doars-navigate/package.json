@@ -27,14 +27,8 @@
     "access": "public"
   },
   "scripts": {
-    "build": "NODE_ENV=production node config.esbuild.js",
-    "develop": "NODE_ENV=development node config.esbuild.js",
-    "lint": "eslint src/** --cache --fix --no-error-on-unmatched-pattern",
-    "release": "yarn run lint && yarn run test && yarn run build && yarn publish",
-    "test": "yarn run test:browser && yarn run test:runtime",
-    "test:browser": "echo 'todo'",
-    "test:runtime": "echo 'todo'",
-    "upgrade": "npm-check-updates --upgrade --target minor"
+    "build": "NODE_ENV=production bun config.bundle.js",
+    "develop": "NODE_ENV=development bun config.bundle.js"
   },
   "files": [
     "dst",

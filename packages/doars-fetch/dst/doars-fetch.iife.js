@@ -18,7 +18,6 @@
       case "json":
         promise = response.json();
         break;
-      // HTML and xml need to be converted to text before being able to be parsed.
       case "element":
       case "html-partial":
       case "html":
@@ -33,14 +32,12 @@
     }
     return promise.then((response2) => {
       switch (type) {
-        // Convert from html to HTMLElement inside a document fragment.
         case "element":
         case "html-partial":
           const template = document.createElement("template");
           template.innerHTML = response2;
           response2 = template.content.childNodes[0];
           break;
-        // Parse some values via the DOM parser.
         case "html":
           response2 = new DOMParser().parseFromString(response2, "text/html");
           break;
@@ -186,11 +183,7 @@
           }
           const returnType = options.returnType ? options.returnType : null;
           delete options.returnType;
-          return fetchAndParse(
-            url,
-            options,
-            returnType
-          ).then((result) => {
+          return fetchAndParse(url, options, returnType).then((result) => {
             if (result && result.value) {
               return result.value;
             }
@@ -234,11 +227,7 @@
     }
     let selector = null;
     if (libraryOptions.selectFromElementDirectiveEvaluate) {
-      selector = processExpression(
-        component,
-        attribute,
-        element.getAttribute(attributeName)
-      );
+      selector = processExpression(component, attribute, element.getAttribute(attributeName));
       if (typeof selector !== "string") {
         console.warn("Doars: `" + attributeName + "` must return a string.");
         return null;
@@ -360,7 +349,7 @@
     let fromValue = null;
     let attributeName = null;
     let attribute = null;
-    for (let i = newAttributes.length - 1; i >= 0; --i) {
+    for (let i = newAttributes.length - 1;i >= 0; --i) {
       attribute = newAttributes[i];
       attributeName = attribute.name;
       attributeNamespaceURI = attribute.namespaceURI;
@@ -386,7 +375,7 @@
         }
       }
     }
-    for (let j = existingAttributes.length - 1; j >= 0; --j) {
+    for (let j = existingAttributes.length - 1;j >= 0; --j) {
       attribute = existingAttributes[j];
       if (attribute.specified !== false) {
         attributeName = attribute.name;
@@ -430,12 +419,8 @@
     }
     const transitionDirectiveName = libraryOptions.prefix + TRANSITION_NAME + type;
     const dispatchEvent = (phase) => {
-      element.dispatchEvent(
-        new CustomEvent("transition-" + phase)
-      );
-      element.dispatchEvent(
-        new CustomEvent("transition-" + type + "-" + phase)
-      );
+      element.dispatchEvent(new CustomEvent("transition-" + phase));
+      element.dispatchEvent(new CustomEvent("transition-" + type + "-" + phase));
     };
     let name, value, timeout, requestFrame;
     let isDone = false;
@@ -460,7 +445,7 @@
       }
       if (selectors.from) {
         removeAttributes(element, selectors.from);
-        selectors.from = void 0;
+        selectors.from = undefined;
       }
       name = transitionDirectiveName + ".to";
       value = element.getAttribute(name);
@@ -476,9 +461,9 @@
         return;
       }
       const styles = getComputedStyle(element);
-      let duration = Number(styles.transitionDuration.replace(/,.*/, "").replace("s", "")) * 1e3;
+      let duration = Number(styles.transitionDuration.replace(/,.*/, "").replace("s", "")) * 1000;
       if (duration === 0) {
-        duration = Number(styles.animationDuration.replace("s", "")) * 1e3;
+        duration = Number(styles.animationDuration.replace("s", "")) * 1000;
       }
       timeout = setTimeout(() => {
         timeout = null;
@@ -487,11 +472,11 @@
         }
         if (selectors.during) {
           removeAttributes(element, selectors.during);
-          selectors.during = void 0;
+          selectors.during = undefined;
         }
         if (selectors.to) {
           removeAttributes(element, selectors.to);
-          selectors.to = void 0;
+          selectors.to = undefined;
         }
         dispatchEvent("end");
         if (callback) {
@@ -507,14 +492,14 @@
       isDone = true;
       if (selectors.during) {
         removeAttributes(element, selectors.during);
-        selectors.during = void 0;
+        selectors.during = undefined;
       }
       if (selectors.from) {
         removeAttributes(element, selectors.from);
-        selectors.from = void 0;
+        selectors.from = undefined;
       } else if (selectors.to) {
         removeAttributes(element, selectors.to);
-        selectors.to = void 0;
+        selectors.to = undefined;
       }
       if (requestFrame) {
         cancelAnimationFrame(requestFrame);
@@ -565,11 +550,7 @@
     }
     let indicatorTemplate = null;
     if (libraryOptions.indicatorDirectiveEvaluate) {
-      indicatorTemplate = processExpression(
-        component,
-        attribute,
-        element.getAttribute(attributeName)
-      );
+      indicatorTemplate = processExpression(component, attribute, element.getAttribute(attributeName));
     } else {
       indicatorTemplate = element.getAttribute(attributeName);
     }
@@ -602,7 +583,6 @@
     indicatorTemplate.insertAdjacentElement("afterend", indicatorElement);
     attribute.indicator = {
       indicatorElement,
-      // Transition element in.
       indicatorTransitionIn: transitionIn(libraryOptions, indicatorElement)
     };
   };
@@ -706,7 +686,7 @@
   var _updateChildren = (existingNode, newNode) => {
     let existingChild, newChild, morphed, existingMatch;
     let offset = 0;
-    for (let i = 0; ; i++) {
+    for (let i = 0;; i++) {
       existingChild = existingNode.childNodes[i];
       newChild = newNode.childNodes[i - offset];
       if (!existingChild && !newChild) {
@@ -725,7 +705,7 @@
         }
       } else {
         existingMatch = null;
-        for (let j = i; j < existingNode.childNodes.length; j++) {
+        for (let j = i;j < existingNode.childNodes.length; j++) {
           if (isSame(existingNode.childNodes[j], newChild)) {
             existingMatch = existingNode.childNodes[j];
             break;
@@ -752,10 +732,7 @@
   };
 
   // ../common/src/utilities/Promise.js
-  var nativePromise = Function.prototype.toString.call(
-    Function
-    /* A native object */
-  ).replace("Function", "Promise").replace(/\(.*\)/, "()");
+  var nativePromise = Function.prototype.toString.call(Function).replace("Function", "Promise").replace(/\(.*\)/, "()");
   var isPromise = (value) => {
     return value && Object.prototype.toString.call(value) === "[object Promise]";
   };
@@ -767,10 +744,7 @@
     }
     const newScript = document.createElement("script");
     newScript.innerText = element.innerText;
-    element.parentNode.insertBefore(
-      newScript,
-      element
-    );
+    element.parentNode.insertBefore(newScript, element);
     element.remove();
     return true;
   };
@@ -794,7 +768,7 @@
       element.textContent = value;
       return element;
     }));
-    const serializer = new XMLSerializer();
+    const serializer = new XMLSerializer;
     return serializer.serializeToString(xml);
   };
 
@@ -829,10 +803,7 @@
         if (attribute[FETCH].value === value) {
           return;
         }
-        attribute[FETCH].target.removeEventListener(
-          attribute[FETCH].eventName,
-          attribute[FETCH].handler
-        );
+        attribute[FETCH].target.removeEventListener(attribute[FETCH].eventName, attribute[FETCH].handler);
         if (attribute[FETCH].timeout) {
           clearTimeout(attribute[FETCH].timeout);
         }
@@ -874,7 +845,7 @@
         }
       }
       if (modifiers.poll === true) {
-        modifiers.poll = 6e4;
+        modifiers.poll = 60000;
       }
       let eventName = "click";
       if (modifiers.on) {
@@ -891,17 +862,12 @@
         Vary: libraryOptions.prefix + "-" + libraryOptions.requestHeaderName
       };
       const dispatchEvent = (suffix = "", data = {}) => {
-        element.dispatchEvent(
-          new CustomEvent(
-            libraryOptions.prefix + "-" + directive + suffix,
-            {
-              detail: Object.assign({
-                attribute,
-                component
-              }, data)
-            }
-          )
-        );
+        element.dispatchEvent(new CustomEvent(libraryOptions.prefix + "-" + directive + suffix, {
+          detail: Object.assign({
+            attribute,
+            component
+          }, data)
+        }));
       };
       const requestHandler = (url) => {
         const _fetchOptions = {
@@ -953,20 +919,16 @@
               _fetchOptions.body = serializeFormData(formData);
               break;
             default:
-              console.warn('DoarsFetch: "' + directive + '" directive\'s invalid encoding type "' + _encoding + '".');
+              console.warn('DoarsFetch: "' + directive + `" directive's invalid encoding type "` + _encoding + '".');
               break;
           }
         }
         dispatchEvent("-started", {
           url
         });
-        return fetchAndParse(
-          url,
-          Object.assign({}, fetchOptions, _fetchOptions, {
-            headers: Object.assign({}, _fetchOptions.headers, fetchHeaders)
-          }),
-          "text"
-        ).then((response) => {
+        return fetchAndParse(url, Object.assign({}, fetchOptions, _fetchOptions, {
+          headers: Object.assign({}, _fetchOptions.headers, fetchHeaders)
+        }), "text").then((response) => {
           isLoading = false;
           let html = response.value;
           if (modifiers.decode) {
@@ -979,11 +941,7 @@
             const attributeName = libraryOptions.prefix + "-" + directive + "-" + libraryOptions.targetDirectiveName;
             if (element.getAttribute(attributeName)) {
               if (libraryOptions.targetDirectiveEvaluate) {
-                target = processExpression(
-                  component,
-                  attribute,
-                  element.getAttribute(attributeName)
-                );
+                target = processExpression(component, attribute, element.getAttribute(attributeName));
               } else {
                 target = element.getAttribute(attributeName);
               }
@@ -996,67 +954,34 @@
             }
           }
           if (position === "append") {
-            const child = select(
-              fromString(html),
-              component,
-              attribute,
-              processExpression
-            );
+            const child = select(fromString(html), component, attribute, processExpression);
             target.append(child);
             if (libraryOptions.allowInlineScript || modifiers.script) {
               readdScripts(child);
             }
           } else if (position === "prepend") {
-            const child = select(
-              fromString(html),
-              component,
-              attribute,
-              processExpression
-            );
+            const child = select(fromString(html), component, attribute, processExpression);
             target.prepend(child);
             if (libraryOptions.allowInlineScript || modifiers.script) {
               readdScripts(child);
             }
           } else if (position === "after") {
-            const child = select(
-              fromString(html),
-              component,
-              attribute,
-              processExpression
-            );
+            const child = select(fromString(html), component, attribute, processExpression);
             target.insertAdjacentElement("afterend", child);
             if (libraryOptions.allowInlineScript || modifiers.script) {
               readdScripts(child);
             }
           } else if (position === "before") {
-            const child = select(
-              fromString(html),
-              component,
-              attribute,
-              processExpression
-            );
+            const child = select(fromString(html), component, attribute, processExpression);
             target.insertAdjacentElement("beforebegin", child);
             if (libraryOptions.allowInlineScript || modifiers.script) {
               readdScripts(child);
             }
           } else if (position === "outer") {
             if (modifiers.morph) {
-              morphTree(
-                target,
-                select(
-                  fromString(html),
-                  component,
-                  attribute,
-                  processExpression
-                )
-              );
+              morphTree(target, select(fromString(html), component, attribute, processExpression));
             } else if (target.outerHTML !== html) {
-              target.outerHTML = select(
-                html,
-                component,
-                attribute,
-                processExpression
-              );
+              target.outerHTML = select(html, component, attribute, processExpression);
               if (libraryOptions.allowInlineScript || modifiers.script) {
                 readdScripts(target);
               }
@@ -1065,30 +990,17 @@
             if (target.children.length === 0) {
               target.append(document.createElement("div"));
             } else if (target.children.length > 1) {
-              for (let i = target.children.length - 1; i >= 1; i--) {
+              for (let i = target.children.length - 1;i >= 1; i--) {
                 target.children[i].remove();
               }
             }
-            const root = morphTree(
-              target.children[0],
-              select(
-                fromString(html),
-                component,
-                attribute,
-                processExpression
-              )
-            );
+            const root = morphTree(target.children[0], select(fromString(html), component, attribute, processExpression));
             if (!target.children[0].isSameNode(root)) {
               target.children[0].remove();
               target.append(root);
             }
           } else if (target.innerHTML !== html) {
-            target.innerHTML = select(
-              html,
-              component,
-              attribute,
-              processExpression
-            );
+            target.innerHTML = select(html, component, attribute, processExpression);
             if (libraryOptions.allowInlineScript || modifiers.script) {
               readdScripts(...target.children);
             }
@@ -1107,18 +1019,12 @@
           if (documentTitle && document.title !== documentTitle) {
             document.title = documentTitle;
           }
-          hideIndicator(
-            component,
-            attribute
-          );
+          hideIndicator(component, attribute);
           dispatchEvent("-succeeded", {
             url
           });
         }).catch(() => {
-          hideIndicator(
-            component,
-            attribute
-          );
+          hideIndicator(component, attribute);
           dispatchEvent("-failed", {
             url
           });
@@ -1144,15 +1050,10 @@
         const execute = () => {
           let url = null;
           if (value && fetchDirectiveEvaluate) {
-            url = processExpression(
-              component,
-              attribute,
-              value,
-              {
-                $event: event,
-                $events: attribute[FETCH].buffer
-              }
-            );
+            url = processExpression(component, attribute, value, {
+              $event: event,
+              $events: attribute[FETCH].buffer
+            });
           } else if (isForm && element.hasAttribute("action")) {
             url = element.getAttribute("action");
           } else {
@@ -1164,11 +1065,7 @@
             return;
           }
           isLoading = true;
-          showIndicator(
-            component,
-            attribute,
-            processExpression
-          );
+          showIndicator(component, attribute, processExpression);
           (isPromise(url) ? url.then((url2) => requestHandler(url2)) : requestHandler(url)).finally(() => resolve());
         };
         if (isLoading) {
@@ -1222,32 +1119,22 @@
         const _handler = handler;
         handler = () => {
           if (listenerOptions.once) {
-            intersectionDispatcher.remove(
-              element,
-              handler
-            );
+            intersectionDispatcher.remove(element, handler);
           }
           _handler();
         };
-        intersectionDispatcher.add(
-          element,
-          intersectionDispatcher
-        );
+        intersectionDispatcher.add(element, intersectionDispatcher);
       } else if (eventName === loadedEvent) {
         handler();
       } else {
-        element.addEventListener(
-          eventName,
-          handler,
-          listenerOptions
-        );
+        element.addEventListener(eventName, handler, listenerOptions);
       }
       attribute[FETCH] = {
         buffer: [],
         eventName,
         handler,
         target: element,
-        timeout: attribute[FETCH] ? attribute[FETCH].timeout : void 0,
+        timeout: attribute[FETCH] ? attribute[FETCH].timeout : undefined,
         value
       };
     },
@@ -1255,35 +1142,22 @@
       if (!attribute[FETCH]) {
         return;
       }
-      attribute[FETCH].target.removeEventListener(
-        attribute[FETCH].eventName,
-        attribute[FETCH].handler
-      );
+      attribute[FETCH].target.removeEventListener(attribute[FETCH].eventName, attribute[FETCH].handler);
       if (intersectionEvent && intersectionDispatcher) {
-        intersectionDispatcher.remove(
-          attribute[FETCH].target,
-          attribute[FETCH].handler
-        );
+        intersectionDispatcher.remove(attribute[FETCH].target, attribute[FETCH].handler);
       }
       if (attribute[FETCH].timeout) {
         clearTimeout(attribute[FETCH].timeout);
       }
-      hideIndicator(
-        component,
-        attribute
-      );
+      hideIndicator(component, attribute);
       delete attribute[FETCH];
     }
   });
 
   // ../common/src/polyfills/IntersectionDispatcher.js
-  var IntersectionDispatcher = class {
-    /**
-     * Create observer instance.
-     * @param {object} options Intersection observer options.
-     */
+  class IntersectionDispatcher {
     constructor(options = null) {
-      const items = /* @__PURE__ */ new WeakMap();
+      const items = new WeakMap;
       const intersect = (entries) => {
         for (const entry of entries) {
           for (const callback of items.get(entry.target)) {
@@ -1314,7 +1188,7 @@
         }
       };
     }
-  };
+  }
 
   // src/DoarsFetch.js
   function DoarsFetch_default(library, options = null) {
@@ -1367,4 +1241,5 @@
   // src/DoarsFetch.iife.js
   window.DoarsFetch = DoarsFetch_default;
 })();
-//# sourceMappingURL=doars-fetch.iife.js.map
+
+//# debugId=4A18B6E63A5F160764756E2164756E21

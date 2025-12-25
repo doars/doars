@@ -1,5 +1,3 @@
-var __pow = Math.pow;
-
 // src/symbols.js
 var ATTRIBUTES = Symbol("ATTRIBUTES");
 var COMPONENT = Symbol("COMPONENT");
@@ -8,10 +6,7 @@ var REFERENCES = Symbol("REFERENCES");
 var REFERENCES_CACHE = Symbol("REFERENCES_CACHE");
 
 // ../common/src/events/EventDispatcher.js
-var EventDispatcher = class {
-  /**
-   * Create instance.
-   */
+class EventDispatcher {
   constructor() {
     let events = {};
     this.addEventListener = (name, callback, options = null) => {
@@ -29,7 +24,7 @@ var EventDispatcher = class {
       }
       const eventData = events[name];
       let index = -1;
-      for (let i = 0; i < eventData.length; i++) {
+      for (let i = 0;i < eventData.length; i++) {
         if (eventData[i].callback === callback) {
           index = i;
           break;
@@ -57,7 +52,7 @@ var EventDispatcher = class {
         return;
       }
       const eventData = events[name];
-      for (let i = 0; i < eventData.length; i++) {
+      for (let i = 0;i < eventData.length; i++) {
         const event = options && options.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
         if (event.options && event.options.once) {
           eventData.splice(i, 1);
@@ -66,11 +61,11 @@ var EventDispatcher = class {
       }
     };
   }
-};
+}
 
 // ../common/src/utilities/String.js
 var escapeHtml = (text) => {
-  return text.replace(/\\/g, "\\\\").replace(/\\'/g, "\\'").replace(/\\"/g, '\\"').replace(/\n/g, "\\n");
+  return text.replace(/\\/g, "\\\\").replace(/\\'/g, "\\'").replace(/\\"/g, "\\\"").replace(/\n/g, "\\n");
 };
 var kebabToCamel = (text) => {
   return text.replace(/-(\w)/g, (match, character) => character.toUpperCase());
@@ -112,7 +107,7 @@ var parseAttributeModifiers = (modifiers) => {
         case "m":
           value *= 60;
         case "s":
-          value *= 1e3;
+          value *= 1000;
           break;
       }
     }
@@ -145,7 +140,6 @@ var parseForExpression = (expression) => {
   return {
     iterable: match[2].trim(),
     variables: [...variables]
-    // Convert it to an array instead of a regular expression match.
   };
 };
 var parseSelector = (selector) => {
@@ -182,15 +176,7 @@ var parseSelector = (selector) => {
 };
 
 // src/Attribute.js
-var Attribute = class _Attribute extends EventDispatcher {
-  /**
-   * Create instance.
-   * @param {Component} component Component instance.
-   * @param {HTMLElement} element Element.
-   * @param {string} name Attribute name (with library prefix removed).
-   * @param {string} value Attribute value.
-   * @param {boolean} isClone Whether this will be a clone of an existing attribute.
-   */
+class Attribute extends EventDispatcher {
   constructor(component, element, name, value, isClone = false) {
     super();
     const id = Symbol("ID_ATTRIBUTE");
@@ -202,10 +188,7 @@ var Attribute = class _Attribute extends EventDispatcher {
     }
     let accessedItems = {}, data = null, directive, key, keyRaw, modifiersRaw, modifiers;
     if (name) {
-      const [_directive, _keyRaw, _key, _modifiers] = parseAttributeName(
-        component.getLibrary().getOptions().prefix,
-        name
-      );
+      const [_directive, _keyRaw, _key, _modifiers] = parseAttributeName(component.getLibrary().getOptions().prefix, name);
       directive = _directive;
       key = _key;
       keyRaw = _keyRaw;
@@ -295,16 +278,10 @@ var Attribute = class _Attribute extends EventDispatcher {
       return false;
     };
     this.clone = () => {
-      return new _Attribute(
-        component,
-        element,
-        name,
-        value,
-        true
-      );
+      return new Attribute(component, element, name, value, true);
     };
   }
-};
+}
 
 // ../common/src/polyfills/RevocableProxy.js
 var PROXY_TRAPS = [
@@ -345,11 +322,7 @@ var RevocableProxy_default = (target, handler) => {
 };
 
 // ../common/src/events/ProxyDispatcher.js
-var ProxyDispatcher = class extends EventDispatcher {
-  /**
-   * Creates a proxy dispatcher instance.
-   * @param {ProxyOptions} options Options for proxy dispatcher.
-   */
+class ProxyDispatcher extends EventDispatcher {
   constructor(options = {}) {
     super();
     options = Object.assign({
@@ -357,7 +330,7 @@ var ProxyDispatcher = class extends EventDispatcher {
       get: true,
       set: true
     }, options);
-    const map = /* @__PURE__ */ new WeakMap();
+    const map = new WeakMap;
     this.add = (target, path = []) => {
       if (map.has(target)) {
         return map.get(target);
@@ -420,7 +393,7 @@ var ProxyDispatcher = class extends EventDispatcher {
       revocable.revoke();
     };
   }
-};
+}
 
 // src/utilities/Component.js
 var closestComponent = (element) => {
@@ -483,12 +456,7 @@ var walk = (node, filter) => {
 };
 
 // src/Component.js
-var Component = class {
-  /**
-   * Create instance.
-   * @param {Doars} library Library instance.
-   * @param {HTMLElement} element Element.
-   */
+class Component {
   constructor(library, element) {
     const id = Symbol("ID_COMPONENT");
     const {
@@ -514,12 +482,10 @@ var Component = class {
       }
     }
     const dispatchEvent = (name, detail) => {
-      element.dispatchEvent(
-        new CustomEvent(prefix + "-" + name, {
-          detail,
-          bubbles: true
-        })
-      );
+      element.dispatchEvent(new CustomEvent(prefix + "-" + name, {
+        detail,
+        bubbles: true
+      }));
     };
     this.getAttributes = () => {
       return attributes;
@@ -556,18 +522,14 @@ var Component = class {
       const { stateDirectiveName: stateDirectiveName2 } = this.getLibrary().getOptions();
       const componentName = prefix + "-" + stateDirectiveName2;
       const value = element.attributes[componentName].value;
-      data = value ? processExpression(
-        this,
-        new Attribute(this, element, null, value),
-        value
-      ) : {};
+      data = value ? processExpression(this, new Attribute(this, element, null, value), value) : {};
       if (data === null) {
         data = {};
       } else if (typeof data !== "object" || Array.isArray(data)) {
         console.error("Doars: component tag must return an object!");
         return;
       }
-      proxy = new ProxyDispatcher();
+      proxy = new ProxyDispatcher;
       state = proxy.add(data);
       this.scanAttributes(element);
     };
@@ -579,7 +541,7 @@ var Component = class {
         const directives = library.getDirectivesObject();
         for (const key in directives) {
           if (!directives[key].destroy) {
-            directives[key] = void 0;
+            directives[key] = undefined;
           }
         }
         for (const attribute of attributes) {
@@ -637,7 +599,7 @@ var Component = class {
       const attribute = new Attribute(this, element2, name, value);
       let index = attribute.length;
       const directiveIndex = directivesKeys.indexOf(attribute.getDirective());
-      for (let i = attributes.length - 1; i >= 0; i--) {
+      for (let i = attributes.length - 1;i >= 0; i--) {
         if (directivesKeys.indexOf(attributes[i].getDirective()) <= directiveIndex) {
           index = i + 1;
           break;
@@ -678,7 +640,7 @@ var Component = class {
       return newAttributes;
     };
     this.updateAttribute = (attribute) => {
-      if (!attribute.getElement() || attribute.getValue() === null || attribute.getValue() === void 0) {
+      if (!attribute.getElement() || attribute.getValue() === null || attribute.getValue() === undefined) {
         this.removeAttribute(attribute);
         return;
       }
@@ -735,7 +697,7 @@ var Component = class {
       }
     };
   }
-};
+}
 
 // src/utilities/Context.js
 var createContexts = (component, attribute, update, extra = null) => {
@@ -749,11 +711,7 @@ var createContexts = (component, attribute, update, extra = null) => {
     if (!creatableContext || !creatableContext.name) {
       continue;
     }
-    const result = creatableContext.create(
-      component,
-      attribute,
-      update
-    );
+    const result = creatableContext.create(component, attribute, update);
     if (!result || !result.value) {
       continue;
     }
@@ -823,15 +781,10 @@ var createAutoContexts = (component, attribute, extra = null) => {
   };
   const {
     contexts,
-    destroy: destroy3
-  } = createContexts(
-    component,
-    attribute,
-    update,
-    extra
-  );
+    destroy
+  } = createContexts(component, attribute, update, extra);
   return [contexts, () => {
-    destroy3();
+    destroy();
     if (triggers.length > 0) {
       component.getLibrary().update(triggers);
     }
@@ -878,7 +831,6 @@ var component_default = ({
 }) => ({
   name: componentContextName,
   create: (component) => ({
-    // Return the component's element.
     value: component.getElement()
   })
 });
@@ -889,7 +841,6 @@ var element_default = ({
 }) => ({
   name: elementContextName,
   create: (component, attribute) => ({
-    // Return the attribute's element.
     value: attribute.getElement()
   })
 });
@@ -902,12 +853,10 @@ var dispatch_default = ({
   create: (component) => {
     return {
       value: (name, detail = {}) => {
-        component.getElement().dispatchEvent(
-          new CustomEvent(name, {
-            detail,
-            bubbles: true
-          })
-        );
+        component.getElement().dispatchEvent(new CustomEvent(name, {
+          detail,
+          bubbles: true
+        }));
       }
     };
   }
@@ -974,15 +923,10 @@ var inContext_default = ({
       };
       const {
         contexts,
-        destroy: destroy3
-      } = createContexts(
-        component,
-        attribute,
-        contextUpdate,
-        {}
-      );
+        destroy
+      } = createContexts(component, attribute, contextUpdate, {});
       const result = callback(contexts);
-      destroy3();
+      destroy();
       if (newTriggers.length > 0) {
         component.getLibrary().update(newTriggers);
       }
@@ -1012,11 +956,11 @@ var nextSibling_default = ({
     }
     const {
       contexts,
-      destroy: destroy3
+      destroy
     } = createContextsProxy(siblings[index + 1], attribute, update);
     return {
       value: contexts,
-      destroy: destroy3
+      destroy
     };
   }
 });
@@ -1040,12 +984,12 @@ var nextTick_default = ({
         stopListening();
         const {
           contexts,
-          destroy: destroy3
+          destroy
         } = createContexts(component, attribute, update, {});
         for (const callback of callbacks) {
           callback(contexts);
         }
-        destroy3();
+        destroy();
       };
       const stopListening = () => {
         library.removeEventListener("updated", handleUpdate);
@@ -1079,11 +1023,11 @@ var parent_default = ({
     }
     const {
       contexts,
-      destroy: destroy3
+      destroy
     } = createContextsProxy(parent, attribute, update);
     return {
       value: contexts,
-      destroy: destroy3
+      destroy
     };
   }
 });
@@ -1109,11 +1053,11 @@ var previousSibling_default = ({
     }
     const {
       contexts,
-      destroy: destroy3
+      destroy
     } = createContextsProxy(siblings[index - 1], attribute, update);
     return {
       value: contexts,
-      destroy: destroy3
+      destroy
     };
   }
 });
@@ -1168,24 +1112,21 @@ var siblings_default = ({
       };
     }
     let siblingsContexts;
-    const revocable = RevocableProxy_default(
-      parent.getChildren().filter((sibling) => sibling !== component),
-      {
-        get: (target, key, receiver) => {
-          if (!siblingsContexts) {
-            siblingsContexts = target.map((child) => createContextsProxy(child, attribute, update));
-            attribute.accessed(component.getId(), "siblings");
-          }
-          if (isNaN(key)) {
-            return Reflect.get(siblingsContexts, key, receiver);
-          }
-          const sibling = Reflect.get(siblingsContexts, key, receiver);
-          if (sibling) {
-            return sibling.contexts;
-          }
+    const revocable = RevocableProxy_default(parent.getChildren().filter((sibling) => sibling !== component), {
+      get: (target, key, receiver) => {
+        if (!siblingsContexts) {
+          siblingsContexts = target.map((child) => createContextsProxy(child, attribute, update));
+          attribute.accessed(component.getId(), "siblings");
+        }
+        if (isNaN(key)) {
+          return Reflect.get(siblingsContexts, key, receiver);
+        }
+        const sibling = Reflect.get(siblingsContexts, key, receiver);
+        if (sibling) {
+          return sibling.contexts;
         }
       }
-    );
+    });
     return {
       value: revocable.proxy,
       destroy: () => {
@@ -1210,7 +1151,6 @@ var createState_default = (name, id, state, proxy) => {
     const revocable = RevocableProxy_default(state, {});
     return {
       value: revocable.proxy,
-      // Remove event listeners.
       destroy: () => {
         proxy.removeEventListener("delete", onDelete);
         proxy.removeEventListener("get", onGet);
@@ -1228,24 +1168,13 @@ var state_default = ({
 }) => ({
   deconstruct: stateContextDeconstruct,
   name: stateContextName,
-  // Wrap create state so the component's data can be used.
   create: (component, attribute, update, utilities) => {
     const proxy = component.getProxy();
     const state = component.getState();
     if (!proxy || !state) {
       return;
     }
-    return createState_default(
-      stateContextName,
-      component.getId(),
-      state,
-      proxy
-    )(
-      component,
-      attribute,
-      update,
-      utilities
-    );
+    return createState_default(stateContextName, component.getId(), state, proxy)(component, attribute, update, utilities);
   }
 });
 
@@ -1283,7 +1212,7 @@ var deepAssign = (target, ...sources) => {
 var getDeeply = (object, path) => {
   let objectTemp = object;
   let i = 0;
-  for (; i < path.length - 1; i++) {
+  for (;i < path.length - 1; i++) {
     objectTemp = objectTemp[path[i]];
   }
   return objectTemp[path[i]];
@@ -1296,7 +1225,7 @@ var setDeeply = (object, path, value) => {
     return;
   }
   let i = 0;
-  for (; i < path.length - 1; i++) {
+  for (;i < path.length - 1; i++) {
     object = object[path[i]];
     if (typeof object !== "object") {
       return;
@@ -1309,12 +1238,7 @@ var setDeeply = (object, path, value) => {
 var createStateContext_default = (name, id, state, proxy, deconstruct) => ({
   deconstruct,
   name,
-  create: createState_default(
-    name,
-    id,
-    state,
-    proxy
-  )
+  create: createState_default(name, id, state, proxy)
 });
 
 // src/contexts/store.js
@@ -1324,15 +1248,9 @@ var store_default = ({
   storeContextName
 }) => {
   const data = deepAssign({}, storeContextInitial);
-  const proxy = new ProxyDispatcher();
+  const proxy = new ProxyDispatcher;
   const state = proxy.add(data);
-  return createStateContext_default(
-    storeContextName,
-    Symbol("ID_STORE"),
-    state,
-    proxy,
-    storeContextDeconstruct
-  );
+  return createStateContext_default(storeContextName, Symbol("ID_STORE"), state, proxy, storeContextDeconstruct);
 };
 
 // src/contexts/watch.js
@@ -1361,24 +1279,15 @@ var watch_default = ({
             for (const callback of callbacks) {
               if (!callback.attribute) {
                 callback.attribute = attribute.clone();
-                processExpression(
-                  component,
-                  callback.attribute,
-                  callback.path
-                );
+                processExpression(component, callback.attribute, callback.path);
               }
               if (callback.attribute.hasAccessed(id, triggers[id])) {
                 const {
                   contexts,
-                  destroy: destroy3
-                } = createContexts(
-                  component,
-                  attribute,
-                  contextUpdate,
-                  {}
-                );
+                  destroy
+                } = createContexts(component, attribute, contextUpdate, {});
                 callback.callback(contexts);
-                destroy3();
+                destroy();
                 continue;
               }
             }
@@ -1401,12 +1310,6 @@ var watch_default = ({
       library.addEventListener("updating", onUpdate);
     };
     return {
-      /**
-       * Watch a value at the given path and on change invoke the callback.
-       * @param {string} path Path to the value that needs to be watched.
-       * @param {WatchCallback} callback Function to call when the value at the path has changed.
-       * @returns {WatchReturn|undefined} Function to invoke the callback with.
-       */
       value: (path, callback) => {
         if (contextIsDestroyed || directiveIsDestroyed) {
           return;
@@ -1428,15 +1331,10 @@ var watch_default = ({
           };
           const {
             contexts,
-            destroy: destroy3
-          } = createContexts(
-            component,
-            attribute.clone(),
-            contextUpdate,
-            {}
-          );
+            destroy
+          } = createContexts(component, attribute.clone(), contextUpdate, {});
           callback(contexts);
-          destroy3();
+          destroy();
           if (newTriggers.length > 0) {
             component.getLibrary().update(newTriggers);
           }
@@ -1469,7 +1367,7 @@ var copyAttributes = (existingNode, newNode) => {
   let fromValue = null;
   let attributeName = null;
   let attribute = null;
-  for (let i = newAttributes.length - 1; i >= 0; --i) {
+  for (let i = newAttributes.length - 1;i >= 0; --i) {
     attribute = newAttributes[i];
     attributeName = attribute.name;
     attributeNamespaceURI = attribute.namespaceURI;
@@ -1495,7 +1393,7 @@ var copyAttributes = (existingNode, newNode) => {
       }
     }
   }
-  for (let j = existingAttributes.length - 1; j >= 0; --j) {
+  for (let j = existingAttributes.length - 1;j >= 0; --j) {
     attribute = existingAttributes[j];
     if (attribute.specified !== false) {
       attributeName = attribute.name;
@@ -1558,7 +1456,7 @@ var setAttribute = (element, key, data) => {
       data = Object.entries(data).map(([key2, value]) => key2 + ":" + value).join(";");
     }
   }
-  if (data === false || data === null || data === void 0) {
+  if (data === false || data === null || data === undefined) {
     element.removeAttribute(key);
   } else {
     element.setAttribute(key, data);
@@ -1571,10 +1469,7 @@ var setAttributes = (element, data) => {
 };
 
 // ../common/src/utilities/Promise.js
-var nativePromise = Function.prototype.toString.call(
-  Function
-  /* A native object */
-).replace("Function", "Promise").replace(/\(.*\)/, "()");
+var nativePromise = Function.prototype.toString.call(Function).replace("Function", "Promise").replace(/\(.*\)/, "()");
 var isPromise = (value) => {
   return value && Object.prototype.toString.call(value) === "[object Promise]";
 };
@@ -1609,11 +1504,7 @@ var attribute_default = ({
       }
       setAttribute(element, key, value);
     };
-    const result = processExpression(
-      component,
-      attribute,
-      attribute.getValue()
-    );
+    const result = processExpression(component, attribute, attribute.getValue());
     attribute.setData(result);
     if (isPromise(result)) {
       Promise.resolve(result).then((resultResolved) => {
@@ -1639,12 +1530,8 @@ var transition = (type, libraryOptions, element, callback = null) => {
   }
   const transitionDirectiveName = libraryOptions.prefix + TRANSITION_NAME + type;
   const dispatchEvent = (phase) => {
-    element.dispatchEvent(
-      new CustomEvent("transition-" + phase)
-    );
-    element.dispatchEvent(
-      new CustomEvent("transition-" + type + "-" + phase)
-    );
+    element.dispatchEvent(new CustomEvent("transition-" + phase));
+    element.dispatchEvent(new CustomEvent("transition-" + type + "-" + phase));
   };
   let name, value, timeout, requestFrame;
   let isDone = false;
@@ -1669,7 +1556,7 @@ var transition = (type, libraryOptions, element, callback = null) => {
     }
     if (selectors.from) {
       removeAttributes(element, selectors.from);
-      selectors.from = void 0;
+      selectors.from = undefined;
     }
     name = transitionDirectiveName + ".to";
     value = element.getAttribute(name);
@@ -1685,9 +1572,9 @@ var transition = (type, libraryOptions, element, callback = null) => {
       return;
     }
     const styles = getComputedStyle(element);
-    let duration = Number(styles.transitionDuration.replace(/,.*/, "").replace("s", "")) * 1e3;
+    let duration = Number(styles.transitionDuration.replace(/,.*/, "").replace("s", "")) * 1000;
     if (duration === 0) {
-      duration = Number(styles.animationDuration.replace("s", "")) * 1e3;
+      duration = Number(styles.animationDuration.replace("s", "")) * 1000;
     }
     timeout = setTimeout(() => {
       timeout = null;
@@ -1696,11 +1583,11 @@ var transition = (type, libraryOptions, element, callback = null) => {
       }
       if (selectors.during) {
         removeAttributes(element, selectors.during);
-        selectors.during = void 0;
+        selectors.during = undefined;
       }
       if (selectors.to) {
         removeAttributes(element, selectors.to);
-        selectors.to = void 0;
+        selectors.to = undefined;
       }
       dispatchEvent("end");
       if (callback) {
@@ -1716,14 +1603,14 @@ var transition = (type, libraryOptions, element, callback = null) => {
     isDone = true;
     if (selectors.during) {
       removeAttributes(element, selectors.during);
-      selectors.during = void 0;
+      selectors.during = undefined;
     }
     if (selectors.from) {
       removeAttributes(element, selectors.from);
-      selectors.from = void 0;
+      selectors.from = undefined;
     } else if (selectors.to) {
       removeAttributes(element, selectors.to);
-      selectors.to = void 0;
+      selectors.to = undefined;
     }
     if (requestFrame) {
       cancelAnimationFrame(requestFrame);
@@ -1753,9 +1640,7 @@ var cloak_default = ({
   update: (component, attribute) => {
     const element = attribute.getElement();
     const libraryOptions = component.getLibrary().getOptions();
-    element.removeAttribute(
-      libraryOptions.prefix + "-" + (void 0).name
-    );
+    element.removeAttribute(libraryOptions.prefix + "-" + null.name);
     transitionIn(libraryOptions, element);
   }
 });
@@ -1767,10 +1652,7 @@ var _readdScript = (element) => {
   }
   const newScript = document.createElement("script");
   newScript.innerText = element.innerText;
-  element.parentNode.insertBefore(
-    newScript,
-    element
-  );
+  element.parentNode.insertBefore(newScript, element);
   element.remove();
   return true;
 };
@@ -1789,7 +1671,7 @@ var readdScripts = (...elements) => {
 // src/directives/for.js
 var createVariables = (names, ...values) => {
   const variables = {};
-  for (let i = 0; i < values.length; i++) {
+  for (let i = 0;i < values.length; i++) {
     if (i >= names.length) {
       break;
     }
@@ -1805,11 +1687,7 @@ var indexInSiblings = (elements, value, offset = -1) => {
   if (elements[offset][FOR].value === value) {
     return offset;
   }
-  return indexInSiblings(
-    elements,
-    value,
-    offset
-  );
+  return indexInSiblings(elements, value, offset);
 };
 var setAfter = (component, update, template, elements, index, value, variables, allowInlineScript) => {
   const libraryOptions = component.getLibrary().getOptions();
@@ -1842,7 +1720,7 @@ var removeAfter = (component, elements, maxLength) => {
     return;
   }
   const libraryOptions = component.getLibrary().getOptions();
-  for (let i = elements.length - 1; i >= maxLength; i--) {
+  for (let i = elements.length - 1;i >= maxLength; i--) {
     const element = elements[i];
     elements.splice(i, 1);
     transitionOut(libraryOptions, element, () => {
@@ -1878,15 +1756,15 @@ var for_default2 = ({
       const data2 = attribute.getData();
       const elements = data2.elements ? data2.elements : [];
       const iterableType = typeof iterable;
-      if (iterable !== null && iterable !== void 0) {
+      if (iterable !== null && iterable !== undefined) {
         if (iterableType === "number") {
-          for (let index = 0; index < iterable; index++) {
+          for (let index = 0;index < iterable; index++) {
             const variables = createVariables(expression.variables, index);
             setAfter(component, update, template, elements, index - 1, iterable, variables, allowInlineScript || modifiers.script);
           }
           removeAfter(component, elements, iterable);
         } else if (iterableType === "string") {
-          for (let index = 0; index < iterable.length; index++) {
+          for (let index = 0;index < iterable.length; index++) {
             const value = iterable[index];
             const variables = createVariables(expression.variables, value, index);
             setAfter(component, update, template, elements, index - 1, value, variables, allowInlineScript || modifiers.script);
@@ -1898,10 +1776,9 @@ var for_default2 = ({
             const values = [...iterable];
             isArray = true;
             length = values.length;
-          } catch (e) {
-          }
+          } catch {}
           if (isArray) {
-            for (let index = 0; index < length; index++) {
+            for (let index = 0;index < length; index++) {
               const value = iterable[index];
               const variables = createVariables(expression.variables, value, index);
               setAfter(component, update, template, elements, index - 1, value, variables, allowInlineScript || modifiers.script);
@@ -1909,7 +1786,7 @@ var for_default2 = ({
           } else {
             const keys = Object.keys(iterable);
             length = keys.length;
-            for (let index = 0; index < length; index++) {
+            for (let index = 0;index < length; index++) {
               const key = keys[index];
               const value = iterable[key];
               const variables = createVariables(expression.variables, key, value, index);
@@ -1922,28 +1799,20 @@ var for_default2 = ({
       if (Object.getOwnPropertySymbols(triggers).length > 0) {
         component.update(triggers);
       }
-      attribute.setData(
-        Object.assign({}, data2, {
-          elements
-        })
-      );
+      attribute.setData(Object.assign({}, data2, {
+        elements
+      }));
     };
     let result;
     if (!isNaN(expression.iterable)) {
       result = Number(expression.iterable);
     } else {
-      result = processExpression(
-        component,
-        attribute,
-        expression.iterable
-      );
+      result = processExpression(component, attribute, expression.iterable);
     }
     const data = attribute.getData();
-    attribute.setData(
-      Object.assign({}, data, {
-        result
-      })
-    );
+    attribute.setData(Object.assign({}, data, {
+      result
+    }));
     if (isPromise(result)) {
       Promise.resolve(result).then((resultResolved) => {
         if (attribute.getData().result !== result) {
@@ -1959,13 +1828,9 @@ var for_default2 = ({
     const data = attribute.getData();
     if (data.elements) {
       for (const element of data.elements) {
-        transitionOut(
-          component.getLibrary().getOptions(),
-          element,
-          () => {
-            element.remove();
-          }
-        );
+        transitionOut(component.getLibrary().getOptions(), element, () => {
+          element.remove();
+        });
       }
     }
   }
@@ -2093,7 +1958,7 @@ var _updateTree = (existingTree, newTree) => {
 var _updateChildren = (existingNode, newNode) => {
   let existingChild, newChild, morphed, existingMatch;
   let offset = 0;
-  for (let i = 0; ; i++) {
+  for (let i = 0;; i++) {
     existingChild = existingNode.childNodes[i];
     newChild = newNode.childNodes[i - offset];
     if (!existingChild && !newChild) {
@@ -2112,7 +1977,7 @@ var _updateChildren = (existingNode, newNode) => {
       }
     } else {
       existingMatch = null;
-      for (let j = i; j < existingNode.childNodes.length; j++) {
+      for (let j = i;j < existingNode.childNodes.length; j++) {
         if (isSame(existingNode.childNodes[j], newChild)) {
           existingMatch = existingNode.childNodes[j];
           break;
@@ -2156,9 +2021,7 @@ var html_default = ({
         for (const child of element.children) {
           child.remove();
         }
-        element.append(
-          html.cloneNode(true)
-        );
+        element.append(html.cloneNode(true));
         return;
       }
       if (typeof html === "string") {
@@ -2169,7 +2032,7 @@ var html_default = ({
             if (element.children.length === 0) {
               element.append(document.createElement("div"));
             } else if (element.children.length > 1) {
-              for (let i = element.children.length - 1; i >= 1; i--) {
+              for (let i = element.children.length - 1;i >= 1; i--) {
                 element.children[i].remove();
               }
             }
@@ -2196,11 +2059,7 @@ var html_default = ({
       }
       console.error('Doars: Unknown type returned to "' + directive + '" directive.');
     };
-    const result = processExpression(
-      component,
-      attribute,
-      attribute.getValue()
-    );
+    const result = processExpression(component, attribute, attribute.getValue());
     attribute.setData(result);
     if (isPromise(result)) {
       Promise.resolve(result).then((resultResolved) => {
@@ -2258,24 +2117,16 @@ var if_default = ({
         }
         transition2 = transitionIn(libraryOptions, element);
       }
-      attribute.setData(
-        Object.assign({}, data2, {
-          element,
-          transition: transition2
-        })
-      );
+      attribute.setData(Object.assign({}, data2, {
+        element,
+        transition: transition2
+      }));
     };
-    const result = processExpression(
-      component,
-      attribute,
-      attribute.getValue()
-    );
+    const result = processExpression(component, attribute, attribute.getValue());
     const data = attribute.getData();
-    attribute.setData(
-      Object.assign({}, data, {
-        result
-      })
-    );
+    attribute.setData(Object.assign({}, data, {
+      result
+    }));
     if (isPromise(result)) {
       Promise.resolve(result).then((result2) => {
         if (attribute.getData().result !== result2) {
@@ -2292,13 +2143,9 @@ var if_default = ({
   }) => {
     const data = attribute.getData();
     if (data.element) {
-      transitionOut2(
-        component.getLibrary().getOptions(),
-        data.element,
-        () => {
-          data.element.remove();
-        }
-      );
+      transitionOut2(component.getLibrary().getOptions(), data.element, () => {
+        data.element.remove();
+      });
     }
   }
 });
@@ -2333,13 +2180,7 @@ var initialized_default = ({
       if (detail.element !== element) {
         return;
       }
-      processExpression(
-        component,
-        attribute.clone(),
-        value,
-        {},
-        { return: false }
-      );
+      processExpression(component, attribute.clone(), value, {}, { return: false });
       destroy(component, attribute);
     };
     element.addEventListener(name, handler, {
@@ -2400,10 +2241,7 @@ var on_default = ({
       if (attribute[ON].value === value) {
         return;
       }
-      attribute[ON].target.removeEventListener(
-        attribute[ON].eventName,
-        attribute[ON].handler
-      );
+      attribute[ON].target.removeEventListener(attribute[ON].eventName, attribute[ON].handler);
       if (attribute[ON].timeout) {
         clearTimeout(attribute[ON].timeout);
       }
@@ -2502,16 +2340,10 @@ var on_default = ({
         event.stopPropagation();
       }
       const execute = () => {
-        processExpression(
-          component,
-          attribute.clone(),
-          value,
-          {
-            $event: event,
-            $events: attribute[ON].buffer
-          },
-          { return: false }
-        );
+        processExpression(component, attribute.clone(), value, {
+          $event: event,
+          $events: attribute[ON].buffer
+        }, { return: false });
         attribute[ON].buffer = [];
       };
       attribute[ON].buffer.push(event);
@@ -2529,7 +2361,6 @@ var on_default = ({
           }
           attribute[ON].timeout = setTimeout(execute, modifiers.debounce);
           return;
-        // Execute the event when let go after the given time has exceeded.
         case EXECUTION_MODIFIERS.HELD:
           if (!(eventName in CANCEL_EVENTS)) {
             console.warn('Doars: "' + directive + '" directive, event of name "' + eventName + '" is not cancelable and can not have "held" modifier.');
@@ -2572,7 +2403,6 @@ var on_default = ({
           attribute[ON].prevent = true;
           target.addEventListener(cancelHeldName, attribute[ON].cancel, { once: true });
           return;
-        // Execute event when keys have been held down for the given time.
         case EXECUTION_MODIFIERS.HOLD:
           if (!(eventName in CANCEL_EVENTS)) {
             console.warn('Doars: "' + directive + '" directive, event of name "' + eventName + '" is not cancelable and can not have "hold" modifier.');
@@ -2636,17 +2466,13 @@ var on_default = ({
       }
       execute();
     };
-    target.addEventListener(
-      eventName,
-      handler,
-      listenerOptions
-    );
+    target.addEventListener(eventName, handler, listenerOptions);
     attribute[ON] = {
       buffer: [],
       eventName,
       handler,
       target,
-      timeout: attribute[ON] ? attribute[ON].timeout : void 0,
+      timeout: attribute[ON] ? attribute[ON].timeout : undefined,
       value,
       prevent: false
     };
@@ -2655,15 +2481,9 @@ var on_default = ({
     if (!attribute[ON]) {
       return;
     }
-    attribute[ON].target.removeEventListener(
-      attribute[ON].eventName,
-      attribute[ON].handler
-    );
+    attribute[ON].target.removeEventListener(attribute[ON].eventName, attribute[ON].handler);
     if (attribute[ON].cancel) {
-      attribute[ON].target.removeEventListener(
-        CANCEL_EVENTS[attribute[ON].eventName],
-        attribute[ON].cancel
-      );
+      attribute[ON].target.removeEventListener(CANCEL_EVENTS[attribute[ON].eventName], attribute[ON].cancel);
     }
     if (attribute[ON].timeout) {
       clearTimeout(attribute[ON].timeout);
@@ -2708,14 +2528,10 @@ var reference_default = ({
       referenceDirectiveEvaluate
     } = library.getOptions();
     let name = attribute.getValue();
-    name = referenceDirectiveEvaluate ? processExpression(
-      component,
-      attribute,
-      name
-    ) : name.trim();
+    name = referenceDirectiveEvaluate ? processExpression(component, attribute, name) : name.trim();
     if (!name || typeof name !== "string" || !/^[_$a-z]{1}[_\-$a-z0-9]{0,}$/i.test(name)) {
       destroy2(component, attribute);
-      console.warn('Doars: "' + directive + '" directive\'s value not a valid variable name: "' + name.toString() + '".');
+      console.warn('Doars: "' + directive + `" directive's value not a valid variable name: "` + name.toString() + '".');
       return;
     }
     if (!component[REFERENCES]) {
@@ -2784,11 +2600,7 @@ var select_default = ({
         }
       }
     };
-    const result = processExpression(
-      component,
-      attribute,
-      attribute.getValue()
-    );
+    const result = processExpression(component, attribute, attribute.getValue());
     attribute.setData(result);
     if (isPromise(result)) {
       Promise.resolve(result).then((resultResolved) => {
@@ -2825,24 +2637,16 @@ var show_default = ({
           element.style.display = "none";
         });
       }
-      attribute.setData(
-        Object.assign({}, data2, {
-          transition: transition2
-        })
-      );
+      attribute.setData(Object.assign({}, data2, {
+        transition: transition2
+      }));
     };
-    const result = processExpression(
-      component,
-      attribute,
-      attribute.getValue()
-    );
+    const result = processExpression(component, attribute, attribute.getValue());
     const data = attribute.getData();
     if (isPromise(result)) {
-      attribute.setData(
-        Object.assign({}, data, {
-          result
-        })
-      );
+      attribute.setData(Object.assign({}, data, {
+        result
+      }));
       Promise.resolve(result).then((resultResolved) => {
         if (attribute.getData().result !== result) {
           return;
@@ -2850,11 +2654,9 @@ var show_default = ({
         set(resultResolved);
       });
     } else if (!data || data.result !== result) {
-      attribute.setData(
-        Object.assign({}, data, {
-          result
-        })
-      );
+      attribute.setData(Object.assign({}, data, {
+        result
+      }));
       set();
     }
   }
@@ -2882,7 +2684,7 @@ var sync_default = ({
       value = "$" + key + "." + value;
     }
     if (!/^[_$a-z]{1}[._$a-z0-9]{0,}$/i.test(value)) {
-      console.warn('Doars: "' + directive + '" directive\'s value not a valid variable name "' + value + '".');
+      console.warn('Doars: "' + directive + `" directive's value not a valid variable name "` + value + '".');
       return;
     }
     const valueSplit = value.split(".");
@@ -2891,25 +2693,15 @@ var sync_default = ({
       switch (element.tagName) {
         case "DIV":
           handler = () => {
-            const [contexts, destroyContexts] = createAutoContexts(
-              component,
-              attribute.clone()
-            );
-            setDeeply(
-              contexts,
-              valueSplit,
-              escapeHtml(element.innerText)
-            );
+            const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone());
+            setDeeply(contexts, valueSplit, escapeHtml(element.innerText));
             destroyContexts();
           };
           break;
         case "INPUT":
           handler = () => {
             const elementValue = escapeHtml(element.value);
-            const [contexts, destroyContexts] = createAutoContexts(
-              component,
-              attribute.clone()
-            );
+            const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone());
             if (element.type === "checkbox") {
               const dataValue2 = getDeeply(contexts, valueSplit);
               if (element.checked) {
@@ -2942,30 +2734,18 @@ var sync_default = ({
           break;
         case "TEXTAREA":
           handler = () => {
-            const [contexts, destroyContexts] = createAutoContexts(
-              component,
-              attribute.clone()
-            );
-            setDeeply(
-              contexts,
-              valueSplit,
-              escapeHtml(element.innerText)
-            );
+            const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone());
+            setDeeply(contexts, valueSplit, escapeHtml(element.innerText));
             destroyContexts();
           };
           break;
         case "SELECT":
           handler = () => {
-            const [contexts, destroyContexts] = createAutoContexts(
-              component,
-              attribute.clone()
-            );
+            const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone());
             if (element.multiple) {
               const elementValues = [];
               for (const option of element.selectedOptions) {
-                elementValues.push(
-                  escapeHtml(option.value)
-                );
+                elementValues.push(escapeHtml(option.value));
               }
               setDeeply(contexts, valueSplit, [elementValues.join("','")]);
             } else {
@@ -2978,11 +2758,7 @@ var sync_default = ({
       element.addEventListener("input", handler);
       attribute[SYNC] = handler;
     }
-    const dataValue = processExpression(
-      component,
-      attribute.clone(),
-      value
-    );
+    const dataValue = processExpression(component, attribute.clone(), value);
     switch (element.tagName) {
       case "DIV":
       case "TEXTAREA":
@@ -3059,11 +2835,7 @@ var text_default = ({
         element.innerText = text;
       }
     };
-    const result = processExpression(
-      component,
-      attribute,
-      attribute.getValue()
-    );
+    const result = processExpression(component, attribute, attribute.getValue());
     attribute.setData(result);
     if (isPromise(result)) {
       Promise.resolve(result).then((resultResolved) => {
@@ -3083,26 +2855,12 @@ var watch_default2 = ({
   watchDirectiveName
 }) => ({
   name: watchDirectiveName,
-  update: (component, attribute, processExpression) => (
-    // Execute attribute expression.
-    processExpression(
-      component,
-      attribute.clone(),
-      attribute.getValue(),
-      {},
-      { return: false }
-    )
-  )
+  update: (component, attribute, processExpression) => processExpression(component, attribute.clone(), attribute.getValue(), {}, { return: false })
 });
 
 // src/Doars.js
-var Doars = class extends EventDispatcher {
-  /**
-   * Create instance.
-   * @param {_DoarsOptions} options Options.
-   */
+class Doars extends EventDispatcher {
   constructor(options) {
-    var _a, _b;
     super();
     let {
       prefix,
@@ -3121,7 +2879,6 @@ var Doars = class extends EventDispatcher {
       referenceDirectiveEvaluate: true,
       selectFromElementDirectiveEvaluate: true,
       targetDirectiveEvaluate: true,
-      // Context names must pass regex: /^[_$a-z]{1}[_$a-z0-9]{0,}$/i.test(name)
       childrenContextName: "$children",
       componentContextName: "$component",
       dispatchContextName: "$dispatch",
@@ -3137,7 +2894,6 @@ var Doars = class extends EventDispatcher {
       stateContextName: "$state",
       storeContextName: "$store",
       watchContextName: "$watch",
-      // Directive names must pass regex: /^[_\-$a-z]{1}[_\-$a-z0-9]{0,}$/i.test(name)
       attributeDirectiveName: "attribute",
       cloakDirectiveName: "cloak",
       forDirectiveName: "for",
@@ -3157,7 +2913,6 @@ var Doars = class extends EventDispatcher {
       textDirectiveName: "text",
       transitionDirectiveName: "transition",
       watchDirectiveName: "watch",
-      // Header names must pass regex: /^[_\-$a-z]{1}[_\-$a-z0-9]{0,}$/i.test(name)
       redirectHeaderName: "redirect",
       requestHeaderName: "request",
       titleHeaderName: "title"
@@ -3198,21 +2953,17 @@ var Doars = class extends EventDispatcher {
       references_default(options),
       siblings_default(options),
       watch_default(options),
-      // Order of `store`, `state` and `for` context is important for deconstruction.
       store_default(options),
       state_default(options),
       for_default(options)
     ];
     const directives = [
-      // Must happen first as other directives can rely on it.
       reference_default(options),
-      // Then execute those that modify the document tree, since it could make other directives redundant and save on processing.
       attribute_default(options),
       for_default2(options),
       html_default(options),
       if_default(options),
       text_default(options),
-      // Order does not matter any more.
       cloak_default(options),
       initialized_default(options),
       on_default(options),
@@ -3230,7 +2981,7 @@ var Doars = class extends EventDispatcher {
       processExpression = this.constructor[processor + "Expression"];
     } else {
       console.warn("Doars: Expression processor not found. Using fallback instead.");
-      processExpression = (_b = (_a = this.constructor.executeExpression) != null ? _a : this.constructor.interpretExpression) != null ? _b : this.constructor.callExpression;
+      processExpression = this.constructor.executeExpression ?? this.constructor.interpretExpression ?? this.constructor.callExpression;
     }
     if (!processExpression) {
       console.error("Doars: No expression processor available. Process option: ", process);
@@ -3272,7 +3023,7 @@ var Doars = class extends EventDispatcher {
       const componentName = prefix + "-" + stateDirectiveName;
       const ignoreName = prefix + "-" + ignoreDirectiveName;
       const componentElements = [...root.querySelectorAll("[" + componentName + "]")];
-      for (let i = componentElements.length - 1; i >= 0; i--) {
+      for (let i = componentElements.length - 1;i >= 0; i--) {
         if (componentElements[i].closest("[" + ignoreName + "]")) {
           componentElements.splice(i, 1);
         }
@@ -3374,7 +3125,7 @@ var Doars = class extends EventDispatcher {
         index = contexts.length;
       }
       const results = [];
-      for (let i = 0; i < _contexts.length; i++) {
+      for (let i = 0;i < _contexts.length; i++) {
         const context = _contexts[i];
         if (contexts.includes(context)) {
           continue;
@@ -3421,7 +3172,7 @@ var Doars = class extends EventDispatcher {
         index = directives.length;
       }
       const results = [];
-      for (let i = 0; i < _directives.length; i++) {
+      for (let i = 0;i < _directives.length; i++) {
         const directive = _directives[i];
         if (directives.includes(directive)) {
           continue;
@@ -3654,7 +3405,7 @@ var Doars = class extends EventDispatcher {
       }
     };
   }
-};
+}
 
 // ../interpret/src/types.js
 var ARRAY = 5;
@@ -3674,13 +3425,9 @@ var UPDATE = 14;
 // ../interpret/src/parse.js
 var SPACE_CODES = [
   9,
-  // Tab
   10,
-  // LF
   13,
-  // CR
   32
-  // Space
 ];
 var OPENING_PARENTHESIS_CODE = 40;
 var CLOSING_PARENTHESIS_CODE = 41;
@@ -3702,12 +3449,6 @@ var ASSIGNMENT_OPERATORS = [
   "%=",
   "+=",
   "-="
-  // '<<=',
-  // '>>=',
-  // '>>>=',
-  // '&=',
-  // '^=',
-  // '|=',
 ];
 var BINARY_OPERATORS = {
   "=": 1,
@@ -3720,18 +3461,9 @@ var BINARY_OPERATORS = {
   "%=": 1,
   "+=": 1,
   "-=": 1,
-  // '<<=': 1,
-  // '>>=': 1,
-  // '>>>=': 1,
-  // '&=': 1,
-  // '^=': 1,
-  // '|=': 1,
   "||": 2,
   "&&": 3,
   "??": 4,
-  // '|': 5,
-  // '^': 6,
-  // '&': 7,
   "==": 8,
   "!=": 8,
   "===": 8,
@@ -3740,9 +3472,6 @@ var BINARY_OPERATORS = {
   ">": 9,
   "<=": 9,
   ">=": 9,
-  // '<<': 10,
-  // '>>': 10,
-  // '>>>': 10,
   "*": 11,
   "/": 11,
   "%": 11,
@@ -3752,7 +3481,6 @@ var BINARY_OPERATORS = {
 var UNARY_OPERATORS = [
   "-",
   "!",
-  // '~',
   "+"
 ];
 var UPDATE_OPERATOR_DECREMENT = "--";
@@ -3761,15 +3489,11 @@ var LITERALS = {
   true: true,
   false: false,
   null: null,
-  undefined: void 0
+  undefined: undefined
 };
 var isDecimalDigit = (character) => character >= 48 && character <= 57;
 var isIdentifierPart = (character) => isIdentifierStart(character) || isDecimalDigit(character);
-var isIdentifierStart = (character) => character === 36 || // Dollar ($)
-character >= 48 && character <= 57 || // Between 0 and 9
-character === 95 || // Underscore
-character >= 65 && character <= 90 || // Between A and Z
-character >= 97 && character <= 122;
+var isIdentifierStart = (character) => character === 36 || character >= 48 && character <= 57 || character === 95 || character >= 65 && character <= 90 || character >= 97 && character <= 122;
 var parse_default = (expression) => {
   let index = 0;
   const gobbleArray = () => {
@@ -3800,7 +3524,7 @@ var parse_default = (expression) => {
           if (termination === CLOSING_PARENTHESIS_CODE) {
             throw new Error("Unexpected token ,");
           } else if (termination === CLOSING_BRACKET_CODE) {
-            for (let i = parameters.length; i < separatorCount; i++) {
+            for (let i = parameters.length;i < separatorCount; i++) {
               parameters.push(null);
             }
           }
@@ -3909,8 +3633,7 @@ var parse_default = (expression) => {
     const nodes2 = [];
     while (index < expression.length) {
       const characterIndex = expression.charCodeAt(index);
-      if (characterIndex === 59 || // Semicolon (;)
-      characterIndex === COMMA_CODE) {
+      if (characterIndex === 59 || characterIndex === COMMA_CODE) {
         index++;
       } else {
         const node = gobbleExpression();
@@ -3981,7 +3704,6 @@ var parse_default = (expression) => {
     return {
       type: LITERAL,
       value: parseFloat(number)
-      // raw: number,
     };
   };
   const gobbleObjectExpression = () => {
@@ -4074,13 +3796,14 @@ var parse_default = (expression) => {
         character = expression.charAt(index++);
         switch (character) {
           case "n":
-            string += "\n";
+            string += `
+`;
             break;
           case "r":
             string += "\r";
             break;
           case "t":
-            string += "	";
+            string += "\t";
             break;
           case "b":
             string += "\b";
@@ -4104,7 +3827,6 @@ var parse_default = (expression) => {
     return {
       type: LITERAL,
       value: string
-      // raw: expression.substring(startIndex, index),
     };
   };
   const gobbleTernary = (node) => {
@@ -4180,16 +3902,13 @@ var parse_default = (expression) => {
           node = {
             type: LITERAL,
             value: LITERALS[node.name]
-            // raw: node.name,
           };
         }
       } else if (character === OPENING_PARENTHESIS_CODE) {
         node = gobbleSequence();
       }
     }
-    return gobbleUpdateSuffixExpression(
-      gobbleTokenProperty(node)
-    );
+    return gobbleUpdateSuffixExpression(gobbleTokenProperty(node));
   };
   const gobbleTokenProperty = (node) => {
     gobbleSpaces();
@@ -4293,7 +4012,7 @@ var parse_default = (expression) => {
     return node;
   };
   const nodes = gobbleExpressions();
-  return nodes.length === 0 ? void 0 : nodes;
+  return nodes.length === 0 ? undefined : nodes;
 };
 
 // ../interpret/src/run.js
@@ -4347,7 +4066,7 @@ var run = (node, context = {}) => {
             }
             break;
           case "??=":
-            if (assignmentLeft !== null && assignmentLeft !== void 0) {
+            if (assignmentLeft !== null && assignmentLeft !== undefined) {
               return assignmentLeft;
             }
             break;
@@ -4355,7 +4074,7 @@ var run = (node, context = {}) => {
             assignmentValue = assignmentLeft * assignmentValue;
             break;
           case "**=":
-            assignmentValue = __pow(assignmentLeft, assignmentValue);
+            assignmentValue = assignmentLeft ** assignmentValue;
             break;
           case "/=":
             assignmentValue = assignmentLeft / assignmentValue;
@@ -4381,7 +4100,7 @@ var run = (node, context = {}) => {
         case "&&":
           return binaryLeft && binaryRight;
         case "??":
-          return binaryLeft != null ? binaryLeft : binaryRight;
+          return binaryLeft ?? binaryRight;
         case "==":
           return binaryLeft == binaryRight;
         case "!=":
@@ -4472,7 +4191,8 @@ var interpret = (component, attribute, expression, extra = null, options = null)
     }
     result = run2(expressionParsed, contexts);
   } catch (error) {
-    console.error("ExpressionError in:", expression, "\n" + error.name + ": " + error.message);
+    console.error("ExpressionError in:", expression, `
+` + error.name + ": " + error.message);
     result = null;
   }
   destroyContexts();
@@ -4488,4 +4208,5 @@ var DoarsInterpret_default = Doars;
 export {
   DoarsInterpret_default as default
 };
-//# sourceMappingURL=doars-interpret.esm.js.map
+
+//# debugId=AC52FDF9E413A40364756E2164756E21

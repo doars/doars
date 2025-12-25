@@ -1,5 +1,3 @@
-var __pow = Math.pow;
-
 // src/types.js
 var ARRAY = 5;
 var ASSIGN = 6;
@@ -18,13 +16,9 @@ var UPDATE = 14;
 // src/parse.js
 var SPACE_CODES = [
   9,
-  // Tab
   10,
-  // LF
   13,
-  // CR
   32
-  // Space
 ];
 var OPENING_PARENTHESIS_CODE = 40;
 var CLOSING_PARENTHESIS_CODE = 41;
@@ -46,12 +40,6 @@ var ASSIGNMENT_OPERATORS = [
   "%=",
   "+=",
   "-="
-  // '<<=',
-  // '>>=',
-  // '>>>=',
-  // '&=',
-  // '^=',
-  // '|=',
 ];
 var BINARY_OPERATORS = {
   "=": 1,
@@ -64,18 +52,9 @@ var BINARY_OPERATORS = {
   "%=": 1,
   "+=": 1,
   "-=": 1,
-  // '<<=': 1,
-  // '>>=': 1,
-  // '>>>=': 1,
-  // '&=': 1,
-  // '^=': 1,
-  // '|=': 1,
   "||": 2,
   "&&": 3,
   "??": 4,
-  // '|': 5,
-  // '^': 6,
-  // '&': 7,
   "==": 8,
   "!=": 8,
   "===": 8,
@@ -84,9 +63,6 @@ var BINARY_OPERATORS = {
   ">": 9,
   "<=": 9,
   ">=": 9,
-  // '<<': 10,
-  // '>>': 10,
-  // '>>>': 10,
   "*": 11,
   "/": 11,
   "%": 11,
@@ -96,7 +72,6 @@ var BINARY_OPERATORS = {
 var UNARY_OPERATORS = [
   "-",
   "!",
-  // '~',
   "+"
 ];
 var UPDATE_OPERATOR_DECREMENT = "--";
@@ -105,15 +80,11 @@ var LITERALS = {
   true: true,
   false: false,
   null: null,
-  undefined: void 0
+  undefined: undefined
 };
 var isDecimalDigit = (character) => character >= 48 && character <= 57;
 var isIdentifierPart = (character) => isIdentifierStart(character) || isDecimalDigit(character);
-var isIdentifierStart = (character) => character === 36 || // Dollar ($)
-character >= 48 && character <= 57 || // Between 0 and 9
-character === 95 || // Underscore
-character >= 65 && character <= 90 || // Between A and Z
-character >= 97 && character <= 122;
+var isIdentifierStart = (character) => character === 36 || character >= 48 && character <= 57 || character === 95 || character >= 65 && character <= 90 || character >= 97 && character <= 122;
 var parse_default = (expression) => {
   let index = 0;
   const gobbleArray = () => {
@@ -144,7 +115,7 @@ var parse_default = (expression) => {
           if (termination === CLOSING_PARENTHESIS_CODE) {
             throw new Error("Unexpected token ,");
           } else if (termination === CLOSING_BRACKET_CODE) {
-            for (let i = parameters.length; i < separatorCount; i++) {
+            for (let i = parameters.length;i < separatorCount; i++) {
               parameters.push(null);
             }
           }
@@ -253,8 +224,7 @@ var parse_default = (expression) => {
     const nodes2 = [];
     while (index < expression.length) {
       const characterIndex = expression.charCodeAt(index);
-      if (characterIndex === 59 || // Semicolon (;)
-      characterIndex === COMMA_CODE) {
+      if (characterIndex === 59 || characterIndex === COMMA_CODE) {
         index++;
       } else {
         const node = gobbleExpression();
@@ -325,7 +295,6 @@ var parse_default = (expression) => {
     return {
       type: LITERAL,
       value: parseFloat(number)
-      // raw: number,
     };
   };
   const gobbleObjectExpression = () => {
@@ -418,13 +387,14 @@ var parse_default = (expression) => {
         character = expression.charAt(index++);
         switch (character) {
           case "n":
-            string += "\n";
+            string += `
+`;
             break;
           case "r":
             string += "\r";
             break;
           case "t":
-            string += "	";
+            string += "\t";
             break;
           case "b":
             string += "\b";
@@ -448,7 +418,6 @@ var parse_default = (expression) => {
     return {
       type: LITERAL,
       value: string
-      // raw: expression.substring(startIndex, index),
     };
   };
   const gobbleTernary = (node) => {
@@ -524,16 +493,13 @@ var parse_default = (expression) => {
           node = {
             type: LITERAL,
             value: LITERALS[node.name]
-            // raw: node.name,
           };
         }
       } else if (character === OPENING_PARENTHESIS_CODE) {
         node = gobbleSequence();
       }
     }
-    return gobbleUpdateSuffixExpression(
-      gobbleTokenProperty(node)
-    );
+    return gobbleUpdateSuffixExpression(gobbleTokenProperty(node));
   };
   const gobbleTokenProperty = (node) => {
     gobbleSpaces();
@@ -637,7 +603,7 @@ var parse_default = (expression) => {
     return node;
   };
   const nodes = gobbleExpressions();
-  return nodes.length === 0 ? void 0 : nodes;
+  return nodes.length === 0 ? undefined : nodes;
 };
 
 // src/run.js
@@ -691,7 +657,7 @@ var run = (node, context = {}) => {
             }
             break;
           case "??=":
-            if (assignmentLeft !== null && assignmentLeft !== void 0) {
+            if (assignmentLeft !== null && assignmentLeft !== undefined) {
               return assignmentLeft;
             }
             break;
@@ -699,7 +665,7 @@ var run = (node, context = {}) => {
             assignmentValue = assignmentLeft * assignmentValue;
             break;
           case "**=":
-            assignmentValue = __pow(assignmentLeft, assignmentValue);
+            assignmentValue = assignmentLeft ** assignmentValue;
             break;
           case "/=":
             assignmentValue = assignmentLeft / assignmentValue;
@@ -725,7 +691,7 @@ var run = (node, context = {}) => {
         case "&&":
           return binaryLeft && binaryRight;
         case "??":
-          return binaryLeft != null ? binaryLeft : binaryRight;
+          return binaryLeft ?? binaryRight;
         case "==":
           return binaryLeft == binaryRight;
         case "!=":
@@ -834,22 +800,23 @@ var src_default = {
   UPDATE
 };
 export {
-  ARRAY2 as ARRAY,
-  ASSIGN2 as ASSIGN,
-  BINARY2 as BINARY,
-  CALL2 as CALL,
-  CONDITION2 as CONDITION,
-  IDENTIFIER2 as IDENTIFIER,
-  LITERAL2 as LITERAL,
-  MEMBER2 as MEMBER,
-  OBJECT2 as OBJECT,
-  PROPERTY2 as PROPERTY,
-  SEQUENCE2 as SEQUENCE,
-  UNARY2 as UNARY,
-  UPDATE2 as UPDATE,
-  src_default as default,
-  interpret,
+  run2 as run,
   parse,
-  run2 as run
+  interpret,
+  src_default as default,
+  UPDATE2 as UPDATE,
+  UNARY2 as UNARY,
+  SEQUENCE2 as SEQUENCE,
+  PROPERTY2 as PROPERTY,
+  OBJECT2 as OBJECT,
+  MEMBER2 as MEMBER,
+  LITERAL2 as LITERAL,
+  IDENTIFIER2 as IDENTIFIER,
+  CONDITION2 as CONDITION,
+  CALL2 as CALL,
+  BINARY2 as BINARY,
+  ASSIGN2 as ASSIGN,
+  ARRAY2 as ARRAY
 };
-//# sourceMappingURL=interpret.esm.js.map
+
+//# debugId=DA05C3D01711CBB464756E2164756E21

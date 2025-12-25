@@ -13,7 +13,6 @@
         proxy.addEventListener("get", onGet);
         return {
           value: time,
-          // Remove event listeners.
           destroy: () => {
             proxy.removeEventListener("get", onGet);
           }
@@ -44,7 +43,7 @@
           order = defaultOrder;
         }
         let index = 0;
-        for (let i = 0; i < items.length; i++) {
+        for (let i = 0;i < items.length; i++) {
           if (items[i].order >= order) {
             index = i;
             break;
@@ -63,7 +62,7 @@
           return;
         }
         itemIds.splice(index, 1);
-        for (let i = 0; i < items.length; i++) {
+        for (let i = 0;i < items.length; i++) {
           if (items[i].attribute === attribute) {
             items.splice(i, 1);
             break;
@@ -75,15 +74,9 @@
       directive,
       () => {
         for (const item of items) {
-          directive._execute(
-            item.component,
-            item.attribute.clone(),
-            item.attribute.getValue(),
-            {},
-            {
-              return: false
-            }
-          );
+          directive._execute(item.component, item.attribute.clone(), item.attribute.getValue(), {}, {
+            return: false
+          });
         }
       }
     ];
@@ -128,10 +121,7 @@
   };
 
   // ../common/src/events/EventDispatcher.js
-  var EventDispatcher = class {
-    /**
-     * Create instance.
-     */
+  class EventDispatcher {
     constructor() {
       let events = {};
       this.addEventListener = (name, callback, options = null) => {
@@ -149,7 +139,7 @@
         }
         const eventData = events[name];
         let index = -1;
-        for (let i = 0; i < eventData.length; i++) {
+        for (let i = 0;i < eventData.length; i++) {
           if (eventData[i].callback === callback) {
             index = i;
             break;
@@ -177,7 +167,7 @@
           return;
         }
         const eventData = events[name];
-        for (let i = 0; i < eventData.length; i++) {
+        for (let i = 0;i < eventData.length; i++) {
           const event = options && options.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
           if (event.options && event.options.once) {
             eventData.splice(i, 1);
@@ -186,14 +176,10 @@
         }
       };
     }
-  };
+  }
 
   // ../common/src/events/ProxyDispatcher.js
-  var ProxyDispatcher = class extends EventDispatcher {
-    /**
-     * Creates a proxy dispatcher instance.
-     * @param {ProxyOptions} options Options for proxy dispatcher.
-     */
+  class ProxyDispatcher extends EventDispatcher {
     constructor(options = {}) {
       super();
       options = Object.assign({
@@ -201,7 +187,7 @@
         get: true,
         set: true
       }, options);
-      const map = /* @__PURE__ */ new WeakMap();
+      const map = new WeakMap;
       this.add = (target, path = []) => {
         if (map.has(target)) {
           return map.get(target);
@@ -264,22 +250,16 @@
         revocable.revoke();
       };
     }
-  };
+  }
 
   // src/Updater.js
-  var Updater = class {
-    /**
-     * @param {object} options Updater options.
-     * @param {number} options.stepMinimum Minimum duration of a tick in milliseconds.
-     * @param {UpdateCallback} callback Called every update tick.
-     */
+  class Updater {
     constructor({
       stepMinimum
     }, callback) {
       const id = Symbol("ID_UPDATE");
       let isEnabled = false, request;
       const proxy = new ProxyDispatcher({
-        // We don't care when they are updated, we have a callback for that. They should never be updated by the user anyway.
         delete: false,
         set: false
       });
@@ -291,7 +271,7 @@
         request = window.requestAnimationFrame(update);
         if (!time.startMs) {
           time.currentMs = time.lastMs = time.startMs = timeAbsolute;
-          time.current = time.last = time.start = timeAbsolute / 1e3;
+          time.current = time.last = time.start = timeAbsolute / 1000;
           time.delta = time.passed = time.deltaMs = time.passedMs = 0;
           return;
         }
@@ -302,11 +282,11 @@
         time.lastMs = time.currentMs;
         time.last = time.current;
         time.currentMs = timeAbsolute;
-        time.current = timeAbsolute / 1e3;
+        time.current = timeAbsolute / 1000;
         time.deltaMs = deltaMs;
-        time.delta = deltaMs / 1e3;
+        time.delta = deltaMs / 1000;
         time.passedMs += deltaMs;
-        time.passed = time.passedMs / 1e3;
+        time.passed = time.passedMs / 1000;
         callback();
       };
       this.isEnabled = () => {
@@ -339,7 +319,7 @@
         }
       };
     }
-  };
+  }
 
   // src/DoarsUpdate.js
   function DoarsUpdate_default(library, options = null) {
@@ -350,25 +330,22 @@
       updateDirectiveName: "update"
     }, options);
     let isEnabled = false;
-    const updater = new Updater(
-      options,
-      () => {
-        update();
-        library.update([{
-          id: updater.getId(),
-          path: "current"
-        }, {
-          id: updater.getId(),
-          path: "delta"
-        }, {
-          id: updater.getId(),
-          path: "last"
-        }, {
-          id: updater.getId(),
-          path: "passed"
-        }]);
-      }
-    );
+    const updater = new Updater(options, () => {
+      update();
+      library.update([{
+        id: updater.getId(),
+        path: "current"
+      }, {
+        id: updater.getId(),
+        path: "delta"
+      }, {
+        id: updater.getId(),
+        path: "last"
+      }, {
+        id: updater.getId(),
+        path: "passed"
+      }]);
+    });
     const contextUpdate = update_default(options, updater);
     const [directiveUpdate, update] = update_default2(options);
     const onEnable = () => {
@@ -401,4 +378,5 @@
   // src/DoarsUpdate.iife.js
   window.DoarsUpdate = DoarsUpdate_default;
 })();
-//# sourceMappingURL=doars-update.iife.js.map
+
+//# debugId=0C6527811A41EAD564756E2164756E21

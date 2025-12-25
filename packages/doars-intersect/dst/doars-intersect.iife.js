@@ -63,13 +63,7 @@
           return;
         }
         const execute = () => {
-          processExpression(
-            component,
-            attribute.clone(),
-            value,
-            { $event: event },
-            { return: false }
-          );
+          processExpression(component, attribute.clone(), value, { $event: event }, { return: false });
           attribute[INTERSECT].buffer = [];
         };
         attribute[INTERSECT].buffer.push(event);
@@ -120,13 +114,9 @@
   });
 
   // ../common/src/polyfills/IntersectionDispatcher.js
-  var IntersectionDispatcher = class {
-    /**
-     * Create observer instance.
-     * @param {object} options Intersection observer options.
-     */
+  class IntersectionDispatcher {
     constructor(options = null) {
-      const items = /* @__PURE__ */ new WeakMap();
+      const items = new WeakMap;
       const intersect = (entries) => {
         for (const entry of entries) {
           for (const callback of items.get(entry.target)) {
@@ -157,7 +147,7 @@
         }
       };
     }
-  };
+  }
 
   // src/DoarsIntersect.js
   function DoarsIntersect_default(library, options = null) {
@@ -173,10 +163,7 @@
       rootMargin: options.intersectionMargin,
       threshold: options.intersectionThreshold
     });
-    const intersectionDirective = intersect_default(
-      options,
-      intersectionDispatcher
-    );
+    const intersectionDirective = intersect_default(options, intersectionDispatcher);
     const onEnable = () => {
       library.addDirectives(-1, intersectionDirective);
     };
@@ -203,4 +190,5 @@
   // src/DoarsIntersect.iife.js
   window.DoarsIntersect = DoarsIntersect_default;
 })();
-//# sourceMappingURL=doars-intersect.iife.js.map
+
+//# debugId=D9EF40940F3BCE5264756E2164756E21

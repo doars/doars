@@ -62,13 +62,7 @@ var intersect_default = ({
         return;
       }
       const execute = () => {
-        processExpression(
-          component,
-          attribute.clone(),
-          value,
-          { $event: event },
-          { return: false }
-        );
+        processExpression(component, attribute.clone(), value, { $event: event }, { return: false });
         attribute[INTERSECT].buffer = [];
       };
       attribute[INTERSECT].buffer.push(event);
@@ -119,13 +113,9 @@ var intersect_default = ({
 });
 
 // ../common/src/polyfills/IntersectionDispatcher.js
-var IntersectionDispatcher = class {
-  /**
-   * Create observer instance.
-   * @param {object} options Intersection observer options.
-   */
+class IntersectionDispatcher {
   constructor(options = null) {
-    const items = /* @__PURE__ */ new WeakMap();
+    const items = new WeakMap;
     const intersect = (entries) => {
       for (const entry of entries) {
         for (const callback of items.get(entry.target)) {
@@ -156,7 +146,7 @@ var IntersectionDispatcher = class {
       }
     };
   }
-};
+}
 
 // src/DoarsIntersect.js
 function DoarsIntersect_default(library, options = null) {
@@ -172,10 +162,7 @@ function DoarsIntersect_default(library, options = null) {
     rootMargin: options.intersectionMargin,
     threshold: options.intersectionThreshold
   });
-  const intersectionDirective = intersect_default(
-    options,
-    intersectionDispatcher
-  );
+  const intersectionDirective = intersect_default(options, intersectionDispatcher);
   const onEnable = () => {
     library.addDirectives(-1, intersectionDirective);
   };
@@ -201,4 +188,5 @@ function DoarsIntersect_default(library, options = null) {
 export {
   DoarsIntersect_default as default
 };
-//# sourceMappingURL=doars-intersect.esm.js.map
+
+//# debugId=2EA225B94C0B439D64756E2164756E21

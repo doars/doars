@@ -23,14 +23,8 @@
   },
   "type": "module",
   "scripts": {
-    "build": "NODE_ENV=production hoast && NODE_ENV=production  node ./config.esbuild.js",
+    "build": "NODE_ENV=production hoast && NODE_ENV=production bun ./config.bundle.js",
     "develop:hoast": "NODE_ENV=development NODE_OPTIONS='--experimental-loader=@hoast/hoast/loader.js' hoast --watch",
-    "develop:rollup": "NODE_ENV=development node ./config.esbuild.js",
-    "lint": "eslint src/components/*.js src/utils/*.js --cache --fix --no-error-on-unmatched-pattern",
-    "release": "yarn run lint && yarn run test && yarn run build",
-    "test": "yarn run test:browser && yarn run test:runtime",
-    "test:browser": "echo 'no browser tests'",
-    "test:runtime": "echo 'no runtime tests'",
-    "upgrade": "npm-check-updates --upgrade --target minor"
+    "develop:scripts": "NODE_ENV=development bun ./config.bundle.js"
   }
 }

@@ -10,7 +10,7 @@
 
   <body>
     <div d-state="{ messages: [] }">
-      <input type="text" d-reference="input" />
+      <input type="text" d-reference="'input'" />
 
       <button type="button" d-on:click="messages.push($references['input'].value); $references['input'].value = ''">
         Add

@@ -1,38 +1,19 @@
 {
   "private": true,
-  "name": "@doars/workspace",
+  "name": "@doars/doars-workspace",
   "workspaces": [
     ".docs/",
     "packages/*"
   ],
   "type": "module",
   "scripts": {
-    "build": "yarn workspaces run build",
-    "docs:build": "yarn workspace @doars/docs run build",
-    "lint": "yarn workspaces run lint",
-    "release": "yarn workspaces run release",
-    "serve": "serve ./",
-    "test": "yarn workspaces run test",
-    "test:browser": "yarn workspaces run test:browser",
-    "test:runtime": "yarn workspaces run test:runtime",
-    "upgrade": "npm-check-updates --upgrade --target minor && yarn workspaces run upgrade && yarn install"
+    "build": "bun --filter=\"./packages/*\" run build",
+    "docs:build": "bun --filter=\"./.docs/\" run build",
+    "serve": "bun ./scripts/srv.js ./"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
-    "brotli-size": "^4.0.0",
-    "chai": "^4.5.0",
-    "esbuild": "^0.24.0",
-    "eslint": "^8.57.0",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-jsdoc": "^46.10.1",
-    "eslint-plugin-n": "^16.6.2",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^6.6.0",
-    "mocha": "^10.8.2",
-    "npm-check-updates": "^16.14.20",
-    "serve": "^14.2.4"
+    "brotli-size": "^4.0.0"
   },
-  "dependencies": {},
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  "dependencies": {}
 }

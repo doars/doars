@@ -38,10 +38,7 @@
   };
 
   // ../common/src/events/EventDispatcher.js
-  var EventDispatcher = class {
-    /**
-     * Create instance.
-     */
+  class EventDispatcher {
     constructor() {
       let events = {};
       this.addEventListener = (name, callback, options = null) => {
@@ -59,7 +56,7 @@
         }
         const eventData = events[name];
         let index = -1;
-        for (let i = 0; i < eventData.length; i++) {
+        for (let i = 0;i < eventData.length; i++) {
           if (eventData[i].callback === callback) {
             index = i;
             break;
@@ -87,7 +84,7 @@
           return;
         }
         const eventData = events[name];
-        for (let i = 0; i < eventData.length; i++) {
+        for (let i = 0;i < eventData.length; i++) {
           const event = options && options.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
           if (event.options && event.options.once) {
             eventData.splice(i, 1);
@@ -96,14 +93,10 @@
         }
       };
     }
-  };
+  }
 
   // ../common/src/events/ProxyDispatcher.js
-  var ProxyDispatcher = class extends EventDispatcher {
-    /**
-     * Creates a proxy dispatcher instance.
-     * @param {ProxyOptions} options Options for proxy dispatcher.
-     */
+  class ProxyDispatcher extends EventDispatcher {
     constructor(options = {}) {
       super();
       options = Object.assign({
@@ -111,7 +104,7 @@
         get: true,
         set: true
       }, options);
-      const map = /* @__PURE__ */ new WeakMap();
+      const map = new WeakMap;
       this.add = (target, path = []) => {
         if (map.has(target)) {
           return map.get(target);
@@ -174,7 +167,7 @@
         revocable.revoke();
       };
     }
-  };
+  }
 
   // ../common/src/factories/createState.js
   var createState_default = (name, id, state, proxy) => {
@@ -188,7 +181,6 @@
       const revocable = RevocableProxy_default(state, {});
       return {
         value: revocable.proxy,
-        // Remove event listeners.
         destroy: () => {
           proxy.removeEventListener("delete", onDelete);
           proxy.removeEventListener("get", onGet);
@@ -203,24 +195,17 @@
   var createStateContext_default = (name, id, state, proxy, deconstruct) => ({
     deconstruct,
     name,
-    create: createState_default(
-      name,
-      id,
-      state,
-      proxy
-    )
+    create: createState_default(name, id, state, proxy)
   });
 
   // src/utilities/cookies.js
   var _cache = null;
   var getAll = () => {
     if (_cache === null) {
-      _cache = Object.fromEntries(
-        document.cookie.split(/; */).map((cookie) => {
-          const [key, ...value] = cookie.split("=");
-          return [key, decodeURIComponent(value.join("="))];
-        })
-      );
+      _cache = Object.fromEntries(document.cookie.split(/; */).map((cookie) => {
+        const [key, ...value] = cookie.split("=");
+        return [key, decodeURIComponent(value.join("="))];
+      }));
     }
     return _cache;
   };
@@ -234,8 +219,8 @@
     } else {
       let expires = "";
       if (days) {
-        const date = /* @__PURE__ */ new Date();
-        date.setTime(date.getTime() + days * 24 * 60 * 60 * 1e3);
+        const date = new Date;
+        date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
         expires = "; expires=" + date.toUTCString();
       }
       document.cookie = name + "=" + encodeURIComponent(value) + expires + "; Path=/; SameSite=Strict;";
@@ -249,7 +234,7 @@
     cookiesContextDeconstruct,
     cookiesContextName
   }) => {
-    const proxy = new ProxyDispatcher();
+    const proxy = new ProxyDispatcher;
     const onMutate = (target, path) => {
       if (path.length > 1) {
         console.warn('Nested cookies impossible tried to set "' + path.join(".") + '".');
@@ -258,20 +243,14 @@
     };
     proxy.addEventListener("delete", onMutate);
     proxy.addEventListener("set", onMutate);
-    return createStateContext_default(
-      cookiesContextName,
-      Symbol("ID_COOKIES"),
-      proxy.add(getAll()),
-      proxy,
-      !!cookiesContextDeconstruct
-    );
+    return createStateContext_default(cookiesContextName, Symbol("ID_COOKIES"), proxy.add(getAll()), proxy, !!cookiesContextDeconstruct);
   };
 
   // src/utilities/localStorage.js
   var getAll2 = () => {
     const data = {};
     const keys = Object.keys(localStorage);
-    for (let i = keys.length - 1; i >= 0; i--) {
+    for (let i = keys.length - 1;i >= 0; i--) {
       data[keys[i]] = localStorage.getItem(keys[i]);
     }
     return data;
@@ -282,7 +261,7 @@
     localStorageContextDeconstruct,
     localStorageContextName
   }) => {
-    const proxy = new ProxyDispatcher();
+    const proxy = new ProxyDispatcher;
     proxy.addEventListener("delete", (target, path) => {
       if (path.length > 1) {
         console.warn('Nested local storage impossible tried to set "' + path.join(".") + '".');
@@ -295,20 +274,14 @@
       }
       localStorage.setItem(path[0], target[path[0]]);
     });
-    return createStateContext_default(
-      localStorageContextName,
-      Symbol("ID_LOCAL_STORAGE"),
-      proxy.add(getAll2()),
-      proxy,
-      !!localStorageContextDeconstruct
-    );
+    return createStateContext_default(localStorageContextName, Symbol("ID_LOCAL_STORAGE"), proxy.add(getAll2()), proxy, !!localStorageContextDeconstruct);
   };
 
   // src/utilities/sessionStorage.js
   var getAll3 = () => {
     const data = {};
     const keys = Object.keys(sessionStorage);
-    for (let i = keys.length - 1; i >= 0; i--) {
+    for (let i = keys.length - 1;i >= 0; i--) {
       data[keys[i]] = sessionStorage.getItem(keys[i]);
     }
     return data;
@@ -319,7 +292,7 @@
     sessionStorageContextDeconstruct,
     sessionStorageContextName
   }) => {
-    const proxy = new ProxyDispatcher();
+    const proxy = new ProxyDispatcher;
     proxy.addEventListener("delete", (target, path) => {
       if (path.length > 1) {
         console.warn('Nested local storage impossible tried to set "' + path.join(".") + '".');
@@ -332,13 +305,7 @@
       }
       sessionStorage.setItem(path[0], target[path[0]]);
     });
-    return createStateContext_default(
-      sessionStorageContextName,
-      Symbol("ID_LOCAL_STORAGE"),
-      proxy.add(getAll3()),
-      proxy,
-      !!sessionStorageContextDeconstruct
-    );
+    return createStateContext_default(sessionStorageContextName, Symbol("ID_LOCAL_STORAGE"), proxy.add(getAll3()), proxy, !!sessionStorageContextDeconstruct);
   };
 
   // src/DoarsPersist.js
@@ -359,26 +326,17 @@
       sessionStorageContext = sessionStorage_default(options);
       const existingContexts = library.getContexts();
       let stateIndex = 0;
-      for (let i = existingContexts.length - 1; i >= 0; i--) {
+      for (let i = existingContexts.length - 1;i >= 0; i--) {
         const context = existingContexts[i];
         if (context.name === "$state") {
           stateIndex = i;
           break;
         }
       }
-      library.addContexts(
-        stateIndex,
-        cookiesContext,
-        localStorageContext,
-        sessionStorageContext
-      );
+      library.addContexts(stateIndex, cookiesContext, localStorageContext, sessionStorageContext);
     };
     const onDisable = () => {
-      library.removeContexts(
-        cookiesContext,
-        localStorageContext,
-        sessionStorageContext
-      );
+      library.removeContexts(cookiesContext, localStorageContext, sessionStorageContext);
       cookiesContext = null;
       localStorageContext = null;
       sessionStorageContext = null;
@@ -403,4 +361,5 @@
   // src/DoarsPersist.iife.js
   window.DoarsPersist = DoarsPersist_default;
 })();
-//# sourceMappingURL=doars-persist.iife.js.map
+
+//# debugId=B1A0F16F1222D3D264756E2164756E21

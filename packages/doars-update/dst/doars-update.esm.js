@@ -12,7 +12,6 @@ var update_default = ({
       proxy.addEventListener("get", onGet);
       return {
         value: time,
-        // Remove event listeners.
         destroy: () => {
           proxy.removeEventListener("get", onGet);
         }
@@ -43,7 +42,7 @@ var update_default2 = ({
         order = defaultOrder;
       }
       let index = 0;
-      for (let i = 0; i < items.length; i++) {
+      for (let i = 0;i < items.length; i++) {
         if (items[i].order >= order) {
           index = i;
           break;
@@ -62,7 +61,7 @@ var update_default2 = ({
         return;
       }
       itemIds.splice(index, 1);
-      for (let i = 0; i < items.length; i++) {
+      for (let i = 0;i < items.length; i++) {
         if (items[i].attribute === attribute) {
           items.splice(i, 1);
           break;
@@ -74,15 +73,9 @@ var update_default2 = ({
     directive,
     () => {
       for (const item of items) {
-        directive._execute(
-          item.component,
-          item.attribute.clone(),
-          item.attribute.getValue(),
-          {},
-          {
-            return: false
-          }
-        );
+        directive._execute(item.component, item.attribute.clone(), item.attribute.getValue(), {}, {
+          return: false
+        });
       }
     }
   ];
@@ -127,10 +120,7 @@ var RevocableProxy_default = (target, handler) => {
 };
 
 // ../common/src/events/EventDispatcher.js
-var EventDispatcher = class {
-  /**
-   * Create instance.
-   */
+class EventDispatcher {
   constructor() {
     let events = {};
     this.addEventListener = (name, callback, options = null) => {
@@ -148,7 +138,7 @@ var EventDispatcher = class {
       }
       const eventData = events[name];
       let index = -1;
-      for (let i = 0; i < eventData.length; i++) {
+      for (let i = 0;i < eventData.length; i++) {
         if (eventData[i].callback === callback) {
           index = i;
           break;
@@ -176,7 +166,7 @@ var EventDispatcher = class {
         return;
       }
       const eventData = events[name];
-      for (let i = 0; i < eventData.length; i++) {
+      for (let i = 0;i < eventData.length; i++) {
         const event = options && options.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
         if (event.options && event.options.once) {
           eventData.splice(i, 1);
@@ -185,14 +175,10 @@ var EventDispatcher = class {
       }
     };
   }
-};
+}
 
 // ../common/src/events/ProxyDispatcher.js
-var ProxyDispatcher = class extends EventDispatcher {
-  /**
-   * Creates a proxy dispatcher instance.
-   * @param {ProxyOptions} options Options for proxy dispatcher.
-   */
+class ProxyDispatcher extends EventDispatcher {
   constructor(options = {}) {
     super();
     options = Object.assign({
@@ -200,7 +186,7 @@ var ProxyDispatcher = class extends EventDispatcher {
       get: true,
       set: true
     }, options);
-    const map = /* @__PURE__ */ new WeakMap();
+    const map = new WeakMap;
     this.add = (target, path = []) => {
       if (map.has(target)) {
         return map.get(target);
@@ -263,22 +249,16 @@ var ProxyDispatcher = class extends EventDispatcher {
       revocable.revoke();
     };
   }
-};
+}
 
 // src/Updater.js
-var Updater = class {
-  /**
-   * @param {object} options Updater options.
-   * @param {number} options.stepMinimum Minimum duration of a tick in milliseconds.
-   * @param {UpdateCallback} callback Called every update tick.
-   */
+class Updater {
   constructor({
     stepMinimum
   }, callback) {
     const id = Symbol("ID_UPDATE");
     let isEnabled = false, request;
     const proxy = new ProxyDispatcher({
-      // We don't care when they are updated, we have a callback for that. They should never be updated by the user anyway.
       delete: false,
       set: false
     });
@@ -290,7 +270,7 @@ var Updater = class {
       request = window.requestAnimationFrame(update);
       if (!time.startMs) {
         time.currentMs = time.lastMs = time.startMs = timeAbsolute;
-        time.current = time.last = time.start = timeAbsolute / 1e3;
+        time.current = time.last = time.start = timeAbsolute / 1000;
         time.delta = time.passed = time.deltaMs = time.passedMs = 0;
         return;
       }
@@ -301,11 +281,11 @@ var Updater = class {
       time.lastMs = time.currentMs;
       time.last = time.current;
       time.currentMs = timeAbsolute;
-      time.current = timeAbsolute / 1e3;
+      time.current = timeAbsolute / 1000;
       time.deltaMs = deltaMs;
-      time.delta = deltaMs / 1e3;
+      time.delta = deltaMs / 1000;
       time.passedMs += deltaMs;
-      time.passed = time.passedMs / 1e3;
+      time.passed = time.passedMs / 1000;
       callback();
     };
     this.isEnabled = () => {
@@ -338,7 +318,7 @@ var Updater = class {
       }
     };
   }
-};
+}
 
 // src/DoarsUpdate.js
 function DoarsUpdate_default(library, options = null) {
@@ -349,25 +329,22 @@ function DoarsUpdate_default(library, options = null) {
     updateDirectiveName: "update"
   }, options);
   let isEnabled = false;
-  const updater = new Updater(
-    options,
-    () => {
-      update();
-      library.update([{
-        id: updater.getId(),
-        path: "current"
-      }, {
-        id: updater.getId(),
-        path: "delta"
-      }, {
-        id: updater.getId(),
-        path: "last"
-      }, {
-        id: updater.getId(),
-        path: "passed"
-      }]);
-    }
-  );
+  const updater = new Updater(options, () => {
+    update();
+    library.update([{
+      id: updater.getId(),
+      path: "current"
+    }, {
+      id: updater.getId(),
+      path: "delta"
+    }, {
+      id: updater.getId(),
+      path: "last"
+    }, {
+      id: updater.getId(),
+      path: "passed"
+    }]);
+  });
   const contextUpdate = update_default(options, updater);
   const [directiveUpdate, update] = update_default2(options);
   const onEnable = () => {
@@ -399,4 +376,5 @@ function DoarsUpdate_default(library, options = null) {
 export {
   DoarsUpdate_default as default
 };
-//# sourceMappingURL=doars-update.esm.js.map
+
+//# debugId=42BD5F4AA32011AF64756E2164756E21

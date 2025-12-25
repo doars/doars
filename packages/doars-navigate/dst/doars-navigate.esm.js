@@ -17,7 +17,6 @@ var parseResponse = (response, type) => {
     case "json":
       promise = response.json();
       break;
-    // HTML and xml need to be converted to text before being able to be parsed.
     case "element":
     case "html-partial":
     case "html":
@@ -32,14 +31,12 @@ var parseResponse = (response, type) => {
   }
   return promise.then((response2) => {
     switch (type) {
-      // Convert from html to HTMLElement inside a document fragment.
       case "element":
       case "html-partial":
         const template = document.createElement("template");
         template.innerHTML = response2;
         response2 = template.content.childNodes[0];
         break;
-      // Parse some values via the DOM parser.
       case "html":
         response2 = new DOMParser().parseFromString(response2, "text/html");
         break;
@@ -170,11 +167,7 @@ var select = (node, component, attribute, processExpression) => {
   }
   let selector = null;
   if (libraryOptions.selectFromElementDirectiveEvaluate) {
-    selector = processExpression(
-      component,
-      attribute,
-      element.getAttribute(attributeName)
-    );
+    selector = processExpression(component, attribute, element.getAttribute(attributeName));
     if (typeof selector !== "string") {
       console.warn("Doars: `" + attributeName + "` must return a string.");
       return null;
@@ -296,7 +289,7 @@ var copyAttributes = (existingNode, newNode) => {
   let fromValue = null;
   let attributeName = null;
   let attribute = null;
-  for (let i = newAttributes.length - 1; i >= 0; --i) {
+  for (let i = newAttributes.length - 1;i >= 0; --i) {
     attribute = newAttributes[i];
     attributeName = attribute.name;
     attributeNamespaceURI = attribute.namespaceURI;
@@ -322,7 +315,7 @@ var copyAttributes = (existingNode, newNode) => {
       }
     }
   }
-  for (let j = existingAttributes.length - 1; j >= 0; --j) {
+  for (let j = existingAttributes.length - 1;j >= 0; --j) {
     attribute = existingAttributes[j];
     if (attribute.specified !== false) {
       attributeName = attribute.name;
@@ -366,12 +359,8 @@ var transition = (type, libraryOptions, element, callback = null) => {
   }
   const transitionDirectiveName = libraryOptions.prefix + TRANSITION_NAME + type;
   const dispatchEvent = (phase) => {
-    element.dispatchEvent(
-      new CustomEvent("transition-" + phase)
-    );
-    element.dispatchEvent(
-      new CustomEvent("transition-" + type + "-" + phase)
-    );
+    element.dispatchEvent(new CustomEvent("transition-" + phase));
+    element.dispatchEvent(new CustomEvent("transition-" + type + "-" + phase));
   };
   let name, value, timeout, requestFrame;
   let isDone = false;
@@ -396,7 +385,7 @@ var transition = (type, libraryOptions, element, callback = null) => {
     }
     if (selectors.from) {
       removeAttributes(element, selectors.from);
-      selectors.from = void 0;
+      selectors.from = undefined;
     }
     name = transitionDirectiveName + ".to";
     value = element.getAttribute(name);
@@ -412,9 +401,9 @@ var transition = (type, libraryOptions, element, callback = null) => {
       return;
     }
     const styles = getComputedStyle(element);
-    let duration = Number(styles.transitionDuration.replace(/,.*/, "").replace("s", "")) * 1e3;
+    let duration = Number(styles.transitionDuration.replace(/,.*/, "").replace("s", "")) * 1000;
     if (duration === 0) {
-      duration = Number(styles.animationDuration.replace("s", "")) * 1e3;
+      duration = Number(styles.animationDuration.replace("s", "")) * 1000;
     }
     timeout = setTimeout(() => {
       timeout = null;
@@ -423,11 +412,11 @@ var transition = (type, libraryOptions, element, callback = null) => {
       }
       if (selectors.during) {
         removeAttributes(element, selectors.during);
-        selectors.during = void 0;
+        selectors.during = undefined;
       }
       if (selectors.to) {
         removeAttributes(element, selectors.to);
-        selectors.to = void 0;
+        selectors.to = undefined;
       }
       dispatchEvent("end");
       if (callback) {
@@ -443,14 +432,14 @@ var transition = (type, libraryOptions, element, callback = null) => {
     isDone = true;
     if (selectors.during) {
       removeAttributes(element, selectors.during);
-      selectors.during = void 0;
+      selectors.during = undefined;
     }
     if (selectors.from) {
       removeAttributes(element, selectors.from);
-      selectors.from = void 0;
+      selectors.from = undefined;
     } else if (selectors.to) {
       removeAttributes(element, selectors.to);
-      selectors.to = void 0;
+      selectors.to = undefined;
     }
     if (requestFrame) {
       cancelAnimationFrame(requestFrame);
@@ -501,11 +490,7 @@ var showIndicator = (component, attribute, processExpression) => {
   }
   let indicatorTemplate = null;
   if (libraryOptions.indicatorDirectiveEvaluate) {
-    indicatorTemplate = processExpression(
-      component,
-      attribute,
-      element.getAttribute(attributeName)
-    );
+    indicatorTemplate = processExpression(component, attribute, element.getAttribute(attributeName));
   } else {
     indicatorTemplate = element.getAttribute(attributeName);
   }
@@ -538,7 +523,6 @@ var showIndicator = (component, attribute, processExpression) => {
   indicatorTemplate.insertAdjacentElement("afterend", indicatorElement);
   attribute.indicator = {
     indicatorElement,
-    // Transition element in.
     indicatorTransitionIn: transitionIn(libraryOptions, indicatorElement)
   };
 };
@@ -550,10 +534,7 @@ var _readdScript = (element) => {
   }
   const newScript = document.createElement("script");
   newScript.innerText = element.innerText;
-  element.parentNode.insertBefore(
-    newScript,
-    element
-  );
+  element.parentNode.insertBefore(newScript, element);
   element.remove();
   return true;
 };
@@ -668,7 +649,7 @@ var _updateTree = (existingTree, newTree) => {
 var _updateChildren = (existingNode, newNode) => {
   let existingChild, newChild, morphed, existingMatch;
   let offset = 0;
-  for (let i = 0; ; i++) {
+  for (let i = 0;; i++) {
     existingChild = existingNode.childNodes[i];
     newChild = newNode.childNodes[i - offset];
     if (!existingChild && !newChild) {
@@ -687,7 +668,7 @@ var _updateChildren = (existingNode, newNode) => {
       }
     } else {
       existingMatch = null;
-      for (let j = i; j < existingNode.childNodes.length; j++) {
+      for (let j = i;j < existingNode.childNodes.length; j++) {
         if (isSame(existingNode.childNodes[j], newChild)) {
           existingMatch = existingNode.childNodes[j];
           break;
@@ -741,45 +722,29 @@ var navigate_default = ({
         Vary: libraryOptions.prefix + "-" + libraryOptions.requestHeaderName
       };
       const dispatchEvent = (suffix = "", data = {}) => {
-        element.dispatchEvent(
-          new CustomEvent(
-            libraryOptions.prefix + "-" + directive + suffix,
-            {
-              detail: Object.assign({
-                attribute,
-                component
-              }, data)
-            }
-          )
-        );
+        element.dispatchEvent(new CustomEvent(libraryOptions.prefix + "-" + directive + suffix, {
+          detail: Object.assign({
+            attribute,
+            component
+          }, data)
+        }));
       };
       const loadFromUrl = (url) => {
         attribute[NAVIGATE].url = url;
-        const identifier = (/* @__PURE__ */ new Date()).toISOString();
+        const identifier = new Date().toISOString();
         attribute[NAVIGATE].identifier = identifier;
-        showIndicator(
-          component,
-          attribute,
-          processExpression
-        );
+        showIndicator(component, attribute, processExpression);
         dispatchEvent("-started", {
           url
         });
-        fetchAndParse(
-          url,
-          Object.assign({}, fetchOptions, {
-            headers: Object.assign({}, fetchOptions.headers, fetchHeaders)
-          }),
-          "text"
-        ).then((response) => {
+        fetchAndParse(url, Object.assign({}, fetchOptions, {
+          headers: Object.assign({}, fetchOptions.headers, fetchHeaders)
+        }), "text").then((response) => {
           if (!attribute[NAVIGATE].identifier || attribute[NAVIGATE].identifier !== identifier) {
             return;
           }
           if (!response) {
-            hideIndicator(
-              component,
-              attribute
-            );
+            hideIndicator(component, attribute);
             delete attribute[NAVIGATE].url;
             delete attribute[NAVIGATE].identifier;
             return;
@@ -795,11 +760,7 @@ var navigate_default = ({
             const attributeName = libraryOptions.prefix + "-" + directive + "-" + libraryOptions.targetDirectiveName;
             if (element.getAttribute(attributeName)) {
               if (libraryOptions.targetDirectiveEvaluate) {
-                target = processExpression(
-                  component,
-                  attribute,
-                  element.getAttribute(attributeName)
-                );
+                target = processExpression(component, attribute, element.getAttribute(attributeName));
               } else {
                 target = element.getAttribute(attributeName);
               }
@@ -813,32 +774,16 @@ var navigate_default = ({
           }
           if (modifiers.morph) {
             if (modifiers.outer) {
-              morphTree(
-                target,
-                select(
-                  fromString(html),
-                  component,
-                  attribute,
-                  processExpression
-                )
-              );
+              morphTree(target, select(fromString(html), component, attribute, processExpression));
             } else {
               if (target.children.length === 0) {
                 target.append(document.createElement("div"));
               } else if (target.children.length > 1) {
-                for (let i = target.children.length - 1; i >= 1; i--) {
+                for (let i = target.children.length - 1;i >= 1; i--) {
                   target.children[i].remove();
                 }
               }
-              const root = morphTree(
-                target.children[0],
-                select(
-                  fromString(html),
-                  component,
-                  attribute,
-                  processExpression
-                )
-              );
+              const root = morphTree(target.children[0], select(fromString(html), component, attribute, processExpression));
               if (!target.children[0].isSameNode(root)) {
                 target.children[0].remove();
                 target.append(root);
@@ -846,23 +791,13 @@ var navigate_default = ({
             }
           } else if (modifiers.outer) {
             if (target.outerHTML !== html) {
-              target.outerHTML = select(
-                html,
-                component,
-                attribute,
-                processExpression
-              );
+              target.outerHTML = select(html, component, attribute, processExpression);
               if (libraryOptions.allowInlineScript || modifiers.script) {
                 readdScripts(target);
               }
             }
           } else if (target.innerHTML !== html) {
-            target.innerHTML = select(
-              html,
-              component,
-              attribute,
-              processExpression
-            );
+            target.innerHTML = select(html, component, attribute, processExpression);
             if (libraryOptions.allowInlineScript || modifiers.script) {
               readdScripts(...target.children);
             }
@@ -881,20 +816,15 @@ var navigate_default = ({
           if (documentTitle && document.title !== documentTitle) {
             document.title = documentTitle;
           }
-          hideIndicator(
-            component,
-            attribute
-          );
+          hideIndicator(component, attribute);
           delete attribute[NAVIGATE].url;
           delete attribute[NAVIGATE].identifier;
           dispatchEvent("-succeeded", {
             url
           });
-        }).catch(
-          () => dispatchEvent("-failed", {
-            url
-          })
-        );
+        }).catch(() => dispatchEvent("-failed", {
+          url
+        }));
       };
       const interactionHandler = (event) => {
         const anchor = event.target.closest("a");
@@ -915,11 +845,7 @@ var navigate_default = ({
         }
         loadFromUrl(url);
       };
-      element.addEventListener(
-        "click",
-        interactionHandler,
-        listenerOptions
-      );
+      element.addEventListener("click", interactionHandler, listenerOptions);
       let historyHandler;
       if (modifiers.document && modifiers.history) {
         historyHandler = (event) => {
@@ -929,11 +855,7 @@ var navigate_default = ({
           }
           loadFromUrl(url);
         };
-        window.addEventListener(
-          "popstate",
-          historyHandler,
-          { passive: true }
-        );
+        window.addEventListener("popstate", historyHandler, { passive: true });
       }
       let destroyPreloader;
       if (modifiers.preload === "interact") {
@@ -942,95 +864,62 @@ var navigate_default = ({
           if (!anchor || !anchor.hasAttribute("href")) {
             return;
           }
-          const url = new URL(
-            anchor.getAttribute("href"),
-            window.location
-          );
+          const url = new URL(anchor.getAttribute("href"), window.location);
           dispatchEvent("-started", {
             url
           });
-          fetchAndParse(
-            url,
-            Object.assign({}, fetchOptions, {
-              headers: Object.assign({}, fetchOptions.headers, fetchHeaders)
-            }),
-            "text"
-          );
+          fetchAndParse(url, Object.assign({}, fetchOptions, {
+            headers: Object.assign({}, fetchOptions.headers, fetchHeaders)
+          }), "text");
         };
-        element.addEventListener(
-          "focusin",
-          preloadHandler,
-          Object.assign({ passive: true }, listenerOptions)
-        );
-        element.addEventListener(
-          "pointerenter",
-          preloadHandler,
-          Object.assign({ passive: true }, listenerOptions)
-        );
+        element.addEventListener("focusin", preloadHandler, Object.assign({ passive: true }, listenerOptions));
+        element.addEventListener("pointerenter", preloadHandler, Object.assign({ passive: true }, listenerOptions));
         destroyPreloader = () => {
-          element.removeEventListener(
-            "focusin",
-            attribute[NAVIGATE].preloadHandler
-          );
-          element.removeEventListener(
-            "pointerenter",
-            attribute[NAVIGATE].preloadHandler
-          );
+          element.removeEventListener("focusin", attribute[NAVIGATE].preloadHandler);
+          element.removeEventListener("pointerenter", attribute[NAVIGATE].preloadHandler);
         };
       } else if (modifiers.preload === "intersect") {
-        const intersectionObserver = new IntersectionObserver(
-          (anchors2) => {
-            for (const anchor of anchors2) {
-              if (anchor.isIntersecting) {
-                const url = new URL(
-                  anchor.target.getAttribute("href"),
-                  window.location
-                );
-                dispatchEvent("-started", {
-                  url
-                });
-                fetchAndParse(
-                  url,
-                  Object.assign({}, fetchOptions, {
-                    headers: Object.assign({}, fetchOptions.headers, fetchHeaders)
-                  }),
-                  "text"
-                );
-              }
+        const intersectionObserver = new IntersectionObserver((anchors2) => {
+          for (const anchor of anchors2) {
+            if (anchor.isIntersecting) {
+              const url = new URL(anchor.target.getAttribute("href"), window.location);
+              dispatchEvent("-started", {
+                url
+              });
+              fetchAndParse(url, Object.assign({}, fetchOptions, {
+                headers: Object.assign({}, fetchOptions.headers, fetchHeaders)
+              }), "text");
             }
-          },
-          {
-            root: null,
-            rootMargin: intersectionMargin,
-            threshold: intersectionThreshold
           }
-        );
-        const mutationObserver = new MutationObserver(
-          (mutations) => {
-            for (const mutation of mutations) {
-              if (mutation.type === "attributes") {
-                if (mutation.attributeName === "href" && mutation.target instanceof HTMLElement && mutation.target.tagName === "A") {
-                  if (mutation.target.hasAttribute("href")) {
-                    intersectionObserver.observe(mutation.target);
-                  } else {
-                    intersectionObserver.unobserve(mutation.target);
-                  }
+        }, {
+          root: null,
+          rootMargin: intersectionMargin,
+          threshold: intersectionThreshold
+        });
+        const mutationObserver = new MutationObserver((mutations) => {
+          for (const mutation of mutations) {
+            if (mutation.type === "attributes") {
+              if (mutation.attributeName === "href" && mutation.target instanceof HTMLElement && mutation.target.tagName === "A") {
+                if (mutation.target.hasAttribute("href")) {
+                  intersectionObserver.observe(mutation.target);
+                } else {
+                  intersectionObserver.unobserve(mutation.target);
                 }
-              } else if (mutation.type === "childList") {
-                for (const node of mutation.addedNodes) {
-                  if (node instanceof HTMLElement && node.tagName === "A" && node.hasAttribute("href")) {
-                    intersectionObserver.observe(node);
-                  }
+              }
+            } else if (mutation.type === "childList") {
+              for (const node of mutation.addedNodes) {
+                if (node instanceof HTMLElement && node.tagName === "A" && node.hasAttribute("href")) {
+                  intersectionObserver.observe(node);
                 }
-                for (const node of mutation.removedNodes) {
-                  if (node instanceof HTMLElement && node.tagName === "A" && node.hasAttribute("href")) {
-                    intersectionObserver.unobserve(node);
-                  }
+              }
+              for (const node of mutation.removedNodes) {
+                if (node instanceof HTMLElement && node.tagName === "A" && node.hasAttribute("href")) {
+                  intersectionObserver.unobserve(node);
                 }
               }
             }
           }
-        );
+        });
         destroyPreloader = () => {
           mutationObserver.disconnect();
           intersectionObserver.disconnect();
@@ -1039,14 +928,11 @@ var navigate_default = ({
         for (const anchor of anchors) {
           intersectionObserver.observe(anchor);
         }
-        mutationObserver.observe(
-          element,
-          {
-            attributes: true,
-            childList: true,
-            subtree: true
-          }
-        );
+        mutationObserver.observe(element, {
+          attributes: true,
+          childList: true,
+          subtree: true
+        });
       }
       attribute[NAVIGATE] = {
         element,
@@ -1059,23 +945,14 @@ var navigate_default = ({
       if (!attribute[NAVIGATE]) {
         return;
       }
-      attribute[NAVIGATE].element.removeEventListener(
-        "click",
-        attribute[NAVIGATE].loadHandler
-      );
+      attribute[NAVIGATE].element.removeEventListener("click", attribute[NAVIGATE].loadHandler);
       if (attribute[NAVIGATE].historyHandler) {
-        window.removeEventListener(
-          "popstate",
-          attribute[NAVIGATE].historyHandler
-        );
+        window.removeEventListener("popstate", attribute[NAVIGATE].historyHandler);
       }
       if (attribute[NAVIGATE].destroyPreloader) {
         attribute[NAVIGATE].destroyPreloader();
       }
-      hideIndicator(
-        component,
-        attribute
-      );
+      hideIndicator(component, attribute);
       delete attribute[NAVIGATE];
     }
   };
@@ -1117,4 +994,5 @@ var DoarsNavigate_default = DoarsNavigate;
 export {
   DoarsNavigate_default as default
 };
-//# sourceMappingURL=doars-navigate.esm.js.map
+
+//# debugId=4DA83970E3D3E48464756E2164756E21

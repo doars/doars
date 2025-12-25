@@ -74,7 +74,7 @@ var RevocableProxy_default = (target, handler) => {
 // src/symbols.js
 var ROUTER = Symbol("ROUTER");
 
-// ../../node_modules/path-to-regexp/dist.es2015/index.js
+// ../../node_modules/.bun/path-to-regexp@6.3.0/node_modules/path-to-regexp/dist.es2015/index.js
 function lexer(str) {
   var tokens = [];
   var i = 0;
@@ -101,13 +101,7 @@ function lexer(str) {
       var j = i + 1;
       while (j < str.length) {
         var code = str.charCodeAt(j);
-        if (
-          // `0-9`
-          code >= 48 && code <= 57 || // `A-Z`
-          code >= 65 && code <= 90 || // `a-z`
-          code >= 97 && code <= 122 || // `_`
-          code === 95
-        ) {
+        if (code >= 48 && code <= 57 || code >= 65 && code <= 90 || code >= 97 && code <= 122 || code === 95) {
           name += str[j++];
           continue;
         }
@@ -159,11 +153,11 @@ function lexer(str) {
   return tokens;
 }
 function parse(str, options) {
-  if (options === void 0) {
+  if (options === undefined) {
     options = {};
   }
   var tokens = lexer(str);
-  var _a = options.prefixes, prefixes = _a === void 0 ? "./" : _a, _b = options.delimiter, delimiter = _b === void 0 ? "/#?" : _b;
+  var _a = options.prefixes, prefixes = _a === undefined ? "./" : _a, _b = options.delimiter, delimiter = _b === undefined ? "/#?" : _b;
   var result = [];
   var key = 0;
   var i = 0;
@@ -174,7 +168,7 @@ function parse(str, options) {
   };
   var mustConsume = function(type) {
     var value2 = tryConsume(type);
-    if (value2 !== void 0)
+    if (value2 !== undefined)
       return value2;
     var _a2 = tokens[i], nextType = _a2.type, index = _a2.index;
     throw new TypeError("Unexpected ".concat(nextType, " at ").concat(index, ", expected ").concat(type));
@@ -188,7 +182,7 @@ function parse(str, options) {
     return result2;
   };
   var isSafe = function(value2) {
-    for (var _i = 0, delimiter_1 = delimiter; _i < delimiter_1.length; _i++) {
+    for (var _i = 0, delimiter_1 = delimiter;_i < delimiter_1.length; _i++) {
       var char2 = delimiter_1[_i];
       if (value2.indexOf(char2) > -1)
         return true;
@@ -271,7 +265,6 @@ function regexpToRegexp(path, keys) {
   var execResult = groupsRegex.exec(path.source);
   while (execResult) {
     keys.push({
-      // Use parenthesized substring match if available, index otherwise
       name: execResult[1] || index++,
       prefix: "",
       suffix: "",
@@ -292,16 +285,16 @@ function stringToRegexp(path, keys, options) {
   return tokensToRegexp(parse(path, options), keys, options);
 }
 function tokensToRegexp(tokens, keys, options) {
-  if (options === void 0) {
+  if (options === undefined) {
     options = {};
   }
-  var _a = options.strict, strict = _a === void 0 ? false : _a, _b = options.start, start = _b === void 0 ? true : _b, _c = options.end, end = _c === void 0 ? true : _c, _d = options.encode, encode = _d === void 0 ? function(x) {
+  var _a = options.strict, strict = _a === undefined ? false : _a, _b = options.start, start = _b === undefined ? true : _b, _c = options.end, end = _c === undefined ? true : _c, _d = options.encode, encode = _d === undefined ? function(x) {
     return x;
-  } : _d, _e = options.delimiter, delimiter = _e === void 0 ? "/#?" : _e, _f = options.endsWith, endsWith = _f === void 0 ? "" : _f;
+  } : _d, _e = options.delimiter, delimiter = _e === undefined ? "/#?" : _e, _f = options.endsWith, endsWith = _f === undefined ? "" : _f;
   var endsWithRe = "[".concat(escapeString(endsWith), "]|$");
   var delimiterRe = "[".concat(escapeString(delimiter), "]");
   var route = start ? "^" : "";
-  for (var _i = 0, tokens_1 = tokens; _i < tokens_1.length; _i++) {
+  for (var _i = 0, tokens_1 = tokens;_i < tokens_1.length; _i++) {
     var token = tokens_1[_i];
     if (typeof token === "string") {
       route += escapeString(encode(token));
@@ -335,7 +328,7 @@ function tokensToRegexp(tokens, keys, options) {
     route += !options.endsWith ? "$" : "(?=".concat(endsWithRe, ")");
   } else {
     var endToken = tokens[tokens.length - 1];
-    var isEndDelimited = typeof endToken === "string" ? delimiterRe.indexOf(endToken[endToken.length - 1]) > -1 : endToken === void 0;
+    var isEndDelimited = typeof endToken === "string" ? delimiterRe.indexOf(endToken[endToken.length - 1]) > -1 : endToken === undefined;
     if (!strict) {
       route += "(?:".concat(delimiterRe, "(?=").concat(endsWithRe, "))?");
     }
@@ -354,10 +347,7 @@ function pathToRegexp(path, keys, options) {
 }
 
 // ../common/src/events/EventDispatcher.js
-var EventDispatcher = class {
-  /**
-   * Create instance.
-   */
+class EventDispatcher {
   constructor() {
     let events = {};
     this.addEventListener = (name, callback, options = null) => {
@@ -375,7 +365,7 @@ var EventDispatcher = class {
       }
       const eventData = events[name];
       let index = -1;
-      for (let i = 0; i < eventData.length; i++) {
+      for (let i = 0;i < eventData.length; i++) {
         if (eventData[i].callback === callback) {
           index = i;
           break;
@@ -403,7 +393,7 @@ var EventDispatcher = class {
         return;
       }
       const eventData = events[name];
-      for (let i = 0; i < eventData.length; i++) {
+      for (let i = 0;i < eventData.length; i++) {
         const event = options && options.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
         if (event.options && event.options.once) {
           eventData.splice(i, 1);
@@ -412,17 +402,10 @@ var EventDispatcher = class {
       }
     };
   }
-};
+}
 
 // src/Router.js
-var Router = class extends EventDispatcher {
-  /**
-   * @param {object} options Router options.
-   * - {string} basePath = '' - Base path of the routes.
-   * - {string} path = '' - Initial active path.
-   * - {object} pathToRegexp = {} - Path-to-RegExp options used for parsing route paths.
-   * - {boolean} updateHistory = false - Whether to update the [History API](https://developer.mozilla.org/docs/Web/API/History_API).
-   */
+class Router extends EventDispatcher {
   constructor(options = {}) {
     super();
     const id = Symbol("ID_ROUTER");
@@ -509,7 +492,7 @@ var Router = class extends EventDispatcher {
       updateRoute(url, newPath, newRoute);
     };
   }
-};
+}
 
 // src/utilities/closestRouter.js
 var closestRouter = (element) => {
@@ -631,12 +614,8 @@ var transition = (type, libraryOptions, element, callback = null) => {
   }
   const transitionDirectiveName = libraryOptions.prefix + TRANSITION_NAME + type;
   const dispatchEvent = (phase) => {
-    element.dispatchEvent(
-      new CustomEvent("transition-" + phase)
-    );
-    element.dispatchEvent(
-      new CustomEvent("transition-" + type + "-" + phase)
-    );
+    element.dispatchEvent(new CustomEvent("transition-" + phase));
+    element.dispatchEvent(new CustomEvent("transition-" + type + "-" + phase));
   };
   let name, value, timeout, requestFrame;
   let isDone = false;
@@ -661,7 +640,7 @@ var transition = (type, libraryOptions, element, callback = null) => {
     }
     if (selectors.from) {
       removeAttributes(element, selectors.from);
-      selectors.from = void 0;
+      selectors.from = undefined;
     }
     name = transitionDirectiveName + ".to";
     value = element.getAttribute(name);
@@ -677,9 +656,9 @@ var transition = (type, libraryOptions, element, callback = null) => {
       return;
     }
     const styles = getComputedStyle(element);
-    let duration = Number(styles.transitionDuration.replace(/,.*/, "").replace("s", "")) * 1e3;
+    let duration = Number(styles.transitionDuration.replace(/,.*/, "").replace("s", "")) * 1000;
     if (duration === 0) {
-      duration = Number(styles.animationDuration.replace("s", "")) * 1e3;
+      duration = Number(styles.animationDuration.replace("s", "")) * 1000;
     }
     timeout = setTimeout(() => {
       timeout = null;
@@ -688,11 +667,11 @@ var transition = (type, libraryOptions, element, callback = null) => {
       }
       if (selectors.during) {
         removeAttributes(element, selectors.during);
-        selectors.during = void 0;
+        selectors.during = undefined;
       }
       if (selectors.to) {
         removeAttributes(element, selectors.to);
-        selectors.to = void 0;
+        selectors.to = undefined;
       }
       dispatchEvent("end");
       if (callback) {
@@ -708,14 +687,14 @@ var transition = (type, libraryOptions, element, callback = null) => {
     isDone = true;
     if (selectors.during) {
       removeAttributes(element, selectors.during);
-      selectors.during = void 0;
+      selectors.during = undefined;
     }
     if (selectors.from) {
       removeAttributes(element, selectors.from);
-      selectors.from = void 0;
+      selectors.from = undefined;
     } else if (selectors.to) {
       removeAttributes(element, selectors.to);
-      selectors.to = void 0;
+      selectors.to = undefined;
     }
     if (requestFrame) {
       cancelAnimationFrame(requestFrame);
@@ -770,7 +749,7 @@ var route_default = ({
               const routeElement = attribute[ROUTE].element;
               transitionOut(libraryOptions, routeElement, () => {
                 routeElement.remove();
-                attribute[ROUTE].element = void 0;
+                attribute[ROUTE].element = undefined;
               });
             }
           } else {
@@ -805,7 +784,7 @@ var route_default = ({
         const routeElement = attribute[ROUTE].element;
         transitionOut2(libraryOptions, routeElement, () => {
           routeElement.remove();
-          attribute[ROUTE].element = void 0;
+          attribute[ROUTE].element = undefined;
         });
       }
     } else {
@@ -833,17 +812,7 @@ var router_default2 = (options) => ({
     const element = attribute.getElement();
     let router = element[ROUTER];
     if (!router) {
-      router = element[ROUTER] = new Router(
-        Object.assign(
-          {},
-          options,
-          processExpression(
-            component,
-            attribute,
-            attribute.getValue()
-          )
-        )
-      );
+      router = element[ROUTER] = new Router(Object.assign({}, options, processExpression(component, attribute, attribute.getValue())));
     }
   },
   destroy: (component, attribute) => {
@@ -878,10 +847,7 @@ var routeTo_default = ({
       if (attribute[ROUTE_TO].value === value) {
         return;
       }
-      attribute[ROUTE_TO].target.removeEventListener(
-        CLICK,
-        attribute[ROUTE_TO].handler
-      );
+      attribute[ROUTE_TO].target.removeEventListener(CLICK, attribute[ROUTE_TO].handler);
     }
     const handler = (event) => {
       if (modifiers.self && event.target !== element) {
@@ -931,20 +897,11 @@ function DoarsRouter_default(library, options = null) {
   const routerContext = router_default(options), routeDirective = route_default(options), routerDirective = router_default2(options), routeToDirective = routeTo_default(options);
   const onEnable = () => {
     library.addContexts(0, routerContext);
-    library.addDirectives(
-      -1,
-      routeDirective,
-      routerDirective,
-      routeToDirective
-    );
+    library.addDirectives(-1, routeDirective, routerDirective, routeToDirective);
   };
   const onDisable = () => {
     library.removeContexts(routerContext);
-    library.removeDirectives(
-      routeDirective,
-      routerDirective,
-      routeToDirective
-    );
+    library.removeDirectives(routeDirective, routerDirective, routeToDirective);
   };
   this.disable = () => {
     if (!library.getEnabled() && isEnabled) {
@@ -965,4 +922,5 @@ function DoarsRouter_default(library, options = null) {
 export {
   DoarsRouter_default as default
 };
-//# sourceMappingURL=doars-router.esm.js.map
+
+//# debugId=512C841B9B2E5FFD64756E2164756E21
