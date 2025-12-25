@@ -6,10 +6,7 @@ var REFERENCES = Symbol("REFERENCES");
 var REFERENCES_CACHE = Symbol("REFERENCES_CACHE");
 
 // ../packages/common/src/events/EventDispatcher.js
-var EventDispatcher = class {
-  /**
-   * Create instance.
-   */
+class EventDispatcher {
   constructor() {
     let events = {};
     this.addEventListener = (name, callback, options = null) => {
@@ -27,7 +24,7 @@ var EventDispatcher = class {
       }
       const eventData = events[name];
       let index = -1;
-      for (let i = 0; i < eventData.length; i++) {
+      for (let i = 0;i < eventData.length; i++) {
         if (eventData[i].callback === callback) {
           index = i;
           break;
@@ -55,7 +52,7 @@ var EventDispatcher = class {
         return;
       }
       const eventData = events[name];
-      for (let i = 0; i < eventData.length; i++) {
+      for (let i = 0;i < eventData.length; i++) {
         const event = options && options.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
         if (event.options && event.options.once) {
           eventData.splice(i, 1);
@@ -64,11 +61,11 @@ var EventDispatcher = class {
       }
     };
   }
-};
+}
 
 // ../packages/common/src/utilities/String.js
 var escapeHtml = (text) => {
-  return text.replace(/\\/g, "\\\\").replace(/\\'/g, "\\'").replace(/\\"/g, '\\"').replace(/\n/g, "\\n");
+  return text.replace(/\\/g, "\\\\").replace(/\\'/g, "\\'").replace(/\\"/g, "\\\"").replace(/\n/g, "\\n");
 };
 var kebabToCamel = (text) => {
   return text.replace(/-(\w)/g, (match, character) => character.toUpperCase());
@@ -110,7 +107,7 @@ var parseAttributeModifiers = (modifiers) => {
         case "m":
           value *= 60;
         case "s":
-          value *= 1e3;
+          value *= 1000;
           break;
       }
     }
@@ -143,7 +140,6 @@ var parseForExpression = (expression) => {
   return {
     iterable: match[2].trim(),
     variables: [...variables]
-    // Convert it to an array instead of a regular expression match.
   };
 };
 var parseSelector = (selector) => {
@@ -180,30 +176,19 @@ var parseSelector = (selector) => {
 };
 
 // ../packages/doars/src/Attribute.js
-var Attribute = class _Attribute extends EventDispatcher {
-  /**
-   * Create instance.
-   * @param {Component} component Component instance.
-   * @param {HTMLElement} element Element.
-   * @param {string} name Attribute name (with library prefix removed).
-   * @param {string} value Attribute value.
-   * @param {boolean} isClone Whether this will be a clone of an existing attribute.
-   */
-  constructor(component, element2, name, value, isClone = false) {
+class Attribute extends EventDispatcher {
+  constructor(component, element, name, value, isClone = false) {
     super();
     const id = Symbol("ID_ATTRIBUTE");
     if (!isClone) {
-      if (!element2[ATTRIBUTES]) {
-        element2[ATTRIBUTES] = [];
+      if (!element[ATTRIBUTES]) {
+        element[ATTRIBUTES] = [];
       }
-      element2[ATTRIBUTES].push(this);
+      element[ATTRIBUTES].push(this);
     }
     let accessedItems = {}, data = null, directive, key, keyRaw, modifiersRaw, modifiers;
     if (name) {
-      const [_directive, _keyRaw, _key, _modifiers] = parseAttributeName(
-        component.getLibrary().getOptions().prefix,
-        name
-      );
+      const [_directive, _keyRaw, _key, _modifiers] = parseAttributeName(component.getLibrary().getOptions().prefix, name);
       directive = _directive;
       key = _key;
       keyRaw = _keyRaw;
@@ -216,7 +201,7 @@ var Attribute = class _Attribute extends EventDispatcher {
       return component;
     };
     this.getElement = () => {
-      return element2;
+      return element;
     };
     this.getId = () => {
       return id;
@@ -261,9 +246,9 @@ var Attribute = class _Attribute extends EventDispatcher {
     this.destroy = () => {
       this.setData(null);
       this.clearAccessed();
-      const indexInElement = element2[ATTRIBUTES].indexOf(this);
+      const indexInElement = element[ATTRIBUTES].indexOf(this);
       if (indexInElement >= 0) {
-        element2[ATTRIBUTES].splice(indexInElement, 1);
+        element[ATTRIBUTES].splice(indexInElement, 1);
       }
       this.dispatchEvent("destroyed", [this]);
       this.removeAllEventListeners();
@@ -293,16 +278,10 @@ var Attribute = class _Attribute extends EventDispatcher {
       return false;
     };
     this.clone = () => {
-      return new _Attribute(
-        component,
-        element2,
-        name,
-        value,
-        true
-      );
+      return new Attribute(component, element, name, value, true);
     };
   }
-};
+}
 
 // ../packages/common/src/polyfills/RevocableProxy.js
 var PROXY_TRAPS = [
@@ -343,11 +322,7 @@ var RevocableProxy_default = (target, handler) => {
 };
 
 // ../packages/common/src/events/ProxyDispatcher.js
-var ProxyDispatcher = class extends EventDispatcher {
-  /**
-   * Creates a proxy dispatcher instance.
-   * @param {ProxyOptions} options Options for proxy dispatcher.
-   */
+class ProxyDispatcher extends EventDispatcher {
   constructor(options = {}) {
     super();
     options = Object.assign({
@@ -355,7 +330,7 @@ var ProxyDispatcher = class extends EventDispatcher {
       get: true,
       set: true
     }, options);
-    const map = /* @__PURE__ */ new WeakMap();
+    const map = new WeakMap;
     this.add = (target, path = []) => {
       if (map.has(target)) {
         return map.get(target);
@@ -418,16 +393,16 @@ var ProxyDispatcher = class extends EventDispatcher {
       revocable.revoke();
     };
   }
-};
+}
 
 // ../packages/doars/src/utilities/Component.js
-var closestComponent = (element2) => {
-  if (element2.parentElement) {
-    element2 = element2.parentElement;
-    if (element2[COMPONENT]) {
-      return element2[COMPONENT];
+var closestComponent = (element) => {
+  if (element.parentElement) {
+    element = element.parentElement;
+    if (element[COMPONENT]) {
+      return element[COMPONENT];
     }
-    return closestComponent(element2);
+    return closestComponent(element);
   }
 };
 
@@ -481,13 +456,8 @@ var walk = (node, filter) => {
 };
 
 // ../packages/doars/src/Component.js
-var Component = class {
-  /**
-   * Create instance.
-   * @param {Doars} library Library instance.
-   * @param {HTMLElement} element Element.
-   */
-  constructor(library, element2) {
+class Component {
+  constructor(library, element) {
     const id = Symbol("ID_COMPONENT");
     const {
       prefix,
@@ -495,13 +465,13 @@ var Component = class {
     } = library.getOptions();
     const processExpression = library.getProcessor();
     let attributes = [], hasUpdated = false, isInitialized = false, data, proxy, state;
-    if (!element2.attributes[prefix + "-" + stateDirectiveName]) {
+    if (!element.attributes[prefix + "-" + stateDirectiveName]) {
       console.error("Doars: element given to component does not contain a state attribute!");
       return;
     }
-    element2[COMPONENT] = this;
+    element[COMPONENT] = this;
     const children = [];
-    let parent = closestComponent(element2);
+    let parent = closestComponent(element);
     if (parent) {
       if (!parent.getChildren().includes(this)) {
         parent.getChildren().push(this);
@@ -512,12 +482,10 @@ var Component = class {
       }
     }
     const dispatchEvent = (name, detail) => {
-      element2.dispatchEvent(
-        new CustomEvent(prefix + "-" + name, {
-          detail,
-          bubbles: true
-        })
-      );
+      element.dispatchEvent(new CustomEvent(prefix + "-" + name, {
+        detail,
+        bubbles: true
+      }));
     };
     this.getAttributes = () => {
       return attributes;
@@ -526,7 +494,7 @@ var Component = class {
       return children;
     };
     this.getElement = () => {
-      return element2;
+      return element;
     };
     this.getId = () => {
       return id;
@@ -553,21 +521,17 @@ var Component = class {
       isInitialized = true;
       const { stateDirectiveName: stateDirectiveName2 } = this.getLibrary().getOptions();
       const componentName = prefix + "-" + stateDirectiveName2;
-      const value = element2.attributes[componentName].value;
-      data = value ? processExpression(
-        this,
-        new Attribute(this, element2, null, value),
-        value
-      ) : {};
+      const value = element.attributes[componentName].value;
+      data = value ? processExpression(this, new Attribute(this, element, null, value), value) : {};
       if (data === null) {
         data = {};
       } else if (typeof data !== "object" || Array.isArray(data)) {
         console.error("Doars: component tag must return an object!");
         return;
       }
-      proxy = new ProxyDispatcher();
+      proxy = new ProxyDispatcher;
       state = proxy.add(data);
-      this.scanAttributes(element2);
+      this.scanAttributes(element);
     };
     this.destroy = () => {
       if (!isInitialized) {
@@ -577,7 +541,7 @@ var Component = class {
         const directives = library.getDirectivesObject();
         for (const key in directives) {
           if (!directives[key].destroy) {
-            directives[key] = void 0;
+            directives[key] = undefined;
           }
         }
         for (const attribute of attributes) {
@@ -588,7 +552,7 @@ var Component = class {
           attribute.destroy();
         }
       }
-      delete element2[COMPONENT];
+      delete element[COMPONENT];
       attributes = [];
       isInitialized = false;
       proxy.remove(data);
@@ -626,16 +590,16 @@ var Component = class {
         library.update(triggers);
       }
       dispatchEvent("destroyed", {
-        element: element2,
+        element,
         id
       });
     };
-    this.addAttribute = (element3, name, value) => {
+    this.addAttribute = (element2, name, value) => {
       const directivesKeys = library.getDirectivesNames();
-      const attribute = new Attribute(this, element3, name, value);
+      const attribute = new Attribute(this, element2, name, value);
       let index = attribute.length;
       const directiveIndex = directivesKeys.indexOf(attribute.getDirective());
-      for (let i = attributes.length - 1; i >= 0; i--) {
+      for (let i = attributes.length - 1;i >= 0; i--) {
         if (directivesKeys.indexOf(attributes[i].getDirective()) <= directiveIndex) {
           index = i + 1;
           break;
@@ -657,7 +621,7 @@ var Component = class {
       attributes.splice(indexInAttributes, 1);
       attribute.destroy();
     };
-    this.scanAttributes = (element3) => {
+    this.scanAttributes = (element2) => {
       const {
         stateDirectiveName: stateDirectiveName2,
         ignoreDirectiveName
@@ -665,18 +629,18 @@ var Component = class {
       const componentName = prefix + "-" + stateDirectiveName2;
       const ignoreName = prefix + "-" + ignoreDirectiveName;
       const newAttributes = [];
-      const iterator = walk(element3, (element4) => !element4.hasAttribute(componentName) && !element4.hasAttribute(ignoreName));
+      const iterator = walk(element2, (element3) => !element3.hasAttribute(componentName) && !element3.hasAttribute(ignoreName));
       do {
-        for (const { name, value } of element3.attributes) {
+        for (const { name, value } of element2.attributes) {
           if (library.isDirectiveName(name)) {
-            newAttributes.push(this.addAttribute(element3, name, value));
+            newAttributes.push(this.addAttribute(element2, name, value));
           }
         }
-      } while (element3 = iterator());
+      } while (element2 = iterator());
       return newAttributes;
     };
     this.updateAttribute = (attribute) => {
-      if (!attribute.getElement() || attribute.getValue() === null || attribute.getValue() === void 0) {
+      if (!attribute.getElement() || attribute.getValue() === null || attribute.getValue() === undefined) {
         this.removeAttribute(attribute);
         return;
       }
@@ -693,7 +657,7 @@ var Component = class {
           hasUpdated = true;
           dispatchEvent("updated", {
             attributes: attributes2,
-            element: element2,
+            element,
             id
           });
         }
@@ -705,7 +669,7 @@ var Component = class {
       hasUpdated = true;
       dispatchEvent("updated", {
         attributes: attributes2,
-        element: element2,
+        element,
         id
       });
     };
@@ -727,13 +691,13 @@ var Component = class {
         hasUpdated = true;
         dispatchEvent("updated", {
           attributes: updatedAttributes,
-          element: element2,
+          element,
           id
         });
       }
     };
   }
-};
+}
 
 // ../packages/doars/src/utilities/Context.js
 var createContexts = (component, attribute, update, extra = null) => {
@@ -747,11 +711,7 @@ var createContexts = (component, attribute, update, extra = null) => {
     if (!creatableContext || !creatableContext.name) {
       continue;
     }
-    const result = creatableContext.create(
-      component,
-      attribute,
-      update
-    );
+    const result = creatableContext.create(component, attribute, update);
     if (!result || !result.value) {
       continue;
     }
@@ -821,15 +781,10 @@ var createAutoContexts = (component, attribute, extra = null) => {
   };
   const {
     contexts,
-    destroy: destroy3
-  } = createContexts(
-    component,
-    attribute,
-    update,
-    extra
-  );
+    destroy
+  } = createContexts(component, attribute, update, extra);
   return [contexts, () => {
-    destroy3();
+    destroy();
     if (triggers.length > 0) {
       component.getLibrary().update(triggers);
     }
@@ -876,7 +831,6 @@ var component_default = ({
 }) => ({
   name: componentContextName,
   create: (component) => ({
-    // Return the component's element.
     value: component.getElement()
   })
 });
@@ -887,7 +841,6 @@ var element_default = ({
 }) => ({
   name: elementContextName,
   create: (component, attribute) => ({
-    // Return the attribute's element.
     value: attribute.getElement()
   })
 });
@@ -900,12 +853,10 @@ var dispatch_default = ({
   create: (component) => {
     return {
       value: (name, detail = {}) => {
-        component.getElement().dispatchEvent(
-          new CustomEvent(name, {
-            detail,
-            bubbles: true
-          })
-        );
+        component.getElement().dispatchEvent(new CustomEvent(name, {
+          detail,
+          bubbles: true
+        }));
       }
     };
   }
@@ -922,17 +873,17 @@ var for_default = ({
     if (component !== attribute.getComponent()) {
       return;
     }
-    let element2 = attribute.getElement();
+    let element = attribute.getElement();
     const componentElement = component.getElement(), items = [], target = {};
-    while (element2 && !element2.isSameNode(componentElement)) {
-      const data = element2[FOR];
+    while (element && !element.isSameNode(componentElement)) {
+      const data = element[FOR];
       if (data) {
         items.push(data);
         for (const key in data.variables) {
           target[key] = data.variables[key];
         }
       }
-      element2 = element2.parentNode;
+      element = element.parentNode;
     }
     if (items.length === 0) {
       return;
@@ -972,15 +923,10 @@ var inContext_default = ({
       };
       const {
         contexts,
-        destroy: destroy3
-      } = createContexts(
-        component,
-        attribute,
-        contextUpdate,
-        {}
-      );
+        destroy
+      } = createContexts(component, attribute, contextUpdate, {});
       const result = callback(contexts);
-      destroy3();
+      destroy();
       if (newTriggers.length > 0) {
         component.getLibrary().update(newTriggers);
       }
@@ -1010,11 +956,11 @@ var nextSibling_default = ({
     }
     const {
       contexts,
-      destroy: destroy3
+      destroy
     } = createContextsProxy(siblings[index + 1], attribute, update);
     return {
       value: contexts,
-      destroy: destroy3
+      destroy
     };
   }
 });
@@ -1038,12 +984,12 @@ var nextTick_default = ({
         stopListening();
         const {
           contexts,
-          destroy: destroy3
+          destroy
         } = createContexts(component, attribute, update, {});
         for (const callback of callbacks) {
           callback(contexts);
         }
-        destroy3();
+        destroy();
       };
       const stopListening = () => {
         library.removeEventListener("updated", handleUpdate);
@@ -1077,11 +1023,11 @@ var parent_default = ({
     }
     const {
       contexts,
-      destroy: destroy3
+      destroy
     } = createContextsProxy(parent, attribute, update);
     return {
       value: contexts,
-      destroy: destroy3
+      destroy
     };
   }
 });
@@ -1107,11 +1053,11 @@ var previousSibling_default = ({
     }
     const {
       contexts,
-      destroy: destroy3
+      destroy
     } = createContextsProxy(siblings[index - 1], attribute, update);
     return {
       value: contexts,
-      destroy: destroy3
+      destroy
     };
   }
 });
@@ -1133,8 +1079,8 @@ var references_default = ({
       const attributeIds = Object.getOwnPropertySymbols(references);
       cache = {};
       for (const id of attributeIds) {
-        const { element: element2, name } = references[id];
-        cache[name] = element2;
+        const { element, name } = references[id];
+        cache[name] = element;
       }
       component[REFERENCES_CACHE] = cache;
     }
@@ -1166,24 +1112,21 @@ var siblings_default = ({
       };
     }
     let siblingsContexts;
-    const revocable = RevocableProxy_default(
-      parent.getChildren().filter((sibling) => sibling !== component),
-      {
-        get: (target, key, receiver) => {
-          if (!siblingsContexts) {
-            siblingsContexts = target.map((child) => createContextsProxy(child, attribute, update));
-            attribute.accessed(component.getId(), "siblings");
-          }
-          if (isNaN(key)) {
-            return Reflect.get(siblingsContexts, key, receiver);
-          }
-          const sibling = Reflect.get(siblingsContexts, key, receiver);
-          if (sibling) {
-            return sibling.contexts;
-          }
+    const revocable = RevocableProxy_default(parent.getChildren().filter((sibling) => sibling !== component), {
+      get: (target, key, receiver) => {
+        if (!siblingsContexts) {
+          siblingsContexts = target.map((child) => createContextsProxy(child, attribute, update));
+          attribute.accessed(component.getId(), "siblings");
+        }
+        if (isNaN(key)) {
+          return Reflect.get(siblingsContexts, key, receiver);
+        }
+        const sibling = Reflect.get(siblingsContexts, key, receiver);
+        if (sibling) {
+          return sibling.contexts;
         }
       }
-    );
+    });
     return {
       value: revocable.proxy,
       destroy: () => {
@@ -1208,7 +1151,6 @@ var createState_default = (name, id, state, proxy) => {
     const revocable = RevocableProxy_default(state, {});
     return {
       value: revocable.proxy,
-      // Remove event listeners.
       destroy: () => {
         proxy.removeEventListener("delete", onDelete);
         proxy.removeEventListener("get", onGet);
@@ -1226,24 +1168,13 @@ var state_default = ({
 }) => ({
   deconstruct: stateContextDeconstruct,
   name: stateContextName,
-  // Wrap create state so the component's data can be used.
   create: (component, attribute, update, utilities) => {
     const proxy = component.getProxy();
     const state = component.getState();
     if (!proxy || !state) {
       return;
     }
-    return createState_default(
-      stateContextName,
-      component.getId(),
-      state,
-      proxy
-    )(
-      component,
-      attribute,
-      update,
-      utilities
-    );
+    return createState_default(stateContextName, component.getId(), state, proxy)(component, attribute, update, utilities);
   }
 });
 
@@ -1281,7 +1212,7 @@ var deepAssign = (target, ...sources) => {
 var getDeeply = (object, path) => {
   let objectTemp = object;
   let i = 0;
-  for (; i < path.length - 1; i++) {
+  for (;i < path.length - 1; i++) {
     objectTemp = objectTemp[path[i]];
   }
   return objectTemp[path[i]];
@@ -1294,7 +1225,7 @@ var setDeeply = (object, path, value) => {
     return;
   }
   let i = 0;
-  for (; i < path.length - 1; i++) {
+  for (;i < path.length - 1; i++) {
     object = object[path[i]];
     if (typeof object !== "object") {
       return;
@@ -1307,12 +1238,7 @@ var setDeeply = (object, path, value) => {
 var createStateContext_default = (name, id, state, proxy, deconstruct) => ({
   deconstruct,
   name,
-  create: createState_default(
-    name,
-    id,
-    state,
-    proxy
-  )
+  create: createState_default(name, id, state, proxy)
 });
 
 // ../packages/doars/src/contexts/store.js
@@ -1322,15 +1248,9 @@ var store_default = ({
   storeContextName
 }) => {
   const data = deepAssign({}, storeContextInitial);
-  const proxy = new ProxyDispatcher();
+  const proxy = new ProxyDispatcher;
   const state = proxy.add(data);
-  return createStateContext_default(
-    storeContextName,
-    Symbol("ID_STORE"),
-    state,
-    proxy,
-    storeContextDeconstruct
-  );
+  return createStateContext_default(storeContextName, Symbol("ID_STORE"), state, proxy, storeContextDeconstruct);
 };
 
 // ../packages/doars/src/contexts/watch.js
@@ -1359,24 +1279,15 @@ var watch_default = ({
             for (const callback of callbacks) {
               if (!callback.attribute) {
                 callback.attribute = attribute.clone();
-                processExpression(
-                  component,
-                  callback.attribute,
-                  callback.path
-                );
+                processExpression(component, callback.attribute, callback.path);
               }
               if (callback.attribute.hasAccessed(id, triggers[id])) {
                 const {
                   contexts,
-                  destroy: destroy3
-                } = createContexts(
-                  component,
-                  attribute,
-                  contextUpdate,
-                  {}
-                );
+                  destroy
+                } = createContexts(component, attribute, contextUpdate, {});
                 callback.callback(contexts);
-                destroy3();
+                destroy();
                 continue;
               }
             }
@@ -1399,12 +1310,6 @@ var watch_default = ({
       library.addEventListener("updating", onUpdate);
     };
     return {
-      /**
-       * Watch a value at the given path and on change invoke the callback.
-       * @param {string} path Path to the value that needs to be watched.
-       * @param {WatchCallback} callback Function to call when the value at the path has changed.
-       * @returns {WatchReturn|undefined} Function to invoke the callback with.
-       */
       value: (path, callback) => {
         if (contextIsDestroyed || directiveIsDestroyed) {
           return;
@@ -1426,15 +1331,10 @@ var watch_default = ({
           };
           const {
             contexts,
-            destroy: destroy3
-          } = createContexts(
-            component,
-            attribute.clone(),
-            contextUpdate,
-            {}
-          );
+            destroy
+          } = createContexts(component, attribute.clone(), contextUpdate, {});
           callback(contexts);
-          destroy3();
+          destroy();
           if (newTriggers.length > 0) {
             component.getLibrary().update(newTriggers);
           }
@@ -1448,15 +1348,15 @@ var watch_default = ({
 });
 
 // ../packages/common/src/utilities/Attribute.js
-var addAttributes = (element2, data) => {
+var addAttributes = (element, data) => {
   for (const name in data) {
     if (name === "class") {
       for (const className of data.class) {
-        element2.classList.add(className);
+        element.classList.add(className);
       }
       continue;
     }
-    element2.setAttribute(name, data[name]);
+    element.setAttribute(name, data[name]);
   }
 };
 var copyAttributes = (existingNode, newNode) => {
@@ -1467,7 +1367,7 @@ var copyAttributes = (existingNode, newNode) => {
   let fromValue = null;
   let attributeName = null;
   let attribute = null;
-  for (let i = newAttributes.length - 1; i >= 0; --i) {
+  for (let i = newAttributes.length - 1;i >= 0; --i) {
     attribute = newAttributes[i];
     attributeName = attribute.name;
     attributeNamespaceURI = attribute.namespaceURI;
@@ -1493,7 +1393,7 @@ var copyAttributes = (existingNode, newNode) => {
       }
     }
   }
-  for (let j = existingAttributes.length - 1; j >= 0; --j) {
+  for (let j = existingAttributes.length - 1;j >= 0; --j) {
     attribute = existingAttributes[j];
     if (attribute.specified !== false) {
       attributeName = attribute.name;
@@ -1511,34 +1411,34 @@ var copyAttributes = (existingNode, newNode) => {
     }
   }
 };
-var removeAttributes = (element2, data) => {
+var removeAttributes = (element, data) => {
   for (const name in data) {
     if (name === "class") {
       for (const className of data.class) {
-        element2.classList.remove(className);
+        element.classList.remove(className);
       }
       continue;
     }
-    if (data[name] && element2.attributes[name] !== data[name]) {
+    if (data[name] && element.attributes[name] !== data[name]) {
       continue;
     }
-    element2.removeAttribute(name);
+    element.removeAttribute(name);
   }
 };
-var setAttribute = (element2, key, data) => {
-  if (key === "value" && element2.tagName === "INPUT") {
+var setAttribute = (element, key, data) => {
+  if (key === "value" && element.tagName === "INPUT") {
     if (!data) {
       data = "";
     }
-    if (element2.getAttribute(key) === data) {
+    if (element.getAttribute(key) === data) {
       return;
     }
-    element2.setAttribute(key, data);
+    element.setAttribute(key, data);
     return;
   }
   if (key === "checked") {
-    if (element2.type === "checkbox" || element2.type === "radio") {
-      element2.checked = !!data;
+    if (element.type === "checkbox" || element.type === "radio") {
+      element.checked = !!data;
       return;
     }
   }
@@ -1556,23 +1456,20 @@ var setAttribute = (element2, key, data) => {
       data = Object.entries(data).map(([key2, value]) => key2 + ":" + value).join(";");
     }
   }
-  if (data === false || data === null || data === void 0) {
-    element2.removeAttribute(key);
+  if (data === false || data === null || data === undefined) {
+    element.removeAttribute(key);
   } else {
-    element2.setAttribute(key, data);
+    element.setAttribute(key, data);
   }
 };
-var setAttributes = (element2, data) => {
+var setAttributes = (element, data) => {
   for (const name in data) {
-    setAttribute(element2, name, data[name]);
+    setAttribute(element, name, data[name]);
   }
 };
 
 // ../packages/common/src/utilities/Promise.js
-var nativePromise = Function.prototype.toString.call(
-  Function
-  /* A native object */
-).replace("Function", "Promise").replace(/\(.*\)/, "()");
+var nativePromise = Function.prototype.toString.call(Function).replace("Function", "Promise").replace(/\(.*\)/, "()");
 var isPromise = (value) => {
   return value && Object.prototype.toString.call(value) === "[object Promise]";
 };
@@ -1584,7 +1481,7 @@ var attribute_default = ({
   name: attributeDirectiveName,
   update: (component, attribute, processExpression) => {
     const directive = attribute.getDirective();
-    const element2 = attribute.getElement();
+    const element = attribute.getElement();
     const modifiers = attribute.getModifiers();
     const set = (value) => {
       if (modifiers.selector) {
@@ -1593,25 +1490,21 @@ var attribute_default = ({
           return;
         }
         value = parseSelector(value);
-        setAttributes(element2, value);
+        setAttributes(element, value);
         return;
       }
       const key = attribute.getKeyRaw();
       if (!key) {
         if (typeof value === "object" && !Array.isArray(value)) {
-          setAttributes(element2, value);
+          setAttributes(element, value);
         } else {
           console.error('Doars: Value returned to "' + directive + '" directive of invalid type.');
         }
         return;
       }
-      setAttribute(element2, key, value);
+      setAttribute(element, key, value);
     };
-    const result = processExpression(
-      component,
-      attribute,
-      attribute.getValue()
-    );
+    const result = processExpression(component, attribute, attribute.getValue());
     attribute.setData(result);
     if (isPromise(result)) {
       Promise.resolve(result).then((resultResolved) => {
@@ -1628,8 +1521,8 @@ var attribute_default = ({
 
 // ../packages/common/src/utilities/Transition.js
 var TRANSITION_NAME = "-transition:";
-var transition = (type, libraryOptions, element2, callback = null) => {
-  if (element2.nodeType !== 1) {
+var transition = (type, libraryOptions, element, callback = null) => {
+  if (element.nodeType !== 1) {
     if (callback) {
       callback();
     }
@@ -1637,27 +1530,23 @@ var transition = (type, libraryOptions, element2, callback = null) => {
   }
   const transitionDirectiveName = libraryOptions.prefix + TRANSITION_NAME + type;
   const dispatchEvent = (phase) => {
-    element2.dispatchEvent(
-      new CustomEvent("transition-" + phase)
-    );
-    element2.dispatchEvent(
-      new CustomEvent("transition-" + type + "-" + phase)
-    );
+    element.dispatchEvent(new CustomEvent("transition-" + phase));
+    element.dispatchEvent(new CustomEvent("transition-" + type + "-" + phase));
   };
   let name, value, timeout, requestFrame;
   let isDone = false;
   const selectors = {};
   name = transitionDirectiveName;
-  value = element2.getAttribute(name);
+  value = element.getAttribute(name);
   if (value) {
     selectors.during = parseSelector(value);
-    addAttributes(element2, selectors.during);
+    addAttributes(element, selectors.during);
   }
   name = transitionDirectiveName + ".from";
-  value = element2.getAttribute(name);
+  value = element.getAttribute(name);
   if (value) {
     selectors.from = parseSelector(value);
-    addAttributes(element2, selectors.from);
+    addAttributes(element, selectors.from);
   }
   dispatchEvent("start");
   requestFrame = requestAnimationFrame(() => {
@@ -1666,14 +1555,14 @@ var transition = (type, libraryOptions, element2, callback = null) => {
       return;
     }
     if (selectors.from) {
-      removeAttributes(element2, selectors.from);
-      selectors.from = void 0;
+      removeAttributes(element, selectors.from);
+      selectors.from = undefined;
     }
     name = transitionDirectiveName + ".to";
-    value = element2.getAttribute(name);
+    value = element.getAttribute(name);
     if (value) {
       selectors.to = parseSelector(value);
-      addAttributes(element2, selectors.to);
+      addAttributes(element, selectors.to);
     } else if (!selectors.during) {
       dispatchEvent("end");
       if (callback) {
@@ -1682,10 +1571,10 @@ var transition = (type, libraryOptions, element2, callback = null) => {
       isDone = true;
       return;
     }
-    const styles = getComputedStyle(element2);
-    let duration = Number(styles.transitionDuration.replace(/,.*/, "").replace("s", "")) * 1e3;
+    const styles = getComputedStyle(element);
+    let duration = Number(styles.transitionDuration.replace(/,.*/, "").replace("s", "")) * 1000;
     if (duration === 0) {
-      duration = Number(styles.animationDuration.replace("s", "")) * 1e3;
+      duration = Number(styles.animationDuration.replace("s", "")) * 1000;
     }
     timeout = setTimeout(() => {
       timeout = null;
@@ -1693,12 +1582,12 @@ var transition = (type, libraryOptions, element2, callback = null) => {
         return;
       }
       if (selectors.during) {
-        removeAttributes(element2, selectors.during);
-        selectors.during = void 0;
+        removeAttributes(element, selectors.during);
+        selectors.during = undefined;
       }
       if (selectors.to) {
-        removeAttributes(element2, selectors.to);
-        selectors.to = void 0;
+        removeAttributes(element, selectors.to);
+        selectors.to = undefined;
       }
       dispatchEvent("end");
       if (callback) {
@@ -1713,15 +1602,15 @@ var transition = (type, libraryOptions, element2, callback = null) => {
     }
     isDone = true;
     if (selectors.during) {
-      removeAttributes(element2, selectors.during);
-      selectors.during = void 0;
+      removeAttributes(element, selectors.during);
+      selectors.during = undefined;
     }
     if (selectors.from) {
-      removeAttributes(element2, selectors.from);
-      selectors.from = void 0;
+      removeAttributes(element, selectors.from);
+      selectors.from = undefined;
     } else if (selectors.to) {
-      removeAttributes(element2, selectors.to);
-      selectors.to = void 0;
+      removeAttributes(element, selectors.to);
+      selectors.to = undefined;
     }
     if (requestFrame) {
       cancelAnimationFrame(requestFrame);
@@ -1736,11 +1625,11 @@ var transition = (type, libraryOptions, element2, callback = null) => {
     }
   };
 };
-var transitionIn = (libraryOptions, element2, callback) => {
-  return transition("in", libraryOptions, element2, callback);
+var transitionIn = (libraryOptions, element, callback) => {
+  return transition("in", libraryOptions, element, callback);
 };
-var transitionOut = (libraryOptions, element2, callback) => {
-  return transition("out", libraryOptions, element2, callback);
+var transitionOut = (libraryOptions, element, callback) => {
+  return transition("out", libraryOptions, element, callback);
 };
 
 // ../packages/doars/src/directives/cloak.js
@@ -1749,33 +1638,28 @@ var cloak_default = ({
 }) => ({
   name: cloakDirectiveName,
   update: (component, attribute) => {
-    const element2 = attribute.getElement();
+    const element = attribute.getElement();
     const libraryOptions = component.getLibrary().getOptions();
-    element2.removeAttribute(
-      libraryOptions.prefix + "-" + (void 0).name
-    );
-    transitionIn(libraryOptions, element2);
+    element.removeAttribute(libraryOptions.prefix + "-" + null.name);
+    transitionIn(libraryOptions, element);
   }
 });
 
 // ../packages/common/src/utilities/Script.js
-var _readdScript = (element2) => {
-  if (element2.tagName !== "SCRIPT" || element2.hasAttribute("src")) {
+var _readdScript = (element) => {
+  if (element.tagName !== "SCRIPT" || element.hasAttribute("src")) {
     return false;
   }
   const newScript = document.createElement("script");
-  newScript.innerText = element2.innerText;
-  element2.parentNode.insertBefore(
-    newScript,
-    element2
-  );
-  element2.remove();
+  newScript.innerText = element.innerText;
+  element.parentNode.insertBefore(newScript, element);
+  element.remove();
   return true;
 };
 var readdScripts = (...elements) => {
-  for (const element2 of elements) {
-    if (!_readdScript(element2)) {
-      const iterate = walk(element2);
+  for (const element of elements) {
+    if (!_readdScript(element)) {
+      const iterate = walk(element);
       let maybeScript = null;
       while (maybeScript = iterate()) {
         _readdScript(maybeScript);
@@ -1787,7 +1671,7 @@ var readdScripts = (...elements) => {
 // ../packages/doars/src/directives/for.js
 var createVariables = (names, ...values) => {
   const variables = {};
-  for (let i = 0; i < values.length; i++) {
+  for (let i = 0;i < values.length; i++) {
     if (i >= names.length) {
       break;
     }
@@ -1803,11 +1687,7 @@ var indexInSiblings = (elements, value, offset = -1) => {
   if (elements[offset][FOR].value === value) {
     return offset;
   }
-  return indexInSiblings(
-    elements,
-    value,
-    offset
-  );
+  return indexInSiblings(elements, value, offset);
 };
 var setAfter = (component, update, template, elements, index, value, variables, allowInlineScript) => {
   const libraryOptions = component.getLibrary().getOptions();
@@ -1816,35 +1696,35 @@ var setAfter = (component, update, template, elements, index, value, variables, 
     if (existingIndex === index + 1) {
       return;
     }
-    const element3 = elements[existingIndex];
-    (elements[index] ? elements[index] : template).insertAdjacentElement("afterend", element3);
-    update(element3[FOR].id);
+    const element2 = elements[existingIndex];
+    (elements[index] ? elements[index] : template).insertAdjacentElement("afterend", element2);
+    update(element2[FOR].id);
     return;
   }
-  const element2 = document.importNode(template.content, true).firstElementChild;
+  const element = document.importNode(template.content, true).firstElementChild;
   const sibling = index === -1 ? template : elements[index];
-  sibling.insertAdjacentElement("afterend", element2);
+  sibling.insertAdjacentElement("afterend", element);
   if (allowInlineScript) {
-    readdScripts(element2);
+    readdScripts(element);
   }
-  transitionIn(libraryOptions, element2);
-  element2[FOR] = {
+  transitionIn(libraryOptions, element);
+  element[FOR] = {
     id: Symbol("ID_FOR"),
     value,
     variables
   };
-  elements.splice(index + 1, 0, element2);
+  elements.splice(index + 1, 0, element);
 };
 var removeAfter = (component, elements, maxLength) => {
   if (elements.length < maxLength) {
     return;
   }
   const libraryOptions = component.getLibrary().getOptions();
-  for (let i = elements.length - 1; i >= maxLength; i--) {
-    const element2 = elements[i];
+  for (let i = elements.length - 1;i >= maxLength; i--) {
+    const element = elements[i];
     elements.splice(i, 1);
-    transitionOut(libraryOptions, element2, () => {
-      element2.remove();
+    transitionOut(libraryOptions, element, () => {
+      element.remove();
     });
   }
 };
@@ -1876,15 +1756,15 @@ var for_default2 = ({
       const data2 = attribute.getData();
       const elements = data2.elements ? data2.elements : [];
       const iterableType = typeof iterable;
-      if (iterable !== null && iterable !== void 0) {
+      if (iterable !== null && iterable !== undefined) {
         if (iterableType === "number") {
-          for (let index = 0; index < iterable; index++) {
+          for (let index = 0;index < iterable; index++) {
             const variables = createVariables(expression.variables, index);
             setAfter(component, update, template, elements, index - 1, iterable, variables, allowInlineScript || modifiers.script);
           }
           removeAfter(component, elements, iterable);
         } else if (iterableType === "string") {
-          for (let index = 0; index < iterable.length; index++) {
+          for (let index = 0;index < iterable.length; index++) {
             const value = iterable[index];
             const variables = createVariables(expression.variables, value, index);
             setAfter(component, update, template, elements, index - 1, value, variables, allowInlineScript || modifiers.script);
@@ -1896,10 +1776,9 @@ var for_default2 = ({
             const values = [...iterable];
             isArray = true;
             length = values.length;
-          } catch (e) {
-          }
+          } catch {}
           if (isArray) {
-            for (let index = 0; index < length; index++) {
+            for (let index = 0;index < length; index++) {
               const value = iterable[index];
               const variables = createVariables(expression.variables, value, index);
               setAfter(component, update, template, elements, index - 1, value, variables, allowInlineScript || modifiers.script);
@@ -1907,7 +1786,7 @@ var for_default2 = ({
           } else {
             const keys = Object.keys(iterable);
             length = keys.length;
-            for (let index = 0; index < length; index++) {
+            for (let index = 0;index < length; index++) {
               const key = keys[index];
               const value = iterable[key];
               const variables = createVariables(expression.variables, key, value, index);
@@ -1920,28 +1799,20 @@ var for_default2 = ({
       if (Object.getOwnPropertySymbols(triggers).length > 0) {
         component.update(triggers);
       }
-      attribute.setData(
-        Object.assign({}, data2, {
-          elements
-        })
-      );
+      attribute.setData(Object.assign({}, data2, {
+        elements
+      }));
     };
     let result;
     if (!isNaN(expression.iterable)) {
       result = Number(expression.iterable);
     } else {
-      result = processExpression(
-        component,
-        attribute,
-        expression.iterable
-      );
+      result = processExpression(component, attribute, expression.iterable);
     }
     const data = attribute.getData();
-    attribute.setData(
-      Object.assign({}, data, {
-        result
-      })
-    );
+    attribute.setData(Object.assign({}, data, {
+      result
+    }));
     if (isPromise(result)) {
       Promise.resolve(result).then((resultResolved) => {
         if (attribute.getData().result !== result) {
@@ -1956,14 +1827,10 @@ var for_default2 = ({
   destroy: (component, attribute) => {
     const data = attribute.getData();
     if (data.elements) {
-      for (const element2 of data.elements) {
-        transitionOut(
-          component.getLibrary().getOptions(),
-          element2,
-          () => {
-            element2.remove();
-          }
-        );
+      for (const element of data.elements) {
+        transitionOut(component.getLibrary().getOptions(), element, () => {
+          element.remove();
+        });
       }
     }
   }
@@ -2091,7 +1958,7 @@ var _updateTree = (existingTree, newTree) => {
 var _updateChildren = (existingNode, newNode) => {
   let existingChild, newChild, morphed, existingMatch;
   let offset = 0;
-  for (let i = 0; ; i++) {
+  for (let i = 0;; i++) {
     existingChild = existingNode.childNodes[i];
     newChild = newNode.childNodes[i - offset];
     if (!existingChild && !newChild) {
@@ -2110,7 +1977,7 @@ var _updateChildren = (existingNode, newNode) => {
       }
     } else {
       existingMatch = null;
-      for (let j = i; j < existingNode.childNodes.length; j++) {
+      for (let j = i;j < existingNode.childNodes.length; j++) {
         if (isSame(existingNode.childNodes[j], newChild)) {
           existingMatch = existingNode.childNodes[j];
           break;
@@ -2144,61 +2011,55 @@ var html_default = ({
   name: htmlDirectiveName,
   update: (component, attribute, processExpression) => {
     const directive = attribute.getDirective();
-    const element2 = attribute.getElement();
+    const element = attribute.getElement();
     const modifiers = attribute.getModifiers();
     const set = (html) => {
       if (modifiers.decode) {
         html = decode(html);
       }
       if (html instanceof HTMLElement) {
-        for (const child of element2.children) {
+        for (const child of element.children) {
           child.remove();
         }
-        element2.append(
-          html.cloneNode(true)
-        );
+        element.append(html.cloneNode(true));
         return;
       }
       if (typeof html === "string") {
         if (modifiers.morph) {
           if (modifiers.outer) {
-            morphTree(element2, html);
+            morphTree(element, html);
           } else {
-            if (element2.children.length === 0) {
-              element2.append(document.createElement("div"));
-            } else if (element2.children.length > 1) {
-              for (let i = element2.children.length - 1; i >= 1; i--) {
-                element2.children[i].remove();
+            if (element.children.length === 0) {
+              element.append(document.createElement("div"));
+            } else if (element.children.length > 1) {
+              for (let i = element.children.length - 1;i >= 1; i--) {
+                element.children[i].remove();
               }
             }
-            const root = morphTree(element2.children[0], html);
-            if (!element2.children[0].isSameNode(root)) {
-              element2.children[0].remove();
-              element2.append(root);
+            const root = morphTree(element.children[0], html);
+            if (!element.children[0].isSameNode(root)) {
+              element.children[0].remove();
+              element.append(root);
             }
           }
         } else if (modifiers.outer) {
-          if (element2.outerHTML !== html) {
-            element2.outerHTML = html;
+          if (element.outerHTML !== html) {
+            element.outerHTML = html;
             if (allowInlineScript || modifiers.script) {
-              readdScripts(element2);
+              readdScripts(element);
             }
           }
-        } else if (element2.innerHTML !== html) {
-          element2.innerHTML = html;
+        } else if (element.innerHTML !== html) {
+          element.innerHTML = html;
           if (allowInlineScript || modifiers.script) {
-            readdScripts(...element2.children);
+            readdScripts(...element.children);
           }
         }
         return;
       }
       console.error('Doars: Unknown type returned to "' + directive + '" directive.');
     };
-    const result = processExpression(
-      component,
-      attribute,
-      attribute.getValue()
-    );
+    const result = processExpression(component, attribute, attribute.getValue());
     attribute.setData(result);
     if (isPromise(result)) {
       Promise.resolve(result).then((resultResolved) => {
@@ -2234,46 +2095,38 @@ var if_default = ({
     }
     const set = (result2) => {
       const data2 = attribute.getData();
-      let element2 = data2.element;
+      let element = data2.element;
       let transition2 = data2.transition;
       if (!result2) {
-        if (element2) {
+        if (element) {
           if (transition2) {
             transition2();
           }
-          transition2 = transitionOut(libraryOptions, element2, () => {
-            element2.remove();
+          transition2 = transitionOut(libraryOptions, element, () => {
+            element.remove();
           });
         }
-      } else if (!element2) {
+      } else if (!element) {
         if (transition2) {
           transition2();
         }
-        element2 = document.importNode(template.content, true).firstElementChild;
-        template.insertAdjacentElement("afterend", element2);
+        element = document.importNode(template.content, true).firstElementChild;
+        template.insertAdjacentElement("afterend", element);
         if (allowInlineScript || modifiers.script) {
-          readdScripts(element2);
+          readdScripts(element);
         }
-        transition2 = transitionIn(libraryOptions, element2);
+        transition2 = transitionIn(libraryOptions, element);
       }
-      attribute.setData(
-        Object.assign({}, data2, {
-          element: element2,
-          transition: transition2
-        })
-      );
+      attribute.setData(Object.assign({}, data2, {
+        element,
+        transition: transition2
+      }));
     };
-    const result = processExpression(
-      component,
-      attribute,
-      attribute.getValue()
-    );
+    const result = processExpression(component, attribute, attribute.getValue());
     const data = attribute.getData();
-    attribute.setData(
-      Object.assign({}, data, {
-        result
-      })
-    );
+    attribute.setData(Object.assign({}, data, {
+      result
+    }));
     if (isPromise(result)) {
       Promise.resolve(result).then((result2) => {
         if (attribute.getData().result !== result2) {
@@ -2290,13 +2143,9 @@ var if_default = ({
   }) => {
     const data = attribute.getData();
     if (data.element) {
-      transitionOut2(
-        component.getLibrary().getOptions(),
-        data.element,
-        () => {
-          data.element.remove();
-        }
-      );
+      transitionOut2(component.getLibrary().getOptions(), data.element, () => {
+        data.element.remove();
+      });
     }
   }
 });
@@ -2307,9 +2156,9 @@ var destroy = (component, attribute) => {
   if (!attribute[INITIALIZED]) {
     return;
   }
-  const element2 = component.getElement();
+  const element = component.getElement();
   const name = component.getLibrary().getOptions().prefix + "-updated";
-  element2.removeEventListener(name, attribute[INITIALIZED].handler);
+  element.removeEventListener(name, attribute[INITIALIZED].handler);
   delete attribute[INITIALIZED];
 };
 var initialized_default = ({
@@ -2317,30 +2166,24 @@ var initialized_default = ({
 }) => ({
   name: initializedDirectiveName,
   update: (component, attribute, processExpression) => {
-    const element2 = component.getElement();
+    const element = component.getElement();
     const value = attribute.getValue();
     const name = component.getLibrary().getOptions().prefix + "-updated";
     if (attribute[INITIALIZED]) {
       if (attribute[INITIALIZED].value === value) {
         return;
       }
-      element2.removeEventListener(name, attribute[INITIALIZED].handler);
+      element.removeEventListener(name, attribute[INITIALIZED].handler);
       delete attribute[INITIALIZED];
     }
     const handler = ({ detail }) => {
-      if (detail.element !== element2) {
+      if (detail.element !== element) {
         return;
       }
-      processExpression(
-        component,
-        attribute.clone(),
-        value,
-        {},
-        { return: false }
-      );
+      processExpression(component, attribute.clone(), value, {}, { return: false });
       destroy(component, attribute);
     };
-    element2.addEventListener(name, handler, {
+    element.addEventListener(name, handler, {
       once: true
     });
     attribute[INITIALIZED] = {
@@ -2392,16 +2235,13 @@ var on_default = ({
       key = eventName.substring(6).toLowerCase();
       eventName = "keyup";
     }
-    const element2 = attribute.getElement();
+    const element = attribute.getElement();
     const value = attribute.getValue();
     if (attribute[ON]) {
       if (attribute[ON].value === value) {
         return;
       }
-      attribute[ON].target.removeEventListener(
-        attribute[ON].eventName,
-        attribute[ON].handler
-      );
+      attribute[ON].target.removeEventListener(attribute[ON].eventName, attribute[ON].handler);
       if (attribute[ON].timeout) {
         clearTimeout(attribute[ON].timeout);
       }
@@ -2459,7 +2299,7 @@ var on_default = ({
         }
       }
     }
-    let target = element2;
+    let target = element;
     if (modifiers.document || modifiers.outside) {
       target = document;
     } else if (modifiers.window) {
@@ -2472,10 +2312,10 @@ var on_default = ({
       if (!modifiers.repeat && event.repeat) {
         return;
       }
-      if (modifiers.self && event.target !== element2) {
+      if (modifiers.self && event.target !== element) {
         return;
       }
-      if (modifiers.outside && element2.contains(event.target)) {
+      if (modifiers.outside && element.contains(event.target)) {
         return;
       }
       if ((eventName === "keydown" || eventName === "keyup") && key) {
@@ -2499,17 +2339,11 @@ var on_default = ({
       if (modifiers.stop) {
         event.stopPropagation();
       }
-      const execute2 = () => {
-        processExpression(
-          component,
-          attribute.clone(),
-          value,
-          {
-            $event: event,
-            $events: attribute[ON].buffer
-          },
-          { return: false }
-        );
+      const execute = () => {
+        processExpression(component, attribute.clone(), value, {
+          $event: event,
+          $events: attribute[ON].buffer
+        }, { return: false });
         attribute[ON].buffer = [];
       };
       attribute[ON].buffer.push(event);
@@ -2518,16 +2352,15 @@ var on_default = ({
           if (attribute[ON].buffer.length < modifiers.buffer) {
             return;
           }
-          execute2();
+          execute();
           return;
         case EXECUTION_MODIFIERS.DEBOUNCE:
           if (attribute[ON].timeout) {
             clearTimeout(attribute[ON].timeout);
             attribute[ON].timeout = null;
           }
-          attribute[ON].timeout = setTimeout(execute2, modifiers.debounce);
+          attribute[ON].timeout = setTimeout(execute, modifiers.debounce);
           return;
-        // Execute the event when let go after the given time has exceeded.
         case EXECUTION_MODIFIERS.HELD:
           if (!(eventName in CANCEL_EVENTS)) {
             console.warn('Doars: "' + directive + '" directive, event of name "' + eventName + '" is not cancelable and can not have "held" modifier.');
@@ -2557,20 +2390,19 @@ var on_default = ({
                 return;
               }
             }
-            if (modifiers.self && cancelEvent.target !== element2) {
+            if (modifiers.self && cancelEvent.target !== element) {
               attribute[ON].prevent = false;
               return;
             }
-            if (modifiers.outside && element2.contains(cancelEvent.target)) {
+            if (modifiers.outside && element.contains(cancelEvent.target)) {
               attribute[ON].prevent = false;
               return;
             }
-            execute2();
+            execute();
           };
           attribute[ON].prevent = true;
           target.addEventListener(cancelHeldName, attribute[ON].cancel, { once: true });
           return;
-        // Execute event when keys have been held down for the given time.
         case EXECUTION_MODIFIERS.HOLD:
           if (!(eventName in CANCEL_EVENTS)) {
             console.warn('Doars: "' + directive + '" directive, event of name "' + eventName + '" is not cancelable and can not have "hold" modifier.');
@@ -2598,11 +2430,11 @@ var on_default = ({
                 return;
               }
             }
-            if (modifiers.self && cancelEvent.target !== element2) {
+            if (modifiers.self && cancelEvent.target !== element) {
               attribute[ON].prevent = false;
               return;
             }
-            if (modifiers.outside && element2.contains(cancelEvent.target)) {
+            if (modifiers.outside && element.contains(cancelEvent.target)) {
               attribute[ON].prevent = false;
               return;
             }
@@ -2613,7 +2445,7 @@ var on_default = ({
           attribute[ON].timeout = setTimeout(() => {
             target.removeEventListener(cancelHoldName, attribute[ON].cancel);
             attribute[ON].prevent = false;
-            execute2();
+            execute();
           }, modifiers.hold);
           return;
         case EXECUTION_MODIFIERS.THROTTLE:
@@ -2621,30 +2453,26 @@ var on_default = ({
           if (attribute[ON].lastExecution && nowThrottle - attribute[ON].lastExecution < modifiers.throttle) {
             return;
           }
-          execute2();
+          execute();
           attribute[ON].lastExecution = nowThrottle;
           return;
         case EXECUTION_MODIFIERS.DELAY:
           attribute[ON].prevent = true;
           attribute[ON].timeout = setTimeout(() => {
             attribute[ON].prevent = false;
-            execute2();
+            execute();
           }, modifiers.delay);
           return;
       }
-      execute2();
+      execute();
     };
-    target.addEventListener(
-      eventName,
-      handler,
-      listenerOptions
-    );
+    target.addEventListener(eventName, handler, listenerOptions);
     attribute[ON] = {
       buffer: [],
       eventName,
       handler,
       target,
-      timeout: attribute[ON] ? attribute[ON].timeout : void 0,
+      timeout: attribute[ON] ? attribute[ON].timeout : undefined,
       value,
       prevent: false
     };
@@ -2653,15 +2481,9 @@ var on_default = ({
     if (!attribute[ON]) {
       return;
     }
-    attribute[ON].target.removeEventListener(
-      attribute[ON].eventName,
-      attribute[ON].handler
-    );
+    attribute[ON].target.removeEventListener(attribute[ON].eventName, attribute[ON].handler);
     if (attribute[ON].cancel) {
-      attribute[ON].target.removeEventListener(
-        CANCEL_EVENTS[attribute[ON].eventName],
-        attribute[ON].cancel
-      );
+      attribute[ON].target.removeEventListener(CANCEL_EVENTS[attribute[ON].eventName], attribute[ON].cancel);
     }
     if (attribute[ON].timeout) {
       clearTimeout(attribute[ON].timeout);
@@ -2700,27 +2522,23 @@ var reference_default = ({
     const library = component.getLibrary();
     const componentId = component.getId();
     const directive = attribute.getDirective();
-    const element2 = attribute.getElement();
+    const element = attribute.getElement();
     const attributeId = attribute.getId();
     const {
       referenceDirectiveEvaluate
     } = library.getOptions();
     let name = attribute.getValue();
-    name = referenceDirectiveEvaluate ? processExpression(
-      component,
-      attribute,
-      name
-    ) : name.trim();
+    name = referenceDirectiveEvaluate ? processExpression(component, attribute, name) : name.trim();
     if (!name || typeof name !== "string" || !/^[_$a-z]{1}[_\-$a-z0-9]{0,}$/i.test(name)) {
       destroy2(component, attribute);
-      console.warn('Doars: "' + directive + '" directive\'s value not a valid variable name: "' + name.toString() + '".');
+      console.warn('Doars: "' + directive + `" directive's value not a valid variable name: "` + name.toString() + '".');
       return;
     }
     if (!component[REFERENCES]) {
       component[REFERENCES] = {};
     }
     component[REFERENCES][attributeId] = {
-      element: element2,
+      element,
       name
     };
     delete component[REFERENCES_CACHE];
@@ -2742,16 +2560,16 @@ var select_default = ({
 }) => ({
   name: selectDirectiveName,
   update: (component, attribute, processExpression) => {
-    const element2 = attribute.getElement();
+    const element = attribute.getElement();
     const directive = attribute.getDirective();
-    const type = element2.getAttribute("type");
-    if (element2.tagName !== TAG_SELECT && !(element2.tagName === "INPUT" && (type === TYPE_CHECKBOX || type === "radio"))) {
+    const type = element.getAttribute("type");
+    if (element.tagName !== TAG_SELECT && !(element.tagName === "INPUT" && (type === TYPE_CHECKBOX || type === "radio"))) {
       console.warn('Doars: "' + directive + '" directive must be placed on a `select` tag or `input` of type checkbox or radio.');
       return;
     }
     const set = (data) => {
-      if (element2.tagName === TAG_SELECT) {
-        for (const option of Array.from(element2.options)) {
+      if (element.tagName === TAG_SELECT) {
+        for (const option of Array.from(element.options)) {
           const select = Array.isArray(data) ? data.includes(option.value) : data === option.value;
           if (option.selected !== select) {
             option.selected = select;
@@ -2763,30 +2581,26 @@ var select_default = ({
           }
         }
       } else if (type === TYPE_CHECKBOX) {
-        const checked = data.includes(element2.value);
-        if (element2.checked !== checked) {
+        const checked = data.includes(element.value);
+        if (element.checked !== checked) {
           if (checked) {
-            element2.setAttribute(CHECKED, "");
+            element.setAttribute(CHECKED, "");
           } else {
-            element2.removeAttribute(CHECKED);
+            element.removeAttribute(CHECKED);
           }
         }
       } else {
-        const checked = data === element2.value;
-        if (element2.checked !== checked) {
+        const checked = data === element.value;
+        if (element.checked !== checked) {
           if (checked) {
-            element2.setAttribute(CHECKED, "");
+            element.setAttribute(CHECKED, "");
           } else {
-            element2.removeAttribute(CHECKED);
+            element.removeAttribute(CHECKED);
           }
         }
       }
     };
-    const result = processExpression(
-      component,
-      attribute,
-      attribute.getValue()
-    );
+    const result = processExpression(component, attribute, attribute.getValue());
     attribute.setData(result);
     if (isPromise(result)) {
       Promise.resolve(result).then((resultResolved) => {
@@ -2808,7 +2622,7 @@ var show_default = ({
   name: showDirectiveName,
   update: (component, attribute, processExpression) => {
     const libraryOptions = component.getLibrary().getOptions();
-    const element2 = attribute.getElement();
+    const element = attribute.getElement();
     const set = () => {
       const data2 = attribute.getData();
       if (data2.transition) {
@@ -2816,31 +2630,23 @@ var show_default = ({
       }
       let transition2;
       if (data2.result) {
-        element2.style.display = null;
-        transition2 = transitionIn(libraryOptions, element2);
+        element.style.display = null;
+        transition2 = transitionIn(libraryOptions, element);
       } else {
-        transition2 = transitionOut(libraryOptions, element2, () => {
-          element2.style.display = "none";
+        transition2 = transitionOut(libraryOptions, element, () => {
+          element.style.display = "none";
         });
       }
-      attribute.setData(
-        Object.assign({}, data2, {
-          transition: transition2
-        })
-      );
+      attribute.setData(Object.assign({}, data2, {
+        transition: transition2
+      }));
     };
-    const result = processExpression(
-      component,
-      attribute,
-      attribute.getValue()
-    );
+    const result = processExpression(component, attribute, attribute.getValue());
     const data = attribute.getData();
     if (isPromise(result)) {
-      attribute.setData(
-        Object.assign({}, data, {
-          result
-        })
-      );
+      attribute.setData(Object.assign({}, data, {
+        result
+      }));
       Promise.resolve(result).then((resultResolved) => {
         if (attribute.getData().result !== result) {
           return;
@@ -2848,11 +2654,9 @@ var show_default = ({
         set(resultResolved);
       });
     } else if (!data || data.result !== result) {
-      attribute.setData(
-        Object.assign({}, data, {
-          result
-        })
-      );
+      attribute.setData(Object.assign({}, data, {
+        result
+      }));
       set();
     }
   }
@@ -2865,11 +2669,11 @@ var sync_default = ({
 }) => ({
   name: syncDirectiveName,
   update: (component, attribute, processExpression) => {
-    const element2 = attribute.getElement();
+    const element = attribute.getElement();
     const directive = attribute.getDirective();
     const isNew = !attribute[SYNC];
     if (isNew) {
-      if (!(element2.tagName === "DIV" && element2.hasAttribute("contenteditable")) && element2.tagName !== "INPUT" && element2.tagName !== "SELECT" && element2.tagName !== "TEXTAREA") {
+      if (!(element.tagName === "DIV" && element.hasAttribute("contenteditable")) && element.tagName !== "INPUT" && element.tagName !== "SELECT" && element.tagName !== "TEXTAREA") {
         console.warn('Doars: "' + directive + '" directive must be placed on an `<input>`, `<select>`, `<textarea>` tag, or a content editable `div`.');
         return;
       }
@@ -2880,56 +2684,46 @@ var sync_default = ({
       value = "$" + key + "." + value;
     }
     if (!/^[_$a-z]{1}[._$a-z0-9]{0,}$/i.test(value)) {
-      console.warn('Doars: "' + directive + '" directive\'s value not a valid variable name "' + value + '".');
+      console.warn('Doars: "' + directive + `" directive's value not a valid variable name "` + value + '".');
       return;
     }
     const valueSplit = value.split(".");
     if (isNew) {
       let handler;
-      switch (element2.tagName) {
+      switch (element.tagName) {
         case "DIV":
           handler = () => {
-            const [contexts, destroyContexts] = createAutoContexts(
-              component,
-              attribute.clone()
-            );
-            setDeeply(
-              contexts,
-              valueSplit,
-              escapeHtml(element2.innerText)
-            );
+            const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone());
+            setDeeply(contexts, valueSplit, escapeHtml(element.innerText));
             destroyContexts();
           };
           break;
         case "INPUT":
           handler = () => {
-            const elementValue = escapeHtml(element2.value);
-            const [contexts, destroyContexts] = createAutoContexts(
-              component,
-              attribute.clone()
-            );
-            if (element2.type === "checkbox") {
+            const elementValue = escapeHtml(element.value);
+            const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone());
+            if (element.type === "checkbox") {
               const dataValue2 = getDeeply(contexts, valueSplit);
-              if (element2.checked) {
+              if (element.checked) {
                 if (!dataValue2) {
                   setDeeply(contexts, valueSplit, [elementValue]);
                 }
-                if (!dataValue2.includes(element2.value)) {
+                if (!dataValue2.includes(element.value)) {
                   dataValue2.push(elementValue);
                 }
               } else if (dataValue2) {
-                const index = dataValue2.indexOf(element2.value);
+                const index = dataValue2.indexOf(element.value);
                 if (index >= 0) {
                   dataValue2.splice(index, 1);
                 }
               }
-            } else if (element2.type === "radio") {
+            } else if (element.type === "radio") {
               const dataValue2 = getDeeply(contexts, valueSplit);
-              if (element2.checked) {
-                if (dataValue2 !== element2.value) {
+              if (element.checked) {
+                if (dataValue2 !== element.value) {
                   setDeeply(contexts, valueSplit, elementValue);
                 }
-              } else if (dataValue2 === element2.value) {
+              } else if (dataValue2 === element.value) {
                 setDeeply(contexts, valueSplit, null);
               }
             } else {
@@ -2940,83 +2734,67 @@ var sync_default = ({
           break;
         case "TEXTAREA":
           handler = () => {
-            const [contexts, destroyContexts] = createAutoContexts(
-              component,
-              attribute.clone()
-            );
-            setDeeply(
-              contexts,
-              valueSplit,
-              escapeHtml(element2.innerText)
-            );
+            const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone());
+            setDeeply(contexts, valueSplit, escapeHtml(element.innerText));
             destroyContexts();
           };
           break;
         case "SELECT":
           handler = () => {
-            const [contexts, destroyContexts] = createAutoContexts(
-              component,
-              attribute.clone()
-            );
-            if (element2.multiple) {
+            const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone());
+            if (element.multiple) {
               const elementValues = [];
-              for (const option of element2.selectedOptions) {
-                elementValues.push(
-                  escapeHtml(option.value)
-                );
+              for (const option of element.selectedOptions) {
+                elementValues.push(escapeHtml(option.value));
               }
               setDeeply(contexts, valueSplit, [elementValues.join("','")]);
             } else {
-              setDeeply(contexts, valueSplit, escapeHtml(element2.selectedOptions[0].value));
+              setDeeply(contexts, valueSplit, escapeHtml(element.selectedOptions[0].value));
             }
             destroyContexts();
           };
           break;
       }
-      element2.addEventListener("input", handler);
+      element.addEventListener("input", handler);
       attribute[SYNC] = handler;
     }
-    const dataValue = processExpression(
-      component,
-      attribute.clone(),
-      value
-    );
-    switch (element2.tagName) {
+    const dataValue = processExpression(component, attribute.clone(), value);
+    switch (element.tagName) {
       case "DIV":
       case "TEXTAREA":
-        if (dataValue !== element2.innerText) {
-          element2.innerText = dataValue;
+        if (dataValue !== element.innerText) {
+          element.innerText = dataValue;
         }
         break;
       case "INPUT":
-        if (element2.type === "checkbox") {
-          const checked = dataValue.includes(element2.value);
-          if (element2.checked !== checked) {
-            element2.checked = checked;
+        if (element.type === "checkbox") {
+          const checked = dataValue.includes(element.value);
+          if (element.checked !== checked) {
+            element.checked = checked;
             if (checked) {
-              element2.setAttribute("checked", "");
+              element.setAttribute("checked", "");
             } else {
-              element2.removeAttribute("checked");
+              element.removeAttribute("checked");
             }
           }
-        } else if (element2.type === "radio") {
-          const checked = dataValue === element2.value;
-          if (element2.checked !== checked) {
-            element2.checked = checked;
+        } else if (element.type === "radio") {
+          const checked = dataValue === element.value;
+          if (element.checked !== checked) {
+            element.checked = checked;
             if (checked) {
-              element2.setAttribute("checked", "");
+              element.setAttribute("checked", "");
             } else {
-              element2.removeAttribute("checked");
+              element.removeAttribute("checked");
             }
           }
         } else {
-          if (dataValue !== element2.value) {
-            element2.setAttribute("value", dataValue);
+          if (dataValue !== element.value) {
+            element.setAttribute("value", dataValue);
           }
         }
         break;
       case "SELECT":
-        for (const option of Array.from(element2.options)) {
+        for (const option of Array.from(element.options)) {
           const select = Array.isArray(dataValue) ? dataValue.includes(option.value) : dataValue === option.value;
           if (option.selected !== select) {
             option.selected = select;
@@ -3034,8 +2812,8 @@ var sync_default = ({
     if (!attribute[SYNC]) {
       return;
     }
-    const element2 = attribute.getElement();
-    element2.removeEventListener("input", attribute[SYNC]);
+    const element = attribute.getElement();
+    element.removeEventListener("input", attribute[SYNC]);
     delete attribute[SYNC];
   }
 });
@@ -3046,22 +2824,18 @@ var text_default = ({
 }) => ({
   name: textDirectiveName,
   update: (component, attribute, processExpression) => {
-    const element2 = attribute.getElement();
+    const element = attribute.getElement();
     const modifiers = attribute.getModifiers();
     const set = (text) => {
       if (modifiers.content) {
-        if (element2.textContent !== text) {
-          element2.textContent = text;
+        if (element.textContent !== text) {
+          element.textContent = text;
         }
-      } else if (element2.innerText !== text) {
-        element2.innerText = text;
+      } else if (element.innerText !== text) {
+        element.innerText = text;
       }
     };
-    const result = processExpression(
-      component,
-      attribute,
-      attribute.getValue()
-    );
+    const result = processExpression(component, attribute, attribute.getValue());
     attribute.setData(result);
     if (isPromise(result)) {
       Promise.resolve(result).then((resultResolved) => {
@@ -3081,26 +2855,12 @@ var watch_default2 = ({
   watchDirectiveName
 }) => ({
   name: watchDirectiveName,
-  update: (component, attribute, processExpression) => (
-    // Execute attribute expression.
-    processExpression(
-      component,
-      attribute.clone(),
-      attribute.getValue(),
-      {},
-      { return: false }
-    )
-  )
+  update: (component, attribute, processExpression) => processExpression(component, attribute.clone(), attribute.getValue(), {}, { return: false })
 });
 
 // ../packages/doars/src/Doars.js
-var Doars = class extends EventDispatcher {
-  /**
-   * Create instance.
-   * @param {_DoarsOptions} options Options.
-   */
+class Doars extends EventDispatcher {
   constructor(options) {
-    var _a, _b;
     super();
     let {
       prefix,
@@ -3119,7 +2879,6 @@ var Doars = class extends EventDispatcher {
       referenceDirectiveEvaluate: true,
       selectFromElementDirectiveEvaluate: true,
       targetDirectiveEvaluate: true,
-      // Context names must pass regex: /^[_$a-z]{1}[_$a-z0-9]{0,}$/i.test(name)
       childrenContextName: "$children",
       componentContextName: "$component",
       dispatchContextName: "$dispatch",
@@ -3135,7 +2894,6 @@ var Doars = class extends EventDispatcher {
       stateContextName: "$state",
       storeContextName: "$store",
       watchContextName: "$watch",
-      // Directive names must pass regex: /^[_\-$a-z]{1}[_\-$a-z0-9]{0,}$/i.test(name)
       attributeDirectiveName: "attribute",
       cloakDirectiveName: "cloak",
       forDirectiveName: "for",
@@ -3155,7 +2913,6 @@ var Doars = class extends EventDispatcher {
       textDirectiveName: "text",
       transitionDirectiveName: "transition",
       watchDirectiveName: "watch",
-      // Header names must pass regex: /^[_\-$a-z]{1}[_\-$a-z0-9]{0,}$/i.test(name)
       redirectHeaderName: "redirect",
       requestHeaderName: "request",
       titleHeaderName: "title"
@@ -3196,21 +2953,17 @@ var Doars = class extends EventDispatcher {
       references_default(options),
       siblings_default(options),
       watch_default(options),
-      // Order of `store`, `state` and `for` context is important for deconstruction.
       store_default(options),
       state_default(options),
       for_default(options)
     ];
     const directives = [
-      // Must happen first as other directives can rely on it.
       reference_default(options),
-      // Then execute those that modify the document tree, since it could make other directives redundant and save on processing.
       attribute_default(options),
       for_default2(options),
       html_default(options),
       if_default(options),
       text_default(options),
-      // Order does not matter any more.
       cloak_default(options),
       initialized_default(options),
       on_default(options),
@@ -3228,7 +2981,7 @@ var Doars = class extends EventDispatcher {
       processExpression = this.constructor[processor + "Expression"];
     } else {
       console.warn("Doars: Expression processor not found. Using fallback instead.");
-      processExpression = (_b = (_a = this.constructor.executeExpression) != null ? _a : this.constructor.interpretExpression) != null ? _b : this.constructor.callExpression;
+      processExpression = this.constructor.executeExpression ?? this.constructor.interpretExpression ?? this.constructor.callExpression;
     }
     if (!processExpression) {
       console.error("Doars: No expression processor available. Process option: ", process);
@@ -3270,7 +3023,7 @@ var Doars = class extends EventDispatcher {
       const componentName = prefix + "-" + stateDirectiveName;
       const ignoreName = prefix + "-" + ignoreDirectiveName;
       const componentElements = [...root.querySelectorAll("[" + componentName + "]")];
-      for (let i = componentElements.length - 1; i >= 0; i--) {
+      for (let i = componentElements.length - 1;i >= 0; i--) {
         if (componentElements[i].closest("[" + ignoreName + "]")) {
           componentElements.splice(i, 1);
         }
@@ -3297,17 +3050,17 @@ var Doars = class extends EventDispatcher {
     const addComponents = (...elements) => {
       const results = [];
       const resultElements = [];
-      for (const element2 of elements) {
-        if (!element2) {
+      for (const element of elements) {
+        if (!element) {
           continue;
         }
-        if (element2[COMPONENT]) {
+        if (element[COMPONENT]) {
           continue;
         }
-        const component = new Component(this, element2);
+        const component = new Component(this, element);
         components.push(component);
         results.push(component);
-        resultElements.push(element2);
+        resultElements.push(element);
       }
       if (resultElements.length > 0) {
         this.dispatchEvent("components-added", [this, resultElements]);
@@ -3372,7 +3125,7 @@ var Doars = class extends EventDispatcher {
         index = contexts.length;
       }
       const results = [];
-      for (let i = 0; i < _contexts.length; i++) {
+      for (let i = 0;i < _contexts.length; i++) {
         const context = _contexts[i];
         if (contexts.includes(context)) {
           continue;
@@ -3419,7 +3172,7 @@ var Doars = class extends EventDispatcher {
         index = directives.length;
       }
       const results = [];
-      for (let i = 0; i < _directives.length; i++) {
+      for (let i = 0;i < _directives.length; i++) {
         const directive = _directives[i];
         if (directives.includes(directive)) {
           continue;
@@ -3521,45 +3274,45 @@ var Doars = class extends EventDispatcher {
       const ignoreName = prefix + "-" + ignoreDirectiveName;
       const componentsToAdd = [];
       const componentsToRemove = [];
-      const remove = (element2) => {
-        if (element2.nodeType !== 1) {
+      const remove = (element) => {
+        if (element.nodeType !== 1) {
           return;
         }
-        if (element2[COMPONENT]) {
-          componentsToRemove.unshift(element2[COMPONENT]);
-          const componentElements = element2.querySelectorAll(componentName);
+        if (element[COMPONENT]) {
+          componentsToRemove.unshift(element[COMPONENT]);
+          const componentElements = element.querySelectorAll(componentName);
           for (const componentElement of componentElements) {
             if (componentElement[COMPONENT]) {
               componentsToRemove.unshift(componentElement);
             }
           }
         } else {
-          const iterator = walk(element2, (element3) => {
-            if (element3[COMPONENT]) {
-              componentsToRemove.unshift(element3[COMPONENT]);
+          const iterator = walk(element, (element2) => {
+            if (element2[COMPONENT]) {
+              componentsToRemove.unshift(element2[COMPONENT]);
               return false;
             }
             return true;
           });
           do {
-            if (!element2[ATTRIBUTES]) {
+            if (!element[ATTRIBUTES]) {
               continue;
             }
-            for (const attribute of element2[ATTRIBUTES]) {
+            for (const attribute of element[ATTRIBUTES]) {
               attribute.getComponent().removeAttribute(attribute);
             }
-          } while (element2 = iterator());
+          } while (element = iterator());
         }
       };
-      const add = (element2) => {
-        if (element2.nodeType !== 1) {
+      const add = (element) => {
+        if (element.nodeType !== 1) {
           return;
         }
-        const ignoreParent = element2.closest("[" + ignoreName + "]");
+        const ignoreParent = element.closest("[" + ignoreName + "]");
         if (ignoreParent) {
           return;
         }
-        const componentElements = element2.querySelectorAll("[" + componentName + "]");
+        const componentElements = element.querySelectorAll("[" + componentName + "]");
         for (const componentElement of componentElements) {
           const ignoreParent2 = componentElement.closest("[" + ignoreName + "]");
           if (ignoreParent2) {
@@ -3567,68 +3320,68 @@ var Doars = class extends EventDispatcher {
           }
           componentsToAdd.push(componentElement);
         }
-        if (element2.hasAttribute(componentName)) {
-          componentsToAdd.push(element2);
+        if (element.hasAttribute(componentName)) {
+          componentsToAdd.push(element);
           return;
         }
-        const component = closestComponent(element2);
+        const component = closestComponent(element);
         if (component) {
-          const attributes = component.scanAttributes(element2);
+          const attributes = component.scanAttributes(element);
           component.updateAttributes(attributes);
         }
       };
       for (const mutation of newMutations) {
         if (mutation.type === "childList") {
-          for (const element2 of mutation.removedNodes) {
-            remove(element2);
+          for (const element of mutation.removedNodes) {
+            remove(element);
           }
-          for (const element2 of mutation.addedNodes) {
-            add(element2);
+          for (const element of mutation.addedNodes) {
+            add(element);
           }
         } else if (mutation.type === "attributes") {
-          const element2 = mutation.target;
+          const element = mutation.target;
           if (mutation.attributeName === componentName) {
-            if (element2[COMPONENT]) {
+            if (element[COMPONENT]) {
               continue;
             }
-            const component2 = closestComponent(element2);
+            const component2 = closestComponent(element);
             if (component2) {
-              let currentElement = element2;
-              const iterator = walk(element2, (element3) => element3.hasAttribute(componentName));
+              let currentElement = element;
+              const iterator = walk(element, (element2) => element2.hasAttribute(componentName));
               do {
                 for (const attribute2 of currentElement[ATTRIBUTES]) {
                   component2.removeAttribute(attribute2);
                 }
               } while (currentElement = iterator());
             }
-            addComponents(element2);
+            addComponents(element);
             continue;
           } else if (mutation.attributeName === ignoreName) {
-            if (element2.hasAttribute(ignoreName)) {
-              remove(element2);
+            if (element.hasAttribute(ignoreName)) {
+              remove(element);
               continue;
             }
-            add(element2);
+            add(element);
             continue;
           }
           if (!directivesRegexp.test(mutation.attributeName)) {
             continue;
           }
-          const component = closestComponent(element2);
+          const component = closestComponent(element);
           if (!component) {
             continue;
           }
           let attribute = null;
-          for (const targetAttribute of element2[ATTRIBUTES]) {
+          for (const targetAttribute of element[ATTRIBUTES]) {
             if (targetAttribute.getName() === mutation.attributeName) {
               attribute = targetAttribute;
               break;
             }
           }
-          const value = element2.getAttribute(mutation.attributeName);
+          const value = element.getAttribute(mutation.attributeName);
           if (!attribute) {
             if (value) {
-              component.addAttribute(element2, mutation.attributeName, value);
+              component.addAttribute(element, mutation.attributeName, value);
             }
             continue;
           }
@@ -3652,7 +3405,7 @@ var Doars = class extends EventDispatcher {
       }
     };
   }
-};
+}
 
 // ../packages/doars/src/utilities/Execute.js
 var execute = (component, attribute, expression, extra = null, options = null) => {
@@ -3671,12 +3424,7 @@ var execute = (component, attribute, expression, extra = null, options = null) =
     before,
     contexts,
     destroy: destroy3
-  } = createContexts(
-    component,
-    attribute,
-    update,
-    extra
-  );
+  } = createContexts(component, attribute, update, extra);
   if (options.return) {
     before += "return ";
   }
@@ -3684,7 +3432,8 @@ var execute = (component, attribute, expression, extra = null, options = null) =
   try {
     result = new Function(...Object.keys(contexts), before + expression + after)(...Object.values(contexts));
   } catch (error) {
-    console.error("ExpressionError in:", expression, "\n" + error.name + ": " + error.message);
+    console.error("ExpressionError in:", expression, `
+` + error.name + ": " + error.message);
     result = null;
   }
   destroy3();
@@ -3708,13 +3457,13 @@ if (document.readyState === "complete" || document.readyState === "interactive")
   document.addEventListener("DOMContentLoaded", setup, { once: true, passive: true });
 }
 window.copyToClipboard = (text) => {
-  const element2 = document.createElement("textarea");
-  element2.value = text;
-  document.body.append(element2);
-  element2.select();
-  element2.setSelectionRange(0, 999999);
+  const element = document.createElement("textarea");
+  element.value = text;
+  document.body.append(element);
+  element.select();
+  element.setSelectionRange(0, 999999);
   document.execCommand("copy");
-  element2.remove();
+  element.remove();
 };
 var count = 0;
 var element = document.getElementById("counter-text");
@@ -3722,4 +3471,5 @@ window.increment = () => {
   count++;
   element.setAttribute("d-text", count);
 };
-//# sourceMappingURL=index.js.map
+
+//# debugId=76062D5260A00A4264756E2164756E21

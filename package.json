@@ -2,13 +2,12 @@
   "private": true,
   "name": "@doars/doars-workspace",
   "workspaces": [
-    ".docs/",
+    "docs-src/",
     "packages/*"
   ],
   "type": "module",
   "scripts": {
     "build": "bun --filter=\"./packages/*\" run build",
-    "docs:build": "bun --filter=\"./.docs/\" run build",
     "serve": "bun ./scripts/srv.js ./"
   },
   "devDependencies": {
