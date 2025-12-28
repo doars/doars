@@ -42,7 +42,7 @@ export default ({
       // Assign display based on truthiness of expression result.
       let transition
       if (data.result) {
-        element.style.display = null
+        element.style.display = ''
         transition = transitionIn(libraryOptions, element)
       } else {
         transition = transitionOut(libraryOptions, element, () => {

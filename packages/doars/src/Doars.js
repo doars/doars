@@ -909,7 +909,8 @@ export default class Doars extends EventDispatcher {
       if (Object.getOwnPropertySymbols(triggers).length > 0) {
         console.warn('Doars: during an update another update has been triggered. This should not happen unless an expression in one of the directives is causing a infinite loop by mutating the state.')
         // Use an animation frame to delay the update to prevent freezing and hope it resolves itself.
-        window.requestAnimationFrame(() => this.update())
+        Promise.resolve()
+          .then(this.update)
         return
       }
 

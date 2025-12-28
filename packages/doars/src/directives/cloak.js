@@ -25,7 +25,7 @@ export default ({
 
     // Remove attribute from element.
     element.removeAttribute(
-      libraryOptions.prefix + '-' + this.name,
+      attribute.getName(),
     )
 
     // Transition in.
