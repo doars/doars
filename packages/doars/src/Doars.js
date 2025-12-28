@@ -1106,10 +1106,12 @@ export default class Doars extends EventDispatcher {
 
           // Get attribute from component and value from element.
           let attribute = null
-          for (const targetAttribute of element[ATTRIBUTES]) {
-            if (targetAttribute.getName() === mutation.attributeName) {
-              attribute = targetAttribute
-              break
+          if (element[ATTRIBUTES]) {
+            for (const targetAttribute of element[ATTRIBUTES]) {
+              if (targetAttribute.getName() === mutation.attributeName) {
+                attribute = targetAttribute
+                break
+              }
             }
           }
           const value = element.getAttribute(mutation.attributeName)
@@ -1117,7 +1119,8 @@ export default class Doars extends EventDispatcher {
           // If no attribute found add it.
           if (!attribute) {
             if (value) {
-              component.addAttribute(element, mutation.attributeName, value)
+              attribute = component.addAttribute(element, mutation.attributeName, value)
+              component.updateAttribute(attribute)
             }
             continue
           }
