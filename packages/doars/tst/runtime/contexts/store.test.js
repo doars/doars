@@ -1,21 +1,33 @@
-import { Window } from 'happy-dom'
-import { test, expect } from 'bun:test'
+import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+
+// Import shared setup
+import { document } from '../test-setup.js'
 
 // Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
+describe('Store Context', () => {
+  let container, doars
+
+  beforeEach(() => {
+    // Create a unique container for each test.
+    container = document.createElement('div')
+    container.id = 'test-container-' + Math.random().toString(36).substr(2, 9)
+    document.body.appendChild(container)
+  })
+
+  afterEach(() => {
+    // Clean up after each test.
+    doars = null
+    if (container && container.parentNode) {
+      document.body.removeChild(container)
+    }
+    container = null
+  })
+
 test('store context should share data across components', async () => {
-  // Create a new window.
-  const window = new Window()
-
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
-
-  // Set the document body.
-  window.document.body.innerHTML = `
+  // Set the container HTML.
+  container.innerHTML = `
     <div d-state="{}">
       <input type="text" d-on:input="$store.message = $event.target.value">
       <div d-text="$store.message">Initial</div>
@@ -23,8 +35,8 @@ test('store context should share data across components', async () => {
   `
 
   // Create and enable Doars with initial store.
-  const doars = new Doars({
-    root: window.document.body,
+  doars = new Doars({
+    root: container,
     storeContextInitial: {
       message: 'Before',
     },
@@ -32,20 +44,21 @@ test('store context should share data across components', async () => {
   doars.enable()
 
   // Wait.
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   // Assert initial.
-  const div = window.document.querySelector('div[d-text]')
+  const div = container.querySelector('div[d-text]')
   expect(div.textContent).toBe('Before')
 
   // Simulate input.
-  const input = window.document.querySelector('input')
+  const input = container.querySelector('input')
   input.value = 'After'
   input.dispatchEvent(new window.Event('input', { bubbles: true }))
 
   // Wait for update.
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   // Assert updated.
   expect(div.textContent).toBe('After')
+})
 })

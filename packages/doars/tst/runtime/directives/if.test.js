@@ -1,21 +1,36 @@
-import { Window } from 'happy-dom'
-import { test, expect } from 'bun:test'
+import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+
+// Import shared setup
+import { document } from '../test-setup.js'
 
 // Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
+describe('If Directive', () => {
+  let container, doars
+
+  beforeEach(() => {
+    // Create a unique container for each test.
+    container = document.createElement('div')
+    container.id = 'test-container-' + Math.random().toString(36).substr(2, 9)
+    document.body.appendChild(container)
+  })
+
+  afterEach(() => {
+    // Clean up after each test.
+    if (doars) {
+      doars.disable()
+      doars = null
+    }
+    if (container && container.parentNode) {
+      container.parentNode.removeChild(container)
+    }
+    container = null
+  })
+
 test('if directive should conditionally render', async () => {
-  // Create a new window.
-  const window = new Window()
-
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
-
-  // Set the document body.
-  window.document.body.innerHTML = `
+  // Set the container HTML.
+  container.innerHTML = `
     <div d-state="{ a: true, b: false }">
       <template d-if="a">
         <span>
@@ -32,18 +47,19 @@ test('if directive should conditionally render', async () => {
   `
 
   // Create and enable Doars.
-  const doars = new Doars({
-    root: window.document.body,
+  doars = new Doars({
+    root: container,
   })
   doars.enable()
 
   // Wait.
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   // Assert.
-  const visibleSpan = window.document.querySelector('span')
+  const visibleSpan = container.querySelector('span')
   expect(visibleSpan.textContent.trim()).toBe('Should be visible')
 
-  const notVisibleSpans = window.document.querySelectorAll('span')
+  const notVisibleSpans = container.querySelectorAll('span')
   expect(notVisibleSpans.length).toBe(1)
+})
 })

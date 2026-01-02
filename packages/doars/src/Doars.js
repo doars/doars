@@ -835,8 +835,6 @@ export default class Doars extends EventDispatcher {
       return results
     }
 
-    /* Update */
-
     this.getProcessor = () => {
       return processExpression
     }
@@ -849,7 +847,7 @@ export default class Doars extends EventDispatcher {
       _triggers,
     ) => {
       if (!isEnabled) {
-        // Exit early since it needs to enabled first.
+        // Exit early since it needs to be enabled first.
         return
       }
 

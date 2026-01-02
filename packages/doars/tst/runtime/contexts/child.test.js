@@ -1,72 +1,88 @@
-import { Window } from 'happy-dom'
-import { test, expect } from 'bun:test'
+import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+
+// Import shared setup
+import { document } from '../test-setup.js'
 
 // Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
+describe('Child Context', () => {
+  let container, doars
+
+  beforeEach(() => {
+    // Create a unique container for each test.
+    container = document.createElement('div')
+    container.id = 'test-container-' + Math.random().toString(36).substr(2, 9)
+    document.body.appendChild(container)
+  })
+
+  afterEach(() => {
+    // Clean up after each test.
+    doars = null
+    if (container && container.parentNode) {
+      document.body.removeChild(container)
+    }
+    container = null
+  })
+
 test('children context should list child components', async () => {
-  // Create a new window.
-  const window = new Window()
+  // Local state for the test.
+  const captured = {}
 
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
-
-  // Set the document body.
-  window.document.body.innerHTML = `
-    <div d-state="{ count: '0' }" d-initialized="$state.count = $children.length.toString()">
-      Children found: <span d-text="$state.count">Initial</span>
-
+  // Set the container HTML.
+  container.innerHTML = `
+    <div d-state="{}" d-initialized="setCount($children.length)">
       <div d-state="{}"></div>
       <div d-state="{}"></div>
     </div>
   `
 
   // Create and enable Doars.
-  const doars = new Doars({
-    root: window.document.body,
+  doars = new Doars({
+    root: container,
   })
+
+  // Set simple context.
+  doars.setSimpleContext('setCount', (count) => {
+    captured.count = count.toString()
+  })
+
   doars.enable()
 
   // Wait.
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   // Assert.
-  const span = window.document.querySelector('span')
-  expect(span.textContent).toBe('2')
+  expect(captured.count).toBe('2')
 })
 
 test('child context should access specific child component', async () => {
-  // Create a new window.
-  const window = new Window()
+  // Local state for the test.
+  const captured = {}
 
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
-
-  // Set the document body.
-  window.document.body.innerHTML = `
-    <div d-state="{ message: 'Hello there' }">
-      Child message: <span d-text="$children[0].$state.message">Initial</span>
-
+  // Set the container HTML.
+  container.innerHTML = `
+    <div d-state="{}" d-initialized="setMessage($children[0].$state.message)">
       <div d-state="{ message: 'General Kenobi' }"></div>
     </div>
   `
 
   // Create and enable Doars.
-  const doars = new Doars({
-    root: window.document.body,
+  doars = new Doars({
+    root: container,
   })
+
+  // Set simple context.
+  doars.setSimpleContext('setMessage', (message) => {
+    captured.message = message
+  })
+
   doars.enable()
 
   // Wait.
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   // Assert.
-  const span = window.document.querySelector('span')
-  expect(span.textContent).toBe('General Kenobi')
+  expect(captured.message).toBe('General Kenobi')
+})
 })

@@ -1,21 +1,33 @@
-import { Window } from 'happy-dom'
-import { test, expect } from 'bun:test'
+import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+
+// Import shared setup
+import { document } from '../test-setup.js'
 
 // Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
+describe('Sibling Context', () => {
+  let container, doars
+
+  beforeEach(() => {
+    // Create a unique container for each test.
+    container = document.createElement('div')
+    container.id = 'test-container-' + Math.random().toString(36).substr(2, 9)
+    document.body.appendChild(container)
+  })
+
+  afterEach(() => {
+    // Clean up after each test.
+    doars = null
+    if (container && container.parentNode) {
+      document.body.removeChild(container)
+    }
+    container = null
+  })
+
 test('nextSibling context should access next component', async () => {
-  // Create a new window.
-  const window = new Window()
-
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
-
-  // Set the document body.
-  window.document.body.innerHTML = `
+  // Set the container HTML.
+  container.innerHTML = `
     <div d-state="{}">
       <div d-state="{}"></div>
       <div d-state="{}"></div>
@@ -28,31 +40,22 @@ test('nextSibling context should access next component', async () => {
   `
 
   // Create and enable Doars.
-  const doars = new Doars({
-    root: window.document.body,
+  doars = new Doars({
+    root: container,
   })
   doars.enable()
 
   // Wait.
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   // Assert.
-  const span = window.document.querySelector('span')
+  const span = container.querySelector('span')
   expect(span.textContent).toBe('success')
 })
 
 test('previousSibling context should access previous component', async () => {
-  // Create a new window.
-  const window = new Window()
-
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
-
-  // Set the document body.
-  window.document.body.innerHTML = `
+  // Set the container HTML.
+  container.innerHTML = `
     <div d-state="{}">
       <div d-state="{}"></div>
       <div d-state="{ message: 'success' }"></div>
@@ -65,32 +68,23 @@ test('previousSibling context should access previous component', async () => {
   `
 
   // Create and enable Doars.
-  const doars = new Doars({
-    root: window.document.body,
+  doars = new Doars({
+    root: container,
   })
   doars.enable()
 
   // Wait.
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   // Assert.
-  const span = window.document.querySelector('span')
+  const span = container.querySelector('span')
   expect(span.textContent).toBe('success')
 })
 
 test('siblings context should provide sibling components', async () => {
-  // Create a new window.
-  const window = new Window()
-
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
-
   // Create Doars.
-  const doars = new Doars({
-    root: window.document.body,
+  doars = new Doars({
+    root: container,
   })
 
   // Local state for the test.
@@ -101,8 +95,8 @@ test('siblings context should provide sibling components', async () => {
     captured.messages = siblings.map(s => s.$state.message).filter(Boolean)
   })
 
-  // Set the document body.
-  window.document.body.innerHTML = `
+  // Set the container HTML.
+  container.innerHTML = `
     <div d-state="{}">
       <div d-state="{ message: 'first' }"></div>
       <div d-state="{ message: 'previous' }"></div>
@@ -116,8 +110,9 @@ test('siblings context should provide sibling components', async () => {
   doars.enable()
 
   // Wait.
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   // Assert siblings captured.
   expect(captured.messages).toEqual(['first', 'previous', 'next', 'last'])
+})
 })

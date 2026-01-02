@@ -1,20 +1,36 @@
-import { Window } from 'happy-dom'
-import { test, expect } from 'bun:test'
+import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+
+// Import shared setup
+import { document } from '../test-setup.js'
 
 // Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
-test('text directive should set text content', async () => {
-  // Create a new window.
-  const window = new Window()
+describe('Text Directive', () => {
+  let container, doars
 
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
+  beforeEach(() => {
+    // Create a unique container for each test.
+    container = document.createElement('div')
+    container.id = 'test-container-' + Math.random().toString(36).substr(2, 9)
+    document.body.appendChild(container)
+  })
 
-  // Set the document body to the example HTML.
-  window.document.body.innerHTML = `
+  afterEach(() => {
+    // Clean up after each test.
+    if (doars) {
+      doars.disable()
+      doars = null
+    }
+    if (container && container.parentNode) {
+      container.parentNode.removeChild(container)
+    }
+    container = null
+  })
+
+  test('text directive should set text content', async () => {
+    // Set the container HTML.
+    container.innerHTML = `
     <div d-state="{}">
       <span d-text="'&lt;h1&gt;After&lt;/h1&gt;'">
         Before
@@ -22,44 +38,33 @@ test('text directive should set text content', async () => {
     </div>
   `
 
-  // Create a Doars instance.
-  const doars = new Doars({
-    root: window.document.body,
+    // Create a Doars instance.
+    doars = new Doars({
+      root: container,
+    })
+
+    // Enable Doars.
+    doars.enable()
+
+    // Wait for directives to process.
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Assert the text content.
+    const span = container.querySelector('span')
+    expect(span.textContent).toBe('<h1>After</h1>')
   })
 
-  // Enable Doars.
-  doars.enable()
+  test('text directive should handle promises', async () => {
+    // Create Doars.
+    doars = new Doars({
+      root: container,
+    })
 
-  // Wait for directives to process.
-  await new Promise(resolve => setTimeout(resolve, 0))
+    // Set simple context for promise.
+    doars.setSimpleContext('resolveInTime', (result) => Promise.resolve(result))
 
-  // Assert the text content.
-  const span = window.document.querySelector('span')
-  expect(span.textContent).toBe('<h1>After</h1>')
-})
-
-// TODO: Write a test that checks if numbers are correctly converted to a string, for example `0` needs to become `"0"` and not `""`.`
-
-test('text directive should handle promises', async () => {
-  // Create a new window.
-  const window = new Window()
-
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
-
-  // Create Doars.
-  const doars = new Doars({
-    root: window.document.body,
-  })
-
-  // Set simple context for promise.
-  doars.setSimpleContext('resolveInTime', (result) => Promise.resolve(result))
-
-  // Set the document body.
-  window.document.body.innerHTML = `
+    // Set the container HTML.
+    container.innerHTML = `
     <div d-state="{}">
       <span d-text="resolveInTime('<h1>After</h1>')">
         Before
@@ -67,13 +72,14 @@ test('text directive should handle promises', async () => {
     </div>
   `
 
-  // Enable Doars.
-  doars.enable()
+    // Enable Doars.
+    doars.enable()
 
-  // Wait for promise.
-  await new Promise(resolve => setTimeout(resolve, 0))
+    // Wait for promise.
+    await new Promise(resolve => setTimeout(resolve, 100))
 
-  // Assert text set.
-  const span = window.document.querySelector('span')
-  expect(span.textContent).toBe('<h1>After</h1>')
+    // Assert text set.
+    const span = container.querySelector('span')
+    expect(span.textContent).toBe('<h1>After</h1>')
+  })
 })

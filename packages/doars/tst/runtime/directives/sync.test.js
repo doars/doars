@@ -1,21 +1,36 @@
-import { Window } from 'happy-dom'
-import { test, expect } from 'bun:test'
+import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+
+// Import shared setup
+import { document } from '../test-setup.js'
 
 // Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
+describe('Sync Directive', () => {
+  let container, doars
+
+  beforeEach(() => {
+    // Create a unique container for each test.
+    container = document.createElement('div')
+    container.id = 'test-container-' + Math.random().toString(36).substr(2, 9)
+    document.body.appendChild(container)
+  })
+
+  afterEach(() => {
+    // Clean up after each test.
+    if (doars) {
+      doars.disable()
+      doars = null
+    }
+    if (container && container.parentNode) {
+      container.parentNode.removeChild(container)
+    }
+    container = null
+  })
+
 test('sync directive should synchronize state and input', async () => {
-  // Create a new window.
-  const window = new Window()
-
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
-
-  // Set the document body.
-  window.document.body.innerHTML = `
+  // Set the container HTML.
+  container.innerHTML = `
     <div d-state="{ message: 'After' }">
       <input type="text" d-sync:state="message" value="Initial">
 
@@ -24,33 +39,24 @@ test('sync directive should synchronize state and input', async () => {
   `
 
   // Create and enable Doars.
-  const doars = new Doars({
-    root: window.document.body,
+  doars = new Doars({
+    root: container,
   })
   doars.enable()
 
   // Wait.
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   // Assert initial sync.
-  const input = window.document.querySelector('input')
-  const div = window.document.querySelector('div[d-text]')
+  const input = container.querySelector('input')
+  const div = container.querySelector('div[d-text]')
   expect(input.value).toBe('After')
   expect(div.textContent).toBe('After')
 })
 
 test('sync store directive should synchronize store and input', async () => {
-  // Create a new window.
-  const window = new Window()
-
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
-
-  // Set the document body.
-  window.document.body.innerHTML = `
+  // Set the container HTML.
+  container.innerHTML = `
     <div d-state="{}">
       <input type="text" d-sync:store="message" value="Initial">
 
@@ -59,8 +65,8 @@ test('sync store directive should synchronize store and input', async () => {
   `
 
   // Create and enable Doars with initial store.
-  const doars = new Doars({
-    root: window.document.body,
+  doars = new Doars({
+    root: container,
     storeContextInitial: {
       message: 'Before',
     },
@@ -68,27 +74,18 @@ test('sync store directive should synchronize store and input', async () => {
   doars.enable()
 
   // Wait.
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   // Assert initial sync.
-  const input = window.document.querySelector('input')
-  const div = window.document.querySelector('div[d-text]')
+  const input = container.querySelector('input')
+  const div = container.querySelector('div[d-text]')
   expect(input.value).toBe('Before')
   expect(div.textContent).toBe('Before')
 })
 
 test('sync state directive should synchronize state and textarea', async () => {
-  // Create a new window.
-  const window = new Window()
-
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
-
-  // Set the document body.
-  window.document.body.innerHTML = `
+  // Set the container HTML.
+  container.innerHTML = `
     <div d-state="{ message: 'After' }">
       <textarea d-sync:state="message">Initial</textarea>
 
@@ -97,33 +94,24 @@ test('sync state directive should synchronize state and textarea', async () => {
   `
 
   // Create and enable Doars.
-  const doars = new Doars({
-    root: window.document.body,
+  doars = new Doars({
+    root: container,
   })
   doars.enable()
 
   // Wait.
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   // Assert initial sync.
-  const textarea = window.document.querySelector('textarea')
-  const div = window.document.querySelector('div[d-text]')
+  const textarea = container.querySelector('textarea')
+  const div = container.querySelector('div[d-text]')
   expect(textarea.value).toBe('After')
   expect(div.textContent).toBe('After')
 })
 
 test('sync state directive should synchronize state and checkboxes', async () => {
-  // Create a new window.
-  const window = new Window()
-
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
-
-  // Set the document body.
-  window.document.body.innerHTML = `
+  // Set the container HTML.
+  container.innerHTML = `
     <div d-state="{ selected: ['after'] }">
       <input type="checkbox" d-sync:state="selected" value="before" checked>
       <input type="checkbox" d-sync:state="selected" value="after">
@@ -133,19 +121,20 @@ test('sync state directive should synchronize state and checkboxes', async () =>
   `
 
   // Create and enable Doars.
-  const doars = new Doars({
-    root: window.document.body,
+  doars = new Doars({
+    root: container,
   })
   doars.enable()
 
   // Wait.
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   // Assert initial sync.
-  const checkboxes = window.document.querySelectorAll('input[type="checkbox"]')
-  const div = window.document.querySelector('div[d-text]')
+  const checkboxes = container.querySelectorAll('input[type="checkbox"]')
+  const div = container.querySelector('div[d-text]')
   expect(checkboxes[0].checked).toBe(false)
   expect(checkboxes[1].checked).toBe(true)
   expect(div.textContent).toBe('after')
+})
 })
 

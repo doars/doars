@@ -1,21 +1,36 @@
-import { Window } from 'happy-dom'
-import { test, expect } from 'bun:test'
+import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+
+// Import shared setup
+import { document } from '../test-setup.js'
 
 // Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
+describe('Select Directive', () => {
+  let container, doars
+
+  beforeEach(() => {
+    // Create a unique container for each test.
+    container = document.createElement('div')
+    container.id = 'test-container-' + Math.random().toString(36).substr(2, 9)
+    document.body.appendChild(container)
+  })
+
+  afterEach(() => {
+    // Clean up after each test.
+    if (doars) {
+      doars.disable()
+      doars = null
+    }
+    if (container && container.parentNode) {
+      container.parentNode.removeChild(container)
+    }
+    container = null
+  })
+
 test('select directive should set multiple select values', async () => {
-  // Create a new window.
-  const window = new Window()
-
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
-
-  // Set the document body.
-  window.document.body.innerHTML = `
+  // Set the container HTML.
+  container.innerHTML = `
     <div d-state="{}">
       <select d-select="[ 'after', 'after2' ]" multiple>
         <option value="before" selected>Before</option>
@@ -26,32 +41,23 @@ test('select directive should set multiple select values', async () => {
   `
 
   // Create and enable Doars.
-  const doars = new Doars({
-    root: window.document.body,
+  doars = new Doars({
+    root: container,
   })
   doars.enable()
 
   // Wait.
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   // Assert multiple selected.
-  const select = window.document.querySelector('select')
+  const select = container.querySelector('select')
   const selected = Array.from(select.selectedOptions).map(o => o.value)
   expect(selected).toEqual(['after', 'after2'])
 })
 
 test('select directive should set radio value', async () => {
-  // Create a new window.
-  const window = new Window()
-
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
-
-  // Set the document body.
-  window.document.body.innerHTML = `
+  // Set the container HTML.
+  container.innerHTML = `
     <div d-state="{}">
       <input type="radio" name="radio-name" d-select="'after'" value="initial" checked>
       <input type="radio" name="radio-name" d-select="'after'" value="before">
@@ -60,33 +66,24 @@ test('select directive should set radio value', async () => {
   `
 
   // Create and enable Doars.
-  const doars = new Doars({
-    root: window.document.body,
+  doars = new Doars({
+    root: container,
   })
   doars.enable()
 
   // Wait.
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   // Assert radio selected.
-  const radios = window.document.querySelectorAll('input[type="radio"]')
+  const radios = container.querySelectorAll('input[type="radio"]')
   expect(radios[0].checked).toBe(false)
   expect(radios[1].checked).toBe(false)
   expect(radios[2].checked).toBe(true)
 })
 
 test('select directive should set select value', async () => {
-  // Create a new window.
-  const window = new Window()
-
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
-
-  // Set the document body.
-  window.document.body.innerHTML = `
+  // Set the container HTML.
+  container.innerHTML = `
     <div d-state="{}">
       <select d-select="'after'">
         <option value="before" selected>Before</option>
@@ -96,15 +93,16 @@ test('select directive should set select value', async () => {
   `
 
   // Create and enable Doars.
-  const doars = new Doars({
-    root: window.document.body,
+  doars = new Doars({
+    root: container,
   })
   doars.enable()
 
   // Wait.
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   // Assert value set.
-  const select = window.document.querySelector('select')
+  const select = container.querySelector('select')
   expect(select.value).toBe('after')
+})
 })

@@ -26,6 +26,7 @@
   "scripts": {
     "build": "NODE_ENV=production hoast && NODE_ENV=production bun ./config.bundle.js",
     "develop:hoast": "NODE_ENV=development NODE_OPTIONS='--experimental-loader=@hoast/hoast/loader.js' hoast --watch",
-    "develop:scripts": "NODE_ENV=development bun ./config.bundle.js"
+    "develop:scripts": "NODE_ENV=development bun ./config.bundle.js",
+    "serve": "bun ../scripts/srv.js ../docs/"
   }
 }

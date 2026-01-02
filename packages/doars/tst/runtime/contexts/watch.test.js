@@ -1,22 +1,34 @@
-import { Window } from 'happy-dom'
-import { test, expect } from 'bun:test'
+import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+
+// Import shared setup
+import { document } from '../test-setup.js'
 
 // Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
+describe('Watch Context', () => {
+  let container, doars
+
+  beforeEach(() => {
+    // Create a unique container for each test.
+    container = document.createElement('div')
+    container.id = 'test-container-' + Math.random().toString(36).substr(2, 9)
+    document.body.appendChild(container)
+  })
+
+  afterEach(() => {
+    // Clean up after each test.
+    doars = null
+    if (container && container.parentNode) {
+      document.body.removeChild(container)
+    }
+    container = null
+  })
+
 test('watch immediate context should trigger immediately', async () => {
-  // Create a new window.
-  const window = new Window()
-
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
-
   // Create Doars.
-  const doars = new Doars({
-    root: window.document.body,
+  doars = new Doars({
+    root: container,
   })
 
   // Local state for the test.
@@ -27,8 +39,8 @@ test('watch immediate context should trigger immediately', async () => {
     captured.watched = true
   })
 
-  // Set the document body.
-  window.document.body.innerHTML = `
+  // Set the container HTML.
+  container.innerHTML = `
     <div d-state="{ count: 0 }" d-initialized="$watch('count', () => setWatched(), { immediate: true })()"></div>
   `
 
@@ -36,8 +48,9 @@ test('watch immediate context should trigger immediately', async () => {
   doars.enable()
 
   // Wait.
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 100))
 
-   // Assert watch triggered immediately.
-   expect(captured.watched).toBe(true)
+  // Assert watch triggered immediately.
+  expect(captured.watched).toBe(true)
+})
 })

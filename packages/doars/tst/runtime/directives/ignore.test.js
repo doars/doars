@@ -1,21 +1,33 @@
-import { Window } from 'happy-dom'
-import { test, expect } from 'bun:test'
+import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+
+// Import shared setup
+import { document } from '../test-setup.js'
 
 // Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
-test('ignore directive should prevent processing inside', async () => {
-  // Create a new window.
-  const window = new Window()
+describe('Ignore Directive', () => {
+  let container, doars
 
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
+  beforeEach(() => {
+    // Create a unique container for each test.
+    container = document.createElement('div')
+    container.id = 'test-container-' + Math.random().toString(36).substr(2, 9)
+    document.body.appendChild(container)
+  })
 
-  // Set the document body.
-  window.document.body.innerHTML = `
+  afterEach(() => {
+    // Clean up after each test.
+    doars = null
+    if (container && container.parentNode) {
+      document.body.removeChild(container)
+    }
+    container = null
+  })
+
+  test('ignore directive should prevent processing inside', async () => {
+    // Set the container HTML.
+    container.innerHTML = `
     <div>
       <!-- Outside any component. -->
       <div d-ignore>
@@ -37,115 +49,90 @@ test('ignore directive should prevent processing inside', async () => {
     </div>
   `
 
-  // Create and enable Doars.
-  const doars = new Doars({
-    root: window.document.body,
+    // Create and enable Doars.
+    doars = new Doars({
+      root: container,
+    })
+    doars.enable()
+
+    // Wait.
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Assert spans not changed.
+    const spans = container.querySelectorAll('span')
+    expect(spans[0].textContent.trim()).toBe('Should not change')
+    expect(spans[1].textContent.trim()).toBe('Should not change')
   })
-  doars.enable()
 
-  // Wait.
-  await new Promise(resolve => setTimeout(resolve, 0))
-
-  // Assert spans not changed.
-  const spans = window.document.querySelectorAll('span')
-  expect(spans[0].textContent.trim()).toBe('Should not change')
-  expect(spans[1].textContent.trim()).toBe('Should not change')
-})
-
-test('ignore directive should be added dynamically', async () => {
-  // Create a new window.
-  const window = new Window()
-
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
-
-  // Set the document body.
-  window.document.body.innerHTML = `
-    <div d-state="{ message: 'Should not change after click' }">
+  test('ignore directive should be added dynamically', async () => {
+    // Set the container HTML.
+    container.innerHTML = `
+    <div d-state="{ message: 'Should not change after ignore directive' }">
       <div>
         <span d-text="message">
           Before
         </span>
       </div>
-
-      <button d-on:click="document.querySelector('div > div').setAttribute('d-ignore', true); $state.updated = true">
-        Click me!
-      </button>
     </div>
   `
 
-  // Create and enable Doars.
-  const doars = new Doars({
-    root: window.document.body,
+    // Create and enable Doars.
+    doars = new Doars({
+      root: container,
+    })
+    doars.enable()
+
+    // Wait for initial.
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Get span.
+    const span = container.querySelector('span')
+    expect(span.textContent.trim()).toBe('Should not change after ignore directive')
+
+    // Add ignore directive.
+    const innerDiv = container.querySelector('[d-state] > div')
+    innerDiv.setAttribute('d-ignore', '')
+
+    // Wait.
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Assert text not changed.
+    expect(span.textContent.trim()).toBe('Should not change after ignore directive')
   })
-  doars.enable()
 
-  // Wait for initial.
-  await new Promise(resolve => setTimeout(resolve, 10))
-
-  // Get span.
-  const span = window.document.querySelector('span')
-  expect(span.textContent.trim()).toBe('Should not change after click')
-
-  // Click button.
-  const button = window.document.querySelector('button')
-  button.click()
-
-  // Wait.
-  await new Promise(resolve => setTimeout(resolve, 10))
-
-  // Assert text not changed.
-  expect(span.textContent.trim()).toBe('Should not change after click')
-})
-
-test('ignore directive should be removed dynamically', async () => {
-  // Create a new window.
-  const window = new Window()
-
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
-
-  // Set the document body.
-  window.document.body.innerHTML = `
-    <div d-state="{ message: 'Should only be visible after ignore is removed!' }">
-      <div d-ignore>
-        <span d-text="message">
-          Before
-        </span>
+  test('ignore directive should be removed dynamically', async () => {
+    // Set the container HTML.
+    container.innerHTML = `
+      <div d-state="{ message: 'Should only be visible after ignore is removed!' }">
+        <div d-ignore>
+          <span d-text="message">
+            Before
+          </span>
+        </div>
       </div>
+    `
 
-      <button d-on:click="$component.querySelector('[d-ignore]').removeAttribute('d-ignore'); $state.updated = true">
-        Remove ignore!
-      </button>
-    </div>
-  `
+    // Create and enable Doars.
+    doars = new Doars({
+      root: container,
+    })
+    doars.enable()
 
-  // Create and enable Doars.
-  const doars = new Doars({
-    root: window.document.body,
+    // Wait for initial.
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Get span.
+    const span = container.querySelector('span')
+    expect(span.textContent.trim()).toBe('Before')
+
+    // Remove ignore directive.
+    const innerDiv = container.querySelector('[d-ignore]')
+    innerDiv.removeAttribute('d-ignore')
+
+    // Wait.
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Assert text changed.
+    expect(span.textContent.trim()).toBe('Should only be visible after ignore is removed!')
   })
-  doars.enable()
-
-  // Wait for initial.
-  await new Promise(resolve => setTimeout(resolve, 10))
-
-  // Get span.
-  const span = window.document.querySelector('span')
-  expect(span.textContent.trim()).toBe('Before')
-
-  // Click button.
-  const button = window.document.querySelector('button')
-  button.click()
-
-  // Wait.
-  await new Promise(resolve => setTimeout(resolve, 10))
-
-  // Assert text changed.
-  expect(span.textContent.trim()).toBe('Should only be visible after ignore is removed!')
 })

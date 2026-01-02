@@ -1,32 +1,47 @@
-import { Window } from 'happy-dom'
-import { test, expect } from 'bun:test'
+import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+
+// Import shared setup
+import { document } from './test-setup.js'
 
 // Import Doars variants
 import DoarsCall from '../../src/DoarsCall.js'
 import DoarsExecute from '../../src/DoarsExecute.js'
 import DoarsInterpret from '../../src/DoarsInterpret.js'
 
+describe('Processors', () => {
+  let container, doars
+
+  beforeEach(() => {
+    // Create a unique container for each test.
+    container = document.createElement('div')
+    container.id = 'test-container-' + Math.random().toString(36).substr(2, 9)
+    document.body.appendChild(container)
+  })
+
+  afterEach(() => {
+    // Clean up after each test.
+    if (doars) {
+      doars.disable()
+      doars = null
+    }
+    if (container && container.parentNode) {
+      container.parentNode.removeChild(container)
+    }
+    container = null
+  })
+
 test('call processor allows calling functions without parentheses', async () => {
-  // Create a new window.
-  const window = new Window()
-
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
-
   // Local state for the test.
   const captured = {}
 
-  // Set the document body.
-  window.document.body.innerHTML = `
+  // Set the container HTML.
+  container.innerHTML = `
     <div d-state d-initialized="set_called"></div>
   `
 
   // Create Doars with call processor.
-  const doars = new DoarsCall({
-    root: window.document.body,
+  doars = new DoarsCall({
+    root: container,
     processor: 'call',
   })
 
@@ -39,33 +54,24 @@ test('call processor allows calling functions without parentheses', async () => 
   doars.enable()
 
   // Wait.
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   // Assert function called.
   expect(captured.called).toBe(true)
 })
 
 test('execute processor executes JavaScript code', async () => {
-  // Create a new window.
-  const window = new Window()
-
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
-
   // Local state for the test.
   const captured = {}
 
-  // Set the document body.
-  window.document.body.innerHTML = `
+  // Set the container HTML.
+  container.innerHTML = `
     <div d-state d-initialized="captured.executed = true"></div>
   `
 
   // Create Doars with execute processor.
-  const doars = new DoarsExecute({
-    root: window.document.body,
+  doars = new DoarsExecute({
+    root: container,
   })
 
   // Make captured available in the expression.
@@ -75,33 +81,24 @@ test('execute processor executes JavaScript code', async () => {
   doars.enable()
 
   // Wait.
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   // Assert code executed.
   expect(captured.executed).toBe(true)
 })
 
 test('interpret processor interprets expressions with simple contexts', async () => {
-  // Create a new window.
-  const window = new Window()
-
-  // Set globals for Doars
-  global.document = window.document
-  global.MutationObserver = window.MutationObserver
-  global.requestAnimationFrame = window.requestAnimationFrame
-  global.HTMLElement = window.HTMLElement
-
   // Local state for the test.
   const captured = {}
 
-  // Set the document body.
-  window.document.body.innerHTML = `
+  // Set the container HTML.
+  container.innerHTML = `
     <div d-state d-initialized="test.log('initialized')"></div>
   `
 
   // Create Doars with interpret processor.
-  const doars = new DoarsInterpret({
-    root: window.document.body,
+  doars = new DoarsInterpret({
+    root: container,
   })
 
   // Set simple context.
@@ -115,8 +112,9 @@ test('interpret processor interprets expressions with simple contexts', async ()
   doars.enable()
 
   // Wait.
-  await new Promise(resolve => setTimeout(resolve, 0))
+  await new Promise(resolve => setTimeout(resolve, 100))
 
   // Assert expression interpreted.
   expect(captured.message).toBe('initialized')
+})
 })
