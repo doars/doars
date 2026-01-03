@@ -11,4 +11,7 @@ global.MutationObserver = window.MutationObserver
 global.requestAnimationFrame = window.requestAnimationFrame
 global.HTMLElement = window.HTMLElement
 
-export { window, document }
+export {
+  document,
+  window,
+}

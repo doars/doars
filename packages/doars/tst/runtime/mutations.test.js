@@ -10,179 +10,172 @@ describe('Mutations', () => {
   let container, doars
 
   beforeEach(() => {
-    // Create a unique container for each test.
     container = document.createElement('div')
-    container.id = 'test-container-' + Math.random().toString(36).substr(2, 9)
     document.body.appendChild(container)
   })
 
   afterEach(() => {
-    // Clean up after each test.
-    if (doars) {
-      doars.disable()
-      doars = null
-    }
-    if (container && container.parentNode) {
-      container.parentNode.removeChild(container)
-    }
+    doars.disable()
+    doars = null
+    document.body.removeChild(container)
     container = null
   })
 
-test('adding attribute to element triggers directive processing', async () => {
-  // Set the container HTML.
-  container.innerHTML = `
-    <div d-state="{}">
-      <span>Before</span>
-    </div>
-  `
+  test('adding attribute to element triggers directive processing', async () => {
+    // Set the container HTML.
+    container.innerHTML = `
+      <div d-state="{}">
+        <span>Before</span>
+      </div>
+    `
 
-  // Create and enable Doars.
-  doars = new Doars({
-    root: container,
+    // Create and enable Doars.
+    doars = new Doars({
+      root: container,
+    })
+    doars.enable()
+
+    // Wait for initial processing.
+    await new Promise(resolve => setTimeout(resolve, 1))
+
+    // Get the component and span.
+    const component = container.querySelector('[d-state]')
+    const span = container.querySelector('span')
+
+    // Add d-text attribute.
+    span.setAttribute('d-text', "'After'")
+
+    // Trigger update by changing state.
+    component.setAttribute('d-state', '{ updated: true }')
+
+    // Wait for mutation processing.
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Assert text updated.
+    expect(span.textContent).toBe('After')
   })
-  doars.enable()
 
-  // Wait for initial processing.
-  await new Promise(resolve => requestAnimationFrame(resolve))
+  test('adding component to DOM triggers processing', async () => {
+    // Set the container HTML.
+    container.innerHTML = `
+      <div></div>
+    `
 
-  // Get the component and span.
-  const component = container.querySelector('[d-state]')
-  const span = container.querySelector('span')
+    // Create and enable Doars.
+    doars = new Doars({
+      root: container,
+    })
+    doars.enable()
 
-  // Add d-text attribute.
-  span.setAttribute('d-text', "'After'")
+    // Wait for initial processing.
+    await new Promise(resolve => setTimeout(resolve, 1))
 
-  // Trigger update by changing state.
-  component.setAttribute('d-state', '{ updated: true }')
+    // Get sub-container.
+    const subContainer = container.children[0]
 
-  // Wait for mutation processing.
-  await new Promise(resolve => setTimeout(resolve, 100))
+    // Add new component.
+    const newComponent = document.createElement('div')
+    newComponent.setAttribute('d-state', '{}')
+    const span = document.createElement('span')
+    span.setAttribute('d-text', "'Added'")
+    newComponent.appendChild(span)
+    subContainer.appendChild(newComponent)
 
-  // Assert text updated.
-  expect(span.textContent).toBe('After')
-})
+    // Wait for mutation processing.
+    await new Promise(resolve => setTimeout(resolve, 100))
 
-test('adding component to DOM triggers processing', async () => {
-  // Set the container HTML.
-  container.innerHTML = `
-    <div id="sub-container"></div>
-  `
-
-  // Create and enable Doars.
-  doars = new Doars({
-    root: container,
+    // Assert new component processed.
+    expect(span.textContent).toBe('Added')
   })
-  doars.enable()
 
-  // Wait for initial processing.
-  await new Promise(resolve => requestAnimationFrame(resolve))
+  test('adding element to component triggers directive processing', async () => {
+    // Set the container HTML.
+    container.innerHTML = `
+      <div d-state="{}"></div>
+    `
 
-  // Get sub-container.
-  const subContainer = container.querySelector('#sub-container')
+    // Create and enable Doars.
+    doars = new Doars({
+      root: container,
+    })
+    doars.enable()
 
-  // Add new component.
-  const newComponent = document.createElement('div')
-  newComponent.setAttribute('d-state', '{}')
-  const span = document.createElement('span')
-  span.setAttribute('d-text', "'Added'")
-  newComponent.appendChild(span)
-  subContainer.appendChild(newComponent)
+    // Wait for initial processing.
+    await new Promise(resolve => setTimeout(resolve, 1))
 
-  // Wait for mutation processing.
-  await new Promise(resolve => setTimeout(resolve, 100))
+    // Get the component.
+    const component = container.querySelector('[d-state]')
 
-  // Assert new component processed.
-  expect(span.textContent).toBe('Added')
-})
+    // Add new element with directive.
+    const span = document.createElement('span')
+    span.setAttribute('d-text', "'Added'")
+    component.appendChild(span)
 
-test('adding element to component triggers directive processing', async () => {
-  // Set the container HTML.
-  container.innerHTML = `
-    <div d-state="{}"></div>
-  `
+    // Wait for mutation processing.
+    await new Promise(resolve => setTimeout(resolve, 100))
 
-  // Create and enable Doars.
-  doars = new Doars({
-    root: container,
+    // Assert element processed.
+    expect(span.textContent).toBe('Added')
   })
-  doars.enable()
 
-  // Wait for initial processing.
-  await new Promise(resolve => requestAnimationFrame(resolve))
-
-  // Get the component.
-  const component = container.querySelector('[d-state]')
-
-  // Add new element with directive.
-  const span = document.createElement('span')
-  span.setAttribute('d-text', "'Added'")
-  component.appendChild(span)
-
-  // Wait for mutation processing.
-  await new Promise(resolve => setTimeout(resolve, 100))
-
-  // Assert element processed.
-  expect(span.textContent).toBe('Added')
-})
-
-test('changing attribute value triggers directive re-processing', async () => {
-  // Set the container HTML.
-  container.innerHTML = `
+  test('changing attribute value triggers directive re-processing', async () => {
+    // Set the container HTML.
+    container.innerHTML = `
     <div d-state="{}">
       <span d-text="'Before'">Initial</span>
     </div>
   `
 
-  // Create and enable Doars.
-  doars = new Doars({
-    root: container,
+    // Create and enable Doars.
+    doars = new Doars({
+      root: container,
+    })
+    doars.enable()
+
+    // Wait for initial processing.
+    await new Promise(resolve => setTimeout(resolve, 1))
+
+    // Get the span.
+    const span = container.querySelector('span')
+
+    // Change d-text attribute.
+    span.setAttribute('d-text', "'After'")
+
+    // Wait for mutation processing.
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Assert text updated.
+    expect(span.textContent).toBe('After')
   })
-  doars.enable()
 
-  // Wait for initial processing.
-  await new Promise(resolve => requestAnimationFrame(resolve))
+  test('changing d-state attribute does not trigger re-processing', async () => {
+    // Set the container HTML.
+    container.innerHTML = `
+      <div d-state="{ message: 'Before' }">
+        <span d-text="message">Initial</span>
+      </div>
+    `
 
-  // Get the span.
-  const span = container.querySelector('span')
+    // Create and enable Doars.
+    doars = new Doars({
+      root: container,
+    })
+    doars.enable()
 
-  // Change d-text attribute.
-  span.setAttribute('d-text', "'After'")
+    // Wait for initial processing.
+    await new Promise(resolve => setTimeout(resolve, 1))
 
-  // Wait for mutation processing.
-  await new Promise(resolve => setTimeout(resolve, 100))
+    // Get the component and span.
+    const component = container.querySelector('[d-state]')
+    const span = container.querySelector('span')
 
-  // Assert text updated.
-  expect(span.textContent).toBe('After')
-})
+    // Change d-state attribute.
+    component.setAttribute('d-state', "{ message: 'After' }")
 
-test('changing d-state attribute does not trigger re-processing', async () => {
-  // Set the container HTML.
-  container.innerHTML = `
-    <div d-state="{ message: 'Before' }">
-      <span d-text="message">Initial</span>
-    </div>
-  `
+    // Wait for potential mutation processing.
+    await new Promise(resolve => setTimeout(resolve, 100))
 
-  // Create and enable Doars.
-  doars = new Doars({
-    root: container,
+    // Assert text not updated (state change not handled).
+    expect(span.textContent).toBe('Before')
   })
-  doars.enable()
-
-  // Wait for initial processing.
-  await new Promise(resolve => requestAnimationFrame(resolve))
-
-  // Get the component and span.
-  const component = container.querySelector('[d-state]')
-  const span = container.querySelector('span')
-
-  // Change d-state attribute.
-  component.setAttribute('d-state', "{ message: 'After' }")
-
-  // Wait for potential mutation processing.
-  await new Promise(resolve => setTimeout(resolve, 1))
-
-  // Assert text not updated (state change not handled).
-  expect(span.textContent).toBe('Before')
-})
 })

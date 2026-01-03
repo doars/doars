@@ -10,55 +10,72 @@ describe('Store Context', () => {
   let container, doars
 
   beforeEach(() => {
-    // Create a unique container for each test.
     container = document.createElement('div')
-    container.id = 'test-container-' + Math.random().toString(36).substr(2, 9)
     document.body.appendChild(container)
   })
 
   afterEach(() => {
-    // Clean up after each test.
+    doars.disable()
     doars = null
-    if (container && container.parentNode) {
-      document.body.removeChild(container)
-    }
+    document.body.removeChild(container)
     container = null
   })
 
-test('store context should share data across components', async () => {
-  // Set the container HTML.
-  container.innerHTML = `
-    <div d-state="{}">
-      <input type="text" d-on:input="$store.message = $event.target.value">
-      <div d-text="$store.message">Initial</div>
-    </div>
-  `
+  test('store context should share data inside components', async () => {
+    // Set the container HTML.
+    container.innerHTML = `
+      <div d-state="{}" d-initialized="$store.message = 'After'"></div>
+      <div d-state="{}">
+        <div d-text="$store.message">Initial</div>
+      </div>
+    `
 
-  // Create and enable Doars with initial store.
-  doars = new Doars({
-    root: container,
-    storeContextInitial: {
-      message: 'Before',
-    },
+    // Create and enable Doars with initial store.
+    doars = new Doars({
+      root: container,
+      storeContextInitial: {
+        message: 'Before',
+      },
+    })
+    doars.enable()
+
+    // Wait.
+    await new Promise(resolve => setTimeout(resolve, 1))
+
+    // Assert
+    const div = container.querySelector('div[d-text]')
+    expect(div.textContent).toBe('After')
   })
-  doars.enable()
 
-  // Wait.
-  await new Promise(resolve => setTimeout(resolve, 100))
+  test('store log context should execute function', async () => {
+    // Local state for the test.
+    let captured = null
 
-  // Assert initial.
-  const div = container.querySelector('div[d-text]')
-  expect(div.textContent).toBe('Before')
+    // Set the container HTML.
+    container.innerHTML = `
+      <div d-state="{}" d-initialized="logStore($store)"></div>
+    `
 
-  // Simulate input.
-  const input = container.querySelector('input')
-  input.value = 'After'
-  input.dispatchEvent(new window.Event('input', { bubbles: true }))
+    // Create Doars with store.
+    doars = new Doars({
+      root: container,
+      storeContextInitial: {
+        message: 'value',
+      },
+    })
 
-  // Wait for update.
-  await new Promise(resolve => setTimeout(resolve, 100))
+    // Set simple context with closure.
+    doars.setSimpleContext('logStore', function(store) {
+      captured = store.message
+    })
 
-  // Assert updated.
-  expect(div.textContent).toBe('After')
-})
+    // Enable Doars.
+    doars.enable()
+
+    // Wait.
+    await new Promise(resolve => setTimeout(resolve, 1))
+
+    // Assert function was called and captured the specific value.
+    expect(captured).toBe('value')
+  })
 })

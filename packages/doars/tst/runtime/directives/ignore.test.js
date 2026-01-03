@@ -10,18 +10,14 @@ describe('Ignore Directive', () => {
   let container, doars
 
   beforeEach(() => {
-    // Create a unique container for each test.
     container = document.createElement('div')
-    container.id = 'test-container-' + Math.random().toString(36).substr(2, 9)
     document.body.appendChild(container)
   })
 
   afterEach(() => {
-    // Clean up after each test.
+    doars.disable()
     doars = null
-    if (container && container.parentNode) {
-      document.body.removeChild(container)
-    }
+    document.body.removeChild(container)
     container = null
   })
 
@@ -56,7 +52,7 @@ describe('Ignore Directive', () => {
     doars.enable()
 
     // Wait.
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert spans not changed.
     const spans = container.querySelectorAll('span')
@@ -83,7 +79,7 @@ describe('Ignore Directive', () => {
     doars.enable()
 
     // Wait for initial.
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise(resolve => setTimeout(resolve, 1))
 
     // Get span.
     const span = container.querySelector('span')
@@ -94,7 +90,7 @@ describe('Ignore Directive', () => {
     innerDiv.setAttribute('d-ignore', '')
 
     // Wait.
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert text not changed.
     expect(span.textContent.trim()).toBe('Should not change after ignore directive')
@@ -103,7 +99,7 @@ describe('Ignore Directive', () => {
   test('ignore directive should be removed dynamically', async () => {
     // Set the container HTML.
     container.innerHTML = `
-      <div d-state="{ message: 'Should only be visible after ignore is removed!' }">
+      <div d-state="{ message: 'After' }">
         <div d-ignore>
           <span d-text="message">
             Before
@@ -119,7 +115,7 @@ describe('Ignore Directive', () => {
     doars.enable()
 
     // Wait for initial.
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise(resolve => setTimeout(resolve, 1))
 
     // Get span.
     const span = container.querySelector('span')
@@ -130,9 +126,9 @@ describe('Ignore Directive', () => {
     innerDiv.removeAttribute('d-ignore')
 
     // Wait.
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert text changed.
-    expect(span.textContent.trim()).toBe('Should only be visible after ignore is removed!')
+    expect(span.textContent.trim()).toBe('After')
   })
 })

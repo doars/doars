@@ -10,47 +10,40 @@ describe('NextTick Context', () => {
   let container, doars
 
   beforeEach(() => {
-    // Create a unique container for each test.
     container = document.createElement('div')
-    container.id = 'test-container-' + Math.random().toString(36).substr(2, 9)
     document.body.appendChild(container)
   })
 
   afterEach(() => {
-    // Clean up after each test.
+    doars.disable()
     doars = null
-    if (container && container.parentNode) {
-      document.body.removeChild(container)
-    }
+    document.body.removeChild(container)
     container = null
   })
 
-test('nextTick context should defer execution', async () => {
-  // Create Doars.
-  doars = new Doars({
-    root: container,
+  test('nextTick context should defer execution', async () => {
+    container.innerHTML = `
+      <div d-state="{}" d-initialized="$nextTick(() => setTicked())"></div>
+    `
+
+    doars = new Doars({
+      root: container,
+    })
+
+    // Set simple context with closure.
+    let captured = false
+    doars.setSimpleContext('setTicked', function() {
+      captured = true
+    })
+
+    // Assert nextTick not yet executed.
+    expect(captured).toBe(false)
+
+    doars.enable()
+
+    await new Promise(resolve => setTimeout(resolve, 1))
+
+    // Assert nextTick executed.
+    expect(captured).toBe(true)
   })
-
-  // Local state for the test.
-  const captured = {}
-
-  // Set simple context with closure.
-  doars.setSimpleContext('setTicked', function() {
-    captured.ticked = true
-  })
-
-  // Set the container HTML.
-  container.innerHTML = `
-    <div d-state="{}" d-initialized="$nextTick(() => setTicked())"></div>
-  `
-
-  // Enable Doars.
-  doars.enable()
-
-  // Wait.
-  await new Promise(resolve => setTimeout(resolve, 100))
-
-  // Assert nextTick executed.
-  expect(captured.ticked).toBe(true)
-})
 })

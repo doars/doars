@@ -10,206 +10,199 @@ describe('Attribute Directive', () => {
   let container, doars
 
   beforeEach(() => {
-    // Create a unique container for each test.
     container = document.createElement('div')
-    container.id = 'test-container-' + Math.random().toString(36).substr(2, 9)
     document.body.appendChild(container)
   })
 
   afterEach(() => {
-    // Clean up after each test.
-    if (doars) {
-      doars.disable()
-      doars = null
-    }
-    if (container && container.parentNode) {
-      container.parentNode.removeChild(container)
-    }
+    doars.disable()
+    doars = null
+    document.body.removeChild(container)
     container = null
   })
 
-test('attribute directive should set attributes', async () => {
-  // Set the container HTML.
-  container.innerHTML = `
-    <div d-state="{}">
-      <span d-attribute:style="{ display: 'none' }">
-        Hidden?
-      </span>
-    </div>
-  `
+  test('attribute directive should set attributes', async () => {
+    // Set the container HTML.
+    container.innerHTML = `
+      <div d-state="{}">
+        <span d-attribute:style="{ display: 'none' }">
+          Hidden?
+        </span>
+      </div>
+    `
 
-  // Create and enable Doars.
-  doars = new Doars({
-    root: container,
-  })
-  doars.enable()
+    // Create and enable Doars.
+    doars = new Doars({
+      root: container,
+    })
+    doars.enable()
 
-  // Wait.
-  await new Promise(resolve => setTimeout(resolve, 100))
+    // Wait.
+    await new Promise(resolve => setTimeout(resolve, 1))
 
-  // Assert.
-  const span = container.querySelector('span')
-  expect(span.style.display).toBe('none')
-})
-
-test('attribute directive should set value attributes', async () => {
-  // Set the container HTML.
-  container.innerHTML = `
-    <div d-state="{}">
-      <input type="text" value="before" d-attribute:value="'after'">
-    </div>
-  `
-
-  // Create and enable Doars.
-  doars = new Doars({
-    root: container,
-  })
-  doars.enable()
-
-  // Wait.
-  await new Promise(resolve => setTimeout(resolve, 100))
-
-  // Assert.
-  const input = container.querySelector('input')
-  expect(input.value).toBe('after')
-})
-
-test('attribute directive should handle promises', async () => {
-  // Create Doars.
-  doars = new Doars({
-    root: container,
+    // Assert.
+    const span = container.querySelector('span')
+    expect(span.style.display).toBe('none')
   })
 
-  // Set simple context for promise.
-  doars.setSimpleContext('resolveInTime', (result) => Promise.resolve(result))
+  test('attribute directive should set value attributes', async () => {
+    // Set the container HTML.
+    container.innerHTML = `
+      <div d-state="{}">
+        <input type="text" value="before" d-attribute:value="'after'">
+      </div>
+    `
 
-  // Set the container HTML.
-  container.innerHTML = `
-    <div d-state="{}">
-      <input type="text" value="before" d-attribute:value="resolveInTime('after')">
-    </div>
-  `
+    // Create and enable Doars.
+    doars = new Doars({
+      root: container,
+    })
+    doars.enable()
 
-  // Enable Doars.
-  doars.enable()
+    // Wait.
+    await new Promise(resolve => setTimeout(resolve, 1))
 
-  // Wait for promise.
-  await new Promise(resolve => setTimeout(resolve, 100))
-
-  // Assert value set.
-  const input = container.querySelector('input')
-  expect(input.value).toBe('after')
-})
-
-test('attribute directive should set checked on radios', async () => {
-  // Set the container HTML.
-  container.innerHTML = `
-    <div d-state="{}">
-      <input type="radio" name="radio-name" d-attribute:checked="false">
-      <input type="radio" name="radio-name" d-attribute:checked="true">
-      <input type="radio" name="radio-name" d-attribute:checked="true">
-    </div>
-  `
-
-  // Create and enable Doars.
-  doars = new Doars({
-    root: container,
+    // Assert.
+    const input = container.querySelector('input')
+    expect(input.value).toBe('after')
   })
-  doars.enable()
 
-  // Wait.
-  await new Promise(resolve => setTimeout(resolve, 100))
+  test('attribute directive should handle promises', async () => {
+    // Create Doars.
+    doars = new Doars({
+      root: container,
+    })
 
-  // Assert checked.
-  const radios = container.querySelectorAll('input[type="radio"]')
-  expect(radios[0].checked).toBe(false)
-  expect(radios[1].checked).toBe(false)
-  expect(radios[2].checked).toBe(true)
-})
+    // Set simple context for promise.
+    doars.setSimpleContext('resolveInTime', (result) => Promise.resolve(result))
 
-test('attribute directive should remove style properties', async () => {
-  // Set the container HTML.
-  container.innerHTML = `
-    <div d-state="{}">
-      <span style="background-color: yellow;" d-attribute:style="{ 'background-color': undefined }">
-        Red
-      </span>
-    </div>
-  `
+    // Set the container HTML.
+    container.innerHTML = `
+      <div d-state="{}">
+        <input type="text" value="before" d-attribute:value="resolveInTime('after')">
+      </div>
+    `
 
-  // Create and enable Doars.
-  doars = new Doars({
-    root: container,
+    // Enable Doars.
+    doars.enable()
+
+    // Wait for promise.
+    await new Promise(resolve => setTimeout(resolve, 1))
+
+    // Assert value set.
+    const input = container.querySelector('input')
+    expect(input.value).toBe('after')
   })
-  doars.enable()
 
-  // Wait.
-  await new Promise(resolve => setTimeout(resolve, 100))
+  test('attribute directive should set checked on radios', async () => {
+    // Set the container HTML.
+    container.innerHTML = `
+      <div d-state="{}">
+        <input type="radio" name="radio-name" d-attribute:checked="false">
+        <input type="radio" name="radio-name" d-attribute:checked="true">
+        <input type="radio" name="radio-name" d-attribute:checked="true">
+      </div>
+    `
 
-  // Assert style removed.
-  const span = container.querySelector('span')
-  expect(span.style.backgroundColor).toBe('')
-})
+    // Create and enable Doars.
+    doars = new Doars({
+      root: container,
+    })
+    doars.enable()
 
-test('attribute directive should set value and handle events', async () => {
-  // Set the container HTML.
-  container.innerHTML = `
-    <div d-state="{ value: 'initial' }">
-      <input d-attribute:value="'after'" d-on:change="$state.value = $event.target.value" value="before" />
+    // Wait.
+    await new Promise(resolve => setTimeout(resolve, 1))
 
-      <span d-text="value"></span>
-    </div>
-  `
-
-  // Create and enable Doars.
-  doars = new Doars({
-    root: container,
+    // Assert checked.
+    const radios = container.querySelectorAll('input[type="radio"]')
+    expect(radios[0].checked).toBe(false)
+    expect(radios[1].checked).toBe(false)
+    expect(radios[2].checked).toBe(true)
   })
-  doars.enable()
 
-  // Wait.
-  await new Promise(resolve => setTimeout(resolve, 100))
+  test('attribute directive should remove style properties', async () => {
+    // Set the container HTML.
+    container.innerHTML = `
+      <div d-state="{}">
+        <span style="background-color: yellow;" d-attribute:style="{ 'background-color': undefined }">
+          Red
+        </span>
+      </div>
+    `
 
-  // Assert initial value set.
-  const input = container.querySelector('input')
-  const span = container.querySelector('span')
-  expect(input.value).toBe('after')
-  expect(span.textContent).toBe('initial')
+    // Create and enable Doars.
+    doars = new Doars({
+      root: container,
+    })
+    doars.enable()
 
-  // Simulate change.
-  input.value = 'changed'
-  input.dispatchEvent(new window.Event('change', { bubbles: true }))
+    // Wait.
+    await new Promise(resolve => setTimeout(resolve, 1))
 
-  // Wait for event.
-  await new Promise(resolve => setTimeout(resolve, 100))
-
-  // Assert value updated.
-  expect(span.textContent).toBe('changed')
-})
-
-test('attribute directive should set class attributes', async () => {
-  // Set the container HTML.
-  container.innerHTML = `
-    <div d-state="{}">
-      <span d-attribute:class="'a b'"></span>
-      <span class="a" d-attribute:class="[ 'a', 'b' ]"></span>
-      <span class="c" d-attribute:class="{ a: true, b: true, c: false }"></span>
-    </div>
-  `
-
-  // Create and enable Doars.
-  doars = new Doars({
-    root: container,
+    // Assert style removed.
+    const span = container.querySelector('span')
+    expect(span.style.backgroundColor).toBe('')
   })
-  doars.enable()
 
-  // Wait.
-  await new Promise(resolve => setTimeout(resolve, 100))
+  test('attribute directive should set value and handle events', async () => {
+    // Set the container HTML.
+    container.innerHTML = `
+      <div d-state="{ value: 'initial' }">
+        <input d-attribute:value="'after'" d-on:change="$state.value = $event.target.value" value="before" />
 
-  // Assert classes.
-  const spans = container.querySelectorAll('span')
-  expect(spans[0].className).toBe('a b')
-  expect(spans[1].className).toBe('a b')
-  expect(spans[2].className).toBe('a b')
-})
+        <span d-text="value"></span>
+      </div>
+    `
+
+    // Create and enable Doars.
+    doars = new Doars({
+      root: container,
+    })
+    doars.enable()
+
+    // Wait.
+    await new Promise(resolve => setTimeout(resolve, 1))
+
+    // Assert initial value set.
+    const input = container.querySelector('input')
+    const span = container.querySelector('span')
+    expect(input.value).toBe('after')
+    expect(span.textContent).toBe('initial')
+
+    // Simulate change.
+    input.value = 'changed'
+    input.dispatchEvent(new window.Event('change', { bubbles: true }))
+
+    // Wait for event.
+    await new Promise(resolve => setTimeout(resolve, 1))
+
+    // Assert value updated.
+    expect(span.textContent).toBe('changed')
+  })
+
+  test('attribute directive should set class attributes', async () => {
+    // Set the container HTML.
+    container.innerHTML = `
+      <div d-state="{}">
+        <span d-attribute:class="'a b'"></span>
+        <span class="a" d-attribute:class="[ 'a', 'b' ]"></span>
+        <span class="c" d-attribute:class="{ a: true, b: true, c: false }"></span>
+      </div>
+    `
+
+    // Create and enable Doars.
+    doars = new Doars({
+      root: container,
+    })
+    doars.enable()
+
+    // Wait.
+    await new Promise(resolve => setTimeout(resolve, 1))
+
+    // Assert classes.
+    const spans = container.querySelectorAll('span')
+    expect(spans[0].className).toBe('a b')
+    expect(spans[1].className).toBe('a b')
+    expect(spans[2].className).toBe('a b')
+  })
 })

@@ -10,40 +10,42 @@ describe('Element Context', () => {
   let container, doars
 
   beforeEach(() => {
-    // Create a unique container for each test.
     container = document.createElement('div')
-    container.id = 'test-container-' + Math.random().toString(36).substr(2, 9)
     document.body.appendChild(container)
   })
 
   afterEach(() => {
-    // Clean up after each test.
+    doars.disable()
     doars = null
-    if (container && container.parentNode) {
-      document.body.removeChild(container)
-    }
+    document.body.removeChild(container)
     container = null
   })
 
-test('element context should provide element reference', async () => {
-  // Set the container HTML.
-  container.innerHTML = `
-    <div d-state="{ tag: '' }" d-initialized="$state.tag = $element.tagName">
-      <span d-text="$state.tag"></span>
-    </div>
-  `
+  test('element context should provide element reference', async () => {
+    // Set the container HTML.
+    container.innerHTML = `
+      <div d-state="{}">
+        <ol d-text="$element.tagName"></ol>
+        <p d-text="$element.tagName"></p>
+        <span d-text="$element.tagName"></span>
+      </div>
+    `
 
-  // Create and enable Doars.
-  doars = new Doars({
-    root: container,
+    // Create and enable Doars.
+    doars = new Doars({
+      root: container,
+    })
+    doars.enable()
+
+    // Wait.
+    await new Promise(resolve => setTimeout(resolve, 1))
+
+    // Assert.
+    const ol = container.querySelector('ol')
+    expect(ol.textContent).toBe('OL')
+    const p = container.querySelector('p')
+    expect(p.textContent).toBe('P')
+    const span = container.querySelector('span')
+    expect(span.textContent).toBe('SPAN')
   })
-  doars.enable()
-
-  // Wait.
-  await new Promise(resolve => setTimeout(resolve, 100))
-
-  // Assert.
-  const span = container.querySelector('span')
-  expect(span.textContent).toBe('DIV')
-})
 })

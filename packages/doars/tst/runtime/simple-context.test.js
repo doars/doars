@@ -1,12 +1,12 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
 
 // Import shared setup
-import { document } from '../test-setup.js'
+import { document } from './test-setup.js'
 
 // Import Doars
-import Doars from '../../../src/DoarsExecute.js'
+import Doars from '../../src/DoarsExecute.js'
 
-describe('Child Context', () => {
+describe('Function State Simple Context', () => {
   let container, doars
 
   beforeEach(() => {
@@ -21,64 +21,75 @@ describe('Child Context', () => {
     container = null
   })
 
-  test('children context should list child components', async () => {
+  test('simple context function can be called', async () => {
     // Local state for the test.
     const captured = {}
 
     // Set the container HTML.
     container.innerHTML = `
-      <div d-state="{}" d-initialized="setCount($children.length)">
-        <div d-state="{}"></div>
-        <div d-state="{}"></div>
+      <div d-state="">
+        <button d-on:click="hello()"></button>
       </div>
     `
 
-    // Create and enable Doars.
+    // Create Doars.
     doars = new Doars({
       root: container,
     })
 
     // Set simple context.
-    doars.setSimpleContext('setCount', (count) => {
-      captured.count = count.toString()
+    doars.setSimpleContext('hello', () => {
+      captured.called = true
     })
 
+    // Enable Doars.
     doars.enable()
 
     // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert.
-    expect(captured.count).toBe('2')
+    // Click button.
+    const button = container.querySelector('button')
+    button.click()
+
+    // Wait for event.
+    await new Promise(resolve => setTimeout(resolve, 1))
+
+    // Assert function called.
+    expect(captured.called).toBe(true)
   })
 
-  test('child context should access specific child component', async () => {
+  test('simple context function initializes state', async () => {
     // Local state for the test.
     const captured = {}
 
     // Set the container HTML.
     container.innerHTML = `
-      <div d-state="{}" d-initialized="setMessage($children[0].$state.message)">
-        <div d-state="{ message: 'General Kenobi' }"></div>
-      </div>
+      <div d-state="createState()" d-initialized="setMessage($state.message)"></div>
     `
 
-    // Create and enable Doars.
+    // Create Doars.
     doars = new Doars({
       root: container,
     })
 
-    // Set simple context.
+    // Set simple contexts.
+    doars.setSimpleContext('createState', () => {
+      return {
+        message: 'Hello there!'
+      }
+    })
     doars.setSimpleContext('setMessage', (message) => {
       captured.message = message
     })
 
+    // Enable Doars.
     doars.enable()
 
     // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert.
-    expect(captured.message).toBe('General Kenobi')
+    // Assert state initialized.
+    expect(captured.message).toBe('Hello there!')
   })
 })

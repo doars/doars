@@ -6,7 +6,7 @@ import { document } from '../test-setup.js'
 // Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
-describe('References Context', () => {
+describe('State Log Context', () => {
   let container, doars
 
   beforeEach(() => {
@@ -21,25 +21,31 @@ describe('References Context', () => {
     container = null
   })
 
-  test('references context should provide referenced elements', async () => {
+  test('state log context should execute function', async () => {
+    // Local state for the test.
+    let captured = null
+
     // Set the container HTML.
     container.innerHTML = `
-      <div d-state="{ refCount: '0' }" d-initialized="$state.refCount = Object.keys($references).length.toString()">
-        <span d-text="$state.refCount"></span>
-        <input d-reference="'myInput'">
-      </div>
+      <div d-state="{ message: 'value' }" d-initialized="logState($state)"></div>
     `
 
     // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
+
+    // Set simple context with closure.
+    doars.setSimpleContext('logState', function(state) {
+      captured = state.message
+    })
+
     doars.enable()
 
+    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert.
-    const span = container.querySelector('span')
-    expect(span.textContent).toBe('1')
+    // Assert function was called and captured the specific value.
+    expect(captured).toBe('value')
   })
 })

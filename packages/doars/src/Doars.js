@@ -461,7 +461,9 @@ export default class Doars extends EventDispatcher {
       observer = null
 
       // Reset values.
-      isUpdating = mutations = triggers = null
+      isUpdating = false
+      mutations = []
+      triggers = {}
 
       // Dispatch event.
       this.dispatchEvent('disabling', [this], { reverse: true })
@@ -470,7 +472,9 @@ export default class Doars extends EventDispatcher {
       removeComponents(...components)
 
       // Reset directives helper.
-      directivesNames = directivesObject = directivesRegexp = null
+      directivesNames = []
+      directivesObject = {}
+      directivesRegexp = null
 
       // Mark as disabled.
       isEnabled = false
