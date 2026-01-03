@@ -1640,7 +1640,7 @@ var cloak_default = ({
   update: (component, attribute) => {
     const element = attribute.getElement();
     const libraryOptions = component.getLibrary().getOptions();
-    element.removeAttribute(libraryOptions.prefix + "-" + null.name);
+    element.removeAttribute(attribute.getName());
     transitionIn(libraryOptions, element);
   }
 });
@@ -2630,7 +2630,7 @@ var show_default = ({
       }
       let transition2;
       if (data2.result) {
-        element.style.display = null;
+        element.style.display = "";
         transition2 = transitionIn(libraryOptions, element);
       } else {
         transition2 = transitionOut(libraryOptions, element, () => {
@@ -3246,7 +3246,7 @@ class Doars extends EventDispatcher {
       isUpdating = false;
       if (Object.getOwnPropertySymbols(triggers).length > 0) {
         console.warn("Doars: during an update another update has been triggered. This should not happen unless an expression in one of the directives is causing a infinite loop by mutating the state.");
-        window.requestAnimationFrame(() => this.update());
+        Promise.resolve().then(this.update);
         return;
       }
       if (mutations.length > 0) {
@@ -3450,4 +3450,4 @@ export {
   DoarsExecute_default as default
 };
 
-//# debugId=7BAE44427C87E05B64756E2164756E21
+//# debugId=8A07EA8B63FE013C64756E2164756E21

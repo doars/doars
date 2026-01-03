@@ -461,7 +461,9 @@ export default class Doars extends EventDispatcher {
       observer = null
 
       // Reset values.
-      isUpdating = mutations = triggers = null
+      isUpdating = false
+      mutations = []
+      triggers = {}
 
       // Dispatch event.
       this.dispatchEvent('disabling', [this], { reverse: true })
@@ -470,7 +472,9 @@ export default class Doars extends EventDispatcher {
       removeComponents(...components)
 
       // Reset directives helper.
-      directivesNames = directivesObject = directivesRegexp = null
+      directivesNames = []
+      directivesObject = {}
+      directivesRegexp = null
 
       // Mark as disabled.
       isEnabled = false
@@ -835,8 +839,6 @@ export default class Doars extends EventDispatcher {
       return results
     }
 
-    /* Update */
-
     this.getProcessor = () => {
       return processExpression
     }
@@ -849,7 +851,7 @@ export default class Doars extends EventDispatcher {
       _triggers,
     ) => {
       if (!isEnabled) {
-        // Exit early since it needs to enabled first.
+        // Exit early since it needs to be enabled first.
         return
       }
 
@@ -909,7 +911,8 @@ export default class Doars extends EventDispatcher {
       if (Object.getOwnPropertySymbols(triggers).length > 0) {
         console.warn('Doars: during an update another update has been triggered. This should not happen unless an expression in one of the directives is causing a infinite loop by mutating the state.')
         // Use an animation frame to delay the update to prevent freezing and hope it resolves itself.
-        window.requestAnimationFrame(() => this.update())
+        Promise.resolve()
+          .then(this.update)
         return
       }
 
@@ -1105,10 +1108,12 @@ export default class Doars extends EventDispatcher {
 
           // Get attribute from component and value from element.
           let attribute = null
-          for (const targetAttribute of element[ATTRIBUTES]) {
-            if (targetAttribute.getName() === mutation.attributeName) {
-              attribute = targetAttribute
-              break
+          if (element[ATTRIBUTES]) {
+            for (const targetAttribute of element[ATTRIBUTES]) {
+              if (targetAttribute.getName() === mutation.attributeName) {
+                attribute = targetAttribute
+                break
+              }
             }
           }
           const value = element.getAttribute(mutation.attributeName)
@@ -1116,7 +1121,8 @@ export default class Doars extends EventDispatcher {
           // If no attribute found add it.
           if (!attribute) {
             if (value) {
-              component.addAttribute(element, mutation.attributeName, value)
+              attribute = component.addAttribute(element, mutation.attributeName, value)
+              component.updateAttribute(attribute)
             }
             continue
           }

@@ -12,7 +12,8 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
-    "brotli-size": "^4.0.0"
+    "brotli-size": "^4.0.0",
+    "happy-dom": "^15.11.6"
   },
   "dependencies": {}
 }

@@ -1641,7 +1641,7 @@
     update: (component, attribute) => {
       const element = attribute.getElement();
       const libraryOptions = component.getLibrary().getOptions();
-      element.removeAttribute(libraryOptions.prefix + "-" + null.name);
+      element.removeAttribute(attribute.getName());
       transitionIn(libraryOptions, element);
     }
   });
@@ -2631,7 +2631,7 @@
         }
         let transition2;
         if (data2.result) {
-          element.style.display = null;
+          element.style.display = "";
           transition2 = transitionIn(libraryOptions, element);
         } else {
           transition2 = transitionOut(libraryOptions, element, () => {
@@ -3247,7 +3247,7 @@
         isUpdating = false;
         if (Object.getOwnPropertySymbols(triggers).length > 0) {
           console.warn("Doars: during an update another update has been triggered. This should not happen unless an expression in one of the directives is causing a infinite loop by mutating the state.");
-          window.requestAnimationFrame(() => this.update());
+          Promise.resolve().then(this.update);
           return;
         }
         if (mutations.length > 0) {
@@ -3452,4 +3452,4 @@
   window.Doars = DoarsExecute_default;
 })();
 
-//# debugId=5C4B7E636C7F408164756E2164756E21
+//# debugId=E86D5C4C93530ECF64756E2164756E21

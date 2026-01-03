@@ -1,6 +1,5 @@
 // Import testing framework.
-import { assert } from 'chai'
-import { describe, it } from 'mocha'
+import { expect, describe, it } from 'bun:test'
 
 // Import code to test.
 import parse from '../../../src/parse.js'
@@ -35,7 +34,7 @@ export default (
     // Verify parsed nodes.
     if (nodesExpected !== undefined) {
       it('Parsing', () => {
-        assert.deepEqual(nodes, nodesExpected)
+        expect(nodes).toEqual(nodesExpected)
       })
     }
 
@@ -44,13 +43,13 @@ export default (
     // Verify rund result.
     if (resultExpected !== undefined) {
       it('Reducing', () => {
-        assert.deepEqual(result, resultExpected)
+        expect(result).toEqual(resultExpected)
       })
     }
     // Verify context mutation.
     if (contextExpected !== undefined) {
       it('Context', () => {
-        assert.deepEqual(context, contextExpected)
+        expect(context).toEqual(contextExpected)
       })
     }
   })

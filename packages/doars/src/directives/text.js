@@ -25,6 +25,12 @@ export default ({
     const modifiers = attribute.getModifiers()
 
     const set = (text) => {
+      // Make sure it is text.
+      const textType = typeof(text)
+      if (textType !== 'string') {
+        text = String(text)
+      }
+
       // Assign text.
       if (modifiers.content) {
         if (element.textContent !== text) {
