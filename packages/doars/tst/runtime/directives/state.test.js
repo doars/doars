@@ -10,87 +10,80 @@ describe('State Directive', () => {
   let container, doars
 
   beforeEach(() => {
-    // Create a unique container for each test.
     container = document.createElement('div')
-    container.id = 'test-container-' + Math.random().toString(36).substr(2, 9)
     document.body.appendChild(container)
   })
 
   afterEach(() => {
-    // Clean up after each test.
-    if (doars) {
-      doars.disable()
-      doars = null
-    }
-    if (container && container.parentNode) {
-      container.parentNode.removeChild(container)
-    }
+    doars.disable()
+    doars = null
+    document.body.removeChild(container)
     container = null
   })
 
-test('state directive should initialize and assign values', async () => {
-  // Set the container HTML.
-  container.innerHTML = `
-    <div d-state="{ message: 'Hello there!' }" d-initialized="$state.message = 'General Kenobi.'">
-      <span d-text="message"></span>
-    </div>
-  `
+  test('state directive should initialize and assign values', async () => {
+    // Set the container HTML.
+    container.innerHTML = `
+      <div d-state="{ message: 'Hello there!' }" d-initialized="$state.message = 'General Kenobi.'">
+        <span d-text="message"></span>
+      </div>
+    `
 
-  // Create and enable Doars.
-  doars = new Doars({
-    root: container,
+    // Create and enable Doars.
+    doars = new Doars({
+      root: container,
+    })
+    doars.enable()
+
+    // Wait.
+    await new Promise(resolve => setTimeout(resolve, 1))
+
+    // Assert assigned.
+    const span = container.querySelector('span')
+    expect(span.textContent).toBe('General Kenobi.')
   })
-  doars.enable()
 
-  // Wait.
-  await new Promise(resolve => setTimeout(resolve, 100))
+  test('state directive should handle empty state', async () => {
+    // Set the container HTML.
+    container.innerHTML = `
+      <div d-state="" d-initialized="$state.test = true">
+        <span d-text="$state.test ? 'true' : 'false'"></span>
+      </div>
+    `
 
-  // Assert assigned.
-  const span = container.querySelector('span')
-  expect(span.textContent).toBe('General Kenobi.')
-})
+    // Create and enable Doars.
+    doars = new Doars({
+      root: container,
+    })
+    doars.enable()
 
-test('state directive should handle empty state', async () => {
-  // Set the container HTML.
-  container.innerHTML = `
-    <div d-state="" d-initialized="$state.test = true">
-      <span d-text="$state.test ? 'true' : 'false'"></span>
-    </div>
-  `
+    // Wait.
+    await new Promise(resolve => setTimeout(resolve, 1))
 
-  // Create and enable Doars.
-  doars = new Doars({
-    root: container,
+    // Assert empty state works.
+    const span = container.querySelector('span')
+    expect(span.textContent).toBe('true')
   })
-  doars.enable()
 
-  // Wait.
-  await new Promise(resolve => setTimeout(resolve, 100))
+  test('state directive should handle Object.assign', async () => {
+    // Set the container HTML.
+    container.innerHTML = `
+      <div d-state="{ message: 'Hello there!' }" d-initialized="Object.assign($state, { message: 'General Kenobi.' })">
+        <span d-text="message"></span>
+      </div>
+    `
 
-  // Assert empty state works.
-  const span = container.querySelector('span')
-  expect(span.textContent).toBe('true')
-})
+    // Create and enable Doars.
+    doars = new Doars({
+      root: container,
+    })
+    doars.enable()
 
-test('state directive should handle Object.assign', async () => {
-  // Set the container HTML.
-  container.innerHTML = `
-    <div d-state="{ message: 'Hello there!' }" d-initialized="Object.assign($state, { message: 'General Kenobi.' })">
-      <span d-text="message"></span>
-    </div>
-  `
+    // Wait.
+    await new Promise(resolve => setTimeout(resolve, 1))
 
-  // Create and enable Doars.
-  doars = new Doars({
-    root: container,
+    // Assert assigned.
+    const span = container.querySelector('span')
+    expect(span.textContent).toBe('General Kenobi.')
   })
-  doars.enable()
-
-  // Wait.
-  await new Promise(resolve => setTimeout(resolve, 100))
-
-  // Assert assigned.
-  const span = container.querySelector('span')
-  expect(span.textContent).toBe('General Kenobi.')
-})
 })
