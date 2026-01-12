@@ -1,9 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
 
-// Import shared setup
 import { document } from '../test-setup.js'
 
-// Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
 describe('State Directive', () => {
@@ -22,20 +20,17 @@ describe('State Directive', () => {
   })
 
   test('state directive should initialize and assign values', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{ message: 'Hello there!' }" d-initialized="$state.message = 'General Kenobi.'">
         <span d-text="message"></span>
       </div>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert assigned.
@@ -44,20 +39,17 @@ describe('State Directive', () => {
   })
 
   test('state directive should handle empty state', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="" d-initialized="$state.test = true">
         <span d-text="$state.test ? 'true' : 'false'"></span>
       </div>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert empty state works.
@@ -66,20 +58,17 @@ describe('State Directive', () => {
   })
 
   test('state directive should handle Object.assign', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{ message: 'Hello there!' }" d-initialized="Object.assign($state, { message: 'General Kenobi.' })">
         <span d-text="message"></span>
       </div>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert assigned.

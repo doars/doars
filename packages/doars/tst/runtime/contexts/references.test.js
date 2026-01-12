@@ -1,9 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
 
-// Import shared setup
 import { document } from '../test-setup.js'
 
-// Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
 describe('References Context', () => {
@@ -22,7 +20,6 @@ describe('References Context', () => {
   })
 
   test('references context should provide referenced elements', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{ refCount: '0' }" d-initialized="$state.refCount = Object.keys($references).length.toString()">
         <span d-text="$state.refCount"></span>
@@ -30,7 +27,6 @@ describe('References Context', () => {
       </div>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
@@ -38,7 +34,6 @@ describe('References Context', () => {
 
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert.
     const span = container.querySelector('span')
     expect(span.textContent).toBe('1')
   })

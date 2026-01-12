@@ -1,9 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
 
-// Import shared setup
 import { document } from '../test-setup.js'
 
-// Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
 describe('For Directive', () => {
@@ -22,7 +20,6 @@ describe('For Directive', () => {
   })
 
   test('for directive should render list', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <ol d-state="{ array: ['Value A', 'Value B', 'Value C', 'Value D'] }">
         <template d-for="value of array">
@@ -31,16 +28,13 @@ describe('For Directive', () => {
       </ol>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert.
     const lis = container.querySelectorAll('li')
     expect(lis.length).toBe(4)
     expect(lis[0].textContent).toBe('Value A')
@@ -50,7 +44,6 @@ describe('For Directive', () => {
   })
 
   test('for directive should iterate over string', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <ol d-state="{}">
         <template d-for="value of 'text'">
@@ -59,16 +52,13 @@ describe('For Directive', () => {
       </ol>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert.
     const lis = container.querySelectorAll('li')
     expect(lis.length).toBe(4)
     expect(lis[0].textContent).toBe('t')
@@ -78,7 +68,6 @@ describe('For Directive', () => {
   })
 
   test('for directive should iterate over array with index', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <ol d-state="{ array: ['Value A', 'Value B', 'Value C', 'Value D'] }">
         <template d-for="(value, index) of array">
@@ -87,16 +76,13 @@ describe('For Directive', () => {
       </ol>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert.
     const lis = container.querySelectorAll('li')
     expect(lis.length).toBe(4)
     expect(lis[0].textContent).toBe('0')
@@ -106,7 +92,6 @@ describe('For Directive', () => {
   })
 
   test('for directive should iterate over promise number', async () => {
-    // Create Doars.
     doars = new Doars({
       root: container,
     })
@@ -114,22 +99,43 @@ describe('For Directive', () => {
     // Set simple context for promise.
     doars.setSimpleContext('resolveInTime', (result) => Promise.resolve(result))
 
-    // Set the container HTML.
     container.innerHTML = `
-      <ol d-state="{}">
-        <template d-for="index of resolveInTime(4)">
-          <li d-text="index"></li>
-        </template>
-      </ol>
-    `
+       <ol d-state="{}">
+         <template d-for="index of resolveInTime(4)">
+           <li d-text="index"></li>
+         </template>
+       </ol>
+     `
 
-    // Enable Doars.
     doars.enable()
 
     // Wait for promise.
     await new Promise(resolve => setTimeout(resolve, 10))
 
-    // Assert.
+    const lis = container.querySelectorAll('li')
+    expect(lis.length).toBe(4)
+    expect(lis[0].textContent).toBe('0')
+    expect(lis[1].textContent).toBe('1')
+    expect(lis[2].textContent).toBe('2')
+    expect(lis[3].textContent).toBe('3')
+  })
+
+  test('for directive should iterate over direct number', async () => {
+    container.innerHTML = `
+       <ol d-state="{}">
+         <template d-for="index of 4">
+           <li d-text="index"></li>
+         </template>
+       </ol>
+     `
+
+    doars = new Doars({
+      root: container,
+    })
+    doars.enable()
+
+    await new Promise(resolve => setTimeout(resolve, 1))
+
     const lis = container.querySelectorAll('li')
     expect(lis.length).toBe(4)
     expect(lis[0].textContent).toBe('0')
@@ -139,7 +145,6 @@ describe('For Directive', () => {
   })
 
   test('for directive should iterate over object values', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <ul d-state="{ object: { a: 'Value A', b: 'Value B', c: 'Value C', d: 'Value D' } }">
         <template d-for="(key, value) in object">
@@ -148,16 +153,13 @@ describe('For Directive', () => {
       </ul>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert.
     const lis = container.querySelectorAll('li')
     expect(lis.length).toBe(4)
     expect(lis[0].textContent).toBe('Value A')
@@ -167,7 +169,6 @@ describe('For Directive', () => {
   })
 
   test('for directive should iterate over object keys', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <ul d-state="{ object: { a: 'Value A', b: 'Value B', c: 'Value C', d: 'Value D' } }">
         <template d-for="key in object">
@@ -176,16 +177,13 @@ describe('For Directive', () => {
       </ul>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert.
     const lis = container.querySelectorAll('li')
     expect(lis.length).toBe(4)
     expect(lis[0].textContent).toBe('a')
@@ -195,7 +193,6 @@ describe('For Directive', () => {
   })
 
   test('for directive should iterate over string with index', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <ol d-state="{}">
         <template d-for="(value, index) of 'text'">
@@ -204,16 +201,13 @@ describe('For Directive', () => {
       </ol>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert.
     const lis = container.querySelectorAll('li')
     expect(lis.length).toBe(4)
     expect(lis[0].textContent).toBe('0')
@@ -223,7 +217,6 @@ describe('For Directive', () => {
   })
 
   test('for directive should iterate over object with index', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <ul d-state="{ object: { a: 'Value A', b: 'Value B', c: 'Value C', d: 'Value D' } }">
         <template d-for="(key, value) in object">
@@ -232,16 +225,13 @@ describe('For Directive', () => {
       </ul>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert.
     const lis = container.querySelectorAll('li')
     expect(lis.length).toBe(4)
     expect(lis[0].textContent).toBe('a')

@@ -1,9 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
 
-// Import shared setup
 import { document } from '../test-setup.js'
 
-// Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
 describe('Cloak Directive', () => {
@@ -22,20 +20,17 @@ describe('Cloak Directive', () => {
   })
 
   test('cloak directive should remove cloak attribute', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{}">
         <span d-cloak></span>
       </div>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert cloak is removed.

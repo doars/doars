@@ -1,9 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
 
-// Import shared setup
 import { document } from '../test-setup.js'
 
-// Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
 describe('Sibling Context', () => {
@@ -22,7 +20,6 @@ describe('Sibling Context', () => {
   })
 
   test('nextSibling context should access next component', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{}">
         <div d-state="{}"></div>
@@ -35,22 +32,18 @@ describe('Sibling Context', () => {
       </div>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert.
     const span = container.querySelector('span')
     expect(span.textContent).toBe('success')
   })
 
   test('previousSibling context should access previous component', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{}">
         <div d-state="{}"></div>
@@ -63,35 +56,29 @@ describe('Sibling Context', () => {
       </div>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert.
     const span = container.querySelector('span')
     expect(span.textContent).toBe('success')
   })
 
   test('siblings context should provide sibling components', async () => {
-    // Create Doars.
     doars = new Doars({
       root: container,
     })
 
-    // Local state for the test.
     const captured = {}
 
     // Set simple context with closure.
-    doars.setSimpleContext('collectSiblings', function(siblings) {
+    doars.setSimpleContext('collectSiblings', function (siblings) {
       captured.messages = siblings.map(s => s.$state.message).filter(Boolean)
     })
 
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{}">
         <div d-state="{ message: 'first' }"></div>
@@ -102,10 +89,8 @@ describe('Sibling Context', () => {
       </div>
     `
 
-    // Enable Doars.
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert siblings captured.

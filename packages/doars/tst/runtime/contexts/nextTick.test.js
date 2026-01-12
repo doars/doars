@@ -1,9 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
 
-// Import shared setup
 import { document } from '../test-setup.js'
 
-// Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
 describe('NextTick Context', () => {
@@ -22,28 +20,24 @@ describe('NextTick Context', () => {
   })
 
   test('nextTick context should defer execution', async () => {
+    let captured = false
+
     container.innerHTML = `
-      <div d-state="{}" d-initialized="$nextTick(() => setTicked())"></div>
+      <div d-state="{}" d-initialized="$nextTick(() => capture())"></div>
     `
 
     doars = new Doars({
       root: container,
     })
 
-    // Set simple context with closure.
-    let captured = false
-    doars.setSimpleContext('setTicked', function() {
+    doars.setSimpleContext('capture', function () {
       captured = true
     })
-
-    // Assert nextTick not yet executed.
-    expect(captured).toBe(false)
 
     doars.enable()
 
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert nextTick executed.
     expect(captured).toBe(true)
   })
 })

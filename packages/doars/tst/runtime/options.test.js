@@ -1,9 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
 
-// Import shared setup
 import { document } from './test-setup.js'
 
-// Import Doars
 import Doars from '../../src/DoarsExecute.js'
 
 describe('Options', () => {
@@ -21,8 +19,33 @@ describe('Options', () => {
     container = null
   })
 
-  test('root option restricts scanning', async () => {
-    // Set the container HTML.
+  test('root id option restricts scanning', async () => {
+    const identifier = 'id-' + crypto.randomUUID()
+
+    container.innerHTML = `
+      <div d-state="{ message: 'Broken' }">
+        <div d-text="message">Works</div>
+      </div>
+      <div id="${identifier}" d-state="{ message: 'Works' }">
+        <div d-text="message">Broken</div>
+      </div>
+    `
+
+    // Create Doars with root selector.
+    doars = new Doars({
+      root: '#' + identifier,
+    })
+    doars.enable()
+
+    await new Promise(resolve => setTimeout(resolve, 1))
+
+    // Assert only the second div is processed.
+    const divs = container.querySelectorAll('div[d-text]')
+    expect(divs[0].textContent).toBe('Works') // first div not processed
+    expect(divs[1].textContent).toBe('Works') // second div processed
+  })
+
+  test('root element option restricts scanning', async () => {
     container.innerHTML = `
       <div d-state="{ message: 'Broken' }">
         <div d-text="message">Works</div>
@@ -38,12 +61,39 @@ describe('Options', () => {
     })
     doars.enable()
 
-    // Wait.
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert only the second div is processed.
     const divs = container.querySelectorAll('div[d-text]')
     expect(divs[0].textContent).toBe('Works') // first div not processed
     expect(divs[1].textContent).toBe('Works') // second div processed
+  })
+
+  test('root element option restricts scanning', async () => {
+    container.innerHTML = `
+      <div>
+        <div d-state="{ message: 'Broken' }">
+          <div d-text="message">Works</div>
+        </div>
+        <div x-state="{ message: 'Works' }">
+          <div x-text="message">Broken</div>
+        </div>
+      </div>
+    `
+
+    // Create Doars with root selector.
+    doars = new Doars({
+      root: container,
+      prefix: 'x',
+    })
+    doars.enable()
+
+    await new Promise(resolve => setTimeout(resolve, 1))
+
+    // Assert only the second div is processed.
+    const dDiv = container.querySelector('div[d-text]')
+    expect(dDiv.textContent).toBe('Works')
+    const xDiv = container.querySelector('div[x-text]')
+    expect(xDiv.textContent).toBe('Works')
   })
 })

@@ -1,9 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
 
-// Import shared setup
 import { document } from '../test-setup.js'
 
-// Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
 describe('Element Context', () => {
@@ -22,7 +20,6 @@ describe('Element Context', () => {
   })
 
   test('element context should provide element reference', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{}">
         <ol d-text="$element.tagName"></ol>
@@ -31,16 +28,13 @@ describe('Element Context', () => {
       </div>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert.
     const ol = container.querySelector('ol')
     expect(ol.textContent).toBe('OL')
     const p = container.querySelector('p')

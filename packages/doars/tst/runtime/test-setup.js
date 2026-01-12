@@ -6,10 +6,10 @@ const document = window.document
 
 // Set globals once to avoid inconsistencies across tests.
 global.document = document
-global.window = window
+global.HTMLElement = window.HTMLElement
 global.MutationObserver = window.MutationObserver
 global.requestAnimationFrame = window.requestAnimationFrame
-global.HTMLElement = window.HTMLElement
+global.window = window
 
 export {
   document,

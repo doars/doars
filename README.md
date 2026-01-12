@@ -71,6 +71,7 @@ If you are using _Doars_ then please [let me know](https://rondekker.nl/en-gb#co
 
 ## Ideas
 
+- Allow fetch plugin to automatically parse data before returning results, like [vroagn](https://github.com/doars/staark/tree/main/packages/vroagn#readme).
 - Input masking plugin for formatting dates, money et cetera.
 - Visibility directives similar to intersection plugin.
 - Websocket plugin.

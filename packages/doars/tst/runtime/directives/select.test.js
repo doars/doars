@@ -1,9 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
 
-// Import shared setup
 import { document } from '../test-setup.js'
 
-// Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
 describe('Select Directive', () => {
@@ -22,7 +20,6 @@ describe('Select Directive', () => {
   })
 
   test('select directive should set multiple select values', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{}">
         <select d-select="[ 'after', 'after2' ]" multiple>
@@ -33,13 +30,11 @@ describe('Select Directive', () => {
       </div>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert multiple selected.
@@ -49,7 +44,6 @@ describe('Select Directive', () => {
   })
 
   test('select directive should set radio value', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{}">
         <input type="radio" name="radio-name" d-select="'after'" value="initial" checked>
@@ -58,13 +52,11 @@ describe('Select Directive', () => {
       </div>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert radio selected.
@@ -75,7 +67,6 @@ describe('Select Directive', () => {
   })
 
   test('select directive should set select value', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{}">
         <select d-select="'after'">
@@ -85,17 +76,67 @@ describe('Select Directive', () => {
       </div>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert value set.
     const select = container.querySelector('select')
     expect(select.value).toBe('after')
+  })
+
+  test('select directive should handle promises', async () => {
+    doars = new Doars({
+      root: container,
+    })
+
+    // Set simple context for promise.
+    doars.setSimpleContext('resolveInTime', (result) => Promise.resolve(result))
+
+    container.innerHTML = `
+       <div d-state="{}">
+         <select d-select="resolveInTime('after')">
+           <option value="before" selected>Before</option>
+           <option value="after">After</option>
+         </select>
+       </div>
+     `
+
+    doars.enable()
+
+    // Wait for promise.
+    await new Promise(resolve => setTimeout(resolve, 10))
+
+    // Assert value set.
+    const select = container.querySelector('select')
+    expect(select.value).toBe('after')
+  })
+
+  test('select directive should set checkbox values', async () => {
+    container.innerHTML = `
+      <div d-state="{}">
+        <input type="checkbox" name="checkbox-name" d-select="'after'" value="initial" checked>
+        <input type="checkbox" name="checkbox-name" d-select="'after'" value="before">
+        <input type="checkbox" name="checkbox-name" d-select="'after'" value="after">
+        <input type="checkbox" name="checkbox-name" d-select="'after'" value="after">
+      </div>
+    `
+
+    doars = new Doars({
+      root: container,
+    })
+    doars.enable()
+
+    await new Promise(resolve => setTimeout(resolve, 1))
+
+    // Assert checkboxes selected.
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]')
+    expect(checkboxes[0].checked).toBe(false)
+    expect(checkboxes[1].checked).toBe(false)
+    expect(checkboxes[2].checked).toBe(true)
+    expect(checkboxes[3].checked).toBe(true)
   })
 })

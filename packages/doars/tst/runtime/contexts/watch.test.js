@@ -1,9 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
 
-// Import shared setup
 import { document } from '../test-setup.js'
 
-// Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
 describe('Watch Context', () => {
@@ -21,29 +19,24 @@ describe('Watch Context', () => {
     container = null
   })
 
-  test('watch immediate context should trigger immediately', async () => {
-    // Create Doars.
+  test('watch context should trigger', async () => {
     doars = new Doars({
       root: container,
     })
 
-    // Local state for the test.
     let captured = false
 
     // Set simple context with closure.
-    doars.setSimpleContext('setWatched', function() {
+    doars.setSimpleContext('setWatched', function () {
       captured = true
     })
 
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{ count: 0 }" d-initialized="$watch('count', () => setWatched())()"></div>
     `
 
-    // Enable Doars.
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert watch triggered immediately.

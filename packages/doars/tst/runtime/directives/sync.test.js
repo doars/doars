@@ -1,9 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
 
-// Import shared setup
 import { document } from '../test-setup.js'
 
-// Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
 describe('Sync Directive', () => {
@@ -22,7 +20,6 @@ describe('Sync Directive', () => {
   })
 
   test('sync directive should synchronize state and input', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{ message: 'Before' }">
         <input type="text" d-sync:state="message" value="Initial">
@@ -30,13 +27,11 @@ describe('Sync Directive', () => {
       </div>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert initial sync.
@@ -49,7 +44,6 @@ describe('Sync Directive', () => {
     input.value = 'After'
     input.dispatchEvent(new Event('input'))
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert the div has updated.
@@ -57,7 +51,6 @@ describe('Sync Directive', () => {
   })
 
   test('sync store directive should synchronize store and input', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{}">
         <input type="text" d-sync:store="message" value="Initial">
@@ -74,7 +67,6 @@ describe('Sync Directive', () => {
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert initial sync.
@@ -87,7 +79,6 @@ describe('Sync Directive', () => {
     input.value = 'After'
     input.dispatchEvent(new Event('input'))
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert the div has updated.
@@ -95,7 +86,6 @@ describe('Sync Directive', () => {
   })
 
   test('sync state directive should synchronize state and textarea', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{ message: 'Before' }">
         <textarea d-sync:state="message">Initial</textarea>
@@ -103,13 +93,11 @@ describe('Sync Directive', () => {
       </div>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert initial sync.
@@ -122,7 +110,6 @@ describe('Sync Directive', () => {
     textarea.innerText = 'After'
     textarea.dispatchEvent(new Event('input'))
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert the div has updated.
@@ -130,7 +117,6 @@ describe('Sync Directive', () => {
   })
 
   test('sync state directive should synchronize state and checkboxes', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{ selected: ['after'] }">
         <input type="checkbox" d-sync:state="selected" value="before" checked>
@@ -139,13 +125,11 @@ describe('Sync Directive', () => {
       </div>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert initial sync.

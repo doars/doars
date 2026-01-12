@@ -140,6 +140,7 @@ export const setAttribute = (
 
     // Update attribute.
     element.setAttribute(key, data)
+    element.value = data
 
     // Exit special cases early.
     return

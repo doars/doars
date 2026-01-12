@@ -1,9 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
 
-// Import shared setup
 import { document } from './test-setup.js'
 
-// Import Doars
 import Doars from '../../src/DoarsExecute.js'
 
 describe('Events', () => {
@@ -22,12 +20,10 @@ describe('Events', () => {
   })
 
   test('component updated event is dispatched', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{}"></div>
     `
 
-    // Create Doars.
     doars = new Doars({
       root: container,
     })
@@ -38,23 +34,18 @@ describe('Events', () => {
       eventFired = true
     })
 
-    // Enable Doars.
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert event was fired.
     expect(eventFired).toBe(true)
   })
 
   test('component destroyed event is dispatched', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{}"></div>
     `
 
-    // Create Doars.
     doars = new Doars({
       root: container,
     })
@@ -65,29 +56,23 @@ describe('Events', () => {
       eventFired = true
     })
 
-    // Enable Doars.
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
     // Disable Doars.
     doars.disable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert event was fired.
     expect(eventFired).toBe(true)
   })
 
   test('library enabled event is dispatched', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{}"></div>
     `
 
-    // Create Doars.
     doars = new Doars({
       root: container,
     })
@@ -97,13 +82,10 @@ describe('Events', () => {
       eventFired = true
     })
 
-    // Enable Doars.
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert event was fired.
     expect(eventFired).toBe(true)
   })
 })

@@ -1,9 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
 
-// Import shared setup
 import { document } from '../test-setup.js'
 
-// Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
 describe('If Directive', () => {
@@ -22,7 +20,6 @@ describe('If Directive', () => {
   })
 
   test('if directive should conditionally render', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{ a: true, b: false }">
         <template d-if="a">
@@ -39,16 +36,13 @@ describe('If Directive', () => {
       </div>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert.
     const visibleSpan = container.querySelector('span')
     expect(visibleSpan.textContent.trim()).toBe('Should be visible')
 

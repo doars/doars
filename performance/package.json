@@ -1,0 +1,27 @@
+{
+  "author": {
+    "name": "Ron Dekker",
+    "website": "https://rondekker.nl/en-gb"
+  },
+  "name": "@doars/doars-benchmarks",
+  "private": true,
+  "version": "0.0.0",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "benchmark:quick": "bun src/index.js --iterations=10",
+    "benchmark": "bun src/index.js",
+    "build": "NODE_ENV=production bun config.bundle.js",
+    "profile": "bun src/index.js --profile --iterations=1",
+    "sizes": "bun src/index.js --minified --sizes --iterations=0"
+  },
+  "devDependencies": {
+    "playwright": "^1.57.0"
+  },
+  "dependencies": {
+    "@doars/doars": "x",
+    "@doars/doars-fetch": "x",
+    "htmx.org": "2.0.8",
+    "alpinejs": "3.15.3"
+  }
+}

@@ -1,9 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
 
-// Import shared setup
 import { document } from '../test-setup.js'
 
-// Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
 describe('Text Directive', () => {
@@ -22,7 +20,6 @@ describe('Text Directive', () => {
   })
 
   test('text directive should set text content', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{}">
         <span d-text="'&lt;h1&gt;After&lt;/h1&gt;'">
@@ -36,7 +33,6 @@ describe('Text Directive', () => {
       root: container,
     })
 
-    // Enable Doars.
     doars.enable()
 
     // Wait for directives to process.
@@ -48,7 +44,6 @@ describe('Text Directive', () => {
   })
 
   test('text directive should handle promises', async () => {
-    // Create Doars.
     doars = new Doars({
       root: container,
     })
@@ -56,7 +51,6 @@ describe('Text Directive', () => {
     // Set simple context for promise.
     doars.setSimpleContext('resolveInTime', (result) => Promise.resolve(result))
 
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{}">
         <span d-text="resolveInTime('<h1>After</h1>')">
@@ -65,7 +59,6 @@ describe('Text Directive', () => {
       </div>
     `
 
-    // Enable Doars.
     doars.enable()
 
     // Wait for promise.

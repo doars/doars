@@ -1,9 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
 
-// Import shared setup
 import { document } from '../test-setup.js'
 
-// Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
 describe('Initialized Directive', () => {
@@ -22,20 +20,17 @@ describe('Initialized Directive', () => {
   })
 
   test('initialized directive should run on component init', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{ init: false }" d-initialized="$state.init = true">
         <span d-text="$state.init ? 'true' : 'false'"></span>
       </div>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert initialized.
@@ -44,10 +39,8 @@ describe('Initialized Directive', () => {
   })
 
   test('initialized directive should run on element init', async () => {
-    // Local state for the test.
     const captured = {}
 
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{}">
         <div d-initialized="captured.initialized = true"></div>
@@ -57,13 +50,11 @@ describe('Initialized Directive', () => {
     // Make captured available in the expression.
     global.captured = captured
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert initialized.

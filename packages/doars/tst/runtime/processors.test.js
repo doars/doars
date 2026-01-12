@@ -1,6 +1,5 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
 
-// Import shared setup
 import { document } from './test-setup.js'
 
 // Import Doars variants
@@ -24,12 +23,10 @@ describe('Processors', () => {
   })
 
   test('call processor allows calling functions without parentheses', async () => {
-    // Local state for the test.
-    const captured = {}
+    let captured = false
 
-    // Set the container HTML.
     container.innerHTML = `
-      <div d-state d-initialized="set_called"></div>
+      <div d-state d-initialized="capture"></div>
     `
 
     // Create Doars with call processor.
@@ -38,28 +35,22 @@ describe('Processors', () => {
       processor: 'call',
     })
 
-    // Set simple context.
-    doars.setSimpleContext('set_called', () => {
-      captured.called = true
+    doars.setSimpleContext('capture', () => {
+      captured = true
     })
 
-    // Enable Doars.
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert function called.
-    expect(captured.called).toBe(true)
+    expect(captured).toBe(true)
   })
 
   test('execute processor executes JavaScript code', async () => {
-    // Local state for the test.
-    const captured = {}
+    let captured = false
 
-    // Set the container HTML.
     container.innerHTML = `
-      <div d-state d-initialized="captured.executed = true"></div>
+      <div d-state d-initialized="capture()"></div>
     `
 
     // Create Doars with execute processor.
@@ -67,26 +58,22 @@ describe('Processors', () => {
       root: container,
     })
 
-    // Make captured available in the expression.
-    global.captured = captured
+    doars.setSimpleContext('capture', () => {
+      captured = true
+    })
 
-    // Enable Doars.
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert code executed.
-    expect(captured.executed).toBe(true)
+    expect(captured).toBe(true)
   })
 
   test('interpret processor interprets expressions with simple contexts', async () => {
-    // Local state for the test.
-    const captured = {}
+    let captured = false
 
-    // Set the container HTML.
     container.innerHTML = `
-      <div d-state d-initialized="test.log('initialized')"></div>
+      <div d-state d-initialized="capture()"></div>
     `
 
     // Create Doars with interpret processor.
@@ -94,20 +81,14 @@ describe('Processors', () => {
       root: container,
     })
 
-    // Set simple context.
-    doars.setSimpleContext('test', {
-      log: (message) => {
-        captured.message = message
-      }
+    doars.setSimpleContext('capture', () => {
+      captured = true
     })
 
-    // Enable Doars.
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert expression interpreted.
-    expect(captured.message).toBe('initialized')
+    expect(captured).toBe(true)
   })
 })

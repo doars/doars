@@ -1,9 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
 
-// Import shared setup
 import { document } from '../test-setup.js'
 
-// Import Doars
 import Doars from '../../../src/DoarsExecute.js'
 
 describe('Html Directive', () => {
@@ -22,7 +20,6 @@ describe('Html Directive', () => {
   })
 
   test('html directive should set innerHTML', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{}">
         <span d-html="'<h1>After</h1>'">
@@ -31,22 +28,18 @@ describe('Html Directive', () => {
       </div>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
-    // Assert.
     const span = container.querySelector('span')
     expect(span.innerHTML).toBe('<h1>After</h1>')
   })
 
   test('html directive should decode HTML entities', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{}">
         <span d-html.decode="'&lt;h1&gt;After&lt;/h1&gt;'">
@@ -55,13 +48,11 @@ describe('Html Directive', () => {
       </div>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert decoded HTML.
@@ -70,7 +61,6 @@ describe('Html Directive', () => {
   })
 
   test('html directive should handle promises', async () => {
-    // Create Doars.
     doars = new Doars({
       root: container,
     })
@@ -78,7 +68,6 @@ describe('Html Directive', () => {
     // Set simple context for promise.
     doars.setSimpleContext('resolveInTime', (result) => Promise.resolve(result))
 
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{}">
         <span d-html="resolveInTime('<h1>After</h1>')">
@@ -87,7 +76,6 @@ describe('Html Directive', () => {
       </div>
     `
 
-    // Enable Doars.
     doars.enable()
 
     // Wait for promise.
@@ -99,7 +87,6 @@ describe('Html Directive', () => {
   })
 
   test('html directive should morph HTML structure', async () => {
-    // Set the container HTML.
     container.innerHTML = `
       <div d-state="{}">
         <span d-html.morph="'<h1>After</h1>'">
@@ -110,13 +97,11 @@ describe('Html Directive', () => {
       </div>
     `
 
-    // Create and enable Doars.
     doars = new Doars({
       root: container,
     })
     doars.enable()
 
-    // Wait.
     await new Promise(resolve => setTimeout(resolve, 1))
 
     // Assert morphed HTML.

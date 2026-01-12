@@ -3,7 +3,8 @@
   "name": "@doars/doars-workspace",
   "workspaces": [
     "docs-src/",
-    "packages/*"
+    "packages/*",
+    "performance/"
   ],
   "type": "module",
   "scripts": {

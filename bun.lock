@@ -111,6 +111,19 @@
       "name": "@doars/interpret",
       "version": "1.1.0",
     },
+    "performance": {
+      "name": "@doars/doars-benchmarks",
+      "version": "0.0.0",
+      "dependencies": {
+        "@doars/doars": "x",
+        "@doars/doars-fetch": "x",
+        "alpinejs": "3.15.3",
+        "htmx.org": "2.0.8",
+      },
+      "devDependencies": {
+        "playwright": "^1.57.0",
+      },
+    },
   },
   "packages": {
     "@alloc/quick-lru": ["@alloc/quick-lru@5.2.0", "", {}, "sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw=="],
@@ -247,6 +260,8 @@
 
     "@doars/doars": ["@doars/doars@workspace:packages/doars"],
 
+    "@doars/doars-benchmarks": ["@doars/doars-benchmarks@workspace:performance"],
+
     "@doars/doars-fetch": ["@doars/doars-fetch@workspace:packages/doars-fetch"],
 
     "@doars/doars-intersect": ["@doars/doars-intersect@workspace:packages/doars-intersect"],
@@ -379,7 +394,13 @@
 
     "@ungap/structured-clone": ["@ungap/structured-clone@1.3.0", "", {}, "sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g=="],
 
+    "@vue/reactivity": ["@vue/reactivity@3.1.5", "", { "dependencies": { "@vue/shared": "3.1.5" } }, "sha512-1tdfLmNjWG6t/CsPldh+foumYFo3cpyCHgBYQ34ylaMsJ+SNHQ1kApMIa8jN+i593zQuaw3AdWH0nJTARzCFhg=="],
+
+    "@vue/shared": ["@vue/shared@3.1.5", "", {}, "sha512-oJ4F3TnvpXaQwZJNF3ZK+kLPHKarDmJjJ6jyzVNDKH9md1dptjC7lWR//jrGuLdek/U6iltWxqAnYOu8gCiOvA=="],
+
     "acorn": ["acorn@8.15.0", "", { "bin": { "acorn": "bin/acorn" } }, "sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg=="],
+
+    "alpinejs": ["alpinejs@3.15.3", "", { "dependencies": { "@vue/reactivity": "~3.1.1" } }, "sha512-fSI6F5213FdpMC4IWaup92KhuH3jBX0VVqajRJ6cOTCy1cL6888KyXdGO+seAAkn+g6fnrxBqQEx6gRpQ5EZoQ=="],
 
     "any-promise": ["any-promise@1.3.0", "", {}, "sha512-7UvmKalWRt1wgjL1RrGxoSJW/0QZFIegpeGvZG9kjp8vrRu55XTHbwnqq2GpXm9uLbcuhxm3IqX9OB4MZR1b2A=="],
 
@@ -598,6 +619,8 @@
     "html-url-attributes": ["html-url-attributes@3.0.1", "", {}, "sha512-ol6UPyBWqsrO6EJySPz2O7ZSr856WDrEzM5zMqp+FJJLGMW35cLYmmZnl0vztAZxRUoNZJFTCohfjuIJ8I4QBQ=="],
 
     "html-void-elements": ["html-void-elements@3.0.0", "", {}, "sha512-bEqo66MRXsUGxWHV5IP0PUiAWwoEjba4VCzg0LjFJBpchPaTfyfCKTG6bc5F8ucKec3q5y6qOdGyYTSBEvhCrg=="],
+
+    "htmx.org": ["htmx.org@2.0.8", "", {}, "sha512-fm297iru0iWsNJlBrjvtN7V9zjaxd+69Oqjh4F/Vq9Wwi2kFisLcrLCiv5oBX0KLfOX/zG8AUo9ROMU5XUB44Q=="],
 
     "ignore": ["ignore@5.3.2", "", {}, "sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g=="],
 
