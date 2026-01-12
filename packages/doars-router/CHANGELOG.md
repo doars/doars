@@ -1,6 +1,10 @@
 
 # CHANGELOG.md
 
+## 3.1.0
+
+- Remove revocable proxy polyfill.
+
 ## 3.0.1
 
 - Fix error when routing using templates.

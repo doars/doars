@@ -1,5 +1,10 @@
 # CHANGELOG.md
 
+## 2.2.0
+
+- Started using `moveBefore` when available.
+- Remove revocable proxy polyfill.
+
 ## 2.1.2
 
 - Removed fetch de-duplication because it ignored parsing instructions.

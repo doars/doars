@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 3.2.0
+
+- Remove revocable proxy polyfill.
+
 ## 3.1.1
 
 - Fix error when using `for` and `if` directives.
