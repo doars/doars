@@ -81,44 +81,6 @@ var update_default2 = ({
   ];
 };
 
-// ../common/src/polyfills/RevocableProxy.js
-var PROXY_TRAPS = [
-  "apply",
-  "construct",
-  "defineProperty",
-  "deleteProperty",
-  "get",
-  "getOwnPropertyDescriptor",
-  "getPrototypeOf",
-  "has",
-  "isExtensible",
-  "ownKeys",
-  "preventExtensions",
-  "set",
-  "setPrototypeOf"
-];
-var RevocableProxy_default = (target, handler) => {
-  let revoked = false;
-  const revocableHandler = {};
-  for (const key of PROXY_TRAPS) {
-    revocableHandler[key] = (...parameters) => {
-      if (revoked) {
-        return;
-      }
-      if (key in handler) {
-        return handler[key](...parameters);
-      }
-      return Reflect[key](...parameters);
-    };
-  }
-  return {
-    proxy: new Proxy(target, revocableHandler),
-    revoke: () => {
-      revoked = true;
-    }
-  };
-};
-
 // ../common/src/events/EventDispatcher.js
 class EventDispatcher {
   constructor() {
@@ -231,7 +193,7 @@ class ProxyDispatcher extends EventDispatcher {
           return true;
         };
       }
-      const revocable = RevocableProxy_default(target, handler);
+      const revocable = Proxy.revocable(target, handler);
       map.set(revocable, target);
       return revocable.proxy;
     };
@@ -377,4 +339,4 @@ export {
   DoarsUpdate_default as default
 };
 
-//# debugId=42BD5F4AA32011AF64756E2164756E21
+//# debugId=059DACFA03F1D76D64756E2164756E21

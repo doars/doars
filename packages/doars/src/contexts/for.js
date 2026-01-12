@@ -1,5 +1,3 @@
-// Import polyfill.
-import RevocableProxy from '@doars/common/src/polyfills/RevocableProxy.js'
 // Import symbols.
 import { FOR } from '../symbols.js'
 
@@ -55,7 +53,7 @@ export default ({
     }
 
     // Create revocable proxy.
-    const revocable = RevocableProxy(target, {
+    const revocable = Proxy.revocable(target, {
       get: (
         target,
         key,

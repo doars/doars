@@ -1,6 +1,3 @@
-// Import polyfill.
-import RevocableProxy from '@doars/common/src/polyfills/RevocableProxy.js'
-
 import { createContextsProxy } from '../utilities/Context.js'
 
 /**
@@ -25,7 +22,7 @@ export default ({
   ) => {
     // Create contexts proxy for children.
     let childrenContexts
-    const revocable = RevocableProxy(component.getChildren(), {
+    const revocable = Proxy.revocable(component.getChildren(), {
       get: (target, key, receiver) => {
         if (!childrenContexts) {
           // Create list of child contexts.

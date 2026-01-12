@@ -1,42 +1,4 @@
 (() => {
-  // ../common/src/polyfills/RevocableProxy.js
-  var PROXY_TRAPS = [
-    "apply",
-    "construct",
-    "defineProperty",
-    "deleteProperty",
-    "get",
-    "getOwnPropertyDescriptor",
-    "getPrototypeOf",
-    "has",
-    "isExtensible",
-    "ownKeys",
-    "preventExtensions",
-    "set",
-    "setPrototypeOf"
-  ];
-  var RevocableProxy_default = (target, handler) => {
-    let revoked = false;
-    const revocableHandler = {};
-    for (const key of PROXY_TRAPS) {
-      revocableHandler[key] = (...parameters) => {
-        if (revoked) {
-          return;
-        }
-        if (key in handler) {
-          return handler[key](...parameters);
-        }
-        return Reflect[key](...parameters);
-      };
-    }
-    return {
-      proxy: new Proxy(target, revocableHandler),
-      revoke: () => {
-        revoked = true;
-      }
-    };
-  };
-
   // ../common/src/events/EventDispatcher.js
   class EventDispatcher {
     constructor() {
@@ -149,7 +111,7 @@
             return true;
           };
         }
-        const revocable = RevocableProxy_default(target, handler);
+        const revocable = Proxy.revocable(target, handler);
         map.set(revocable, target);
         return revocable.proxy;
       };
@@ -178,7 +140,7 @@
       proxy.addEventListener("delete", onDelete);
       proxy.addEventListener("get", onGet);
       proxy.addEventListener("set", onSet);
-      const revocable = RevocableProxy_default(state, {});
+      const revocable = Proxy.revocable(state, {});
       return {
         value: revocable.proxy,
         destroy: () => {
@@ -362,4 +324,4 @@
   window.DoarsPersist = DoarsPersist_default;
 })();
 
-//# debugId=B1A0F16F1222D3D264756E2164756E21
+//# debugId=693B15CD5291AC1864756E2164756E21

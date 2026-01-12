@@ -682,6 +682,7 @@ var _updateTree = (existingTree, newTree) => {
   _updateChildren(existingTree, newTree);
   return existingTree;
 };
+var setBefore = "moveBefore" in window?.Element?.prototype ? "moveBefore" : "insertBefore";
 var _updateChildren = (existingNode, newNode) => {
   let existingChild, newChild, morphed, existingMatch;
   let offset = 0;
@@ -715,7 +716,7 @@ var _updateChildren = (existingNode, newNode) => {
         if (morphed !== existingMatch) {
           offset++;
         }
-        existingNode.insertBefore(morphed, existingChild);
+        existingNode[setBefore](morphed, existingChild);
       } else if (!newChild.id && !existingChild.id) {
         morphed = _updateTree(existingChild, newChild);
         if (morphed !== existingChild) {
@@ -723,7 +724,7 @@ var _updateChildren = (existingNode, newNode) => {
           offset++;
         }
       } else {
-        existingNode.insertBefore(newChild, existingChild);
+        existingNode[setBefore](newChild, existingChild);
         offset++;
       }
     }
@@ -1240,4 +1241,4 @@ export {
   DoarsFetch_default as default
 };
 
-//# debugId=BA8C2CF2B2DB0D4964756E2164756E21
+//# debugId=D55363FCDB786E1B64756E2164756E21

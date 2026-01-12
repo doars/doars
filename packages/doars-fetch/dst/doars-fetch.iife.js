@@ -683,6 +683,7 @@
     _updateChildren(existingTree, newTree);
     return existingTree;
   };
+  var setBefore = "moveBefore" in window?.Element?.prototype ? "moveBefore" : "insertBefore";
   var _updateChildren = (existingNode, newNode) => {
     let existingChild, newChild, morphed, existingMatch;
     let offset = 0;
@@ -716,7 +717,7 @@
           if (morphed !== existingMatch) {
             offset++;
           }
-          existingNode.insertBefore(morphed, existingChild);
+          existingNode[setBefore](morphed, existingChild);
         } else if (!newChild.id && !existingChild.id) {
           morphed = _updateTree(existingChild, newChild);
           if (morphed !== existingChild) {
@@ -724,7 +725,7 @@
             offset++;
           }
         } else {
-          existingNode.insertBefore(newChild, existingChild);
+          existingNode[setBefore](newChild, existingChild);
           offset++;
         }
       }
@@ -1242,4 +1243,4 @@
   window.DoarsFetch = DoarsFetch_default;
 })();
 
-//# debugId=4A18B6E63A5F160764756E2164756E21
+//# debugId=7A059C1C3C117FE464756E2164756E21

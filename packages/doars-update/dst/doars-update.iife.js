@@ -82,44 +82,6 @@
     ];
   };
 
-  // ../common/src/polyfills/RevocableProxy.js
-  var PROXY_TRAPS = [
-    "apply",
-    "construct",
-    "defineProperty",
-    "deleteProperty",
-    "get",
-    "getOwnPropertyDescriptor",
-    "getPrototypeOf",
-    "has",
-    "isExtensible",
-    "ownKeys",
-    "preventExtensions",
-    "set",
-    "setPrototypeOf"
-  ];
-  var RevocableProxy_default = (target, handler) => {
-    let revoked = false;
-    const revocableHandler = {};
-    for (const key of PROXY_TRAPS) {
-      revocableHandler[key] = (...parameters) => {
-        if (revoked) {
-          return;
-        }
-        if (key in handler) {
-          return handler[key](...parameters);
-        }
-        return Reflect[key](...parameters);
-      };
-    }
-    return {
-      proxy: new Proxy(target, revocableHandler),
-      revoke: () => {
-        revoked = true;
-      }
-    };
-  };
-
   // ../common/src/events/EventDispatcher.js
   class EventDispatcher {
     constructor() {
@@ -232,7 +194,7 @@
             return true;
           };
         }
-        const revocable = RevocableProxy_default(target, handler);
+        const revocable = Proxy.revocable(target, handler);
         map.set(revocable, target);
         return revocable.proxy;
       };
@@ -379,4 +341,4 @@
   window.DoarsUpdate = DoarsUpdate_default;
 })();
 
-//# debugId=0C6527811A41EAD564756E2164756E21
+//# debugId=FB075FD6BCF13C4064756E2164756E21

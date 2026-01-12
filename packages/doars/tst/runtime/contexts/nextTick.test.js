@@ -23,7 +23,7 @@ describe('NextTick Context', () => {
     let captured = false
 
     container.innerHTML = `
-      <div d-state="{}" d-initialized="$nextTick(() => capture())"></div>
+      <div d-state="{}" d-initialized="$nextTick(({ capture }) => capture())"></div>
     `
 
     doars = new Doars({

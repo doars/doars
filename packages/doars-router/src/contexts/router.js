@@ -1,8 +1,5 @@
-// Import polyfill.
-import RevocableProxy from '@doars/common/src/polyfills/RevocableProxy.js'
-
 // Import symbol.
-import { ROUTER } from '../symbols'
+import { ROUTER } from '../symbols.js'
 
 // Import utilities.
 import closestRouter from '../utilities/closestRouter.js'
@@ -20,7 +17,7 @@ export default ({
     const element = attribute.getElement()
 
     let router = null
-    const revocable = RevocableProxy({}, {
+    const revocable = Proxy.revocable({}, {
       get: (
         target,
         propertyKey,

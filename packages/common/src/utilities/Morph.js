@@ -25,7 +25,10 @@ export const morphNode = (
   }
 
   // Text node or comment node.
-  if (nodeType === 3 || nodeType === 8) {
+  if (
+    nodeType === 3
+    || nodeType === 8
+  ) {
     if (existingNode.nodeValue !== newNode.nodeValue) {
       existingNode.nodeValue = newNode.nodeValue
     }
@@ -133,7 +136,10 @@ const _updateTextarea = (
     existingNode.value = newValue
   }
 
-  if (existingNode.firstChild && existingNode.firstChild.nodeValue !== newValue) {
+  if (
+    existingNode.firstChild
+    && existingNode.firstChild.nodeValue !== newValue
+  ) {
     existingNode.firstChild.nodeValue = newValue
   }
 }
@@ -190,6 +196,12 @@ const _updateTree = (
 
   return existingTree
 }
+
+const setBefore = (
+  'moveBefore' in window?.Element?.prototype
+    ? 'moveBefore'
+    : 'insertBefore'
+)
 
 /**
  * Change the existing element's children into the given element's children.
@@ -249,7 +261,7 @@ const _updateChildren = (
         if (morphed !== existingMatch) {
           offset++
         }
-        existingNode.insertBefore(morphed, existingChild)
+        existingNode[setBefore](morphed, existingChild)
 
         // It is safe to morph two nodes in-place if neither has an ID.
       } else if (!newChild.id && !existingChild.id) {
@@ -261,7 +273,7 @@ const _updateChildren = (
 
         // Insert the node at the index if we could not morph or find a matching node.
       } else {
-        existingNode.insertBefore(newChild, existingChild)
+        existingNode[setBefore](newChild, existingChild)
         offset++
       }
     }

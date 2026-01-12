@@ -283,44 +283,6 @@ class Attribute extends EventDispatcher {
   }
 }
 
-// ../common/src/polyfills/RevocableProxy.js
-var PROXY_TRAPS = [
-  "apply",
-  "construct",
-  "defineProperty",
-  "deleteProperty",
-  "get",
-  "getOwnPropertyDescriptor",
-  "getPrototypeOf",
-  "has",
-  "isExtensible",
-  "ownKeys",
-  "preventExtensions",
-  "set",
-  "setPrototypeOf"
-];
-var RevocableProxy_default = (target, handler) => {
-  let revoked = false;
-  const revocableHandler = {};
-  for (const key of PROXY_TRAPS) {
-    revocableHandler[key] = (...parameters) => {
-      if (revoked) {
-        return;
-      }
-      if (key in handler) {
-        return handler[key](...parameters);
-      }
-      return Reflect[key](...parameters);
-    };
-  }
-  return {
-    proxy: new Proxy(target, revocableHandler),
-    revoke: () => {
-      revoked = true;
-    }
-  };
-};
-
 // ../common/src/events/ProxyDispatcher.js
 class ProxyDispatcher extends EventDispatcher {
   constructor(options = {}) {
@@ -375,7 +337,7 @@ class ProxyDispatcher extends EventDispatcher {
           return true;
         };
       }
-      const revocable = RevocableProxy_default(target, handler);
+      const revocable = Proxy.revocable(target, handler);
       map.set(revocable, target);
       return revocable.proxy;
     };
@@ -744,7 +706,7 @@ var createContexts = (component, attribute, update, extra = null) => {
 };
 var createContextsProxy = (component, attribute, update, extra = null) => {
   let data = null;
-  const revocable = RevocableProxy_default({}, {
+  const revocable = Proxy.revocable({}, {
     get: (target, property) => {
       if (!data) {
         data = createContexts(component, attribute, update, extra);
@@ -798,7 +760,7 @@ var children_default = ({
   name: childrenContextName,
   create: (component, attribute, update) => {
     let childrenContexts;
-    const revocable = RevocableProxy_default(component.getChildren(), {
+    const revocable = Proxy.revocable(component.getChildren(), {
       get: (target, key, receiver) => {
         if (!childrenContexts) {
           childrenContexts = target.map((child2) => createContextsProxy(child2, attribute, update));
@@ -888,7 +850,7 @@ var for_default = ({
     if (items.length === 0) {
       return;
     }
-    const revocable = RevocableProxy_default(target, {
+    const revocable = Proxy.revocable(target, {
       get: (target2, key) => {
         for (const item of items) {
           if (key in item.variables) {
@@ -1084,7 +1046,7 @@ var references_default = ({
       }
       component[REFERENCES_CACHE] = cache;
     }
-    const revocable = RevocableProxy_default(cache, {
+    const revocable = Proxy.revocable(cache, {
       get: (target, propertyKey, receiver) => {
         attribute.accessed(component.getId(), "$references." + propertyKey);
         return Reflect.get(target, propertyKey, receiver);
@@ -1112,7 +1074,7 @@ var siblings_default = ({
       };
     }
     let siblingsContexts;
-    const revocable = RevocableProxy_default(parent.getChildren().filter((sibling) => sibling !== component), {
+    const revocable = Proxy.revocable(parent.getChildren().filter((sibling) => sibling !== component), {
       get: (target, key, receiver) => {
         if (!siblingsContexts) {
           siblingsContexts = target.map((child) => createContextsProxy(child, attribute, update));
@@ -1148,7 +1110,7 @@ var createState_default = (name, id, state, proxy) => {
     proxy.addEventListener("delete", onDelete);
     proxy.addEventListener("get", onGet);
     proxy.addEventListener("set", onSet);
-    const revocable = RevocableProxy_default(state, {});
+    const revocable = Proxy.revocable(state, {});
     return {
       value: revocable.proxy,
       destroy: () => {
@@ -1434,6 +1396,7 @@ var setAttribute = (element, key, data) => {
       return;
     }
     element.setAttribute(key, data);
+    element.value = data;
     return;
   }
   if (key === "checked") {
@@ -1955,6 +1918,7 @@ var _updateTree = (existingTree, newTree) => {
   _updateChildren(existingTree, newTree);
   return existingTree;
 };
+var setBefore = "moveBefore" in window?.Element?.prototype ? "moveBefore" : "insertBefore";
 var _updateChildren = (existingNode, newNode) => {
   let existingChild, newChild, morphed, existingMatch;
   let offset = 0;
@@ -1988,7 +1952,7 @@ var _updateChildren = (existingNode, newNode) => {
         if (morphed !== existingMatch) {
           offset++;
         }
-        existingNode.insertBefore(morphed, existingChild);
+        existingNode[setBefore](morphed, existingChild);
       } else if (!newChild.id && !existingChild.id) {
         morphed = _updateTree(existingChild, newChild);
         if (morphed !== existingChild) {
@@ -1996,7 +1960,7 @@ var _updateChildren = (existingNode, newNode) => {
           offset++;
         }
       } else {
-        existingNode.insertBefore(newChild, existingChild);
+        existingNode[setBefore](newChild, existingChild);
         offset++;
       }
     }
@@ -2827,6 +2791,10 @@ var text_default = ({
     const element = attribute.getElement();
     const modifiers = attribute.getModifiers();
     const set = (text) => {
+      const textType = typeof text;
+      if (textType !== "string") {
+        text = String(text);
+      }
       if (modifiers.content) {
         if (element.textContent !== text) {
           element.textContent = text;
@@ -3039,10 +3007,14 @@ class Doars extends EventDispatcher {
       }
       observer.disconnect();
       observer = null;
-      isUpdating = mutations = triggers = null;
+      isUpdating = false;
+      mutations = [];
+      triggers = {};
       this.dispatchEvent("disabling", [this], { reverse: true });
       removeComponents(...components);
-      directivesNames = directivesObject = directivesRegexp = null;
+      directivesNames = [];
+      directivesObject = {};
+      directivesRegexp = null;
       isEnabled = false;
       this.dispatchEvent("disabled", [this], { reverse: true });
       return this;
@@ -3372,16 +3344,19 @@ class Doars extends EventDispatcher {
             continue;
           }
           let attribute = null;
-          for (const targetAttribute of element[ATTRIBUTES]) {
-            if (targetAttribute.getName() === mutation.attributeName) {
-              attribute = targetAttribute;
-              break;
+          if (element[ATTRIBUTES]) {
+            for (const targetAttribute of element[ATTRIBUTES]) {
+              if (targetAttribute.getName() === mutation.attributeName) {
+                attribute = targetAttribute;
+                break;
+              }
             }
           }
           const value = element.getAttribute(mutation.attributeName);
           if (!attribute) {
             if (value) {
-              component.addAttribute(element, mutation.attributeName, value);
+              attribute = component.addAttribute(element, mutation.attributeName, value);
+              component.updateAttribute(attribute);
             }
             continue;
           }
@@ -4209,4 +4184,4 @@ export {
   DoarsInterpret_default as default
 };
 
-//# debugId=45A2AFD04B9A348D64756E2164756E21
+//# debugId=9FFEDC91F6C01CAF64756E2164756E21

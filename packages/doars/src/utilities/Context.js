@@ -6,9 +6,6 @@
  * @typedef {import('../Doars.js').ContextMap} ContextMap
  */
 
-// Import polyfill.
-import RevocableProxy from '@doars/common/src/polyfills/RevocableProxy.js'
-
 /**
  * @typedef CreatedContexts
  * @type {object}
@@ -118,7 +115,7 @@ export const createContextsProxy = (
   // Store context after first call.
   let data = null
   // Create context proxy.
-  const revocable = RevocableProxy({}, {
+  const revocable = Proxy.revocable({}, {
     get: (
       target,
       property,

@@ -1,6 +1,3 @@
-// Import polyfill.
-import RevocableProxy from '../polyfills/RevocableProxy.js'
-
 // Import event dispatcher.
 import EventDispatcher from './EventDispatcher.js'
 
@@ -126,7 +123,7 @@ export default class ProxyDispatcher extends EventDispatcher {
       }
 
       // Create proxy.
-      const revocable = RevocableProxy(target, handler)
+      const revocable = Proxy.revocable(target, handler)
 
       // Store target at proxy.
       map.set(revocable, target)
