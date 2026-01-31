@@ -256,7 +256,7 @@ Dispatched when the contents has successfully been updated.
 
 - `constructor` Create plugin instance.
   - `@param {Doars} library` A doars library instance.
-  - `@param {object} options = null` [See options](#doarsstorertc-options).
+  - `@param {object} options = null` [See options](#doarsfetch-options).
   - `@returns {DoarsFetch}`
 - `disable` Disables the plugin. Can only be called when the doars is disabled.
 - `enable` Enables the plugin. Can only be called when the doars is disabled.

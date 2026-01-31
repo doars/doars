@@ -12,17 +12,17 @@ import { fetchAndParse } from '@doars/common/src/utilities/Fetch.js'
 import {
   fromString as elementFromString,
   select as selectFromElement,
-} from '@doars/common/src/utilities/Element'
+} from '@doars/common/src/utilities/Element.js'
 import { decode } from '@doars/common/src/utilities/Html.js'
 import {
   hideIndicator,
   showIndicator,
 } from '@doars/common/src/utilities/Indicator.js'
 import { morphTree } from '@doars/common/src/utilities/Morph.js'
-import { isPromise } from '@doars/common/src/utilities/Promise'
-import { readdScripts } from '@doars/common/src/utilities/Script'
+import { isPromise } from '@doars/common/src/utilities/Promise.js'
+import { readdScripts } from '@doars/common/src/utilities/Script.js'
 
-import { serializeFormData } from '../utilities/Xml'
+import { serializeFormData } from '../utilities/Xml.js'
 
 const FETCH = Symbol('FETCH')
 
@@ -38,7 +38,7 @@ const EXECUTION_MODIFIERS = {
  * @typedef DirectiveOptions
  * @type {object}
  * @property {object} fetchOptions Object of options given to the fetch method when submitting data.
- * @property {string} headerTitle Name of the header that can contain a new document title.
+ * TODO:
  */
 
 /**

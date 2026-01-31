@@ -1,5 +1,6 @@
 # Macos files
 .DS_Store
+.*/
 
 # Logs
 logs

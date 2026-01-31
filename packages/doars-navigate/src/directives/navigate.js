@@ -11,7 +11,7 @@ import { fetchAndParse } from '@doars/common/src/utilities/Fetch.js'
 import {
   fromString as elementFromString,
   select as selectFromElement,
-} from '@doars/common/src/utilities/Element'
+} from '@doars/common/src/utilities/Element.js'
 import { decode } from '@doars/common/src/utilities/Html.js'
 import {
   hideIndicator,
