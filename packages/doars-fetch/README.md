@@ -265,7 +265,7 @@ Dispatched when the contents has successfully been updated.
 
 - `{string} fetchContextName = '$fetch'` The name of the fetch context.
 - `{boolean} fetchDirectiveEvaluate = true` If set to false the fetch directive's value is read as a string literal instead of an expression to process.
-- `{string} fetchDirectiveName = 'submit'` The name of the fetch directive.
+- `{string} fetchDirectiveName = 'fetch'` The name of the fetch directive.
 - `{object} fetchOptions = {}` Default fetch options to use, the options object provided when calling fetch will be merged with this default.
 - `{string|boolean} intersectionEvent = 'intersect'` The name of the intersect special event listener. To disable the event from ever triggering set this option to false.
 - `{HTMLElement} intersectionRoot = null` The element to be used as the viewport for checking the visibility of the elements. It must be an ancestor of the targeted elements. By default it is the browsers viewport.

@@ -9,7 +9,9 @@
 
 # @doars/doars-ipc
 
-Adds a IPC context and directive that handles communication with servers.
+Adds an IPC context and directive that handles communication between the back-end (Bun) and the front-end (WebView). Designed for use with `@webviewjs/webview` or similar webview libraries that support bidirectional communication via `postMessage` (WebView → Bun) and `evaluateScript` (Bun → WebView).
+
+The plugin automatically creates a client-side IPC handler that uses `window.ipc.postMessage()` to send requests to the Bun host, and expects the host to route responses back via JavaScript evaluation.
 
 ## Install
 
@@ -60,15 +62,47 @@ Add the IIFE build to the page from for example the jsDelivr CDN and enable the 
 
 > [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-ipc@3/dst/doars-ipc.esm.js) and [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-ipc@3/dst/doars-ipc.iife.js) builds are available via the jsDelivr CDN.
 
+## Bun Host Setup
+
+To use this plugin, you need to set up the server-side handler in your Bun application using a webview library like `@webviewjs/webview`:
+
+```JavaScript
+import { Application } from '@webviewjs/webview'
+import createServer from '@doars/doars-ipc/src/utilities/server.js'
+
+const app = new Application()
+const window = app.createBrowserWindow()
+
+const webview = window.createWebview({
+  html: `<!-- your HTML with doars -->`,
+})
+
+// Create server handler with the path and evaluate function
+const server = createServer('__doarsIPC', (js) => webview.evaluateScript(js))
+
+// Register routes
+server.register('getResults', async (data) => {
+  // Process request and return HTML
+  return `<div>Results for: ${data.query}</div>`
+})
+
+// Handle incoming messages from webview
+webview.onIpcMessage((msg) => {
+  server.handle(msg.body.toString())
+})
+
+app.run()
+```
+
 ## Contexts
 
 The following [contexts](https://github.com/doars/doars/tree/main/packages/doars#contexts) are added by the plugin.
 
 ### \$ipc
 
-Call the ipc API.
+Call the IPC API. The `$ipc` context is a Proxy that automatically routes method calls through the client handler. Any method called on `$ipc` will be sent to the Bun host via `postMessage` and return a Promise that resolves with the response.
 
-- Type: `Object` the ipc instance of the window.
+- Type: `Proxy` that intercepts method calls and routes them through the IPC handler.
 
 ```HTML
 <!-- On initialization call ipc and call the doSomething function then store the resulting text on the message variable of the state. -->
@@ -91,7 +125,7 @@ The following [directives](https://github.com/doars/doars/tree/main/packages/doa
 
 ### d-ipc
 
-Call the IPC API and place the results in the document. The directive's value should be the name of a function that is made available via IPC.
+Call the IPC API and place the results in the document. The directive's value should be the name of a function that is registered on the server handler.
 
 The directive can be placed on any element but is especially useful on forms. On form elements it can either listen to form submission events or change events and perform a request at those times. Meaning the directive is excellent at handling form submissions whilst staying on the same page. For instance when the website has a search bar and the results should be shown below it in a pop-up.
 
@@ -103,7 +137,7 @@ The directive supports the following modifiers.
 
 - `{number} buffer = null` Amount of times it has to be triggered before the directive is called. If set without a specific value then 5 will be used.
 - `{boolean} capture = false` Whether to set `capture` to true on the event listeners.
-- `{number} debounce = null` Time in milliseconds the event needs to have been in triggered before the expression is executed. A second event will overwrite the existing debounce and start the timer again. If set without a specific value then 500 will be used.
+- `{number} debounce = null` Time in milliseconds the event needs to have been in triggered before the expressions is executed. A second event will overwrite the existing debounce and start the timer again. If set without a specific value then 500 will be used.
 - `{boolean} decode = false` Whether the returned HTML needs to be decoded. Only relevant if special HTML characters are encoded. For example `&` has become `&amp;` or `&#38;`.
 - `{number} delay = null` Time in milliseconds the call starts after the event has been triggered. If set without a specific value then 500 will be used.
 - `{boolean} document = false` Whether to update the entire document (`<head>` and `body` tags) and not just the element itself.
@@ -224,12 +258,77 @@ Dispatched when the call has successfully been resolved.
 #### DoarsIPC options
 
 - `{string} ipcContextName = '$ipc'` The name of the IPC context.
-- `{string} ipcDirectiveName = 'submit'` The name of the IPC directive.
+- `{string} ipcDirectiveName = 'ipc'` The name of the IPC directive.
+- `{string} ipcPath = '__doarsIPC'` The path on the window object where the IPC client handler is mounted. Supports dot notation for nested paths (e.g., `'myApp.ipc'` mounts to `window.myApp.ipc`).
 - `{string|boolean} intersectionEvent = 'intersect'` The name of the intersect special event listener. To disable the event from ever triggering set this option to false.
 - `{HTMLElement} intersectionRoot = null` The element to be used as the viewport for checking the visibility of the elements. It must be an ancestor of the targeted elements. By default it is the browsers viewport.
 - `{CSS margin property} intersectionMargin = '0px'` Margin around the root.
 - `{number|Array<number>} intersectionThreshold = 0` Thresholds of visibility the directive should be executed. `0` results in as soon as a pixel is in view. `1` results in that the entire element needs to be in view. `[0, 0.5, 1]` results in three possible calls when it is a pixel in view, 50% in view and entirely in view.
 - `{string|boolean} loadedEvent = 'load'` The name of the load special event listener. To disable the event from ever triggering set this option to false.
+
+### Server Handler
+
+The server-side handler for Bun that routes incoming IPC messages to registered callbacks.
+
+```JavaScript
+import createServer from '@doars/doars-ipc/src/utilities/server.js'
+
+const server = createServer(path, evaluate)
+```
+
+**Parameters:**
+- `path {string}` - The path on window where the client handler is mounted (e.g., `'__doarsIPC'`). Must match the `ipcPath` option used in the plugin.
+- `evaluate {function(string): void}` - Function to evaluate JavaScript in the WebView. Typically `webview.evaluateScript`.
+
+**Methods:**
+- `register(name, callback)` - Register a route handler. The callback receives the data from the client and should return HTML or a Promise that resolves to HTML.
+- `unregister(name)` - Remove a registered route handler.
+- `handle(message)` - Process an incoming IPC message from the WebView. Should be called from `webview.onIpcMessage`.
+- `dispatch(name, event, selector = 'body')` - Dispatch a custom event to the WebView's DOM. The event is sent to the element matching the selector.
+
+**Example:**
+
+```JavaScript
+import createServer from '@doars/doars-ipc/src/utilities/server.js'
+
+const server = createServer('__doarsIPC', (js) => webview.evaluateScript(js))
+
+// Register routes
+server.register('getUser', async (data) => {
+  const user = await db.getUser(data.id)
+  return `<div class="user">${user.name}</div>`
+})
+
+server.register('saveForm', async (data) => {
+  await db.save(data)
+  return '<div class="success">Saved!</div>'
+})
+
+// Handle incoming messages
+webview.onIpcMessage((msg) => {
+  server.handle(msg.body.toString())
+})
+
+// Dispatch events to the webview
+server.dispatch('notification', { message: 'Hello!' }, '#notification-area')
+```
+
+### Client Handler
+
+The client-side handler that runs in the WebView. This is automatically created and mounted by the plugin.
+
+```JavaScript
+// This is automatically done by the plugin:
+import createClient from '@doars/doars-ipc/src/utilities/client.js'
+window.__doarsIPC = createClient()
+```
+
+**Methods:**
+- `call(name, data)` - Initiates an IPC call to the server. Returns a Promise that resolves with the response.
+- `resolve(identifier, data)` - Called by the server to resolve a pending call. (Internal use)
+- `reject(identifier, error)` - Called by the server to reject a pending call. (Internal use)
+
+You typically don't need to interact with the client handler directly - use the `$ipc` context instead.
 
 ## Compatible versions
 

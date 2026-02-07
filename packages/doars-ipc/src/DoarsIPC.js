@@ -5,6 +5,8 @@
 import IntersectionDispatcher from "@doars/common/src/polyfills/IntersectionDispatcher.js";
 import createIPCContext from "./contexts/ipc.js";
 import createIPCDirective from "./directives/ipc.js";
+import createClientHandler from "./utilities/client.js";
+import { deleteNestedProperty, setNestedProperty } from "./utilities/nested.js";
 
 /**
  * Create plugin instance.
@@ -17,7 +19,7 @@ export default function (library, options = null) {
 		{
 			ipcContextName: "$ipc",
 			ipcDirectiveName: "ipc",
-			ipcInstance: null,
+			ipcPath: "__doarsIPC",
 
 			intersectionEvent: "intersect",
 			intersectionRoot: null,
@@ -35,6 +37,9 @@ export default function (library, options = null) {
 	// Set private variables.
 	let isEnabled = false;
 
+	// Create the ipc intance.
+	const ipcInstance = createClientHandler();
+
 	// Setup observer.
 	const intersectionDispatcher = options.intersectionEvent
 		? new IntersectionDispatcher({
@@ -47,10 +52,16 @@ export default function (library, options = null) {
 		: null;
 
 	// Store contexts and directives.
-	const ipcContext = createIPCContext(options),
-		ipcDirective = createIPCDirective(options, intersectionDispatcher);
+	const ipcContext = createIPCContext(options, ipcInstance),
+		ipcDirective = createIPCDirective(
+			options,
+			ipcInstance,
+			intersectionDispatcher,
+		);
 
 	const onEnable = () => {
+		setNestedProperty(window, options.ipcPath, ipcInstance);
+
 		// Create and add contexts and directives.
 		library.addContexts(0, ipcContext);
 		library.addDirectives(-1, ipcDirective);
@@ -60,6 +71,8 @@ export default function (library, options = null) {
 		// Remove contexts and directives.
 		library.removeContexts(ipcContext);
 		library.removeDirective(ipcDirective);
+
+		deleteNestedProperty(window, options.ipcPath);
 	};
 
 	this.disable = () => {

@@ -777,6 +777,14 @@ export default () => {
 
 							card(
 								{
+									href: "https://github.com/doars/doars/tree/main/packages/doars-ipc#readme",
+								},
+								"@doars/doars-ipc",
+								"Adds an IPC context and directive for bidirectional communication between Bun and WebView.",
+							),
+
+							card(
+								{
 									href: "https://github.com/doars/doars/tree/main/packages/doars-router#readme",
 								},
 								"@doars/doars-router",

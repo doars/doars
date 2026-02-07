@@ -45,12 +45,12 @@ const EXECUTION_MODIFIERS = {
 export default (
 	{
 		ipcDirectiveName,
-		ipcInstance,
 
 		intersectionEvent,
 
 		loadedEvent,
 	},
+	ipcInstance,
 	intersectionDispatcher,
 ) => ({
 	name: ipcDirectiveName,
@@ -150,12 +150,6 @@ export default (
 			eventName = loadedEvent;
 		}
 
-		const ipcHeaders = {
-			[`${libraryOptions.prefix}-${libraryOptions.requestHeaderName}`]:
-				directive,
-			Vary: `${libraryOptions.prefix}-${libraryOptions.requestHeaderName}`,
-		};
-
 		const dispatchEvent = (suffix = "", data = {}) => {
 			element.dispatchEvent(
 				new CustomEvent(`${libraryOptions.prefix}-${directive}${suffix}`, {
@@ -186,7 +180,8 @@ export default (
 				url: functionName,
 			});
 
-			return ipcInstance[functionName](body)
+			return ipcInstance
+				.call(functionName, body)
 				.then((html) => {
 					isLoading = false;
 

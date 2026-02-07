@@ -34,11 +34,61 @@ class IntersectionDispatcher {
   }
 }
 
+// src/utilities/nested.js
+var deleteNestedProperty = (obj, path) => {
+  const parts = path.split(".");
+  let current = obj;
+  for (let i = 0;i < parts.length - 1; i++) {
+    const part = parts[i];
+    if (!(part in current)) {
+      return;
+    }
+    current = current[part];
+  }
+  delete current[parts[parts.length - 1]];
+};
+var getNestedProperty = (obj, path) => {
+  const parts = path.split(".");
+  let current = obj;
+  for (const part of parts) {
+    if (current === null || current === undefined || !(part in current)) {
+      return;
+    }
+    current = current[part];
+  }
+  return current;
+};
+var setNestedProperty = (obj, path, value) => {
+  const parts = path.split(".");
+  let current = obj;
+  for (let i = 0;i < parts.length - 1; i++) {
+    const part = parts[i];
+    if (!(part in current) || typeof current[part] !== "object") {
+      current[part] = {};
+    }
+    current = current[part];
+  }
+  current[parts[parts.length - 1]] = value;
+};
+
 // src/contexts/ipc.js
-var ipc_default = ({ ipcContextName, ipcInstance }) => ({
+var ipc_default = ({ ipcContextName, ipcPath }, ipcInstance) => ({
   name: ipcContextName,
   create: () => ({
-    value: ipcInstance
+    value: new Proxy(ipcInstance, {
+      get: (target, prop) => {
+        if (prop in target) {
+          return target[prop];
+        }
+        return (...args) => {
+          const handler = getNestedProperty(window, ipcPath);
+          if (!handler) {
+            throw new Error(`IPC handler not found at window.${ipcPath}`);
+          }
+          return handler.call(prop, ...args);
+        };
+      }
+    })
   })
 });
 
@@ -533,7 +583,7 @@ var _updateTree = (existingTree, newTree) => {
   _updateChildren(existingTree, newTree);
   return existingTree;
 };
-var setBefore = "moveBefore" in window?.Element?.prototype ? "moveBefore" : "insertBefore";
+var setBefore = typeof window !== "undefined" && window.Element?.prototype?.moveBefore ? "moveBefore" : "insertBefore";
 var _updateChildren = (existingNode, newNode) => {
   let existingChild, newChild, morphed, existingMatch;
   let offset = 0;
@@ -622,10 +672,9 @@ var EXECUTION_MODIFIERS = {
 };
 var ipc_default2 = ({
   ipcDirectiveName,
-  ipcInstance,
   intersectionEvent,
   loadedEvent
-}, intersectionDispatcher) => ({
+}, ipcInstance, intersectionDispatcher) => ({
   name: ipcDirectiveName,
   update: (component, attribute, processExpression) => {
     const library = component.getLibrary();
@@ -693,10 +742,6 @@ var ipc_default2 = ({
     } else if (modifiers.poll) {
       eventName = loadedEvent;
     }
-    const ipcHeaders = {
-      [`${libraryOptions.prefix}-${libraryOptions.requestHeaderName}`]: directive,
-      Vary: `${libraryOptions.prefix}-${libraryOptions.requestHeaderName}`
-    };
     const dispatchEvent = (suffix = "", data = {}) => {
       element.dispatchEvent(new CustomEvent(`${libraryOptions.prefix}-${directive}${suffix}`, {
         detail: Object.assign({
@@ -714,7 +759,7 @@ var ipc_default2 = ({
       dispatchEvent("-started", {
         url: functionName
       });
-      return ipcInstance[functionName](body).then((html) => {
+      return ipcInstance.call(functionName, body).then((html) => {
         isLoading = false;
         if (modifiers.decode) {
           html = decode(html);
@@ -923,12 +968,46 @@ var ipc_default2 = ({
   }
 });
 
+// src/utilities/client.js
+var client_default = () => {
+  let identifier = Number.MIN_SAFE_INTEGER;
+  const openResolvers = new Map;
+  return {
+    call: (name, data) => {
+      identifier++;
+      const currentId = identifier;
+      return new Promise((resolve, reject) => {
+        openResolvers.set(currentId, { resolve, reject });
+        window.ipc.postMessage(JSON.stringify({
+          id: currentId,
+          name,
+          data
+        }));
+      });
+    },
+    resolve: (identifier2, data) => {
+      const resolver = openResolvers.get(identifier2);
+      if (resolver) {
+        openResolvers.delete(identifier2);
+        resolver.resolve(data);
+      }
+    },
+    reject: (identifier2, error) => {
+      const resolver = openResolvers.get(identifier2);
+      if (resolver) {
+        openResolvers.delete(identifier2);
+        resolver.reject(new Error(error));
+      }
+    }
+  };
+};
+
 // src/DoarsIPC.js
 function DoarsIPC_default(library, options = null) {
   options = Object.assign({
     ipcContextName: "$ipc",
     ipcDirectiveName: "ipc",
-    ipcInstance: null,
+    ipcPath: "__doarsIPC",
     intersectionEvent: "intersect",
     intersectionRoot: null,
     intersectionMargin: "0px",
@@ -939,19 +1018,22 @@ function DoarsIPC_default(library, options = null) {
     Object.assign(options.ipcOptions, options.defaultInit);
   }
   let isEnabled = false;
+  const ipcInstance = client_default();
   const intersectionDispatcher = options.intersectionEvent ? new IntersectionDispatcher({
     root: options.intersectionRoot ? options.intersectionRoot : library.getOptions().root,
     rootMargin: options.intersectionMargin,
     threshold: options.intersectionThreshold
   }) : null;
-  const ipcContext = ipc_default(options), ipcDirective = ipc_default2(options, intersectionDispatcher);
+  const ipcContext = ipc_default(options, ipcInstance), ipcDirective = ipc_default2(options, ipcInstance, intersectionDispatcher);
   const onEnable = () => {
+    setNestedProperty(window, options.ipcPath, ipcInstance);
     library.addContexts(0, ipcContext);
     library.addDirectives(-1, ipcDirective);
   };
   const onDisable = () => {
     library.removeContexts(ipcContext);
     library.removeDirective(ipcDirective);
+    deleteNestedProperty(window, options.ipcPath);
   };
   this.disable = () => {
     if (!library.getEnabled() && isEnabled) {
@@ -973,4 +1055,4 @@ export {
   DoarsIPC_default as default
 };
 
-//# debugId=8D0F10F58643DD6464756E2164756E21
+//# debugId=618FC878A568BC8F64756E2164756E21
