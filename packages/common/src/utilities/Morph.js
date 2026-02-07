@@ -173,9 +173,10 @@ const _updateTree = (existingTree, newTree) => {
 
 	return existingTree;
 };
-
 const setBefore =
-	"moveBefore" in window?.Element?.prototype ? "moveBefore" : "insertBefore";
+	typeof window !== "undefined" && window.Element?.prototype?.moveBefore
+		? "moveBefore"
+		: "insertBefore";
 
 /**
  * Change the existing element's children into the given element's children.
