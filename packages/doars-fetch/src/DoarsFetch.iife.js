@@ -1,3 +1,3 @@
-import DoarsFetch from './DoarsFetch.js'
+import DoarsFetch from "./DoarsFetch.js";
 
-window.DoarsFetch = DoarsFetch
+window.DoarsFetch = DoarsFetch;

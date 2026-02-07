@@ -1,3 +1,3 @@
-import DoarsNavigate from './DoarsNavigate.js'
+import DoarsNavigate from "./DoarsNavigate.js";
 
-window.DoarsNavigate = DoarsNavigate
+window.DoarsNavigate = DoarsNavigate;

@@ -1,5 +1,5 @@
 // Import context.
-import { createContexts } from './Context.js'
+import { createContexts } from "./Context.js";
 
 /**
  * @typedef {import('../Attribute.js').default} Attribute
@@ -16,64 +16,69 @@ import { createContexts } from './Context.js'
  * @returns {any} Result of expression.
  */
 export const execute = (
-  component,
-  attribute,
-  expression,
-  extra = null,
-  options = null,
+	component,
+	attribute,
+	expression,
+	extra = null,
+	options = null,
 ) => {
-  // Override default with given options.
-  options = Object.assign({
-    return: true,
-  }, options)
+	// Override default with given options.
+	options = Object.assign(
+		{
+			return: true,
+		},
+		options,
+	);
 
-  // Collect update triggers.
-  const triggers = []
-  const update = (id, context) => {
-    triggers.push({
-      id,
-      path: context,
-    })
-  }
+	// Collect update triggers.
+	const triggers = [];
+	const update = (id, context) => {
+		triggers.push({
+			id,
+			path: context,
+		});
+	};
 
-  // Create function context.
-  let {
-    after,
-    before,
-    contexts,
-    destroy,
-  } = createContexts(
-    component,
-    attribute,
-    update,
-    extra,
-  )
+	// Create function context.
+	let { after, before, contexts, destroy } = createContexts(
+		component,
+		attribute,
+		update,
+		extra,
+	);
 
-  // Apply options.
-  if (options.return) {
-    before += 'return '
-  }
+	// Apply options.
+	if (options.return) {
+		before += "return ";
+	}
 
-  // Try to execute code.
-  let result
-  try {
-    result = new Function(...Object.keys(contexts), before + expression + after)(...Object.values(contexts)) // eslint-disable-line no-new-func
-  } catch (error) {
-    console.error('ExpressionError in:', expression, '\n' + error.name + ': ' + error.message)
-    result = null
-  }
+	// Try to execute code.
+	let result;
+	try {
+		result = new Function(
+			...Object.keys(contexts),
+			before + expression + after,
+		)(...Object.values(contexts)); // eslint-disable-line no-new-func
+	} catch (error) {
+		console.error(
+			"ExpressionError in:",
+			expression,
+			"\n" + error.name + ": " + error.message,
+		);
+		result = null;
+	}
 
-  // Invoke destroy.
-  destroy()
+	// Invoke destroy.
+	destroy();
 
-  // Dispatch update triggers.
-  if (triggers.length > 0) {
-    component.getLibrary().update(triggers)
-  }
+	// Dispatch update triggers.
+	if (triggers.length > 0) {
+		component.getLibrary().update(triggers);
+	}
 
-  return result
-}
+	return result;
+};
 
 export default {
-  execute,
-}
+	execute,
+};

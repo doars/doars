@@ -1,4 +1,40 @@
 (() => {
+  // ../common/src/polyfills/IntersectionDispatcher.js
+  class IntersectionDispatcher {
+    constructor(options = null) {
+      const items = new WeakMap;
+      const intersect = (entries) => {
+        for (const entry of entries) {
+          for (const callback of items.get(entry.target)) {
+            callback(entry);
+          }
+        }
+      };
+      const observer = new window.IntersectionObserver(intersect, options);
+      this.add = (element, callback) => {
+        if (!items.has(element)) {
+          items.set(element, []);
+        }
+        items.get(element).push(callback);
+        observer.observe(element);
+      };
+      this.remove = (element, callback) => {
+        if (!items.has(element)) {
+          return;
+        }
+        const list = items.get(element);
+        const index = list.indexOf(callback);
+        if (index >= 0) {
+          list.splice(index, 1);
+        }
+        if (list.length === 0) {
+          items.delete(element);
+          observer.unobserve(element);
+        }
+      };
+    }
+  }
+
   // ../common/src/utilities/Fetch.js
   var parseResponse = (response, type) => {
     let promise;
@@ -33,11 +69,12 @@
     return promise.then((response2) => {
       switch (type) {
         case "element":
-        case "html-partial":
+        case "html-partial": {
           const template = document.createElement("template");
           template.innerHTML = response2;
           response2 = template.content.childNodes[0];
           break;
+        }
         case "html":
           response2 = new DOMParser().parseFromString(response2, "text/html");
           break;
@@ -170,10 +207,7 @@
   };
 
   // src/contexts/fetch.js
-  var fetch_default = ({
-    fetchContextName,
-    fetchOptions
-  }) => ({
+  var fetch_default = ({ fetchContextName, fetchOptions }) => ({
     name: fetchContextName,
     create: () => {
       return {
@@ -295,40 +329,6 @@
     });
   };
 
-  // ../common/src/utilities/String.js
-  var parseSelector = (selector) => {
-    if (typeof selector === "string") {
-      selector = selector.split(/(?=\.)|(?=#)|(?=\[)/);
-    }
-    if (!Array.isArray(selector)) {
-      console.error("Doars: parseSelector expects Array of string or a single string.");
-      return;
-    }
-    const attributes = {};
-    for (let selectorSegment of selector) {
-      selectorSegment = selectorSegment.trim();
-      switch (selectorSegment[0]) {
-        case "#":
-          attributes.id = selectorSegment.substring(1);
-          break;
-        case ".":
-          selectorSegment = selectorSegment.substring(1);
-          if (!attributes.class) {
-            attributes.class = [];
-          }
-          if (!attributes.class.includes(selectorSegment)) {
-            attributes.class.push(selectorSegment);
-          }
-          break;
-        case "[":
-          const [full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
-          attributes[key] = value;
-          break;
-      }
-    }
-    return attributes;
-  };
-
   // ../common/src/utilities/Attribute.js
   var addAttributes = (element, data) => {
     for (const name in data) {
@@ -406,6 +406,41 @@
       }
       element.removeAttribute(name);
     }
+  };
+
+  // ../common/src/utilities/String.js
+  var parseSelector = (selector) => {
+    if (typeof selector === "string") {
+      selector = selector.split(/(?=\.)|(?=#)|(?=\[)/);
+    }
+    if (!Array.isArray(selector)) {
+      console.error("Doars: parseSelector expects Array of string or a single string.");
+      return;
+    }
+    const attributes = {};
+    for (let selectorSegment of selector) {
+      selectorSegment = selectorSegment.trim();
+      switch (selectorSegment[0]) {
+        case "#":
+          attributes.id = selectorSegment.substring(1);
+          break;
+        case ".":
+          selectorSegment = selectorSegment.substring(1);
+          if (!attributes.class) {
+            attributes.class = [];
+          }
+          if (!attributes.class.includes(selectorSegment)) {
+            attributes.class.push(selectorSegment);
+          }
+          break;
+        case "[": {
+          const [full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
+          attributes[key] = value;
+          break;
+        }
+      }
+    }
+    return attributes;
   };
 
   // ../common/src/utilities/Transition.js
@@ -902,7 +937,7 @@
               _fetchOptions.headers["Content-Type"] = "multipart/form-data";
               _fetchOptions.body = formData;
               break;
-            case "parameters":
+            case "parameters": {
               url = new URL(url, window.location.href);
               const parameters = new URLSearchParams(formData);
               for (const [parameterName, parameterValue] of parameters) {
@@ -910,6 +945,7 @@
               }
               url = url.toString();
               break;
+            }
             case "urlencoded":
             case "application/x-www-form-urlencoded":
               _fetchOptions.headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8";
@@ -1089,7 +1125,7 @@
             }
             attribute[FETCH].timeout = setTimeout(execute, modifiers.debounce);
             return;
-          case EXECUTION_MODIFIERS.THROTTLE:
+          case EXECUTION_MODIFIERS.THROTTLE: {
             const nowThrottle = window.performance.now();
             if (attribute[FETCH].lastExecution && nowThrottle - attribute[FETCH].lastExecution < modifiers.throttle) {
               resolve();
@@ -1098,6 +1134,7 @@
             execute();
             attribute[FETCH].lastExecution = nowThrottle;
             return;
+          }
           case EXECUTION_MODIFIERS.DELAY:
             attribute[FETCH].timeout = setTimeout(execute, modifiers.delay);
             return;
@@ -1155,42 +1192,6 @@
     }
   });
 
-  // ../common/src/polyfills/IntersectionDispatcher.js
-  class IntersectionDispatcher {
-    constructor(options = null) {
-      const items = new WeakMap;
-      const intersect = (entries) => {
-        for (const entry of entries) {
-          for (const callback of items.get(entry.target)) {
-            callback(entry);
-          }
-        }
-      };
-      const observer = new window.IntersectionObserver(intersect, options);
-      this.add = (element, callback) => {
-        if (!items.has(element)) {
-          items.set(element, []);
-        }
-        items.get(element).push(callback);
-        observer.observe(element);
-      };
-      this.remove = (element, callback) => {
-        if (!items.has(element)) {
-          return;
-        }
-        const list = items.get(element);
-        const index = list.indexOf(callback);
-        if (index >= 0) {
-          list.splice(index, 1);
-        }
-        if (list.length === 0) {
-          items.delete(element);
-          observer.unobserve(element);
-        }
-      };
-    }
-  }
-
   // src/DoarsFetch.js
   function DoarsFetch_default(library, options = null) {
     options = Object.assign({
@@ -1243,4 +1244,4 @@
   window.DoarsFetch = DoarsFetch_default;
 })();
 
-//# debugId=7A059C1C3C117FE464756E2164756E21
+//# debugId=3F2535C0E243CD6564756E2164756E21

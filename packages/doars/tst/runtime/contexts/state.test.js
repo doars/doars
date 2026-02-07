@@ -1,45 +1,43 @@
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import Doars from "../../../src/DoarsExecute.js";
+import { document } from "../test-setup.js";
 
-import { document } from '../test-setup.js'
+describe("State Log Context", () => {
+	let container, doars;
 
-import Doars from '../../../src/DoarsExecute.js'
+	beforeEach(() => {
+		container = document.createElement("div");
+		document.body.appendChild(container);
+	});
 
-describe('State Log Context', () => {
-  let container, doars
+	afterEach(() => {
+		doars.disable();
+		doars = null;
+		document.body.removeChild(container);
+		container = null;
+	});
 
-  beforeEach(() => {
-    container = document.createElement('div')
-    document.body.appendChild(container)
-  })
+	test("state log context should execute function", async () => {
+		let captured = null;
 
-  afterEach(() => {
-    doars.disable()
-    doars = null
-    document.body.removeChild(container)
-    container = null
-  })
-
-  test('state log context should execute function', async () => {
-    let captured = null
-
-    container.innerHTML = `
+		container.innerHTML = `
       <div d-state="{ message: 'value' }" d-initialized="logState($state)"></div>
-    `
+    `;
 
-    doars = new Doars({
-      root: container,
-    })
+		doars = new Doars({
+			root: container,
+		});
 
-    // Set simple context with closure.
-    doars.setSimpleContext('logState', function (state) {
-      captured = state.message
-    })
+		// Set simple context with closure.
+		doars.setSimpleContext("logState", (state) => {
+			captured = state.message;
+		});
 
-    doars.enable()
+		doars.enable();
 
-    await new Promise(resolve => setTimeout(resolve, 1))
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    // Assert function was called and captured the specific value.
-    expect(captured).toBe('value')
-  })
-})
+		// Assert function was called and captured the specific value.
+		expect(captured).toBe("value");
+	});
+});

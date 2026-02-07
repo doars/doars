@@ -1,4 +1,4 @@
-import createState from './createState.js'
+import createState from "./createState.js";
 
 /**
  * @typedef {import('../events/ProxyDispatcher.js').default} ProxyDispatcher
@@ -26,21 +26,10 @@ import createState from './createState.js'
  * @param {boolean} deconstruct Whether to deconstruct the state or require the name prefix.
  * @returns {object} Proxied state and destroy callback.
  */
-export default (
-  name,
-  id,
-  state,
-  proxy,
-  deconstruct,
-) => ({
-  deconstruct,
+export default (name, id, state, proxy, deconstruct) => ({
+	deconstruct,
 
-  name,
+	name,
 
-  create: createState(
-    name,
-    id,
-    state,
-    proxy,
-  ),
-})
+	create: createState(name, id, state, proxy),
+});

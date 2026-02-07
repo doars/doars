@@ -1,3 +1,3 @@
-import Doars from './DoarsInterpret.js'
+import Doars from "./DoarsInterpret.js";
 
-window.Doars = Doars
+window.Doars = Doars;

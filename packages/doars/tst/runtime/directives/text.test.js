@@ -1,71 +1,71 @@
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import Doars from "../../../src/DoarsExecute.js";
+import { document } from "../test-setup.js";
 
-import { document } from '../test-setup.js'
+describe("Text Directive", () => {
+	let container, doars;
 
-import Doars from '../../../src/DoarsExecute.js'
+	beforeEach(() => {
+		container = document.createElement("div");
+		document.body.appendChild(container);
+	});
 
-describe('Text Directive', () => {
-  let container, doars
+	afterEach(() => {
+		doars.disable();
+		doars = null;
+		document.body.removeChild(container);
+		container = null;
+	});
 
-  beforeEach(() => {
-    container = document.createElement('div')
-    document.body.appendChild(container)
-  })
-
-  afterEach(() => {
-    doars.disable()
-    doars = null
-    document.body.removeChild(container)
-    container = null
-  })
-
-  test('text directive should set text content', async () => {
-    container.innerHTML = `
+	test("text directive should set text content", async () => {
+		container.innerHTML = `
       <div d-state="{}">
         <span d-text="'&lt;h1&gt;After&lt;/h1&gt;'">
           Before
         </span>
       </div>
-    `
+    `;
 
-    // Create a Doars instance.
-    doars = new Doars({
-      root: container,
-    })
+		// Create a Doars instance.
+		doars = new Doars({
+			root: container,
+		});
 
-    doars.enable()
+		doars.enable();
 
-    // Wait for directives to process.
-    await new Promise(resolve => setTimeout(resolve, 1))
+		// Wait for directives to process.
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    // Assert the text content.
-    const span = container.querySelector('span')
-    expect(span.textContent).toBe('<h1>After</h1>')
-  })
+		// Assert the text content.
+		const span = container.querySelector("span");
+		expect(span.textContent).toBe("<h1>After</h1>");
+	});
 
-  test('text directive should handle promises', async () => {
-    doars = new Doars({
-      root: container,
-    })
+	test("text directive should handle promises", async () => {
+		doars = new Doars({
+			root: container,
+		});
 
-    // Set simple context for promise.
-    doars.setSimpleContext('resolveInTime', (result) => Promise.resolve(result))
+		// Set simple context for promise.
+		doars.setSimpleContext("resolveInTime", (result) =>
+			Promise.resolve(result),
+		);
 
-    container.innerHTML = `
+		container.innerHTML = `
       <div d-state="{}">
         <span d-text="resolveInTime('<h1>After</h1>')">
           Before
         </span>
       </div>
-    `
+    `;
 
-    doars.enable()
+		doars.enable();
 
-    // Wait for promise.
-    await new Promise(resolve => setTimeout(resolve, 1))
+		// Wait for promise.
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    // Assert text set.
-    const span = container.querySelector('span')
-    expect(span.textContent).toBe('<h1>After</h1>')
-  })
-})
+		// Assert text set.
+		const span = container.querySelector("span");
+		expect(span.textContent).toBe("<h1>After</h1>");
+	});
+});

@@ -1,45 +1,43 @@
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import Doars from "../../../src/DoarsExecute.js";
+import { document } from "../test-setup.js";
 
-import { document } from '../test-setup.js'
+describe("InContext Context", () => {
+	let container, doars;
 
-import Doars from '../../../src/DoarsExecute.js'
+	beforeEach(() => {
+		container = document.createElement("div");
+		document.body.appendChild(container);
+	});
 
-describe('InContext Context', () => {
-  let container, doars
+	afterEach(() => {
+		doars.disable();
+		doars = null;
+		document.body.removeChild(container);
+		container = null;
+	});
 
-  beforeEach(() => {
-    container = document.createElement('div')
-    document.body.appendChild(container)
-  })
+	test("inContext should execute function in component context", async () => {
+		let captured = null;
 
-  afterEach(() => {
-    doars.disable()
-    doars = null
-    document.body.removeChild(container)
-    container = null
-  })
-
-  test('inContext should execute function in component context', async () => {
-    let captured = null
-
-    container.innerHTML = `
+		container.innerHTML = `
       <div d-state="{ message: 'General Kenobi.', logged: '' }" d-initialized="$inContext(({ $state }) => { capture($state.message) })">
         <span d-text="$state.logged"></span>
       </div>
-    `
+    `;
 
-    doars = new Doars({
-      root: container,
-    })
+		doars = new Doars({
+			root: container,
+		});
 
-    doars.setSimpleContext('capture', function (message) {
-      captured = message
-    })
+		doars.setSimpleContext("capture", (message) => {
+			captured = message;
+		});
 
-    doars.enable()
+		doars.enable();
 
-    await new Promise(resolve => setTimeout(resolve, 1))
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    expect(captured).toBe('General Kenobi.')
-  })
-})
+		expect(captured).toBe("General Kenobi.");
+	});
+});

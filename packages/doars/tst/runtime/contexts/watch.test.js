@@ -1,45 +1,43 @@
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import Doars from "../../../src/DoarsExecute.js";
+import { document } from "../test-setup.js";
 
-import { document } from '../test-setup.js'
+describe("Watch Context", () => {
+	let container, doars;
 
-import Doars from '../../../src/DoarsExecute.js'
+	beforeEach(() => {
+		container = document.createElement("div");
+		document.body.appendChild(container);
+	});
 
-describe('Watch Context', () => {
-  let container, doars
+	afterEach(() => {
+		doars.disable();
+		doars = null;
+		document.body.removeChild(container);
+		container = null;
+	});
 
-  beforeEach(() => {
-    container = document.createElement('div')
-    document.body.appendChild(container)
-  })
+	test("watch context should trigger", async () => {
+		doars = new Doars({
+			root: container,
+		});
 
-  afterEach(() => {
-    doars.disable()
-    doars = null
-    document.body.removeChild(container)
-    container = null
-  })
+		let captured = false;
 
-  test('watch context should trigger', async () => {
-    doars = new Doars({
-      root: container,
-    })
+		// Set simple context with closure.
+		doars.setSimpleContext("setWatched", () => {
+			captured = true;
+		});
 
-    let captured = false
-
-    // Set simple context with closure.
-    doars.setSimpleContext('setWatched', function () {
-      captured = true
-    })
-
-    container.innerHTML = `
+		container.innerHTML = `
       <div d-state="{ count: 0 }" d-initialized="$watch('count', () => setWatched())()"></div>
-    `
+    `;
 
-    doars.enable()
+		doars.enable();
 
-    await new Promise(resolve => setTimeout(resolve, 1))
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    // Assert watch triggered immediately.
-    expect(captured).toBe(true)
-  })
-})
+		// Assert watch triggered immediately.
+		expect(captured).toBe(true);
+	});
+});

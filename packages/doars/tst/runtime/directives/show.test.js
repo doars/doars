@@ -1,87 +1,87 @@
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import Doars from "../../../src/DoarsExecute.js";
+import { document } from "../test-setup.js";
 
-import { document } from '../test-setup.js'
+describe("Show Directive", () => {
+	let container, doars;
 
-import Doars from '../../../src/DoarsExecute.js'
+	beforeEach(() => {
+		container = document.createElement("div");
+		document.body.appendChild(container);
+	});
 
-describe('Show Directive', () => {
-  let container, doars
+	afterEach(() => {
+		doars.disable();
+		doars = null;
+		document.body.removeChild(container);
+		container = null;
+	});
 
-  beforeEach(() => {
-    container = document.createElement('div')
-    document.body.appendChild(container)
-  })
-
-  afterEach(() => {
-    doars.disable()
-    doars = null
-    document.body.removeChild(container)
-    container = null
-  })
-
-  test('show directive should show element when true', async () => {
-    container.innerHTML = `
+	test("show directive should show element when true", async () => {
+		container.innerHTML = `
       <div d-state="{}">
         <div d-show="true" style="display: none;">
           Hello world!
         </div>
       </div>
-    `
+    `;
 
-    doars = new Doars({
-      root: container,
-    })
-    doars.enable()
+		doars = new Doars({
+			root: container,
+		});
+		doars.enable();
 
-    await new Promise(resolve => setTimeout(resolve, 1))
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    const div = container.querySelector('div[d-show]')
-    expect(div.style.display).toBe('')
-  })
+		const div = container.querySelector("div[d-show]");
+		expect(div.style.display).toBe("");
+	});
 
-  test('show directive should hide element when false', async () => {
-    container.innerHTML = `
+	test("show directive should hide element when false", async () => {
+		container.innerHTML = `
       <div d-state="{}">
         <div d-show="false">
           Hello world!
         </div>
       </div>
-    `
+    `;
 
-    doars = new Doars({
-      root: container,
-    })
-    doars.enable()
+		doars = new Doars({
+			root: container,
+		});
+		doars.enable();
 
-    await new Promise(resolve => setTimeout(resolve, 1))
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    const div = container.querySelector('div[d-show]')
-    expect(div.style.display).toBe('none')
-  })
+		const div = container.querySelector("div[d-show]");
+		expect(div.style.display).toBe("none");
+	});
 
-  test('show directive should handle promises', async () => {
-    doars = new Doars({
-      root: container,
-    })
+	test("show directive should handle promises", async () => {
+		doars = new Doars({
+			root: container,
+		});
 
-    // Set simple context for promise.
-    doars.setSimpleContext('resolveInTime', (result) => Promise.resolve(result))
+		// Set simple context for promise.
+		doars.setSimpleContext("resolveInTime", (result) =>
+			Promise.resolve(result),
+		);
 
-    container.innerHTML = `
+		container.innerHTML = `
       <div d-state="{}">
         <div d-show="resolveInTime(true)" style="display: none;">
           Hello world!
         </div>
       </div>
-    `
+    `;
 
-    doars.enable()
+		doars.enable();
 
-    // Wait for promise.
-    await new Promise(resolve => setTimeout(resolve, 10))
+		// Wait for promise.
+		await new Promise((resolve) => setTimeout(resolve, 10));
 
-    // Assert shown.
-    const div = container.querySelector('div[d-show]')
-    expect(div.style.display).toBe('')
-  })
-})
+		// Assert shown.
+		const div = container.querySelector("div[d-show]");
+		expect(div.style.display).toBe("");
+	});
+});

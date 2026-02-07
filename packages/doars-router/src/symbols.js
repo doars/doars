@@ -1,1 +1,1 @@
-export const ROUTER = Symbol('ROUTER')
+export const ROUTER = Symbol("ROUTER");

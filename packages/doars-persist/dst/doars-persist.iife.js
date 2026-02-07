@@ -85,7 +85,10 @@
             this.remove(target2, key);
             const deleted = Reflect.deleteProperty(target2, key);
             if (deleted) {
-              this.dispatchEvent("delete", [target2, Array.isArray(target2) ? [...path] : [...path, key]]);
+              this.dispatchEvent("delete", [
+                target2,
+                Array.isArray(target2) ? [...path] : [...path, key]
+              ]);
             }
             return deleted;
           };
@@ -107,7 +110,12 @@
               value = this.add(value, [...path, key]);
             }
             target2[key] = value;
-            this.dispatchEvent("set", [target2, Array.isArray(target2) ? [...path] : [...path, key], value, receiver]);
+            this.dispatchEvent("set", [
+              target2,
+              Array.isArray(target2) ? [...path] : [...path, key],
+              value,
+              receiver
+            ]);
             return true;
           };
         }
@@ -324,4 +332,4 @@
   window.DoarsPersist = DoarsPersist_default;
 })();
 
-//# debugId=693B15CD5291AC1864756E2164756E21
+//# debugId=BB2799D58A9E894F64756E2164756E21

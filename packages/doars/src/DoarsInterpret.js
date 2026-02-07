@@ -1,6 +1,6 @@
-import Doars from './Doars.js'
-import { interpret } from './utilities/Interpret.js'
+import Doars from "./Doars.js";
+import { interpret } from "./utilities/Interpret.js";
 
-Doars.interpretExpression = interpret
+Doars.interpretExpression = interpret;
 
-export default Doars
+export default Doars;

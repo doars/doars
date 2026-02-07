@@ -1,10 +1,3 @@
-// src/symbols.js
-var ATTRIBUTES = Symbol("ATTRIBUTES");
-var COMPONENT = Symbol("COMPONENT");
-var FOR = Symbol("FOR");
-var REFERENCES = Symbol("REFERENCES");
-var REFERENCES_CACHE = Symbol("REFERENCES_CACHE");
-
 // ../common/src/events/EventDispatcher.js
 class EventDispatcher {
   constructor() {
@@ -59,6 +52,137 @@ class EventDispatcher {
         }
         event.callback(...parameters);
       }
+    };
+  }
+}
+
+// ../common/src/utilities/Element.js
+var fromString = (string) => {
+  const stringStart = string.substring(0, 15).toLowerCase();
+  if (stringStart.startsWith("<!doctype html>") || stringStart.startsWith("<html>")) {
+    const html = document.createElement("html");
+    html.innerHTML = string;
+    return html;
+  }
+  const template = document.createElement("template");
+  template.innerHTML = string;
+  return template.content.childNodes[0];
+};
+var isSame = (a, b) => {
+  if (a.isSameNode && a.isSameNode(b)) {
+    return true;
+  }
+  if (a.type === 3) {
+    return a.nodeValue === b.nodeValue;
+  }
+  if (a.tagName === b.tagName) {
+    return true;
+  }
+  return false;
+};
+var walk = (node, filter) => {
+  let index = -1;
+  let iterator = null;
+  return () => {
+    if (index >= 0 && iterator) {
+      const child2 = iterator();
+      if (child2) {
+        return child2;
+      }
+    }
+    let child = null;
+    do {
+      index++;
+      if (index >= node.childElementCount) {
+        return null;
+      }
+      child = node.children[index];
+    } while (!filter(child));
+    if (child.childElementCount) {
+      iterator = walk(child, filter);
+    }
+    return child;
+  };
+};
+
+// ../common/src/events/ProxyDispatcher.js
+class ProxyDispatcher extends EventDispatcher {
+  constructor(options = {}) {
+    super();
+    options = Object.assign({
+      delete: true,
+      get: true,
+      set: true
+    }, options);
+    const map = new WeakMap;
+    this.add = (target, path = []) => {
+      if (map.has(target)) {
+        return map.get(target);
+      }
+      for (const key in target) {
+        if (target[key] && typeof target[key] === "object") {
+          target[key] = this.add(target[key], [...path, key]);
+        }
+      }
+      const handler = {};
+      if (options.delete) {
+        handler.deleteProperty = (target2, key) => {
+          if (!Reflect.has(target2, key)) {
+            return true;
+          }
+          this.remove(target2, key);
+          const deleted = Reflect.deleteProperty(target2, key);
+          if (deleted) {
+            this.dispatchEvent("delete", [
+              target2,
+              Array.isArray(target2) ? [...path] : [...path, key]
+            ]);
+          }
+          return deleted;
+        };
+      }
+      if (options.get) {
+        handler.get = (target2, key, receiver) => {
+          if (key !== Symbol.unscopables) {
+            this.dispatchEvent("get", [target2, [...path, key], receiver]);
+          }
+          return Reflect.get(target2, key, receiver);
+        };
+      }
+      if (options.set) {
+        handler.set = (target2, key, value, receiver) => {
+          if (target2[key] === value) {
+            return true;
+          }
+          if (value && typeof value === "object") {
+            value = this.add(value, [...path, key]);
+          }
+          target2[key] = value;
+          this.dispatchEvent("set", [
+            target2,
+            Array.isArray(target2) ? [...path] : [...path, key],
+            value,
+            receiver
+          ]);
+          return true;
+        };
+      }
+      const revocable = Proxy.revocable(target, handler);
+      map.set(revocable, target);
+      return revocable.proxy;
+    };
+    this.remove = (target) => {
+      if (!map.has(target)) {
+        return;
+      }
+      const revocable = map.get(target);
+      map.delete(revocable);
+      for (const property in revocable.proxy) {
+        if (typeof revocable.proxy[property] === "object") {
+          this.remove(revocable.proxy[property]);
+        }
+      }
+      revocable.revoke();
     };
   }
 }
@@ -166,14 +290,22 @@ var parseSelector = (selector) => {
           attributes.class.push(selectorSegment);
         }
         break;
-      case "[":
+      case "[": {
         const [full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
         attributes[key] = value;
         break;
+      }
     }
   }
   return attributes;
 };
+
+// src/symbols.js
+var ATTRIBUTES = Symbol("ATTRIBUTES");
+var COMPONENT = Symbol("COMPONENT");
+var FOR = Symbol("FOR");
+var REFERENCES = Symbol("REFERENCES");
+var REFERENCES_CACHE = Symbol("REFERENCES_CACHE");
 
 // src/Attribute.js
 class Attribute extends EventDispatcher {
@@ -283,80 +415,6 @@ class Attribute extends EventDispatcher {
   }
 }
 
-// ../common/src/events/ProxyDispatcher.js
-class ProxyDispatcher extends EventDispatcher {
-  constructor(options = {}) {
-    super();
-    options = Object.assign({
-      delete: true,
-      get: true,
-      set: true
-    }, options);
-    const map = new WeakMap;
-    this.add = (target, path = []) => {
-      if (map.has(target)) {
-        return map.get(target);
-      }
-      for (const key in target) {
-        if (target[key] && typeof target[key] === "object") {
-          target[key] = this.add(target[key], [...path, key]);
-        }
-      }
-      const handler = {};
-      if (options.delete) {
-        handler.deleteProperty = (target2, key) => {
-          if (!Reflect.has(target2, key)) {
-            return true;
-          }
-          this.remove(target2, key);
-          const deleted = Reflect.deleteProperty(target2, key);
-          if (deleted) {
-            this.dispatchEvent("delete", [target2, Array.isArray(target2) ? [...path] : [...path, key]]);
-          }
-          return deleted;
-        };
-      }
-      if (options.get) {
-        handler.get = (target2, key, receiver) => {
-          if (key !== Symbol.unscopables) {
-            this.dispatchEvent("get", [target2, [...path, key], receiver]);
-          }
-          return Reflect.get(target2, key, receiver);
-        };
-      }
-      if (options.set) {
-        handler.set = (target2, key, value, receiver) => {
-          if (target2[key] === value) {
-            return true;
-          }
-          if (value && typeof value === "object") {
-            value = this.add(value, [...path, key]);
-          }
-          target2[key] = value;
-          this.dispatchEvent("set", [target2, Array.isArray(target2) ? [...path] : [...path, key], value, receiver]);
-          return true;
-        };
-      }
-      const revocable = Proxy.revocable(target, handler);
-      map.set(revocable, target);
-      return revocable.proxy;
-    };
-    this.remove = (target) => {
-      if (!map.has(target)) {
-        return;
-      }
-      const revocable = map.get(target);
-      map.delete(revocable);
-      for (const property in revocable.proxy) {
-        if (typeof revocable.proxy[property] === "object") {
-          this.remove(revocable.proxy[property]);
-        }
-      }
-      revocable.revoke();
-    };
-  }
-}
-
 // src/utilities/Component.js
 var closestComponent = (element) => {
   if (element.parentElement) {
@@ -368,63 +426,11 @@ var closestComponent = (element) => {
   }
 };
 
-// ../common/src/utilities/Element.js
-var fromString = (string) => {
-  const stringStart = string.substring(0, 15).toLowerCase();
-  if (stringStart.startsWith("<!doctype html>") || stringStart.startsWith("<html>")) {
-    const html = document.createElement("html");
-    html.innerHTML = string;
-    return html;
-  }
-  const template = document.createElement("template");
-  template.innerHTML = string;
-  return template.content.childNodes[0];
-};
-var isSame = (a, b) => {
-  if (a.isSameNode && a.isSameNode(b)) {
-    return true;
-  }
-  if (a.type === 3) {
-    return a.nodeValue === b.nodeValue;
-  }
-  if (a.tagName === b.tagName) {
-    return true;
-  }
-  return false;
-};
-var walk = (node, filter) => {
-  let index = -1;
-  let iterator = null;
-  return () => {
-    if (index >= 0 && iterator) {
-      const child2 = iterator();
-      if (child2) {
-        return child2;
-      }
-    }
-    let child = null;
-    do {
-      index++;
-      if (index >= node.childElementCount) {
-        return null;
-      }
-      child = node.children[index];
-    } while (!filter(child));
-    if (child.childElementCount) {
-      iterator = walk(child, filter);
-    }
-    return child;
-  };
-};
-
 // src/Component.js
 class Component {
   constructor(library, element) {
     const id = Symbol("ID_COMPONENT");
-    const {
-      prefix,
-      stateDirectiveName
-    } = library.getOptions();
+    const { prefix, stateDirectiveName } = library.getOptions();
     const processExpression = library.getProcessor();
     let attributes = [], hasUpdated = false, isInitialized = false, data, proxy, state;
     if (!element.attributes[prefix + "-" + stateDirectiveName]) {
@@ -437,10 +443,12 @@ class Component {
     if (parent) {
       if (!parent.getChildren().includes(this)) {
         parent.getChildren().push(this);
-        library.update([{
-          id: parent.getId(),
-          path: "children"
-        }]);
+        library.update([
+          {
+            id: parent.getId(),
+            path: "children"
+          }
+        ]);
       }
     }
     const dispatchEvent = (name, detail) => {
@@ -584,10 +592,7 @@ class Component {
       attribute.destroy();
     };
     this.scanAttributes = (element2) => {
-      const {
-        stateDirectiveName: stateDirectiveName2,
-        ignoreDirectiveName
-      } = this.getLibrary().getOptions();
+      const { stateDirectiveName: stateDirectiveName2, ignoreDirectiveName } = this.getLibrary().getOptions();
       const componentName = prefix + "-" + stateDirectiveName2;
       const ignoreName = prefix + "-" + ignoreDirectiveName;
       const newAttributes = [];
@@ -741,22 +746,20 @@ var createAutoContexts = (component, attribute, extra = null) => {
       path: context
     });
   };
-  const {
+  const { contexts, destroy } = createContexts(component, attribute, update, extra);
+  return [
     contexts,
-    destroy
-  } = createContexts(component, attribute, update, extra);
-  return [contexts, () => {
-    destroy();
-    if (triggers.length > 0) {
-      component.getLibrary().update(triggers);
+    () => {
+      destroy();
+      if (triggers.length > 0) {
+        component.getLibrary().update(triggers);
+      }
     }
-  }];
+  ];
 };
 
 // src/contexts/children.js
-var children_default = ({
-  childrenContextName
-}) => ({
+var children_default = ({ childrenContextName }) => ({
   name: childrenContextName,
   create: (component, attribute, update) => {
     let childrenContexts;
@@ -788,29 +791,15 @@ var children_default = ({
 });
 
 // src/contexts/component.js
-var component_default = ({
-  componentContextName
-}) => ({
+var component_default = ({ componentContextName }) => ({
   name: componentContextName,
   create: (component) => ({
     value: component.getElement()
   })
 });
 
-// src/contexts/element.js
-var element_default = ({
-  elementContextName
-}) => ({
-  name: elementContextName,
-  create: (component, attribute) => ({
-    value: attribute.getElement()
-  })
-});
-
 // src/contexts/dispatch.js
-var dispatch_default = ({
-  dispatchContextName
-}) => ({
+var dispatch_default = ({ dispatchContextName }) => ({
   name: dispatchContextName,
   create: (component) => {
     return {
@@ -824,11 +813,16 @@ var dispatch_default = ({
   }
 });
 
+// src/contexts/element.js
+var element_default = ({ elementContextName }) => ({
+  name: elementContextName,
+  create: (component, attribute) => ({
+    value: attribute.getElement()
+  })
+});
+
 // src/contexts/for.js
-var for_default = ({
-  forContextDeconstruct,
-  forContextName
-}) => ({
+var for_default = ({ forContextDeconstruct, forContextName }) => ({
   deconstruct: forContextDeconstruct,
   name: forContextName,
   create: (component, attribute) => {
@@ -870,9 +864,7 @@ var for_default = ({
 });
 
 // src/contexts/inContext.js
-var inContext_default = ({
-  inContextContextName
-}) => ({
+var inContext_default = ({ inContextContextName }) => ({
   name: inContextContextName,
   create: (component, attribute) => ({
     value: (callback) => {
@@ -883,10 +875,7 @@ var inContext_default = ({
           path
         });
       };
-      const {
-        contexts,
-        destroy
-      } = createContexts(component, attribute, contextUpdate, {});
+      const { contexts, destroy } = createContexts(component, attribute, contextUpdate, {});
       const result = callback(contexts);
       destroy();
       if (newTriggers.length > 0) {
@@ -898,9 +887,7 @@ var inContext_default = ({
 });
 
 // src/contexts/nextSibling.js
-var nextSibling_default = ({
-  nextSiblingContextName
-}) => ({
+var nextSibling_default = ({ nextSiblingContextName }) => ({
   name: nextSiblingContextName,
   create: (component, attribute, update) => {
     const parent = component.getParent();
@@ -916,10 +903,7 @@ var nextSibling_default = ({
         value: null
       };
     }
-    const {
-      contexts,
-      destroy
-    } = createContextsProxy(siblings[index + 1], attribute, update);
+    const { contexts, destroy } = createContextsProxy(siblings[index + 1], attribute, update);
     return {
       value: contexts,
       destroy
@@ -928,9 +912,7 @@ var nextSibling_default = ({
 });
 
 // src/contexts/nextTick.js
-var nextTick_default = ({
-  nextTickContextName
-}) => ({
+var nextTick_default = ({ nextTickContextName }) => ({
   name: nextTickContextName,
   create: (component, attribute, update) => {
     let callbacks;
@@ -944,10 +926,7 @@ var nextTick_default = ({
       callbacks = [];
       const handleUpdate = () => {
         stopListening();
-        const {
-          contexts,
-          destroy
-        } = createContexts(component, attribute, update, {});
+        const { contexts, destroy } = createContexts(component, attribute, update, {});
         for (const callback of callbacks) {
           callback(contexts);
         }
@@ -972,9 +951,7 @@ var nextTick_default = ({
 });
 
 // src/contexts/parent.js
-var parent_default = ({
-  parentContextName
-}) => ({
+var parent_default = ({ parentContextName }) => ({
   name: parentContextName,
   create: (component, attribute, update) => {
     const parent = component.getParent();
@@ -983,10 +960,7 @@ var parent_default = ({
         value: null
       };
     }
-    const {
-      contexts,
-      destroy
-    } = createContextsProxy(parent, attribute, update);
+    const { contexts, destroy } = createContextsProxy(parent, attribute, update);
     return {
       value: contexts,
       destroy
@@ -995,9 +969,7 @@ var parent_default = ({
 });
 
 // src/contexts/previousSibling.js
-var previousSibling_default = ({
-  previousSiblingContextName
-}) => ({
+var previousSibling_default = ({ previousSiblingContextName }) => ({
   name: previousSiblingContextName,
   create: (component, attribute, update) => {
     const parent = component.getParent();
@@ -1013,10 +985,7 @@ var previousSibling_default = ({
         value: null
       };
     }
-    const {
-      contexts,
-      destroy
-    } = createContextsProxy(siblings[index - 1], attribute, update);
+    const { contexts, destroy } = createContextsProxy(siblings[index - 1], attribute, update);
     return {
       value: contexts,
       destroy
@@ -1025,9 +994,7 @@ var previousSibling_default = ({
 });
 
 // src/contexts/references.js
-var references_default = ({
-  referencesContextName
-}) => ({
+var references_default = ({ referencesContextName }) => ({
   name: referencesContextName,
   create: (component, attribute) => {
     if (!component[REFERENCES]) {
@@ -1062,9 +1029,7 @@ var references_default = ({
 });
 
 // src/contexts/siblings.js
-var siblings_default = ({
-  siblingsContextName
-}) => ({
+var siblings_default = ({ siblingsContextName }) => ({
   name: siblingsContextName,
   create: (component, attribute, update) => {
     const parent = component.getParent();
@@ -1124,10 +1089,7 @@ var createState_default = (name, id, state, proxy) => {
 };
 
 // src/contexts/state.js
-var state_default = ({
-  stateContextDeconstruct,
-  stateContextName
-}) => ({
+var state_default = ({ stateContextDeconstruct, stateContextName }) => ({
   deconstruct: stateContextDeconstruct,
   name: stateContextName,
   create: (component, attribute, update, utilities) => {
@@ -1138,6 +1100,13 @@ var state_default = ({
     }
     return createState_default(stateContextName, component.getId(), state, proxy)(component, attribute, update, utilities);
   }
+});
+
+// ../common/src/factories/createStateContext.js
+var createStateContext_default = (name, id, state, proxy, deconstruct) => ({
+  deconstruct,
+  name,
+  create: createState_default(name, id, state, proxy)
 });
 
 // ../common/src/utilities/Object.js
@@ -1196,13 +1165,6 @@ var setDeeply = (object, path, value) => {
   object[path[i]] = value;
 };
 
-// ../common/src/factories/createStateContext.js
-var createStateContext_default = (name, id, state, proxy, deconstruct) => ({
-  deconstruct,
-  name,
-  create: createState_default(name, id, state, proxy)
-});
-
 // src/contexts/store.js
 var store_default = ({
   storeContextDeconstruct,
@@ -1216,9 +1178,7 @@ var store_default = ({
 };
 
 // src/contexts/watch.js
-var watch_default = ({
-  watchContextName
-}) => ({
+var watch_default = ({ watchContextName }) => ({
   name: watchContextName,
   create: (component, attribute) => {
     let callbacks = null, contextIsDestroyed = false, directiveIsDestroyed = false, isInitialized = false, processExpression = null;
@@ -1244,13 +1204,9 @@ var watch_default = ({
                 processExpression(component, callback.attribute, callback.path);
               }
               if (callback.attribute.hasAccessed(id, triggers[id])) {
-                const {
-                  contexts,
-                  destroy
-                } = createContexts(component, attribute, contextUpdate, {});
+                const { contexts, destroy } = createContexts(component, attribute, contextUpdate, {});
                 callback.callback(contexts);
                 destroy();
-                continue;
               }
             }
           }
@@ -1291,10 +1247,7 @@ var watch_default = ({
               path: path2
             });
           };
-          const {
-            contexts,
-            destroy
-          } = createContexts(component, attribute.clone(), contextUpdate, {});
+          const { contexts, destroy } = createContexts(component, attribute.clone(), contextUpdate, {});
           callback(contexts);
           destroy();
           if (newTriggers.length > 0) {
@@ -1438,9 +1391,7 @@ var isPromise = (value) => {
 };
 
 // src/directives/attribute.js
-var attribute_default = ({
-  attributeDirectiveName
-}) => ({
+var attribute_default = ({ attributeDirectiveName }) => ({
   name: attributeDirectiveName,
   update: (component, attribute, processExpression) => {
     const directive = attribute.getDirective();
@@ -1596,9 +1547,7 @@ var transitionOut = (libraryOptions, element, callback) => {
 };
 
 // src/directives/cloak.js
-var cloak_default = ({
-  cloakDirectiveName
-}) => ({
+var cloak_default = ({ cloakDirectiveName }) => ({
   name: cloakDirectiveName,
   update: (component, attribute) => {
     const element = attribute.getElement();
@@ -1691,10 +1640,7 @@ var removeAfter = (component, elements, maxLength) => {
     });
   }
 };
-var for_default2 = ({
-  allowInlineScript,
-  forDirectiveName
-}) => ({
+var for_default2 = ({ allowInlineScript, forDirectiveName }) => ({
   name: forDirectiveName,
   update: (component, attribute, processExpression) => {
     const directive = attribute.getDirective();
@@ -1968,10 +1914,7 @@ var _updateChildren = (existingNode, newNode) => {
 };
 
 // src/directives/html.js
-var html_default = ({
-  allowInlineScript,
-  htmlDirectiveName
-}) => ({
+var html_default = ({ allowInlineScript, htmlDirectiveName }) => ({
   name: htmlDirectiveName,
   update: (component, attribute, processExpression) => {
     const directive = attribute.getDirective();
@@ -2039,10 +1982,7 @@ var html_default = ({
 });
 
 // src/directives/if.js
-var if_default = ({
-  allowInlineScript,
-  ifDirectiveName
-}) => ({
+var if_default = ({ allowInlineScript, ifDirectiveName }) => ({
   name: ifDirectiveName,
   update: (component, attribute, processExpression) => {
     const libraryOptions = component.getLibrary().getOptions();
@@ -2102,9 +2042,7 @@ var if_default = ({
       set(result);
     }
   },
-  destroy: (component, attribute, {
-    transitionOut: transitionOut2
-  }) => {
+  destroy: (component, attribute, { transitionOut: transitionOut2 }) => {
     const data = attribute.getData();
     if (data.element) {
       transitionOut2(component.getLibrary().getOptions(), data.element, () => {
@@ -2125,9 +2063,7 @@ var destroy = (component, attribute) => {
   element.removeEventListener(name, attribute[INITIALIZED].handler);
   delete attribute[INITIALIZED];
 };
-var initialized_default = ({
-  initializedDirectiveName
-}) => ({
+var initialized_default = ({ initializedDirectiveName }) => ({
   name: initializedDirectiveName,
   update: (component, attribute, processExpression) => {
     const element = component.getElement();
@@ -2174,15 +2110,8 @@ var EXECUTION_MODIFIERS = {
   THROTTLE: 5,
   DELAY: 6
 };
-var KEYPRESS_MODIFIERS = [
-  "alt",
-  "ctrl",
-  "meta",
-  "shift"
-];
-var on_default = ({
-  onDirectiveName
-}) => ({
+var KEYPRESS_MODIFIERS = ["alt", "ctrl", "meta", "shift"];
+var on_default = ({ onDirectiveName }) => ({
   name: onDirectiveName,
   update: (component, attribute, processExpression) => {
     const directive = attribute.getDirective();
@@ -2325,7 +2254,7 @@ var on_default = ({
           }
           attribute[ON].timeout = setTimeout(execute, modifiers.debounce);
           return;
-        case EXECUTION_MODIFIERS.HELD:
+        case EXECUTION_MODIFIERS.HELD: {
           if (!(eventName in CANCEL_EVENTS)) {
             console.warn('Doars: "' + directive + '" directive, event of name "' + eventName + '" is not cancelable and can not have "held" modifier.');
             return;
@@ -2365,9 +2294,12 @@ var on_default = ({
             execute();
           };
           attribute[ON].prevent = true;
-          target.addEventListener(cancelHeldName, attribute[ON].cancel, { once: true });
+          target.addEventListener(cancelHeldName, attribute[ON].cancel, {
+            once: true
+          });
           return;
-        case EXECUTION_MODIFIERS.HOLD:
+        }
+        case EXECUTION_MODIFIERS.HOLD: {
           if (!(eventName in CANCEL_EVENTS)) {
             console.warn('Doars: "' + directive + '" directive, event of name "' + eventName + '" is not cancelable and can not have "hold" modifier.');
             return;
@@ -2404,7 +2336,9 @@ var on_default = ({
             }
             clearTimeout(attribute[ON].timeout);
           };
-          target.addEventListener(cancelHoldName, attribute[ON].cancel, { once: true });
+          target.addEventListener(cancelHoldName, attribute[ON].cancel, {
+            once: true
+          });
           attribute[ON].prevent = true;
           attribute[ON].timeout = setTimeout(() => {
             target.removeEventListener(cancelHoldName, attribute[ON].cancel);
@@ -2412,7 +2346,8 @@ var on_default = ({
             execute();
           }, modifiers.hold);
           return;
-        case EXECUTION_MODIFIERS.THROTTLE:
+        }
+        case EXECUTION_MODIFIERS.THROTTLE: {
           const nowThrottle = window.performance.now();
           if (attribute[ON].lastExecution && nowThrottle - attribute[ON].lastExecution < modifiers.throttle) {
             return;
@@ -2420,6 +2355,7 @@ var on_default = ({
           execute();
           attribute[ON].lastExecution = nowThrottle;
           return;
+        }
         case EXECUTION_MODIFIERS.DELAY:
           attribute[ON].prevent = true;
           attribute[ON].timeout = setTimeout(() => {
@@ -2473,14 +2409,14 @@ var destroy2 = (component, attribute) => {
   if (Object.keys(component[REFERENCES]).length === 0) {
     delete component[REFERENCES];
   }
-  library.update([{
-    id: componentId,
-    path: "$references." + name
-  }]);
+  library.update([
+    {
+      id: componentId,
+      path: "$references." + name
+    }
+  ]);
 };
-var reference_default = ({
-  referenceDirectiveName
-}) => ({
+var reference_default = ({ referenceDirectiveName }) => ({
   name: referenceDirectiveName,
   update: (component, attribute, processExpression) => {
     const library = component.getLibrary();
@@ -2488,9 +2424,7 @@ var reference_default = ({
     const directive = attribute.getDirective();
     const element = attribute.getElement();
     const attributeId = attribute.getId();
-    const {
-      referenceDirectiveEvaluate
-    } = library.getOptions();
+    const { referenceDirectiveEvaluate } = library.getOptions();
     let name = attribute.getValue();
     name = referenceDirectiveEvaluate ? processExpression(component, attribute, name) : name.trim();
     if (!name || typeof name !== "string" || !/^[_$a-z]{1}[_\-$a-z0-9]{0,}$/i.test(name)) {
@@ -2506,10 +2440,12 @@ var reference_default = ({
       name
     };
     delete component[REFERENCES_CACHE];
-    library.update([{
-      id: componentId,
-      path: "$references." + name
-    }]);
+    library.update([
+      {
+        id: componentId,
+        path: "$references." + name
+      }
+    ]);
   },
   destroy: destroy2
 });
@@ -2519,9 +2455,7 @@ var TAG_SELECT = "SELECT";
 var CHECKED = "checked";
 var SELECTED = "selected";
 var TYPE_CHECKBOX = "checkbox";
-var select_default = ({
-  selectDirectiveName
-}) => ({
+var select_default = ({ selectDirectiveName }) => ({
   name: selectDirectiveName,
   update: (component, attribute, processExpression) => {
     const element = attribute.getElement();
@@ -2580,9 +2514,7 @@ var select_default = ({
 });
 
 // src/directives/show.js
-var show_default = ({
-  showDirectiveName
-}) => ({
+var show_default = ({ showDirectiveName }) => ({
   name: showDirectiveName,
   update: (component, attribute, processExpression) => {
     const libraryOptions = component.getLibrary().getOptions();
@@ -2628,9 +2560,7 @@ var show_default = ({
 
 // src/directives/sync.js
 var SYNC = Symbol("SYNC");
-var sync_default = ({
-  syncDirectiveName
-}) => ({
+var sync_default = ({ syncDirectiveName }) => ({
   name: syncDirectiveName,
   update: (component, attribute, processExpression) => {
     const element = attribute.getElement();
@@ -2783,9 +2713,7 @@ var sync_default = ({
 });
 
 // src/directives/text.js
-var text_default = ({
-  textDirectiveName
-}) => ({
+var text_default = ({ textDirectiveName }) => ({
   name: textDirectiveName,
   update: (component, attribute, processExpression) => {
     const element = attribute.getElement();
@@ -2819,9 +2747,7 @@ var text_default = ({
 });
 
 // src/directives/watch.js
-var watch_default2 = ({
-  watchDirectiveName
-}) => ({
+var watch_default2 = ({ watchDirectiveName }) => ({
   name: watchDirectiveName,
   update: (component, attribute, processExpression) => processExpression(component, attribute.clone(), attribute.getValue(), {}, { return: false })
 });
@@ -2830,11 +2756,7 @@ var watch_default2 = ({
 class Doars extends EventDispatcher {
   constructor(options) {
     super();
-    let {
-      prefix,
-      processor,
-      root
-    } = options = Object.assign({
+    let { prefix, processor, root } = options = Object.assign({
       prefix: "d",
       processor: "execute",
       root: document.body,
@@ -2984,13 +2906,12 @@ class Doars extends EventDispatcher {
         childList: true,
         subtree: true
       });
-      const {
-        stateDirectiveName,
-        ignoreDirectiveName
-      } = this.getOptions();
+      const { stateDirectiveName, ignoreDirectiveName } = this.getOptions();
       const componentName = prefix + "-" + stateDirectiveName;
       const ignoreName = prefix + "-" + ignoreDirectiveName;
-      const componentElements = [...root.querySelectorAll("[" + componentName + "]")];
+      const componentElements = [
+        ...root.querySelectorAll("[" + componentName + "]")
+      ];
       for (let i = componentElements.length - 1;i >= 0; i--) {
         if (componentElements[i].closest("[" + ignoreName + "]")) {
           componentElements.splice(i, 1);
@@ -3079,7 +3000,7 @@ class Doars extends EventDispatcher {
     this.setSimpleContexts = (contexts2) => {
       const result = {};
       for (const name in contexts2) {
-        if (Object.hasOwnProperty.call(contexts2, name)) {
+        if (Object.hasOwn(contexts2, name)) {
           result[name] = this.setSimpleContext(name, contexts2[name]);
         }
       }
@@ -3187,14 +3108,9 @@ class Doars extends EventDispatcher {
       }
       if (_triggers) {
         for (const trigger of _triggers) {
-          const {
-            id: id2,
-            path
-          } = trigger;
+          const { id: id2, path } = trigger;
           if (!(id2 in triggers)) {
-            triggers[id2] = [
-              path
-            ];
+            triggers[id2] = [path];
             continue;
           }
           if (!triggers[id2].includes(path)) {
@@ -3238,10 +3154,7 @@ class Doars extends EventDispatcher {
       isUpdating = true;
       newMutations = [...mutations];
       mutations = [];
-      const {
-        stateDirectiveName,
-        ignoreDirectiveName
-      } = this.getOptions();
+      const { stateDirectiveName, ignoreDirectiveName } = this.getOptions();
       const componentName = prefix + "-" + stateDirectiveName;
       const ignoreName = prefix + "-" + ignoreDirectiveName;
       const componentsToAdd = [];
@@ -3536,11 +3449,7 @@ var parse_default = (expression) => {
     if (!right) {
       throw new Error("Expected expression after " + operator);
     }
-    const stack = [
-      left,
-      binaryOperationInfo,
-      right
-    ];
+    const stack = [left, binaryOperationInfo, right];
     let node;
     while (operator = gobbleBinaryOperation()) {
       const precedence = BINARY_OPERATORS[operator] || 0;
@@ -3590,7 +3499,7 @@ var parse_default = (expression) => {
     let toCheck = expression.substring(index, index + 3);
     let toCheckLength = toCheck.length;
     while (toCheckLength > 0) {
-      if (Object.prototype.hasOwnProperty.call(BINARY_OPERATORS, toCheck) && (!isIdentifierStart(expression.charCodeAt(index)) || index + toCheck.length < expression.length && !isIdentifierPart(expression.charCodeAt(index + toCheck.length)))) {
+      if (Object.hasOwn(BINARY_OPERATORS, toCheck) && (!isIdentifierStart(expression.charCodeAt(index)) || index + toCheck.length < expression.length && !isIdentifierPart(expression.charCodeAt(index + toCheck.length)))) {
         index += toCheckLength;
         return toCheck;
       }
@@ -3873,7 +3782,7 @@ var parse_default = (expression) => {
       }
       if (isIdentifierStart(character)) {
         node = gobbleIdentifier();
-        if (Object.prototype.hasOwnProperty.call(LITERALS, node.name)) {
+        if (Object.hasOwn(LITERALS, node.name)) {
           node = {
             type: LITERAL,
             value: LITERALS[node.name]
@@ -3996,7 +3905,7 @@ var setToContext = (node, value, context = {}) => {
     case IDENTIFIER:
       context[node.name] = value;
       return value;
-    case MEMBER:
+    case MEMBER: {
       const memberObject = run(node.object, context);
       const memberProperty = node.computed || node.property.type !== IDENTIFIER ? run(node.property, context) : node.property.name;
       if (typeof value === "function") {
@@ -4004,6 +3913,7 @@ var setToContext = (node, value, context = {}) => {
       }
       memberObject[memberProperty] = value;
       return value;
+    }
   }
   throw new Error("Unsupported assignment method.");
 };
@@ -4019,13 +3929,14 @@ var run = (node, context = {}) => {
       return context[node.name];
     case LITERAL:
       return node.value;
-    case ARRAY:
+    case ARRAY: {
       const arrayResults = [];
       for (const arrayElement of node.elements) {
         arrayResults.push(run(arrayElement, context));
       }
       return arrayResults;
-    case ASSIGN:
+    }
+    case ASSIGN: {
       let assignmentValue = run(node.right, context);
       if (node.operator !== "=") {
         const assignmentLeft = run(node.left, context);
@@ -4066,7 +3977,8 @@ var run = (node, context = {}) => {
         }
       }
       return setToContext(node.left, assignmentValue, context);
-    case BINARY:
+    }
+    case BINARY: {
       const binaryLeft = run(node.left, context);
       const binaryRight = run(node.right, context);
       switch (node.operator) {
@@ -4104,30 +4016,34 @@ var run = (node, context = {}) => {
           return binaryLeft % binaryRight;
       }
       throw new Error("Unsupported operator: " + node.operator);
-    case CALL:
+    }
+    case CALL: {
       const parameters = [];
       for (const parameter of node.parameters) {
         parameters.push(run(parameter, context));
       }
       return run(node.callee, context)(...parameters);
+    }
     case CONDITION:
       return run(node.condition, context) ? run(node.consequent, context) : run(node.alternate, context);
-    case MEMBER:
+    case MEMBER: {
       const memberObject = run(node.object, context);
       const memberProperty = node.computed || node.property.type !== IDENTIFIER ? run(node.property, context) : node.property.name;
       if (typeof memberObject[memberProperty] === "function") {
         return memberObject[memberProperty].bind(memberObject);
       }
       return memberObject[memberProperty];
-    case OBJECT:
+    }
+    case OBJECT: {
       const objectResult = {};
       for (const objectProperty of node.properties) {
         objectResult[objectProperty.computed || objectProperty.key.type !== IDENTIFIER ? run(objectProperty.key, context) : objectProperty.key.name] = run(objectProperty.value, context);
       }
       return objectResult;
+    }
     case SEQUENCE:
       return node.expressions.map((node2) => run(node2, context));
-    case UNARY:
+    case UNARY: {
       const unaryParameter = run(node.parameter, context);
       switch (node.operator) {
         case "!":
@@ -4138,11 +4054,13 @@ var run = (node, context = {}) => {
           return +unaryParameter;
       }
       throw new Error("Unsupported operator: " + node.operator);
-    case UPDATE:
+    }
+    case UPDATE: {
       const updateResult = run(node.parameter, context);
       const updateValue = node.operator === "--" ? -1 : 1;
       setToContext(node.parameter, updateResult + updateValue, context);
       return node.prefix ? updateResult + updateValue : updateResult;
+    }
   }
   throw new Error('Unexpected node type "' + node.type + '".');
 };
@@ -4184,4 +4102,4 @@ export {
   DoarsInterpret_default as default
 };
 
-//# debugId=9FFEDC91F6C01CAF64756E2164756E21
+//# debugId=7A2E25BD8152B2C864756E2164756E21

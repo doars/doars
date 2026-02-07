@@ -1,93 +1,93 @@
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import Doars from "../../../src/DoarsExecute.js";
+import { document } from "../test-setup.js";
 
-import { document } from '../test-setup.js'
+describe("Html Directive", () => {
+	let container, doars;
 
-import Doars from '../../../src/DoarsExecute.js'
+	beforeEach(() => {
+		container = document.createElement("div");
+		document.body.appendChild(container);
+	});
 
-describe('Html Directive', () => {
-  let container, doars
+	afterEach(() => {
+		doars.disable();
+		doars = null;
+		document.body.removeChild(container);
+		container = null;
+	});
 
-  beforeEach(() => {
-    container = document.createElement('div')
-    document.body.appendChild(container)
-  })
-
-  afterEach(() => {
-    doars.disable()
-    doars = null
-    document.body.removeChild(container)
-    container = null
-  })
-
-  test('html directive should set innerHTML', async () => {
-    container.innerHTML = `
+	test("html directive should set innerHTML", async () => {
+		container.innerHTML = `
       <div d-state="{}">
         <span d-html="'<h1>After</h1>'">
           Before
         </span>
       </div>
-    `
+    `;
 
-    doars = new Doars({
-      root: container,
-    })
-    doars.enable()
+		doars = new Doars({
+			root: container,
+		});
+		doars.enable();
 
-    await new Promise(resolve => setTimeout(resolve, 1))
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    const span = container.querySelector('span')
-    expect(span.innerHTML).toBe('<h1>After</h1>')
-  })
+		const span = container.querySelector("span");
+		expect(span.innerHTML).toBe("<h1>After</h1>");
+	});
 
-  test('html directive should decode HTML entities', async () => {
-    container.innerHTML = `
+	test("html directive should decode HTML entities", async () => {
+		container.innerHTML = `
       <div d-state="{}">
         <span d-html.decode="'&lt;h1&gt;After&lt;/h1&gt;'">
           Before
         </span>
       </div>
-    `
+    `;
 
-    doars = new Doars({
-      root: container,
-    })
-    doars.enable()
+		doars = new Doars({
+			root: container,
+		});
+		doars.enable();
 
-    await new Promise(resolve => setTimeout(resolve, 1))
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    // Assert decoded HTML.
-    const span = container.querySelector('span')
-    expect(span.innerHTML).toBe('<h1>After</h1>')
-  })
+		// Assert decoded HTML.
+		const span = container.querySelector("span");
+		expect(span.innerHTML).toBe("<h1>After</h1>");
+	});
 
-  test('html directive should handle promises', async () => {
-    doars = new Doars({
-      root: container,
-    })
+	test("html directive should handle promises", async () => {
+		doars = new Doars({
+			root: container,
+		});
 
-    // Set simple context for promise.
-    doars.setSimpleContext('resolveInTime', (result) => Promise.resolve(result))
+		// Set simple context for promise.
+		doars.setSimpleContext("resolveInTime", (result) =>
+			Promise.resolve(result),
+		);
 
-    container.innerHTML = `
+		container.innerHTML = `
       <div d-state="{}">
         <span d-html="resolveInTime('<h1>After</h1>')">
           Before
         </span>
       </div>
-    `
+    `;
 
-    doars.enable()
+		doars.enable();
 
-    // Wait for promise.
-    await new Promise(resolve => setTimeout(resolve, 10))
+		// Wait for promise.
+		await new Promise((resolve) => setTimeout(resolve, 10));
 
-    // Assert HTML set.
-    const span = container.querySelector('span')
-    expect(span.innerHTML).toBe('<h1>After</h1>')
-  })
+		// Assert HTML set.
+		const span = container.querySelector("span");
+		expect(span.innerHTML).toBe("<h1>After</h1>");
+	});
 
-  test('html directive should morph HTML structure', async () => {
-    container.innerHTML = `
+	test("html directive should morph HTML structure", async () => {
+		container.innerHTML = `
       <div d-state="{}">
         <span d-html.morph="'<h1>After</h1>'">
           <span>
@@ -95,17 +95,17 @@ describe('Html Directive', () => {
           </span>
         </span>
       </div>
-    `
+    `;
 
-    doars = new Doars({
-      root: container,
-    })
-    doars.enable()
+		doars = new Doars({
+			root: container,
+		});
+		doars.enable();
 
-    await new Promise(resolve => setTimeout(resolve, 1))
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    // Assert morphed HTML.
-    const span = container.querySelector('span')
-    expect(span.innerHTML.trim()).toBe('<h1>After</h1>')
-  })
-})
+		// Assert morphed HTML.
+		const span = container.querySelector("span");
+		expect(span.innerHTML.trim()).toBe("<h1>After</h1>");
+	});
+});

@@ -1,3 +1,82 @@
+// ../common/src/utilities/Element.js
+var fromString = (string) => {
+  const stringStart = string.substring(0, 15).toLowerCase();
+  if (stringStart.startsWith("<!doctype html>") || stringStart.startsWith("<html>")) {
+    const html = document.createElement("html");
+    html.innerHTML = string;
+    return html;
+  }
+  const template = document.createElement("template");
+  template.innerHTML = string;
+  return template.content.childNodes[0];
+};
+var isSame = (a, b) => {
+  if (a.isSameNode && a.isSameNode(b)) {
+    return true;
+  }
+  if (a.type === 3) {
+    return a.nodeValue === b.nodeValue;
+  }
+  if (a.tagName === b.tagName) {
+    return true;
+  }
+  return false;
+};
+var select = (node, component, attribute, processExpression) => {
+  const libraryOptions = component.getLibrary().getOptions();
+  const element = attribute.getElement();
+  const directive = attribute.getDirective();
+  const attributeName = libraryOptions.prefix + "-" + directive + "-" + libraryOptions.selectFromElementDirectiveName;
+  if (!element.hasAttribute(attributeName)) {
+    return node;
+  }
+  let selector = null;
+  if (libraryOptions.selectFromElementDirectiveEvaluate) {
+    selector = processExpression(component, attribute, element.getAttribute(attributeName));
+    if (typeof selector !== "string") {
+      console.warn("Doars: `" + attributeName + "` must return a string.");
+      return null;
+    }
+  } else {
+    selector = element.getAttribute(attributeName);
+  }
+  if (selector) {
+    const asString = typeof node === "string";
+    if (asString) {
+      node = fromString(node);
+    }
+    node = node.querySelector(selector);
+    if (asString && node) {
+      return node.outerHTML;
+    }
+  }
+  return node;
+};
+var walk = (node, filter) => {
+  let index = -1;
+  let iterator = null;
+  return () => {
+    if (index >= 0 && iterator) {
+      const child2 = iterator();
+      if (child2) {
+        return child2;
+      }
+    }
+    let child = null;
+    do {
+      index++;
+      if (index >= node.childElementCount) {
+        return null;
+      }
+      child = node.children[index];
+    } while (!filter(child));
+    if (child.childElementCount) {
+      iterator = walk(child, filter);
+    }
+    return child;
+  };
+};
+
 // ../common/src/utilities/Fetch.js
 var parseResponse = (response, type) => {
   let promise;
@@ -32,11 +111,12 @@ var parseResponse = (response, type) => {
   return promise.then((response2) => {
     switch (type) {
       case "element":
-      case "html-partial":
+      case "html-partial": {
         const template = document.createElement("template");
         template.innerHTML = response2;
         response2 = template.content.childNodes[0];
         break;
+      }
       case "html":
         response2 = new DOMParser().parseFromString(response2, "text/html");
         break;
@@ -133,85 +213,6 @@ var fetchAndParse = (url, options, returnType) => new Promise((resolve, reject) 
   });
 });
 
-// ../common/src/utilities/Element.js
-var fromString = (string) => {
-  const stringStart = string.substring(0, 15).toLowerCase();
-  if (stringStart.startsWith("<!doctype html>") || stringStart.startsWith("<html>")) {
-    const html = document.createElement("html");
-    html.innerHTML = string;
-    return html;
-  }
-  const template = document.createElement("template");
-  template.innerHTML = string;
-  return template.content.childNodes[0];
-};
-var isSame = (a, b) => {
-  if (a.isSameNode && a.isSameNode(b)) {
-    return true;
-  }
-  if (a.type === 3) {
-    return a.nodeValue === b.nodeValue;
-  }
-  if (a.tagName === b.tagName) {
-    return true;
-  }
-  return false;
-};
-var select = (node, component, attribute, processExpression) => {
-  const libraryOptions = component.getLibrary().getOptions();
-  const element = attribute.getElement();
-  const directive = attribute.getDirective();
-  const attributeName = libraryOptions.prefix + "-" + directive + "-" + libraryOptions.selectFromElementDirectiveName;
-  if (!element.hasAttribute(attributeName)) {
-    return node;
-  }
-  let selector = null;
-  if (libraryOptions.selectFromElementDirectiveEvaluate) {
-    selector = processExpression(component, attribute, element.getAttribute(attributeName));
-    if (typeof selector !== "string") {
-      console.warn("Doars: `" + attributeName + "` must return a string.");
-      return null;
-    }
-  } else {
-    selector = element.getAttribute(attributeName);
-  }
-  if (selector) {
-    const asString = typeof node === "string";
-    if (asString) {
-      node = fromString(node);
-    }
-    node = node.querySelector(selector);
-    if (asString && node) {
-      return node.outerHTML;
-    }
-  }
-  return node;
-};
-var walk = (node, filter) => {
-  let index = -1;
-  let iterator = null;
-  return () => {
-    if (index >= 0 && iterator) {
-      const child2 = iterator();
-      if (child2) {
-        return child2;
-      }
-    }
-    let child = null;
-    do {
-      index++;
-      if (index >= node.childElementCount) {
-        return null;
-      }
-      child = node.children[index];
-    } while (!filter(child));
-    if (child.childElementCount) {
-      iterator = walk(child, filter);
-    }
-    return child;
-  };
-};
-
 // ../common/src/utilities/Html.js
 var DECODE_LOOKUP = {
   "&amp;": "&",
@@ -233,40 +234,6 @@ var decode = (string) => {
   return string.replaceAll(DECODE_REGEXP, (character) => {
     return DECODE_LOOKUP[character];
   });
-};
-
-// ../common/src/utilities/String.js
-var parseSelector = (selector) => {
-  if (typeof selector === "string") {
-    selector = selector.split(/(?=\.)|(?=#)|(?=\[)/);
-  }
-  if (!Array.isArray(selector)) {
-    console.error("Doars: parseSelector expects Array of string or a single string.");
-    return;
-  }
-  const attributes = {};
-  for (let selectorSegment of selector) {
-    selectorSegment = selectorSegment.trim();
-    switch (selectorSegment[0]) {
-      case "#":
-        attributes.id = selectorSegment.substring(1);
-        break;
-      case ".":
-        selectorSegment = selectorSegment.substring(1);
-        if (!attributes.class) {
-          attributes.class = [];
-        }
-        if (!attributes.class.includes(selectorSegment)) {
-          attributes.class.push(selectorSegment);
-        }
-        break;
-      case "[":
-        const [full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
-        attributes[key] = value;
-        break;
-    }
-  }
-  return attributes;
 };
 
 // ../common/src/utilities/Attribute.js
@@ -346,6 +313,41 @@ var removeAttributes = (element, data) => {
     }
     element.removeAttribute(name);
   }
+};
+
+// ../common/src/utilities/String.js
+var parseSelector = (selector) => {
+  if (typeof selector === "string") {
+    selector = selector.split(/(?=\.)|(?=#)|(?=\[)/);
+  }
+  if (!Array.isArray(selector)) {
+    console.error("Doars: parseSelector expects Array of string or a single string.");
+    return;
+  }
+  const attributes = {};
+  for (let selectorSegment of selector) {
+    selectorSegment = selectorSegment.trim();
+    switch (selectorSegment[0]) {
+      case "#":
+        attributes.id = selectorSegment.substring(1);
+        break;
+      case ".":
+        selectorSegment = selectorSegment.substring(1);
+        if (!attributes.class) {
+          attributes.class = [];
+        }
+        if (!attributes.class.includes(selectorSegment)) {
+          attributes.class.push(selectorSegment);
+        }
+        break;
+      case "[": {
+        const [full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
+        attributes[key] = value;
+        break;
+      }
+    }
+  }
+  return attributes;
 };
 
 // ../common/src/utilities/Transition.js
@@ -527,29 +529,6 @@ var showIndicator = (component, attribute, processExpression) => {
   };
 };
 
-// ../common/src/utilities/Script.js
-var _readdScript = (element) => {
-  if (element.tagName !== "SCRIPT" || element.hasAttribute("src")) {
-    return false;
-  }
-  const newScript = document.createElement("script");
-  newScript.innerText = element.innerText;
-  element.parentNode.insertBefore(newScript, element);
-  element.remove();
-  return true;
-};
-var readdScripts = (...elements) => {
-  for (const element of elements) {
-    if (!_readdScript(element)) {
-      const iterate = walk(element);
-      let maybeScript = null;
-      while (maybeScript = iterate()) {
-        _readdScript(maybeScript);
-      }
-    }
-  }
-};
-
 // ../common/src/utilities/Morph.js
 var morphNode = (existingNode, newNode) => {
   const nodeType = newNode.nodeType;
@@ -690,6 +669,29 @@ var _updateChildren = (existingNode, newNode) => {
       } else {
         existingNode[setBefore](newChild, existingChild);
         offset++;
+      }
+    }
+  }
+};
+
+// ../common/src/utilities/Script.js
+var _readdScript = (element) => {
+  if (element.tagName !== "SCRIPT" || element.hasAttribute("src")) {
+    return false;
+  }
+  const newScript = document.createElement("script");
+  newScript.innerText = element.innerText;
+  element.parentNode.insertBefore(newScript, element);
+  element.remove();
+  return true;
+};
+var readdScripts = (...elements) => {
+  for (const element of elements) {
+    if (!_readdScript(element)) {
+      const iterate = walk(element);
+      let maybeScript = null;
+      while (maybeScript = iterate()) {
+        _readdScript(maybeScript);
       }
     }
   }
@@ -996,4 +998,4 @@ export {
   DoarsNavigate_default as default
 };
 
-//# debugId=995E1DDC823A7E8664756E2164756E21
+//# debugId=2A96290E4201B7A164756E2164756E21

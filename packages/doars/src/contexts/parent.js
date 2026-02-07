@@ -1,4 +1,4 @@
-import { createContextsProxy } from '../utilities/Context.js'
+import { createContextsProxy } from "../utilities/Context.js";
 
 /**
  * @typedef {import('../Context.js').Context} Context
@@ -10,34 +10,29 @@ import { createContextsProxy } from '../utilities/Context.js'
  * @param {DoarsOptions} options Library options.
  * @returns {Context} The context.
  */
-export default ({
-  parentContextName,
-}) => ({
-  name: parentContextName,
+export default ({ parentContextName }) => ({
+	name: parentContextName,
 
-  create: (
-    component,
-    attribute,
-    update,
-  ) => {
-    // Deconstruct component.
-    const parent = component.getParent()
-    if (!parent) {
-      return {
-        value: null,
-      }
-    }
+	create: (component, attribute, update) => {
+		// Deconstruct component.
+		const parent = component.getParent();
+		if (!parent) {
+			return {
+				value: null,
+			};
+		}
 
-    // Create contexts proxy for parent.
-    const {
-      contexts,
-      destroy,
-    } = createContextsProxy(parent, attribute, update)
+		// Create contexts proxy for parent.
+		const { contexts, destroy } = createContextsProxy(
+			parent,
+			attribute,
+			update,
+		);
 
-    return {
-      value: contexts,
+		return {
+			value: contexts,
 
-      destroy,
-    }
-  },
-})
+			destroy,
+		};
+	},
+});

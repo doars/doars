@@ -37,6 +37,64 @@
   // src/symbols.js
   var ROUTER = Symbol("ROUTER");
 
+  // ../common/src/events/EventDispatcher.js
+  class EventDispatcher {
+    constructor() {
+      let events = {};
+      this.addEventListener = (name, callback, options = null) => {
+        if (!(name in events)) {
+          events[name] = [];
+        }
+        events[name].push({
+          callback,
+          options
+        });
+      };
+      this.removeEventListener = (name, callback) => {
+        if (!Object.keys(events).includes(name)) {
+          return;
+        }
+        const eventData = events[name];
+        let index = -1;
+        for (let i = 0;i < eventData.length; i++) {
+          if (eventData[i].callback === callback) {
+            index = i;
+            break;
+          }
+        }
+        if (index < 0) {
+          return;
+        }
+        eventData.splice(index, 1);
+        if (Object.keys(eventData).length === 0) {
+          delete events[name];
+        }
+      };
+      this.removeEventListeners = (name) => {
+        if (!name) {
+          return;
+        }
+        delete events[name];
+      };
+      this.removeAllEventListeners = () => {
+        events = {};
+      };
+      this.dispatchEvent = (name, parameters, options = null) => {
+        if (!events[name]) {
+          return;
+        }
+        const eventData = events[name];
+        for (let i = 0;i < eventData.length; i++) {
+          const event = options && options.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
+          if (event.options && event.options.once) {
+            eventData.splice(i, 1);
+          }
+          event.callback(...parameters);
+        }
+      };
+    }
+  }
+
   // ../../node_modules/.bun/path-to-regexp@6.3.0/node_modules/path-to-regexp/dist.es2015/index.js
   function lexer(str) {
     var tokens = [];
@@ -309,64 +367,6 @@
     return stringToRegexp(path, keys, options);
   }
 
-  // ../common/src/events/EventDispatcher.js
-  class EventDispatcher {
-    constructor() {
-      let events = {};
-      this.addEventListener = (name, callback, options = null) => {
-        if (!(name in events)) {
-          events[name] = [];
-        }
-        events[name].push({
-          callback,
-          options
-        });
-      };
-      this.removeEventListener = (name, callback) => {
-        if (!Object.keys(events).includes(name)) {
-          return;
-        }
-        const eventData = events[name];
-        let index = -1;
-        for (let i = 0;i < eventData.length; i++) {
-          if (eventData[i].callback === callback) {
-            index = i;
-            break;
-          }
-        }
-        if (index < 0) {
-          return;
-        }
-        eventData.splice(index, 1);
-        if (Object.keys(eventData).length === 0) {
-          delete events[name];
-        }
-      };
-      this.removeEventListeners = (name) => {
-        if (!name) {
-          return;
-        }
-        delete events[name];
-      };
-      this.removeAllEventListeners = () => {
-        events = {};
-      };
-      this.dispatchEvent = (name, parameters, options = null) => {
-        if (!events[name]) {
-          return;
-        }
-        const eventData = events[name];
-        for (let i = 0;i < eventData.length; i++) {
-          const event = options && options.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
-          if (event.options && event.options.once) {
-            eventData.splice(i, 1);
-          }
-          event.callback(...parameters);
-        }
-      };
-    }
-  }
-
   // src/Router.js
   class Router extends EventDispatcher {
     constructor(options = {}) {
@@ -470,9 +470,7 @@
   var closestRouter_default = closestRouter;
 
   // src/contexts/router.js
-  var router_default = ({
-    routerContextName
-  }) => ({
+  var router_default = ({ routerContextName }) => ({
     name: routerContextName,
     create: (component, attribute) => {
       const element = attribute.getElement();
@@ -505,40 +503,6 @@
     }
   });
 
-  // ../common/src/utilities/String.js
-  var parseSelector = (selector) => {
-    if (typeof selector === "string") {
-      selector = selector.split(/(?=\.)|(?=#)|(?=\[)/);
-    }
-    if (!Array.isArray(selector)) {
-      console.error("Doars: parseSelector expects Array of string or a single string.");
-      return;
-    }
-    const attributes = {};
-    for (let selectorSegment of selector) {
-      selectorSegment = selectorSegment.trim();
-      switch (selectorSegment[0]) {
-        case "#":
-          attributes.id = selectorSegment.substring(1);
-          break;
-        case ".":
-          selectorSegment = selectorSegment.substring(1);
-          if (!attributes.class) {
-            attributes.class = [];
-          }
-          if (!attributes.class.includes(selectorSegment)) {
-            attributes.class.push(selectorSegment);
-          }
-          break;
-        case "[":
-          const [full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
-          attributes[key] = value;
-          break;
-      }
-    }
-    return attributes;
-  };
-
   // ../common/src/utilities/Attribute.js
   var addAttributes = (element, data) => {
     for (const name in data) {
@@ -564,6 +528,41 @@
       }
       element.removeAttribute(name);
     }
+  };
+
+  // ../common/src/utilities/String.js
+  var parseSelector = (selector) => {
+    if (typeof selector === "string") {
+      selector = selector.split(/(?=\.)|(?=#)|(?=\[)/);
+    }
+    if (!Array.isArray(selector)) {
+      console.error("Doars: parseSelector expects Array of string or a single string.");
+      return;
+    }
+    const attributes = {};
+    for (let selectorSegment of selector) {
+      selectorSegment = selectorSegment.trim();
+      switch (selectorSegment[0]) {
+        case "#":
+          attributes.id = selectorSegment.substring(1);
+          break;
+        case ".":
+          selectorSegment = selectorSegment.substring(1);
+          if (!attributes.class) {
+            attributes.class = [];
+          }
+          if (!attributes.class.includes(selectorSegment)) {
+            attributes.class.push(selectorSegment);
+          }
+          break;
+        case "[": {
+          const [full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
+          attributes[key] = value;
+          break;
+        }
+      }
+    }
+    return attributes;
   };
 
   // ../common/src/utilities/Transition.js
@@ -681,9 +680,7 @@
 
   // src/directives/route.js
   var ROUTE = Symbol("ROUTE");
-  var route_default = ({
-    routeDirectiveName
-  }) => ({
+  var route_default = ({ routeDirectiveName }) => ({
     name: routeDirectiveName,
     update: (component, attribute) => {
       const libraryOptions = component.getLibrary().getOptions();
@@ -737,9 +734,7 @@
       };
       setup();
     },
-    destroy: (component, attribute, {
-      transitionOut: transitionOut2
-    }) => {
+    destroy: (component, attribute, { transitionOut: transitionOut2 }) => {
       const libraryOptions = component.getLibrary().getOptions();
       const element = attribute.getElement();
       if (element.tagName === "TEMPLATE") {
@@ -788,19 +783,19 @@
       const id = router.getId();
       router.destroy();
       const library = component.getLibrary();
-      library.update([{
-        id,
-        path: ""
-      }]);
+      library.update([
+        {
+          id,
+          path: ""
+        }
+      ]);
     }
   });
 
   // src/directives/routeTo.js
   var ROUTE_TO = Symbol("ROUTE_TO");
   var CLICK = "click";
-  var routeTo_default = ({
-    routeToDirectiveName
-  }) => ({
+  var routeTo_default = ({ routeToDirectiveName }) => ({
     name: routeToDirectiveName,
     update: (component, attribute) => {
       const element = attribute.getElement();
@@ -887,4 +882,4 @@
   window.DoarsRouter = DoarsRouter_default;
 })();
 
-//# debugId=42103926AB1C2F4D64756E2164756E21
+//# debugId=1581E2847043D20C64756E2164756E21

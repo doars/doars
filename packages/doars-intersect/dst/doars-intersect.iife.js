@@ -1,4 +1,40 @@
 (() => {
+  // ../common/src/polyfills/IntersectionDispatcher.js
+  class IntersectionDispatcher {
+    constructor(options = null) {
+      const items = new WeakMap;
+      const intersect = (entries) => {
+        for (const entry of entries) {
+          for (const callback of items.get(entry.target)) {
+            callback(entry);
+          }
+        }
+      };
+      const observer = new window.IntersectionObserver(intersect, options);
+      this.add = (element, callback) => {
+        if (!items.has(element)) {
+          items.set(element, []);
+        }
+        items.get(element).push(callback);
+        observer.observe(element);
+      };
+      this.remove = (element, callback) => {
+        if (!items.has(element)) {
+          return;
+        }
+        const list = items.get(element);
+        const index = list.indexOf(callback);
+        if (index >= 0) {
+          list.splice(index, 1);
+        }
+        if (list.length === 0) {
+          items.delete(element);
+          observer.unobserve(element);
+        }
+      };
+    }
+  }
+
   // src/directives/intersect.js
   var INTERSECT = Symbol("INTERSECT");
   var EXECUTION_MODIFIERS = {
@@ -8,9 +44,7 @@
     THROTTLE: 5,
     DELAY: 6
   };
-  var intersect_default = ({
-    intersectDirectiveName
-  }, intersectionDispatcher) => ({
+  var intersect_default = ({ intersectDirectiveName }, intersectionDispatcher) => ({
     name: intersectDirectiveName,
     update: (component, attribute, processExpression) => {
       const element = attribute.getElement();
@@ -113,42 +147,6 @@
     }
   });
 
-  // ../common/src/polyfills/IntersectionDispatcher.js
-  class IntersectionDispatcher {
-    constructor(options = null) {
-      const items = new WeakMap;
-      const intersect = (entries) => {
-        for (const entry of entries) {
-          for (const callback of items.get(entry.target)) {
-            callback(entry);
-          }
-        }
-      };
-      const observer = new window.IntersectionObserver(intersect, options);
-      this.add = (element, callback) => {
-        if (!items.has(element)) {
-          items.set(element, []);
-        }
-        items.get(element).push(callback);
-        observer.observe(element);
-      };
-      this.remove = (element, callback) => {
-        if (!items.has(element)) {
-          return;
-        }
-        const list = items.get(element);
-        const index = list.indexOf(callback);
-        if (index >= 0) {
-          list.splice(index, 1);
-        }
-        if (list.length === 0) {
-          items.delete(element);
-          observer.unobserve(element);
-        }
-      };
-    }
-  }
-
   // src/DoarsIntersect.js
   function DoarsIntersect_default(library, options = null) {
     options = Object.assign({
@@ -191,4 +189,4 @@
   window.DoarsIntersect = DoarsIntersect_default;
 })();
 
-//# debugId=D9EF40940F3BCE5264756E2164756E21
+//# debugId=BEEBCFD25EB3CF2164756E2164756E21

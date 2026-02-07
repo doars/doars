@@ -1,6 +1,6 @@
-import { deepAssign } from '@doars/common/src/utilities/Object.js'
-import createStateContext from '@doars/common/src/factories/createStateContext.js'
-import ProxyDispatcher from '@doars/common/src/events/ProxyDispatcher.js'
+import ProxyDispatcher from "@doars/common/src/events/ProxyDispatcher.js";
+import createStateContext from "@doars/common/src/factories/createStateContext.js";
+import { deepAssign } from "@doars/common/src/utilities/Object.js";
 
 /**
  * @typedef {import('../Context.js').Context} Context
@@ -13,20 +13,20 @@ import ProxyDispatcher from '@doars/common/src/events/ProxyDispatcher.js'
  * @returns {Context} The context.
  */
 export default ({
-  storeContextDeconstruct,
-  storeContextInitial,
-  storeContextName,
+	storeContextDeconstruct,
+	storeContextInitial,
+	storeContextName,
 }) => {
-  // Create a single proxy for the store.
-  const data = deepAssign({}, storeContextInitial)
-  const proxy = new ProxyDispatcher()
-  const state = proxy.add(data)
+	// Create a single proxy for the store.
+	const data = deepAssign({}, storeContextInitial);
+	const proxy = new ProxyDispatcher();
+	const state = proxy.add(data);
 
-  return createStateContext(
-    storeContextName,
-    Symbol('ID_STORE'),
-    state,
-    proxy,
-    storeContextDeconstruct,
-  )
-}
+	return createStateContext(
+		storeContextName,
+		Symbol("ID_STORE"),
+		state,
+		proxy,
+		storeContextDeconstruct,
+	);
+};

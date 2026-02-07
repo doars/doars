@@ -18,7 +18,7 @@
         const doars = new window.Doars()
 
         // Dispatch event on update, before next tick.
-        doars.addEventListener('updated', function (...parameters) {
+        doars.addEventListener('updated', (...parameters) => {
           console.log('updated', ...parameters)
         })
 

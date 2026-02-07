@@ -1,6 +1,6 @@
-import Doars from './Doars.js'
-import { execute } from './utilities/Execute.js'
+import Doars from "./Doars.js";
+import { execute } from "./utilities/Execute.js";
 
-Doars.executeExpression = execute
+Doars.executeExpression = execute;
 
-export default Doars
+export default Doars;

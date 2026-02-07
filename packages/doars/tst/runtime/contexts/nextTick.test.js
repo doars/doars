@@ -1,43 +1,41 @@
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import Doars from "../../../src/DoarsExecute.js";
+import { document } from "../test-setup.js";
 
-import { document } from '../test-setup.js'
+describe("NextTick Context", () => {
+	let container, doars;
 
-import Doars from '../../../src/DoarsExecute.js'
+	beforeEach(() => {
+		container = document.createElement("div");
+		document.body.appendChild(container);
+	});
 
-describe('NextTick Context', () => {
-  let container, doars
+	afterEach(() => {
+		doars.disable();
+		doars = null;
+		document.body.removeChild(container);
+		container = null;
+	});
 
-  beforeEach(() => {
-    container = document.createElement('div')
-    document.body.appendChild(container)
-  })
+	test("nextTick context should defer execution", async () => {
+		let captured = false;
 
-  afterEach(() => {
-    doars.disable()
-    doars = null
-    document.body.removeChild(container)
-    container = null
-  })
-
-  test('nextTick context should defer execution', async () => {
-    let captured = false
-
-    container.innerHTML = `
+		container.innerHTML = `
       <div d-state="{}" d-initialized="$nextTick(({ capture }) => capture())"></div>
-    `
+    `;
 
-    doars = new Doars({
-      root: container,
-    })
+		doars = new Doars({
+			root: container,
+		});
 
-    doars.setSimpleContext('capture', function () {
-      captured = true
-    })
+		doars.setSimpleContext("capture", () => {
+			captured = true;
+		});
 
-    doars.enable()
+		doars.enable();
 
-    await new Promise(resolve => setTimeout(resolve, 1))
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    expect(captured).toBe(true)
-  })
-})
+		expect(captured).toBe(true);
+	});
+});

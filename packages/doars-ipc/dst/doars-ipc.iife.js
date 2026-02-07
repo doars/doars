@@ -145,40 +145,6 @@
     });
   };
 
-  // ../common/src/utilities/String.js
-  var parseSelector = (selector) => {
-    if (typeof selector === "string") {
-      selector = selector.split(/(?=\.)|(?=#)|(?=\[)/);
-    }
-    if (!Array.isArray(selector)) {
-      console.error("Doars: parseSelector expects Array of string or a single string.");
-      return;
-    }
-    const attributes = {};
-    for (let selectorSegment of selector) {
-      selectorSegment = selectorSegment.trim();
-      switch (selectorSegment[0]) {
-        case "#":
-          attributes.id = selectorSegment.substring(1);
-          break;
-        case ".":
-          selectorSegment = selectorSegment.substring(1);
-          if (!attributes.class) {
-            attributes.class = [];
-          }
-          if (!attributes.class.includes(selectorSegment)) {
-            attributes.class.push(selectorSegment);
-          }
-          break;
-        case "[":
-          const [full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
-          attributes[key] = value;
-          break;
-      }
-    }
-    return attributes;
-  };
-
   // ../common/src/utilities/Attribute.js
   var addAttributes = (element, data) => {
     for (const name in data) {
@@ -256,6 +222,41 @@
       }
       element.removeAttribute(name);
     }
+  };
+
+  // ../common/src/utilities/String.js
+  var parseSelector = (selector) => {
+    if (typeof selector === "string") {
+      selector = selector.split(/(?=\.)|(?=#)|(?=\[)/);
+    }
+    if (!Array.isArray(selector)) {
+      console.error("Doars: parseSelector expects Array of string or a single string.");
+      return;
+    }
+    const attributes = {};
+    for (let selectorSegment of selector) {
+      selectorSegment = selectorSegment.trim();
+      switch (selectorSegment[0]) {
+        case "#":
+          attributes.id = selectorSegment.substring(1);
+          break;
+        case ".":
+          selectorSegment = selectorSegment.substring(1);
+          if (!attributes.class) {
+            attributes.class = [];
+          }
+          if (!attributes.class.includes(selectorSegment)) {
+            attributes.class.push(selectorSegment);
+          }
+          break;
+        case "[": {
+          const [full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
+          attributes[key] = value;
+          break;
+        }
+      }
+    }
+    return attributes;
   };
 
   // ../common/src/utilities/Transition.js
@@ -974,4 +975,4 @@
   window.DoarsIPC = DoarsIPC_default;
 })();
 
-//# debugId=7D502192929BEABC64756E2164756E21
+//# debugId=0391B7C25918F4A964756E2164756E21

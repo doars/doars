@@ -144,40 +144,6 @@ var decode = (string) => {
   });
 };
 
-// ../common/src/utilities/String.js
-var parseSelector = (selector) => {
-  if (typeof selector === "string") {
-    selector = selector.split(/(?=\.)|(?=#)|(?=\[)/);
-  }
-  if (!Array.isArray(selector)) {
-    console.error("Doars: parseSelector expects Array of string or a single string.");
-    return;
-  }
-  const attributes = {};
-  for (let selectorSegment of selector) {
-    selectorSegment = selectorSegment.trim();
-    switch (selectorSegment[0]) {
-      case "#":
-        attributes.id = selectorSegment.substring(1);
-        break;
-      case ".":
-        selectorSegment = selectorSegment.substring(1);
-        if (!attributes.class) {
-          attributes.class = [];
-        }
-        if (!attributes.class.includes(selectorSegment)) {
-          attributes.class.push(selectorSegment);
-        }
-        break;
-      case "[":
-        const [full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
-        attributes[key] = value;
-        break;
-    }
-  }
-  return attributes;
-};
-
 // ../common/src/utilities/Attribute.js
 var addAttributes = (element, data) => {
   for (const name in data) {
@@ -255,6 +221,41 @@ var removeAttributes = (element, data) => {
     }
     element.removeAttribute(name);
   }
+};
+
+// ../common/src/utilities/String.js
+var parseSelector = (selector) => {
+  if (typeof selector === "string") {
+    selector = selector.split(/(?=\.)|(?=#)|(?=\[)/);
+  }
+  if (!Array.isArray(selector)) {
+    console.error("Doars: parseSelector expects Array of string or a single string.");
+    return;
+  }
+  const attributes = {};
+  for (let selectorSegment of selector) {
+    selectorSegment = selectorSegment.trim();
+    switch (selectorSegment[0]) {
+      case "#":
+        attributes.id = selectorSegment.substring(1);
+        break;
+      case ".":
+        selectorSegment = selectorSegment.substring(1);
+        if (!attributes.class) {
+          attributes.class = [];
+        }
+        if (!attributes.class.includes(selectorSegment)) {
+          attributes.class.push(selectorSegment);
+        }
+        break;
+      case "[": {
+        const [full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
+        attributes[key] = value;
+        break;
+      }
+    }
+  }
+  return attributes;
 };
 
 // ../common/src/utilities/Transition.js
@@ -972,4 +973,4 @@ export {
   DoarsIPC_default as default
 };
 
-//# debugId=4FC1F8E4BA0D32A564756E2164756E21
+//# debugId=8D0F10F58643DD6464756E2164756E21

@@ -1,26 +1,24 @@
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import Doars from "../../../src/DoarsExecute.js";
+import { document } from "../test-setup.js";
 
-import { document } from '../test-setup.js'
+describe("Ignore Directive", () => {
+	let container, doars;
 
-import Doars from '../../../src/DoarsExecute.js'
+	beforeEach(() => {
+		container = document.createElement("div");
+		document.body.appendChild(container);
+	});
 
-describe('Ignore Directive', () => {
-  let container, doars
+	afterEach(() => {
+		doars.disable();
+		doars = null;
+		document.body.removeChild(container);
+		container = null;
+	});
 
-  beforeEach(() => {
-    container = document.createElement('div')
-    document.body.appendChild(container)
-  })
-
-  afterEach(() => {
-    doars.disable()
-    doars = null
-    document.body.removeChild(container)
-    container = null
-  })
-
-  test('ignore directive should prevent processing inside', async () => {
-    container.innerHTML = `
+	test("ignore directive should prevent processing inside", async () => {
+		container.innerHTML = `
       <div>
         <!-- Outside any component. -->
         <div d-ignore>
@@ -40,23 +38,23 @@ describe('Ignore Directive', () => {
           </div>
         </div>
       </div>
-    `
+    `;
 
-    doars = new Doars({
-      root: container,
-    })
-    doars.enable()
+		doars = new Doars({
+			root: container,
+		});
+		doars.enable();
 
-    await new Promise(resolve => setTimeout(resolve, 1))
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    // Assert spans not changed.
-    const spans = container.querySelectorAll('span')
-    expect(spans[0].textContent.trim()).toBe('Should not change')
-    expect(spans[1].textContent.trim()).toBe('Should not change')
-  })
+		// Assert spans not changed.
+		const spans = container.querySelectorAll("span");
+		expect(spans[0].textContent.trim()).toBe("Should not change");
+		expect(spans[1].textContent.trim()).toBe("Should not change");
+	});
 
-  test('ignore directive should be added dynamically', async () => {
-    container.innerHTML = `
+	test("ignore directive should be added dynamically", async () => {
+		container.innerHTML = `
       <div d-state="{ message: 'Should not change after ignore directive' }">
         <div>
           <span d-text="message">
@@ -64,32 +62,36 @@ describe('Ignore Directive', () => {
           </span>
         </div>
       </div>
-    `
+    `;
 
-    doars = new Doars({
-      root: container,
-    })
-    doars.enable()
+		doars = new Doars({
+			root: container,
+		});
+		doars.enable();
 
-    // Wait for initial.
-    await new Promise(resolve => setTimeout(resolve, 1))
+		// Wait for initial.
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    // Get span.
-    const span = container.querySelector('span')
-    expect(span.textContent.trim()).toBe('Should not change after ignore directive')
+		// Get span.
+		const span = container.querySelector("span");
+		expect(span.textContent.trim()).toBe(
+			"Should not change after ignore directive",
+		);
 
-    // Add ignore directive.
-    const innerDiv = container.querySelector('[d-state] > div')
-    innerDiv.setAttribute('d-ignore', '')
+		// Add ignore directive.
+		const innerDiv = container.querySelector("[d-state] > div");
+		innerDiv.setAttribute("d-ignore", "");
 
-    await new Promise(resolve => setTimeout(resolve, 1))
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    // Assert text not changed.
-    expect(span.textContent.trim()).toBe('Should not change after ignore directive')
-  })
+		// Assert text not changed.
+		expect(span.textContent.trim()).toBe(
+			"Should not change after ignore directive",
+		);
+	});
 
-  test('ignore directive should be removed dynamically', async () => {
-    container.innerHTML = `
+	test("ignore directive should be removed dynamically", async () => {
+		container.innerHTML = `
       <div d-state="{ message: 'After' }">
         <div d-ignore>
           <span d-text="message">
@@ -97,27 +99,27 @@ describe('Ignore Directive', () => {
           </span>
         </div>
       </div>
-    `
+    `;
 
-    doars = new Doars({
-      root: container,
-    })
-    doars.enable()
+		doars = new Doars({
+			root: container,
+		});
+		doars.enable();
 
-    // Wait for initial.
-    await new Promise(resolve => setTimeout(resolve, 1))
+		// Wait for initial.
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    // Get span.
-    const span = container.querySelector('span')
-    expect(span.textContent.trim()).toBe('Before')
+		// Get span.
+		const span = container.querySelector("span");
+		expect(span.textContent.trim()).toBe("Before");
 
-    // Remove ignore directive.
-    const innerDiv = container.querySelector('[d-ignore]')
-    innerDiv.removeAttribute('d-ignore')
+		// Remove ignore directive.
+		const innerDiv = container.querySelector("[d-ignore]");
+		innerDiv.removeAttribute("d-ignore");
 
-    await new Promise(resolve => setTimeout(resolve, 1))
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    // Assert text changed.
-    expect(span.textContent.trim()).toBe('After')
-  })
-})
+		// Assert text changed.
+		expect(span.textContent.trim()).toBe("After");
+	});
+});

@@ -1,73 +1,71 @@
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import Doars from "../../../src/DoarsExecute.js";
+import { document } from "../test-setup.js";
 
-import { document } from '../test-setup.js'
+describe("Store Context", () => {
+	let container, doars;
 
-import Doars from '../../../src/DoarsExecute.js'
+	beforeEach(() => {
+		container = document.createElement("div");
+		document.body.appendChild(container);
+	});
 
-describe('Store Context', () => {
-  let container, doars
+	afterEach(() => {
+		doars.disable();
+		doars = null;
+		document.body.removeChild(container);
+		container = null;
+	});
 
-  beforeEach(() => {
-    container = document.createElement('div')
-    document.body.appendChild(container)
-  })
-
-  afterEach(() => {
-    doars.disable()
-    doars = null
-    document.body.removeChild(container)
-    container = null
-  })
-
-  test('store context should share data inside components', async () => {
-    container.innerHTML = `
+	test("store context should share data inside components", async () => {
+		container.innerHTML = `
       <div d-state="{}" d-initialized="$store.message = 'After'"></div>
       <div d-state="{}">
         <div d-text="$store.message">Initial</div>
       </div>
-    `
+    `;
 
-    // Create and enable Doars with initial store.
-    doars = new Doars({
-      root: container,
-      storeContextInitial: {
-        message: 'Before',
-      },
-    })
-    doars.enable()
+		// Create and enable Doars with initial store.
+		doars = new Doars({
+			root: container,
+			storeContextInitial: {
+				message: "Before",
+			},
+		});
+		doars.enable();
 
-    await new Promise(resolve => setTimeout(resolve, 1))
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    // Assert
-    const div = container.querySelector('div[d-text]')
-    expect(div.textContent).toBe('After')
-  })
+		// Assert
+		const div = container.querySelector("div[d-text]");
+		expect(div.textContent).toBe("After");
+	});
 
-  test('store log context should execute function', async () => {
-    let captured = null
+	test("store log context should execute function", async () => {
+		let captured = null;
 
-    container.innerHTML = `
+		container.innerHTML = `
       <div d-state="{}" d-initialized="logStore($store)"></div>
-    `
+    `;
 
-    // Create Doars with store.
-    doars = new Doars({
-      root: container,
-      storeContextInitial: {
-        message: 'value',
-      },
-    })
+		// Create Doars with store.
+		doars = new Doars({
+			root: container,
+			storeContextInitial: {
+				message: "value",
+			},
+		});
 
-    // Set simple context with closure.
-    doars.setSimpleContext('logStore', function (store) {
-      captured = store.message
-    })
+		// Set simple context with closure.
+		doars.setSimpleContext("logStore", (store) => {
+			captured = store.message;
+		});
 
-    doars.enable()
+		doars.enable();
 
-    await new Promise(resolve => setTimeout(resolve, 1))
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    // Assert function was called and captured the specific value.
-    expect(captured).toBe('value')
-  })
-})
+		// Assert function was called and captured the specific value.
+		expect(captured).toBe("value");
+	});
+});

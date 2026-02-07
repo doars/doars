@@ -8,22 +8,16 @@
  * @param {DoarsOptions} options Library options.
  * @returns {Directive} The directive.
  */
-export default ({
-  watchDirectiveName,
-}) => ({
-  name: watchDirectiveName,
+export default ({ watchDirectiveName }) => ({
+	name: watchDirectiveName,
 
-  update: (
-    component,
-    attribute,
-    processExpression,
-  ) =>
-    // Execute attribute expression.
-    processExpression(
-      component,
-      attribute.clone(),
-      attribute.getValue(),
-      {},
-      { return: false },
-    ),
-})
+	update: (component, attribute, processExpression) =>
+		// Execute attribute expression.
+		processExpression(
+			component,
+			attribute.clone(),
+			attribute.getValue(),
+			{},
+			{ return: false },
+		),
+});

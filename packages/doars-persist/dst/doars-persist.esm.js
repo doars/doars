@@ -84,7 +84,10 @@ class ProxyDispatcher extends EventDispatcher {
           this.remove(target2, key);
           const deleted = Reflect.deleteProperty(target2, key);
           if (deleted) {
-            this.dispatchEvent("delete", [target2, Array.isArray(target2) ? [...path] : [...path, key]]);
+            this.dispatchEvent("delete", [
+              target2,
+              Array.isArray(target2) ? [...path] : [...path, key]
+            ]);
           }
           return deleted;
         };
@@ -106,7 +109,12 @@ class ProxyDispatcher extends EventDispatcher {
             value = this.add(value, [...path, key]);
           }
           target2[key] = value;
-          this.dispatchEvent("set", [target2, Array.isArray(target2) ? [...path] : [...path, key], value, receiver]);
+          this.dispatchEvent("set", [
+            target2,
+            Array.isArray(target2) ? [...path] : [...path, key],
+            value,
+            receiver
+          ]);
           return true;
         };
       }
@@ -322,4 +330,4 @@ export {
   DoarsPersist_default as default
 };
 
-//# debugId=BC2893CA6BEB664064756E2164756E21
+//# debugId=28DF5C3C4E6FFDFE64756E2164756E21

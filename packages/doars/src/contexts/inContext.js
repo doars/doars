@@ -1,4 +1,4 @@
-import { createContexts } from '../utilities/Context.js'
+import { createContexts } from "../utilities/Context.js";
 
 /**
  * @typedef {import('../Context.js').Context} Context
@@ -10,54 +10,41 @@ import { createContexts } from '../utilities/Context.js'
  * @param {DoarsOptions} options Library options.
  * @returns {Context} The context.
  */
-export default ({
-  inContextContextName,
-}) => ({
-  name: inContextContextName,
+export default ({ inContextContextName }) => ({
+	name: inContextContextName,
 
-  create: (
-    component,
-    attribute,
-  ) => ({
-    value: (
-      callback,
-    ) => {
-      // Collect update triggers.
-      const newTriggers = []
-      const contextUpdate = (
-        id,
-        path,
-      ) => {
-        newTriggers.push({
-          id,
-          path,
-        })
-      }
+	create: (component, attribute) => ({
+		value: (callback) => {
+			// Collect update triggers.
+			const newTriggers = [];
+			const contextUpdate = (id, path) => {
+				newTriggers.push({
+					id,
+					path,
+				});
+			};
 
-      // Create contexts.
-      const {
-        contexts,
-        destroy,
-      } = createContexts(
-        component,
-        attribute,
-        contextUpdate,
-        {},
-      )
+			// Create contexts.
+			const { contexts, destroy } = createContexts(
+				component,
+				attribute,
+				contextUpdate,
+				{},
+			);
 
-      // Invoke callback and store its result.
-      const result = callback(contexts)
+			// Invoke callback and store its result.
+			const result = callback(contexts);
 
-      // Destroy contexts.
-      destroy()
+			// Destroy contexts.
+			destroy();
 
-      // Dispatch update triggers.
-      if (newTriggers.length > 0) {
-        component.getLibrary().update(newTriggers)
-      }
+			// Dispatch update triggers.
+			if (newTriggers.length > 0) {
+				component.getLibrary().update(newTriggers);
+			}
 
-      // Return callback's result.
-      return result
-    },
-  }),
-})
+			// Return callback's result.
+			return result;
+		},
+	}),
+});

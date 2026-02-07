@@ -46,4 +46,4 @@
  * @property {boolean} return Whether to return the result of the processed expression.
  */
 
-export default {}
+export default {};

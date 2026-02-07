@@ -1,6 +1,6 @@
-import Doars from './Doars.js'
-import { call } from './utilities/Call.js'
+import Doars from "./Doars.js";
+import { call } from "./utilities/Call.js";
 
-Doars.callExpression = call
+Doars.callExpression = call;
 
-export default Doars
+export default Doars;

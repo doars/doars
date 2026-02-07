@@ -1,4 +1,4 @@
-import { transitionIn } from '@doars/common/src/utilities/Transition.js'
+import { transitionIn } from "@doars/common/src/utilities/Transition.js";
 
 /**
  * @typedef {import('../Directive.js').Directive} Directive
@@ -10,25 +10,18 @@ import { transitionIn } from '@doars/common/src/utilities/Transition.js'
  * @param {DoarsOptions} options Library options.
  * @returns {Directive} The directive.
  */
-export default ({
-  cloakDirectiveName,
-}) => ({
-  name: cloakDirectiveName,
+export default ({ cloakDirectiveName }) => ({
+	name: cloakDirectiveName,
 
-  update: (
-    component,
-    attribute,
-  ) => {
-    // Deconstruct attribute.
-    const element = attribute.getElement()
-    const libraryOptions = component.getLibrary().getOptions()
+	update: (component, attribute) => {
+		// Deconstruct attribute.
+		const element = attribute.getElement();
+		const libraryOptions = component.getLibrary().getOptions();
 
-    // Remove attribute from element.
-    element.removeAttribute(
-      attribute.getName(),
-    )
+		// Remove attribute from element.
+		element.removeAttribute(attribute.getName());
 
-    // Transition in.
-    transitionIn(libraryOptions, element)
-  },
-})
+		// Transition in.
+		transitionIn(libraryOptions, element);
+	},
+});

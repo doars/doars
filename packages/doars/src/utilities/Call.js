@@ -1,7 +1,7 @@
-import { createAutoContexts } from './Context.js'
-import { getDeeply } from '@doars/common/src/utilities/Object.js'
+import { getDeeply } from "@doars/common/src/utilities/Object.js";
+import { createAutoContexts } from "./Context.js";
 
-const PATH_VALIDATOR = /^[a-z$_]+[0-9a-z$_]*(?:\.[a-z$_]+[0-9a-z$_]*)*$/is
+const PATH_VALIDATOR = /^[a-z$_]+[0-9a-z$_]*(?:\.[a-z$_]+[0-9a-z$_]*)*$/is;
 
 /**
  * @typedef {import('../Attribute.js').default} Attribute
@@ -18,46 +18,60 @@ const PATH_VALIDATOR = /^[a-z$_]+[0-9a-z$_]*(?:\.[a-z$_]+[0-9a-z$_]*)*$/is
  * @returns {any} Result of expression.
  */
 export const call = (
-  component,
-  attribute,
-  expression,
-  extra = null,
-  options = null,
+	component,
+	attribute,
+	expression,
+	extra = null,
+	options = null,
 ) => {
-  // Override default with given options.
-  options = Object.assign({
-    return: true,
-  }, options)
+	// Override default with given options.
+	options = Object.assign(
+		{
+			return: true,
+		},
+		options,
+	);
 
-  // Create contexts.
-  const [contexts, destroyContexts] = createAutoContexts(component, attribute, extra)
+	// Create contexts.
+	const [contexts, destroyContexts] = createAutoContexts(
+		component,
+		attribute,
+		extra,
+	);
 
-  // Get result from the expression.
-  expression = expression.trim()
-  let result
-  if (!PATH_VALIDATOR.test(expression)) {
-    console.error('Error encountered when executing an expression. Expression is not a valid dot separated path: ', expression)
-    result = null
-  } else {
-    result = getDeeply(contexts, expression.split('.'))
-    if (typeof (result) === 'function') {
-      try {
-        result = result(contexts)
-      } catch (error) {
-        console.error('ExpressionError in:', expression, '\n' + error.name + ': ' + error.message)
-        result = null
-      }
-    }
-  }
+	// Get result from the expression.
+	expression = expression.trim();
+	let result;
+	if (!PATH_VALIDATOR.test(expression)) {
+		console.error(
+			"Error encountered when executing an expression. Expression is not a valid dot separated path: ",
+			expression,
+		);
+		result = null;
+	} else {
+		result = getDeeply(contexts, expression.split("."));
+		if (typeof result === "function") {
+			try {
+				result = result(contexts);
+			} catch (error) {
+				console.error(
+					"ExpressionError in:",
+					expression,
+					"\n" + error.name + ": " + error.message,
+				);
+				result = null;
+			}
+		}
+	}
 
-  // Cleanup contexts.
-  destroyContexts()
+	// Cleanup contexts.
+	destroyContexts();
 
-  if (options.return) {
-    return result
-  }
-}
+	if (options.return) {
+		return result;
+	}
+};
 
 export default {
-  call,
-}
+	call,
+};

@@ -1,7 +1,5 @@
 // src/contexts/update.js
-var update_default = ({
-  updateContextName
-}, updater) => {
+var update_default = ({ updateContextName }, updater) => {
   const id = updater.getId();
   const proxy = updater.getProxy();
   const time = updater.getTime();
@@ -21,10 +19,7 @@ var update_default = ({
 };
 
 // src/directives/update.js
-var update_default2 = ({
-  defaultOrder,
-  updateDirectiveName
-}) => {
+var update_default2 = ({ defaultOrder, updateDirectiveName }) => {
   const itemIds = [];
   const items = [];
   const directive = {
@@ -167,7 +162,10 @@ class ProxyDispatcher extends EventDispatcher {
           this.remove(target2, key);
           const deleted = Reflect.deleteProperty(target2, key);
           if (deleted) {
-            this.dispatchEvent("delete", [target2, Array.isArray(target2) ? [...path] : [...path, key]]);
+            this.dispatchEvent("delete", [
+              target2,
+              Array.isArray(target2) ? [...path] : [...path, key]
+            ]);
           }
           return deleted;
         };
@@ -189,7 +187,12 @@ class ProxyDispatcher extends EventDispatcher {
             value = this.add(value, [...path, key]);
           }
           target2[key] = value;
-          this.dispatchEvent("set", [target2, Array.isArray(target2) ? [...path] : [...path, key], value, receiver]);
+          this.dispatchEvent("set", [
+            target2,
+            Array.isArray(target2) ? [...path] : [...path, key],
+            value,
+            receiver
+          ]);
           return true;
         };
       }
@@ -215,9 +218,7 @@ class ProxyDispatcher extends EventDispatcher {
 
 // src/Updater.js
 class Updater {
-  constructor({
-    stepMinimum
-  }, callback) {
+  constructor({ stepMinimum }, callback) {
     const id = Symbol("ID_UPDATE");
     let isEnabled = false, request;
     const proxy = new ProxyDispatcher({
@@ -293,19 +294,24 @@ function DoarsUpdate_default(library, options = null) {
   let isEnabled = false;
   const updater = new Updater(options, () => {
     update();
-    library.update([{
-      id: updater.getId(),
-      path: "current"
-    }, {
-      id: updater.getId(),
-      path: "delta"
-    }, {
-      id: updater.getId(),
-      path: "last"
-    }, {
-      id: updater.getId(),
-      path: "passed"
-    }]);
+    library.update([
+      {
+        id: updater.getId(),
+        path: "current"
+      },
+      {
+        id: updater.getId(),
+        path: "delta"
+      },
+      {
+        id: updater.getId(),
+        path: "last"
+      },
+      {
+        id: updater.getId(),
+        path: "passed"
+      }
+    ]);
   });
   const contextUpdate = update_default(options, updater);
   const [directiveUpdate, update] = update_default2(options);
@@ -339,4 +345,4 @@ export {
   DoarsUpdate_default as default
 };
 
-//# debugId=059DACFA03F1D76D64756E2164756E21
+//# debugId=1204A0CE8C7100D764756E2164756E21

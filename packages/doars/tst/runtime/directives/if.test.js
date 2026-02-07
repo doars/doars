@@ -1,26 +1,24 @@
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import Doars from "../../../src/DoarsExecute.js";
+import { document } from "../test-setup.js";
 
-import { document } from '../test-setup.js'
+describe("If Directive", () => {
+	let container, doars;
 
-import Doars from '../../../src/DoarsExecute.js'
+	beforeEach(() => {
+		container = document.createElement("div");
+		document.body.appendChild(container);
+	});
 
-describe('If Directive', () => {
-  let container, doars
+	afterEach(() => {
+		doars.disable();
+		doars = null;
+		document.body.removeChild(container);
+		container = null;
+	});
 
-  beforeEach(() => {
-    container = document.createElement('div')
-    document.body.appendChild(container)
-  })
-
-  afterEach(() => {
-    doars.disable()
-    doars = null
-    document.body.removeChild(container)
-    container = null
-  })
-
-  test('if directive should conditionally render', async () => {
-    container.innerHTML = `
+	test("if directive should conditionally render", async () => {
+		container.innerHTML = `
       <div d-state="{ a: true, b: false }">
         <template d-if="a">
           <span>
@@ -34,19 +32,19 @@ describe('If Directive', () => {
           </span>
         </template>
       </div>
-    `
+    `;
 
-    doars = new Doars({
-      root: container,
-    })
-    doars.enable()
+		doars = new Doars({
+			root: container,
+		});
+		doars.enable();
 
-    await new Promise(resolve => setTimeout(resolve, 1))
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    const visibleSpan = container.querySelector('span')
-    expect(visibleSpan.textContent.trim()).toBe('Should be visible')
+		const visibleSpan = container.querySelector("span");
+		expect(visibleSpan.textContent.trim()).toBe("Should be visible");
 
-    const notVisibleSpans = container.querySelectorAll('span')
-    expect(notVisibleSpans.length).toBe(1)
-  })
-})
+		const notVisibleSpans = container.querySelectorAll("span");
+		expect(notVisibleSpans.length).toBe(1);
+	});
+});

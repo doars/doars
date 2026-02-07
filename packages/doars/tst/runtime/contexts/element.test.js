@@ -1,45 +1,43 @@
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import Doars from "../../../src/DoarsExecute.js";
+import { document } from "../test-setup.js";
 
-import { document } from '../test-setup.js'
+describe("Element Context", () => {
+	let container, doars;
 
-import Doars from '../../../src/DoarsExecute.js'
+	beforeEach(() => {
+		container = document.createElement("div");
+		document.body.appendChild(container);
+	});
 
-describe('Element Context', () => {
-  let container, doars
+	afterEach(() => {
+		doars.disable();
+		doars = null;
+		document.body.removeChild(container);
+		container = null;
+	});
 
-  beforeEach(() => {
-    container = document.createElement('div')
-    document.body.appendChild(container)
-  })
-
-  afterEach(() => {
-    doars.disable()
-    doars = null
-    document.body.removeChild(container)
-    container = null
-  })
-
-  test('element context should provide element reference', async () => {
-    container.innerHTML = `
+	test("element context should provide element reference", async () => {
+		container.innerHTML = `
       <div d-state="{}">
         <ol d-text="$element.tagName"></ol>
         <p d-text="$element.tagName"></p>
         <span d-text="$element.tagName"></span>
       </div>
-    `
+    `;
 
-    doars = new Doars({
-      root: container,
-    })
-    doars.enable()
+		doars = new Doars({
+			root: container,
+		});
+		doars.enable();
 
-    await new Promise(resolve => setTimeout(resolve, 1))
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    const ol = container.querySelector('ol')
-    expect(ol.textContent).toBe('OL')
-    const p = container.querySelector('p')
-    expect(p.textContent).toBe('P')
-    const span = container.querySelector('span')
-    expect(span.textContent).toBe('SPAN')
-  })
-})
+		const ol = container.querySelector("ol");
+		expect(ol.textContent).toBe("OL");
+		const p = container.querySelector("p");
+		expect(p.textContent).toBe("P");
+		const span = container.querySelector("span");
+		expect(span.textContent).toBe("SPAN");
+	});
+});

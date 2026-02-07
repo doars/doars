@@ -1,26 +1,24 @@
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import Doars from "../../../src/DoarsExecute.js";
+import { document } from "../test-setup.js";
 
-import { document } from '../test-setup.js'
+describe("Sibling Context", () => {
+	let container, doars;
 
-import Doars from '../../../src/DoarsExecute.js'
+	beforeEach(() => {
+		container = document.createElement("div");
+		document.body.appendChild(container);
+	});
 
-describe('Sibling Context', () => {
-  let container, doars
+	afterEach(() => {
+		doars.disable();
+		doars = null;
+		document.body.removeChild(container);
+		container = null;
+	});
 
-  beforeEach(() => {
-    container = document.createElement('div')
-    document.body.appendChild(container)
-  })
-
-  afterEach(() => {
-    doars.disable()
-    doars = null
-    document.body.removeChild(container)
-    container = null
-  })
-
-  test('nextSibling context should access next component', async () => {
-    container.innerHTML = `
+	test("nextSibling context should access next component", async () => {
+		container.innerHTML = `
       <div d-state="{}">
         <div d-state="{}"></div>
         <div d-state="{}"></div>
@@ -30,21 +28,21 @@ describe('Sibling Context', () => {
         <div d-state="{ message: 'success' }"></div>
         <div d-state="{}"></div>
       </div>
-    `
+    `;
 
-    doars = new Doars({
-      root: container,
-    })
-    doars.enable()
+		doars = new Doars({
+			root: container,
+		});
+		doars.enable();
 
-    await new Promise(resolve => setTimeout(resolve, 1))
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    const span = container.querySelector('span')
-    expect(span.textContent).toBe('success')
-  })
+		const span = container.querySelector("span");
+		expect(span.textContent).toBe("success");
+	});
 
-  test('previousSibling context should access previous component', async () => {
-    container.innerHTML = `
+	test("previousSibling context should access previous component", async () => {
+		container.innerHTML = `
       <div d-state="{}">
         <div d-state="{}"></div>
         <div d-state="{ message: 'success' }"></div>
@@ -54,32 +52,32 @@ describe('Sibling Context', () => {
         <div d-state="{}"></div>
         <div d-state="{}"></div>
       </div>
-    `
+    `;
 
-    doars = new Doars({
-      root: container,
-    })
-    doars.enable()
+		doars = new Doars({
+			root: container,
+		});
+		doars.enable();
 
-    await new Promise(resolve => setTimeout(resolve, 1))
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    const span = container.querySelector('span')
-    expect(span.textContent).toBe('success')
-  })
+		const span = container.querySelector("span");
+		expect(span.textContent).toBe("success");
+	});
 
-  test('siblings context should provide sibling components', async () => {
-    doars = new Doars({
-      root: container,
-    })
+	test("siblings context should provide sibling components", async () => {
+		doars = new Doars({
+			root: container,
+		});
 
-    const captured = {}
+		const captured = {};
 
-    // Set simple context with closure.
-    doars.setSimpleContext('collectSiblings', function (siblings) {
-      captured.messages = siblings.map(s => s.$state.message).filter(Boolean)
-    })
+		// Set simple context with closure.
+		doars.setSimpleContext("collectSiblings", (siblings) => {
+			captured.messages = siblings.map((s) => s.$state.message).filter(Boolean);
+		});
 
-    container.innerHTML = `
+		container.innerHTML = `
       <div d-state="{}">
         <div d-state="{ message: 'first' }"></div>
         <div d-state="{ message: 'previous' }"></div>
@@ -87,13 +85,13 @@ describe('Sibling Context', () => {
         <div d-state="{ message: 'next' }"></div>
         <div d-state="{ message: 'last' }"></div>
       </div>
-    `
+    `;
 
-    doars.enable()
+		doars.enable();
 
-    await new Promise(resolve => setTimeout(resolve, 1))
+		await new Promise((resolve) => setTimeout(resolve, 1));
 
-    // Assert siblings captured.
-    expect(captured.messages).toEqual(['first', 'previous', 'next', 'last'])
-  })
-})
+		// Assert siblings captured.
+		expect(captured.messages).toEqual(["first", "previous", "next", "last"]);
+	});
+});

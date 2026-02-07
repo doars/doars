@@ -153,11 +153,7 @@
       if (!right) {
         throw new Error("Expected expression after " + operator);
       }
-      const stack = [
-        left,
-        binaryOperationInfo,
-        right
-      ];
+      const stack = [left, binaryOperationInfo, right];
       let node;
       while (operator = gobbleBinaryOperation()) {
         const precedence = BINARY_OPERATORS[operator] || 0;
@@ -207,7 +203,7 @@
       let toCheck = expression.substring(index, index + 3);
       let toCheckLength = toCheck.length;
       while (toCheckLength > 0) {
-        if (Object.prototype.hasOwnProperty.call(BINARY_OPERATORS, toCheck) && (!isIdentifierStart(expression.charCodeAt(index)) || index + toCheck.length < expression.length && !isIdentifierPart(expression.charCodeAt(index + toCheck.length)))) {
+        if (Object.hasOwn(BINARY_OPERATORS, toCheck) && (!isIdentifierStart(expression.charCodeAt(index)) || index + toCheck.length < expression.length && !isIdentifierPart(expression.charCodeAt(index + toCheck.length)))) {
           index += toCheckLength;
           return toCheck;
         }
@@ -490,7 +486,7 @@
         }
         if (isIdentifierStart(character)) {
           node = gobbleIdentifier();
-          if (Object.prototype.hasOwnProperty.call(LITERALS, node.name)) {
+          if (Object.hasOwn(LITERALS, node.name)) {
             node = {
               type: LITERAL,
               value: LITERALS[node.name]
@@ -613,7 +609,7 @@
       case IDENTIFIER:
         context[node.name] = value;
         return value;
-      case MEMBER:
+      case MEMBER: {
         const memberObject = run(node.object, context);
         const memberProperty = node.computed || node.property.type !== IDENTIFIER ? run(node.property, context) : node.property.name;
         if (typeof value === "function") {
@@ -621,6 +617,7 @@
         }
         memberObject[memberProperty] = value;
         return value;
+      }
     }
     throw new Error("Unsupported assignment method.");
   };
@@ -636,13 +633,14 @@
         return context[node.name];
       case LITERAL:
         return node.value;
-      case ARRAY:
+      case ARRAY: {
         const arrayResults = [];
         for (const arrayElement of node.elements) {
           arrayResults.push(run(arrayElement, context));
         }
         return arrayResults;
-      case ASSIGN:
+      }
+      case ASSIGN: {
         let assignmentValue = run(node.right, context);
         if (node.operator !== "=") {
           const assignmentLeft = run(node.left, context);
@@ -683,7 +681,8 @@
           }
         }
         return setToContext(node.left, assignmentValue, context);
-      case BINARY:
+      }
+      case BINARY: {
         const binaryLeft = run(node.left, context);
         const binaryRight = run(node.right, context);
         switch (node.operator) {
@@ -721,30 +720,34 @@
             return binaryLeft % binaryRight;
         }
         throw new Error("Unsupported operator: " + node.operator);
-      case CALL:
+      }
+      case CALL: {
         const parameters = [];
         for (const parameter of node.parameters) {
           parameters.push(run(parameter, context));
         }
         return run(node.callee, context)(...parameters);
+      }
       case CONDITION:
         return run(node.condition, context) ? run(node.consequent, context) : run(node.alternate, context);
-      case MEMBER:
+      case MEMBER: {
         const memberObject = run(node.object, context);
         const memberProperty = node.computed || node.property.type !== IDENTIFIER ? run(node.property, context) : node.property.name;
         if (typeof memberObject[memberProperty] === "function") {
           return memberObject[memberProperty].bind(memberObject);
         }
         return memberObject[memberProperty];
-      case OBJECT:
+      }
+      case OBJECT: {
         const objectResult = {};
         for (const objectProperty of node.properties) {
           objectResult[objectProperty.computed || objectProperty.key.type !== IDENTIFIER ? run(objectProperty.key, context) : objectProperty.key.name] = run(objectProperty.value, context);
         }
         return objectResult;
+      }
       case SEQUENCE:
         return node.expressions.map((node2) => run(node2, context));
-      case UNARY:
+      case UNARY: {
         const unaryParameter = run(node.parameter, context);
         switch (node.operator) {
           case "!":
@@ -755,11 +758,13 @@
             return +unaryParameter;
         }
         throw new Error("Unsupported operator: " + node.operator);
-      case UPDATE:
+      }
+      case UPDATE: {
         const updateResult = run(node.parameter, context);
         const updateValue = node.operator === "--" ? -1 : 1;
         setToContext(node.parameter, updateResult + updateValue, context);
         return node.prefix ? updateResult + updateValue : updateResult;
+      }
     }
     throw new Error('Unexpected node type "' + node.type + '".');
   };
@@ -778,4 +783,4 @@
   };
 })();
 
-//# debugId=2E49713D3DF98C5164756E2164756E21
+//# debugId=0188CD62FE5DC2DF64756E2164756E21

@@ -38,4 +38,4 @@
  * @returns {never}
  */
 
-export default {}
+export default {};

@@ -10,52 +10,34 @@
  * @param {ProxyDispatcher} proxy Dispatcher to pass events through.
  * @returns {object} Proxied state and destroy callback.
  */
-export default (
-  name,
-  id,
-  state,
-  proxy,
-) => {
-  return (
-    component,
-    attribute,
-    update,
-  ) => {
-    // Create event handlers.
-    const onDelete = (
-      target,
-      path,
-    ) => update(id, name + '.' + path.join('.'))
-    const onGet = (
-      target,
-      path,
-    ) => attribute.accessed(id, name + '.' + path.join('.'))
-    const onSet = (
-      target,
-      path,
-    ) => update(id, name + '.' + path.join('.'))
+export default (name, id, state, proxy) => {
+	return (component, attribute, update) => {
+		// Create event handlers.
+		const onDelete = (target, path) => update(id, name + "." + path.join("."));
+		const onGet = (target, path) =>
+			attribute.accessed(id, name + "." + path.join("."));
+		const onSet = (target, path) => update(id, name + "." + path.join("."));
 
-    // Add event listeners.
-    proxy.addEventListener('delete', onDelete)
-    proxy.addEventListener('get', onGet)
-    proxy.addEventListener('set', onSet)
+		// Add event listeners.
+		proxy.addEventListener("delete", onDelete);
+		proxy.addEventListener("get", onGet);
+		proxy.addEventListener("set", onSet);
 
-    // Wrap in a revocable proxy.
-    const revocable = Proxy.revocable(state, {})
+		// Wrap in a revocable proxy.
+		const revocable = Proxy.revocable(state, {});
 
-    return {
-      value: revocable.proxy,
+		return {
+			value: revocable.proxy,
 
-      // Remove event listeners.
-      destroy: (
-      ) => {
-        proxy.removeEventListener('delete', onDelete)
-        proxy.removeEventListener('get', onGet)
-        proxy.removeEventListener('set', onSet)
+			// Remove event listeners.
+			destroy: () => {
+				proxy.removeEventListener("delete", onDelete);
+				proxy.removeEventListener("get", onGet);
+				proxy.removeEventListener("set", onSet);
 
-        // Revoke access to state.
-        revocable.revoke()
-      },
-    }
-  }
-}
+				// Revoke access to state.
+				revocable.revoke();
+			},
+		};
+	};
+};

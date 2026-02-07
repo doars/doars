@@ -1,5 +1,5 @@
 // Import event dispatcher.
-import EventDispatcher from './EventDispatcher.js'
+import EventDispatcher from "./EventDispatcher.js";
 
 /**
  * @typedef ProxyOptions
@@ -10,152 +10,144 @@ import EventDispatcher from './EventDispatcher.js'
  */
 
 export default class ProxyDispatcher extends EventDispatcher {
-  /**
-   * Creates a proxy dispatcher instance.
-   * @param {ProxyOptions} options Options for proxy dispatcher.
-   */
-  constructor(
-    options = {},
-  ) {
-    super()
+	/**
+	 * Creates a proxy dispatcher instance.
+	 * @param {ProxyOptions} options Options for proxy dispatcher.
+	 */
+	constructor(options = {}) {
+		super();
 
-    options = Object.assign({
-      delete: true,
-      get: true,
-      set: true,
-    }, options)
+		options = Object.assign(
+			{
+				delete: true,
+				get: true,
+				set: true,
+			},
+			options,
+		);
 
-    // Setup WeakMap for keep track of created proxies.
-    const map = new WeakMap()
+		// Setup WeakMap for keep track of created proxies.
+		const map = new WeakMap();
 
-    /**
-     * Add object to start keeping track of it.
-     * @param {object} target Object that is being kept track of.
-     * @param {Array<string>} path Path of object on optional parent object, used for recursion.
-     * @returns {Proxy} Object to access and mutate.
-     */
-    this.add = (
-      target,
-      path = [],
-    ) => {
-      // Exit early if proxy already exists.
-      if (map.has(target)) {
-        return map.get(target)
-      }
+		/**
+		 * Add object to start keeping track of it.
+		 * @param {object} target Object that is being kept track of.
+		 * @param {Array<string>} path Path of object on optional parent object, used for recursion.
+		 * @returns {Proxy} Object to access and mutate.
+		 */
+		this.add = (target, path = []) => {
+			// Exit early if proxy already exists.
+			if (map.has(target)) {
+				return map.get(target);
+			}
 
-      // Recursively create proxies for each property.
-      for (const key in target) {
-        if (target[key] && typeof (target[key]) === 'object') {
-          target[key] = this.add(target[key], [...path, key])
-        }
-      }
+			// Recursively create proxies for each property.
+			for (const key in target) {
+				if (target[key] && typeof target[key] === "object") {
+					target[key] = this.add(target[key], [...path, key]);
+				}
+			}
 
-      // Create handler and add the handler for which a callback exits..
-      const handler = {}
+			// Create handler and add the handler for which a callback exits..
+			const handler = {};
 
-      if (options.delete) {
-        handler.deleteProperty = (
-          target,
-          key,
-        ) => {
-          // Exit early successful if property doesn't exist.
-          if (!Reflect.has(target, key)) {
-            return true
-          }
+			if (options.delete) {
+				handler.deleteProperty = (target, key) => {
+					// Exit early successful if property doesn't exist.
+					if (!Reflect.has(target, key)) {
+						return true;
+					}
 
-          // Remove proxy.
-          this.remove(target, key)
+					// Remove proxy.
+					this.remove(target, key);
 
-          // Delete property.
-          const deleted = Reflect.deleteProperty(target, key)
+					// Delete property.
+					const deleted = Reflect.deleteProperty(target, key);
 
-          // Dispatch delete event.
-          if (deleted) {
-            this.dispatchEvent('delete', [target, Array.isArray(target) ? [...path] : [...path, key]])
-          }
+					// Dispatch delete event.
+					if (deleted) {
+						this.dispatchEvent("delete", [
+							target,
+							Array.isArray(target) ? [...path] : [...path, key],
+						]);
+					}
 
-          // Return deleted.
-          return deleted
-        }
-      }
+					// Return deleted.
+					return deleted;
+				};
+			}
 
-      if (options.get) {
-        handler.get = (
-          target,
-          key,
-          receiver,
-        ) => {
-          // Dispatch get event.
-          if (key !== Symbol.unscopables) {
-            this.dispatchEvent('get', [target, [...path, key], receiver])
-          }
+			if (options.get) {
+				handler.get = (target, key, receiver) => {
+					// Dispatch get event.
+					if (key !== Symbol.unscopables) {
+						this.dispatchEvent("get", [target, [...path, key], receiver]);
+					}
 
-          // Return value from object.
-          return Reflect.get(target, key, receiver)
-        }
-      }
+					// Return value from object.
+					return Reflect.get(target, key, receiver);
+				};
+			}
 
-      if (options.set) {
-        handler.set = (
-          target,
-          key,
-          value,
-          receiver,
-        ) => {
-          // Exit early if not changed.
-          if (target[key] === value) {
-            return true
-          }
+			if (options.set) {
+				handler.set = (target, key, value, receiver) => {
+					// Exit early if not changed.
+					if (target[key] === value) {
+						return true;
+					}
 
-          // Add proxy if value is an object.
-          if (value && typeof value === 'object') {
-            value = this.add(value, [...path, key])
-          }
-          // Store value.
-          target[key] = value
+					// Add proxy if value is an object.
+					if (value && typeof value === "object") {
+						value = this.add(value, [...path, key]);
+					}
+					// Store value.
+					target[key] = value;
 
-          // Dispatch set event. If the target is an array and a new item has been pushed then the length has also changed, therefore a more generalizable path will be dispatched.
-          this.dispatchEvent('set', [target, Array.isArray(target) ? [...path] : [...path, key], value, receiver])
+					// Dispatch set event. If the target is an array and a new item has been pushed then the length has also changed, therefore a more generalizable path will be dispatched.
+					this.dispatchEvent("set", [
+						target,
+						Array.isArray(target) ? [...path] : [...path, key],
+						value,
+						receiver,
+					]);
 
-          // Return success.
-          return true
-        }
-      }
+					// Return success.
+					return true;
+				};
+			}
 
-      // Create proxy.
-      const revocable = Proxy.revocable(target, handler)
+			// Create proxy.
+			const revocable = Proxy.revocable(target, handler);
 
-      // Store target at proxy.
-      map.set(revocable, target)
+			// Store target at proxy.
+			map.set(revocable, target);
 
-      // Return proxy.
-      return revocable.proxy
-    }
+			// Return proxy.
+			return revocable.proxy;
+		};
 
-    /**
-     * Remove object from being kept track of.
-     * @param {object} target Object that is being kept track of.
-     */
-    this.remove = (
-      target,
-    ) => {
-      // Remove target from the map.
-      if (!map.has(target)) {
-        return
-      }
+		/**
+		 * Remove object from being kept track of.
+		 * @param {object} target Object that is being kept track of.
+		 */
+		this.remove = (target) => {
+			// Remove target from the map.
+			if (!map.has(target)) {
+				return;
+			}
 
-      const revocable = map.get(target)
-      map.delete(revocable)
+			const revocable = map.get(target);
+			map.delete(revocable);
 
-      // Recursively remove properties as well.
-      for (const property in revocable.proxy) {
-        if (typeof (revocable.proxy[property]) === 'object') {
-          this.remove(revocable.proxy[property])
-        }
-      }
+			// Recursively remove properties as well.
+			for (const property in revocable.proxy) {
+				if (typeof revocable.proxy[property] === "object") {
+					this.remove(revocable.proxy[property]);
+				}
+			}
 
-      // Revoke proxy.
-      revocable.revoke()
-    }
-  }
+			// Revoke proxy.
+			revocable.revoke();
+		};
+	}
 }
