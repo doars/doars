@@ -11,7 +11,7 @@
 
 Adds an IPC context and directive that handles communication between the back-end (Bun) and the front-end (WebView). Designed for use with `@webviewjs/webview` or similar webview libraries that support bidirectional communication via `postMessage` (WebView → Bun) and `evaluateScript` (Bun → WebView).
 
-The plugin automatically creates a client-side IPC handler that uses `window.ipc.postMessage()` to send requests to the Bun host, and expects the host to route responses back via JavaScript evaluation.
+The plugin automatically creates a client-side IPC handler that uses `window.ipc.postMessage()` to send requests to the host, and expects the host to route responses back via JavaScript evaluation.
 
 ## Install
 
@@ -62,9 +62,9 @@ Add the IIFE build to the page from for example the jsDelivr CDN and enable the 
 
 > [ESM](https://cdn.jsdelivr.net/npm/@doars/doars-ipc@3/dst/doars-ipc.esm.js) and [IIFE](https://cdn.jsdelivr.net/npm/@doars/doars-ipc@3/dst/doars-ipc.iife.js) builds are available via the jsDelivr CDN.
 
-## Bun Host Setup
+## Host setup
 
-To use this plugin, you need to set up the server-side handler in your Bun application using a webview library like `@webviewjs/webview`:
+To use this plugin, you need to set up the server-side handler in your application using a webview library like `@webviewjs/webview`:
 
 ```JavaScript
 import { Application } from '@webviewjs/webview'
@@ -100,7 +100,7 @@ The following [contexts](https://github.com/doars/doars/tree/main/packages/doars
 
 ### \$ipc
 
-Call the IPC API. The `$ipc` context is a Proxy that automatically routes method calls through the client handler. Any method called on `$ipc` will be sent to the Bun host via `postMessage` and return a Promise that resolves with the response.
+Call the IPC API. The `$ipc` context is a Proxy that automatically routes method calls through the client handler. Any method called on `$ipc` will be sent to the host via `postMessage` and return a Promise that resolves with the response.
 
 - Type: `Proxy` that intercepts method calls and routes them through the IPC handler.
 
@@ -266,9 +266,9 @@ Dispatched when the call has successfully been resolved.
 - `{number|Array<number>} intersectionThreshold = 0` Thresholds of visibility the directive should be executed. `0` results in as soon as a pixel is in view. `1` results in that the entire element needs to be in view. `[0, 0.5, 1]` results in three possible calls when it is a pixel in view, 50% in view and entirely in view.
 - `{string|boolean} loadedEvent = 'load'` The name of the load special event listener. To disable the event from ever triggering set this option to false.
 
-### Server Handler
+### Server handler
 
-The server-side handler for Bun that routes incoming IPC messages to registered callbacks.
+The server-side handler that routes incoming IPC messages to registered callbacks.
 
 ```JavaScript
 import createServer from '@doars/doars-ipc/src/utilities/server.js'
