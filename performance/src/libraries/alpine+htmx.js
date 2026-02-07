@@ -1,5 +1,5 @@
-import alpine from 'alpinejs'
-import htmx from 'htmx.org'
+import alpine from "alpinejs";
+import htmx from "htmx.org";
 
-window.alpine = alpine
-window.htmx = htmx
+window.alpine = alpine;
+window.htmx = htmx;

@@ -108,7 +108,7 @@
 
       // Add function to context that returns a random set of data.
       const getRandomData = (count = 1000) => {
-        let data = []
+        const data = []
         for (let i = 0; i < count; i++) {
           data.push(getRandomItem(adjectives) + ' and ' + getRandomItem(adjectives) + ' ' + getRandomItem(nouns))
         }

@@ -1,3 +1,3 @@
-import Doars from '@doars/doars'
+import Doars from "@doars/doars";
 
-window.Doars = Doars
+window.Doars = Doars;

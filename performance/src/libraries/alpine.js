@@ -1,3 +1,3 @@
-import alpine from 'alpinejs'
+import alpine from "alpinejs";
 
-window.alpine = alpine
+window.alpine = alpine;
