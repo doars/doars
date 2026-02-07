@@ -1,46 +1,48 @@
 {
-  "author": {
-    "name": "Ron Dekker",
-    "website": "https://rondekker.nl/en-gb"
-  },
-  "name": "@doars/doars",
-  "packagename": "Doars",
-  "description": "A front-end library for declaring functionality in your markup.",
-  "keywords": [
-    "declarative",
-    "doars",
-    "framework",
-    "front-end",
-    "reactive"
-  ],
-  "version": "3.1.1",
-  "license": "MIT",
-  "type": "module",
-  "main": "src/DoarsExecute.js",
-  "homepage": "https://github.com/doars/doars#readme",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/doars/doars.git"
-  },
-  "bugs": {
-    "url": "https://github.com/doars/doars/issues"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "scripts": {
-    "build": "NODE_ENV=production bun config.bundle.js",
-    "develop": "NODE_ENV=development bun config.bundle.js"
-  },
-  "files": [
-    "dst",
-    "src",
-    "CHANGELOG.md",
-    "README.md"
-  ],
-  "devDependencies": {},
-  "dependencies": {
-    "@doars/common": "^2.1.2",
-    "@doars/interpret": "^1.1.0"
-  }
+	"author": {
+		"name": "Ron Dekker",
+		"website": "https://rondekker.nl/en-gb"
+	},
+	"name": "@doars/doars",
+	"packagename": "Doars",
+	"description": "A front-end library for declaring functionality in your markup.",
+	"keywords": [
+		"declarative",
+		"doars",
+		"framework",
+		"front-end",
+		"reactive"
+	],
+	"version": "3.1.1",
+	"license": "MIT",
+	"type": "module",
+	"main": "src/DoarsExecute.js",
+	"homepage": "https://github.com/doars/doars#readme",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/doars/doars.git"
+	},
+	"bugs": {
+		"url": "https://github.com/doars/doars/issues"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"scripts": {
+		"build": "NODE_ENV=production bun config.bundle.js",
+		"check": "biome check ./src/ ./tst/",
+		"check:write": "biome check --write ./src/ ./tst/",
+		"develop": "NODE_ENV=development bun config.bundle.js"
+	},
+	"files": [
+		"dst",
+		"src",
+		"CHANGELOG.md",
+		"README.md"
+	],
+	"devDependencies": {},
+	"dependencies": {
+		"@doars/common": "^2.1.2",
+		"@doars/interpret": "^1.1.0"
+	}
 }

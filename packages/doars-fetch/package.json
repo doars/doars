@@ -1,45 +1,47 @@
 {
-  "author": {
-    "name": "Ron Dekker",
-    "website": "https://rondekker.nl/en-gb"
-  },
-  "name": "@doars/doars-fetch",
-  "packagename": "DoarsFetch",
-  "description": "Doars plugin that adds a fetch context and directive that handles communication with servers.",
-  "keywords": [
-    "doars",
-    "fetch"
-  ],
-  "version": "3.1.2",
-  "license": "MIT",
-  "type": "module",
-  "main": "src/DoarsFetch.js",
-  "browser": "dst/doars-fetch.js",
-  "homepage": "https://github.com/doars/doars/tree/main/packages/doars-fetch#readme",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/doars/doars.git"
-  },
-  "bugs": {
-    "url": "https://github.com/doars/doars/issues"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "scripts": {
-    "build": "NODE_ENV=production bun config.bundle.js",
-    "develop": "NODE_ENV=development bun config.bundle.js"
-  },
-  "files": [
-    "dst",
-    "src",
-    "CHANGELOG.md",
-    "README.md"
-  ],
-  "devDependencies": {
-    "@doars/doars": "^3.1.1"
-  },
-  "dependencies": {
-    "@doars/common": "^2.1.2"
-  }
+	"author": {
+		"name": "Ron Dekker",
+		"website": "https://rondekker.nl/en-gb"
+	},
+	"name": "@doars/doars-fetch",
+	"packagename": "DoarsFetch",
+	"description": "Doars plugin that adds a fetch context and directive that handles communication with servers.",
+	"keywords": [
+		"doars",
+		"fetch"
+	],
+	"version": "3.1.2",
+	"license": "MIT",
+	"type": "module",
+	"main": "src/DoarsFetch.js",
+	"browser": "dst/doars-fetch.js",
+	"homepage": "https://github.com/doars/doars/tree/main/packages/doars-fetch#readme",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/doars/doars.git"
+	},
+	"bugs": {
+		"url": "https://github.com/doars/doars/issues"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"scripts": {
+		"build": "NODE_ENV=production bun config.bundle.js",
+		"check": "biome check ./src/ ./tst/",
+		"check:write": "biome check --write ./src/ ./tst/",
+		"develop": "NODE_ENV=development bun config.bundle.js"
+	},
+	"files": [
+		"dst",
+		"src",
+		"CHANGELOG.md",
+		"README.md"
+	],
+	"devDependencies": {
+		"@doars/doars": "^3.1.1"
+	},
+	"dependencies": {
+		"@doars/common": "^2.1.2"
+	}
 }

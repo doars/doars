@@ -1,45 +1,47 @@
 {
-  "author": {
-    "name": "Ron Dekker",
-    "website": "https://rondekker.nl/en-gb"
-  },
-  "name": "@doars/doars-update",
-  "packagename": "DoarsUpdate",
-  "description": "Doars plugin that adds an update loop context and directive.",
-  "keywords": [
-    "doars",
-    "update"
-  ],
-  "version": "3.0.0",
-  "license": "MIT",
-  "type": "module",
-  "main": "src/DoarsUpdate.js",
-  "browser": "dst/doars-update.js",
-  "homepage": "https://github.com/doars/doars/tree/main/packages/doars-update#readme",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/doars/doars.git"
-  },
-  "bugs": {
-    "url": "https://github.com/doars/doars/issues"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "scripts": {
-    "build": "NODE_ENV=production bun config.bundle.js",
-    "develop": "NODE_ENV=development bun config.bundle.js"
-  },
-  "files": [
-    "dst",
-    "src",
-    "CHANGELOG.md",
-    "README.md"
-  ],
-  "devDependencies": {
-    "@doars/doars": "^3.1.1"
-  },
-  "dependencies": {
-    "@doars/common": "^2.1.2"
-  }
+	"author": {
+		"name": "Ron Dekker",
+		"website": "https://rondekker.nl/en-gb"
+	},
+	"name": "@doars/doars-update",
+	"packagename": "DoarsUpdate",
+	"description": "Doars plugin that adds an update loop context and directive.",
+	"keywords": [
+		"doars",
+		"update"
+	],
+	"version": "3.0.0",
+	"license": "MIT",
+	"type": "module",
+	"main": "src/DoarsUpdate.js",
+	"browser": "dst/doars-update.js",
+	"homepage": "https://github.com/doars/doars/tree/main/packages/doars-update#readme",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/doars/doars.git"
+	},
+	"bugs": {
+		"url": "https://github.com/doars/doars/issues"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"scripts": {
+		"build": "NODE_ENV=production bun config.bundle.js",
+		"check": "biome check ./src/ ./tst/",
+		"check:write": "biome check --write ./src/ ./tst/",
+		"develop": "NODE_ENV=development bun config.bundle.js"
+	},
+	"files": [
+		"dst",
+		"src",
+		"CHANGELOG.md",
+		"README.md"
+	],
+	"devDependencies": {
+		"@doars/doars": "^3.1.1"
+	},
+	"dependencies": {
+		"@doars/common": "^2.1.2"
+	}
 }

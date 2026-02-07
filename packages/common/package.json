@@ -1,36 +1,39 @@
 {
-  "author": {
-    "name": "Ron Dekker",
-    "website": "https://rondekker.nl/en-gb"
-  },
-  "name": "@doars/common",
-  "description": "Doars common classes and functions.",
-  "keywords": [
-    "doars",
-    "common"
-  ],
-  "version": "2.1.2",
-  "license": "MIT",
-  "type": "module",
-  "homepage": "https://github.com/doars/doars/tree/main/packages/common#readme",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/doars/doars.git"
-  },
-  "bugs": {
-    "url": "https://github.com/doars/doars/issues"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "scripts": {
-    "build": "echo 'no production builds'",
-    "develop": "echo 'no development builds'"
-  },
-  "files": [
-    "src",
-    "README.md"
-  ],
-  "devDependencies": {},
-  "dependencies": {}
+	"author": {
+		"name": "Ron Dekker",
+		"website": "https://rondekker.nl/en-gb"
+	},
+	"name": "@doars/common",
+	"description": "Doars common classes and functions.",
+	"keywords": [
+		"doars",
+		"common"
+	],
+	"version": "2.1.2",
+	"license": "MIT",
+	"type": "module",
+	"homepage": "https://github.com/doars/doars/tree/main/packages/common#readme",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/doars/doars.git"
+	},
+	"bugs": {
+		"url": "https://github.com/doars/doars/issues"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"scripts": {
+		"build": "echo 'no production builds'",
+		"check": "biome check ./src/",
+		"check:write": "biome check --write ./src/",
+		"develop": "echo 'no development builds'"
+	},
+	"files": [
+		"src",
+		"CHANGELOG.md",
+		"README.md"
+	],
+	"devDependencies": {},
+	"dependencies": {}
 }

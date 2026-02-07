@@ -1,49 +1,51 @@
 {
-  "author": {
-    "name": "Ron Dekker",
-    "website": "https://rondekker.nl/en-gb"
-  },
-  "name": "@doars/doars-intersect",
-  "packagename": "DoarsIntersect",
-  "description": "Doars plugin that adds a intersect directive for reacting to intersection changes.",
-  "keywords": [
-    "doars",
-    "intersect",
-    "intersection",
-    "observer",
-    "view",
-    "viewport"
-  ],
-  "version": "3.1.0",
-  "license": "MIT",
-  "type": "module",
-  "main": "src/DoarsIntersect.js",
-  "browser": "dst/doars-intersect.js",
-  "homepage": "https://github.com/doars/doars/tree/main/packages/doars-intersect#readme",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/doars/doars.git"
-  },
-  "bugs": {
-    "url": "https://github.com/doars/doars/issues"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "scripts": {
-    "build": "NODE_ENV=production bun config.bundle.js",
-    "develop": "NODE_ENV=development bun config.bundle.js"
-  },
-  "files": [
-    "dst",
-    "src",
-    "CHANGELOG.md",
-    "README.md"
-  ],
-  "devDependencies": {
-    "@doars/doars": "^3.1.1"
-  },
-  "dependencies": {
-    "@doars/common": "^2.1.2"
-  }
+	"author": {
+		"name": "Ron Dekker",
+		"website": "https://rondekker.nl/en-gb"
+	},
+	"name": "@doars/doars-intersect",
+	"packagename": "DoarsIntersect",
+	"description": "Doars plugin that adds a intersect directive for reacting to intersection changes.",
+	"keywords": [
+		"doars",
+		"intersect",
+		"intersection",
+		"observer",
+		"view",
+		"viewport"
+	],
+	"version": "3.1.0",
+	"license": "MIT",
+	"type": "module",
+	"main": "src/DoarsIntersect.js",
+	"browser": "dst/doars-intersect.js",
+	"homepage": "https://github.com/doars/doars/tree/main/packages/doars-intersect#readme",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/doars/doars.git"
+	},
+	"bugs": {
+		"url": "https://github.com/doars/doars/issues"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"scripts": {
+		"build": "NODE_ENV=production bun config.bundle.js",
+		"check": "biome check ./src/ ./tst/",
+		"check:write": "biome check --write ./src/ ./tst/",
+		"develop": "NODE_ENV=development bun config.bundle.js"
+	},
+	"files": [
+		"dst",
+		"src",
+		"CHANGELOG.md",
+		"README.md"
+	],
+	"devDependencies": {
+		"@doars/doars": "^3.1.1"
+	},
+	"dependencies": {
+		"@doars/common": "^2.1.2"
+	}
 }

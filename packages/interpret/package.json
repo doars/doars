@@ -1,40 +1,43 @@
 {
-  "author": {
-    "name": "Ron Dekker",
-    "website": "https://rondekker.nl/en-gb"
-  },
-  "name": "@doars/interpret",
-  "description": "Simple JavaScript expression interpreter.",
-  "keywords": [
-    "doars",
-    "expressions",
-    "interpret",
-    "JavaScript"
-  ],
-  "version": "1.1.0",
-  "license": "MIT",
-  "type": "module",
-  "main": "src/index.js",
-  "homepage": "https://github.com/doars/doars/tree/main/packages/interpret#readme",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/doars/doars.git"
-  },
-  "bugs": {
-    "url": "https://github.com/doars/doars/issues"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "scripts": {
-    "build": "NODE_ENV=production bun config.bundle.js",
-    "develop": "NODE_ENV=development bun config.bundle.js"
-  },
-  "files": [
-    "src",
-    "CHANGELOG.md",
-    "README.md"
-  ],
-  "devDependencies": {},
-  "dependencies": {}
+	"author": {
+		"name": "Ron Dekker",
+		"website": "https://rondekker.nl/en-gb"
+	},
+	"name": "@doars/interpret",
+	"description": "Simple JavaScript expression interpreter.",
+	"keywords": [
+		"doars",
+		"expressions",
+		"interpret",
+		"JavaScript"
+	],
+	"version": "1.1.0",
+	"license": "MIT",
+	"type": "module",
+	"main": "src/index.js",
+	"homepage": "https://github.com/doars/doars/tree/main/packages/interpret#readme",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/doars/doars.git"
+	},
+	"bugs": {
+		"url": "https://github.com/doars/doars/issues"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"scripts": {
+		"build": "NODE_ENV=production bun config.bundle.js",
+		"develop": "NODE_ENV=development bun config.bundle.js",
+		"check": "biome check ./src/ ./tst/",
+		"check:write": "biome check --write ./src/ ./tst/"
+	},
+	"files": [
+		"dst",
+		"src",
+		"CHANGELOG.md",
+		"README.md"
+	],
+	"devDependencies": {},
+	"dependencies": {}
 }
