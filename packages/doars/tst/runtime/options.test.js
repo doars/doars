@@ -18,7 +18,7 @@ describe("Options", () => {
 	});
 
 	test("root id option restricts scanning", async () => {
-		const identifier = "id-" + crypto.randomUUID();
+		const identifier = `id-${crypto.randomUUID()}`;
 
 		container.innerHTML = `
       <div d-state="{ message: 'Broken' }">
@@ -31,7 +31,7 @@ describe("Options", () => {
 
 		// Create Doars with root selector.
 		doars = new Doars({
-			root: "#" + identifier,
+			root: `#${identifier}`,
 		});
 		doars.enable();
 

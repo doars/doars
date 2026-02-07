@@ -111,7 +111,7 @@ export default ({ intersectDirectiveName }, intersectionDispatcher) => ({
 				}
 
 				execute();
-			} else if (executionModifier === EXECUTION_MODIFIERS.BUFFER) {
+			} else if (executionModifier === EXECUTION_MODIFIERS.DEBOUNCE) {
 				// Clear existing timeout.
 				if (attribute[INTERSECT].timeout) {
 					clearTimeout(attribute[INTERSECT].timeout);
@@ -158,7 +158,7 @@ export default ({ intersectDirectiveName }, intersectionDispatcher) => ({
 		};
 	},
 
-	destroy: (component, attribute) => {
+	destroy: (_component, attribute) => {
 		// Check if a handler exists.
 		if (!attribute[INTERSECT]) {
 			return;

@@ -105,7 +105,7 @@ var parse_default = (expression) => {
         closed = true;
         index++;
         if (termination === CLOSING_PARENTHESIS_CODE && separatorCount && separatorCount >= parameters.length) {
-          throw new Error("Unexpected token " + String.fromCharCode(termination));
+          throw new Error(`Unexpected token ${String.fromCharCode(termination)}`);
         }
         break;
       } else if (characterIndex === COMMA_CODE) {
@@ -131,7 +131,7 @@ var parse_default = (expression) => {
       }
     }
     if (!closed) {
-      throw new Error("Expected " + String.fromCharCode(termination));
+      throw new Error(`Expected ${String.fromCharCode(termination)}`);
     }
     return parameters;
   };
@@ -150,7 +150,7 @@ var parse_default = (expression) => {
     };
     let right = gobbleToken();
     if (!right) {
-      throw new Error("Expected expression after " + operator);
+      throw new Error(`Expected expression after ${operator}`);
     }
     const stack = [left, binaryOperationInfo, right];
     let node;
@@ -179,7 +179,7 @@ var parse_default = (expression) => {
       }
       node = gobbleToken();
       if (!node) {
-        throw new Error("Expected expression after " + currentBinaryOperation);
+        throw new Error(`Expected expression after ${currentBinaryOperation}`);
       }
       stack.push(binaryOperationInfo, node);
     }
@@ -230,7 +230,7 @@ var parse_default = (expression) => {
           if (characterIndex === untilCharacterCode) {
             break;
           }
-          throw new Error('Unexpected "' + expression.charAt(index) + '"');
+          throw new Error(`Unexpected "${expression.charAt(index)}"`);
         }
       }
     }
@@ -242,7 +242,7 @@ var parse_default = (expression) => {
     if (isIdentifierStart(character)) {
       index++;
     } else {
-      throw new Error("Unexpected " + expression.charAt(index));
+      throw new Error(`Unexpected ${expression.charAt(index)}`);
     }
     while (index < expression.length) {
       character = expression.charCodeAt(index);
@@ -279,7 +279,7 @@ var parse_default = (expression) => {
         number += expression.charAt(index++);
       }
       if (!isDecimalDigit(expression.charCodeAt(index - 1))) {
-        throw new Error("Expected exponent (" + number + expression.charAt(index) + ")");
+        throw new Error(`Expected exponent (${number}${expression.charAt(index)})`);
       }
     }
     const characterCode = expression.charCodeAt(index);
@@ -299,7 +299,7 @@ var parse_default = (expression) => {
     }
     index++;
     const properties = [];
-    while (!isNaN(expression.charCodeAt(index))) {
+    while (!Number.isNaN(expression.charCodeAt(index))) {
       gobbleSpaces();
       if (expression.charCodeAt(index) === CLOSING_BRACES_CODE) {
         index++;
@@ -409,7 +409,7 @@ var parse_default = (expression) => {
       }
     }
     if (!closed) {
-      throw new Error('Unclosed quote after "' + string + '"');
+      throw new Error(`Unclosed quote after "${string}"`);
     }
     return {
       type: LITERAL,
@@ -572,7 +572,7 @@ var parse_default = (expression) => {
       prefix: true
     };
     if (!node.parameter || node.parameter.type !== IDENTIFIER && node.parameter.type !== MEMBER) {
-      throw new Error("Unexpected " + node.operator);
+      throw new Error(`Unexpected ${node.operator}`);
     }
     return node;
   };
@@ -692,9 +692,9 @@ var run = (node, context = {}) => {
         case "??":
           return binaryLeft ?? binaryRight;
         case "==":
-          return binaryLeft == binaryRight;
+          return binaryLeft === binaryRight;
         case "!=":
-          return binaryLeft != binaryRight;
+          return binaryLeft !== binaryRight;
         case "===":
           return binaryLeft === binaryRight;
         case "!==":
@@ -718,7 +718,7 @@ var run = (node, context = {}) => {
         case "%":
           return binaryLeft % binaryRight;
       }
-      throw new Error("Unsupported operator: " + node.operator);
+      throw new Error(`Unsupported operator: ${node.operator}`);
     }
     case CALL: {
       const parameters = [];
@@ -756,7 +756,7 @@ var run = (node, context = {}) => {
         case "+":
           return +unaryParameter;
       }
-      throw new Error("Unsupported operator: " + node.operator);
+      throw new Error(`Unsupported operator: ${node.operator}`);
     }
     case UPDATE: {
       const updateResult = run(node.parameter, context);
@@ -765,7 +765,7 @@ var run = (node, context = {}) => {
       return node.prefix ? updateResult + updateValue : updateResult;
     }
   }
-  throw new Error('Unexpected node type "' + node.type + '".');
+  throw new Error(`Unexpected node type "${node.type}".`);
 };
 var run_default = run;
 
@@ -824,4 +824,4 @@ export {
   ARRAY2 as ARRAY
 };
 
-//# debugId=278BE0A00662B68C64756E2164756E21
+//# debugId=4F64B73B585E5CF864756E2164756E21

@@ -17,7 +17,7 @@ export const escapeHtml = (text) => {
  * @returns {string} Converted string.
  */
 export const kebabToCamel = (text) => {
-	return text.replace(/-(\w)/g, (match, character) => character.toUpperCase());
+	return text.replace(/-(\w)/g, (_match, character) => character.toUpperCase());
 };
 
 /**
@@ -67,14 +67,16 @@ export const parseAttributeModifiers = (modifiers) => {
 		}
 
 		// Try to parse the value as a number.
-		tmpValue = Number.parseInt(tmpValue);
-		if (!isNaN(tmpValue)) {
+		tmpValue = Number.parseInt(tmpValue, 10);
+		if (!Number.isNaN(tmpValue)) {
 			value = tmpValue;
 
 			// Convert to milliseconds if given in a different format.
 			switch (type) {
+				// biome-ignore lint/suspicious/noFallthroughSwitchClause: Intentional fallthrough for time conversion
 				case "h":
 					value *= 60;
+				// biome-ignore lint/suspicious/noFallthroughSwitchClause: Intentional fallthrough for time conversion
 				case "m":
 					value *= 60;
 				case "s":
@@ -111,7 +113,7 @@ export const parseAttributeName = (prefix, name) => {
 	// Match with expression.
 	name = name.match(
 		new RegExp(
-			"^" + prefix + "-([a-z][0-9a-z-]{1,}):?([a-z][0-9a-z-]*)?(\\..*]*)?$",
+			`^${prefix}-([a-z][0-9a-z-]{1,}):?([a-z][0-9a-z-]*)?(\\..*]*)?$`,
 			"i",
 		),
 	);
@@ -119,7 +121,7 @@ export const parseAttributeName = (prefix, name) => {
 		return;
 	}
 	// Deconstruct match.
-	let [full, directive, keyRaw, modifiers] = name; // eslint-disable-line no-unused-vars
+	let [_full, directive, keyRaw, modifiers] = name; // eslint-disable-line no-unused-vars
 	// If no key provided set it to null instead of empty.
 	keyRaw = keyRaw !== "" ? keyRaw : null;
 	const key = keyRaw ? kebabToCamel(keyRaw) : null;
@@ -215,7 +217,7 @@ export const parseSelector = (selector) => {
 
 			case "[": {
 				// Remove brackets and split key from value.
-				const [full, key, value] = selectorSegment.match(
+				const [_full, key, value] = selectorSegment.match(
 					/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i,
 				); // eslint-disable-line no-unused-vars
 				// Store attribute value in results.

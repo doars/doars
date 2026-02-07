@@ -110,13 +110,12 @@ export default class EventDispatcher {
 
 			// Dispatch a call to each event.
 			for (let i = 0; i < eventData.length; i++) {
-				const event =
-					options && options.reverse
-						? eventData[eventData.length - (i + 1)]
-						: eventData[i];
+				const event = options?.reverse
+					? eventData[eventData.length - (i + 1)]
+					: eventData[i];
 
 				// If once is truthy then remove the callback.
-				if (event.options && event.options.once) {
+				if (event.options?.once) {
 					eventData.splice(i, 1);
 				}
 

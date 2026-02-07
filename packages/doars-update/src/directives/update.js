@@ -43,7 +43,7 @@ export default ({ defaultOrder, updateDirectiveName }) => {
 			});
 		},
 
-		destroy: (component, attribute) => {
+		destroy: (_component, attribute) => {
 			// Deconstruct attribute.
 			const id = attribute.getId();
 

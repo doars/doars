@@ -28,15 +28,13 @@ export default ({ allowInlineScript, ifDirectiveName }) => ({
 
 		// Check if placed on a template tag.
 		if (template.tagName !== "TEMPLATE") {
-			console.warn(
-				'Doars: "' + directive + '" must be placed on a `<template>`.',
-			);
+			console.warn(`Doars: "${directive}" must be placed on a \`<template>\`.`);
 			return;
 		}
 
 		// Check if it only has one child.
 		if (template.childCount > 1) {
-			console.warn('Doars: "' + directive + '" must have one child.');
+			console.warn(`Doars: "${directive}" must have one child.`);
 			return;
 		}
 

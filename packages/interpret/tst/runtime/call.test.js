@@ -58,7 +58,7 @@ test(
 	},
 );
 
-callbackTemp = (general, kenobi) => general + " " + kenobi;
+callbackTemp = (general, kenobi) => `${general} ${kenobi}`;
 test(
 	"Call parameter",
 	'hello("general", "kenobi")',

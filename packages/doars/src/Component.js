@@ -41,7 +41,7 @@ export default class Component {
 			state;
 
 		// Check if element has a state attribute.
-		if (!element.attributes[prefix + "-" + stateDirectiveName]) {
+		if (!element.attributes[`${prefix}-${stateDirectiveName}`]) {
 			console.error(
 				"Doars: element given to component does not contain a state attribute!",
 			);
@@ -77,7 +77,7 @@ export default class Component {
 		 */
 		const dispatchEvent = (name, detail) => {
 			element.dispatchEvent(
-				new CustomEvent(prefix + "-" + name, {
+				new CustomEvent(`${prefix}-${name}`, {
 					detail,
 					bubbles: true,
 				}),
@@ -170,7 +170,7 @@ export default class Component {
 			const { stateDirectiveName } = this.getLibrary().getOptions();
 
 			// Get component's state attribute.
-			const componentName = prefix + "-" + stateDirectiveName;
+			const componentName = `${prefix}-${stateDirectiveName}`;
 			const value = element.attributes[componentName].value;
 
 			// Process expression for generating the state using a mock attribute.
@@ -344,7 +344,7 @@ export default class Component {
 
 			// Attribute has been removed, call the destroy directive.
 			const directive = directives[attribute.getKey()];
-			if (directive && directive.destroy) {
+			if (directive?.destroy) {
 				directive.destroy(this, attribute, processExpression);
 			}
 
@@ -365,8 +365,8 @@ export default class Component {
 				this.getLibrary().getOptions();
 
 			// Get component's state attribute.
-			const componentName = prefix + "-" + stateDirectiveName;
-			const ignoreName = prefix + "-" + ignoreDirectiveName;
+			const componentName = `${prefix}-${stateDirectiveName}`;
+			const ignoreName = `${prefix}-${ignoreDirectiveName}`;
 
 			// Store new attributes.
 			const newAttributes = [];
@@ -386,6 +386,7 @@ export default class Component {
 						newAttributes.push(this.addAttribute(element, name, value));
 					}
 				}
+				// biome-ignore lint/suspicious/noAssignInExpressions: Common while loop pattern
 			} while ((element = iterator()));
 
 			// Return new attributes.

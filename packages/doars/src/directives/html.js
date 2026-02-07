@@ -79,7 +79,7 @@ export default ({ allowInlineScript, htmlDirectiveName }) => ({
 			}
 
 			console.error(
-				'Doars: Unknown type returned to "' + directive + '" directive.',
+				`Doars: Unknown type returned to "${directive}" directive.`,
 			);
 		};
 

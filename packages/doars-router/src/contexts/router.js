@@ -7,7 +7,7 @@ import closestRouter from "../utilities/closestRouter.js";
 export default ({ routerContextName }) => ({
 	name: routerContextName,
 
-	create: (component, attribute) => {
+	create: (_component, attribute) => {
 		// Deconstruct attribute.
 		const element = attribute.getElement();
 
@@ -15,7 +15,7 @@ export default ({ routerContextName }) => ({
 		const revocable = Proxy.revocable(
 			{},
 			{
-				get: (target, propertyKey, receiver) => {
+				get: (_target, propertyKey, receiver) => {
 					// Get closest router from hierarchy.
 					if (router === null) {
 						if (element[ROUTER]) {

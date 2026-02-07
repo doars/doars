@@ -49,7 +49,7 @@ export default ({ syncDirectiveName }) => ({
 		let value = attribute.getValue().trim();
 		const key = attribute.getKey();
 		if (key) {
-			value = "$" + key + "." + value;
+			value = `$${key}.${value}`;
 		}
 
 		// Check if value is a valid variable name.
@@ -250,7 +250,7 @@ export default ({ syncDirectiveName }) => ({
 		}
 	},
 
-	destroy: (component, attribute) => {
+	destroy: (_component, attribute) => {
 		// Exit early if nothing to destroy.
 		if (!attribute[SYNC]) {
 			return;

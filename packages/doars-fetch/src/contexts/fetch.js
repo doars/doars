@@ -19,7 +19,7 @@ export default ({ fetchContextName, fetchOptions }) => ({
 
 				// Perform and process fetch request.
 				return fetchAndParse(url, options, returnType).then((result) => {
-					if (result && result.value) {
+					if (result?.value) {
 						return result.value;
 					}
 				});

@@ -33,6 +33,7 @@ export const readdScripts = (...elements) => {
 			// Otherwise check its children.
 			const iterate = walk(element);
 			let maybeScript = null;
+			// biome-ignore lint/suspicious/noAssignInExpressions: Common while loop pattern with iterator
 			while ((maybeScript = iterate())) {
 				_readdScript(maybeScript);
 			}

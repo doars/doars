@@ -58,7 +58,7 @@ export const morphTree = (existingTree, newTree, options) => {
 	}
 
 	// Check if outer or inner html should be updated. Always update children only if root node is a document fragment.
-	if ((options && options.childrenOnly) || newTree.nodeType === 11) {
+	if (options?.childrenOnly || newTree.nodeType === 11) {
 		_updateChildren(existingTree, newTree);
 		return existingTree;
 	}
@@ -160,7 +160,7 @@ const _updateTree = (existingTree, newTree) => {
 		return null;
 	}
 
-	if (existingTree.isSameNode && existingTree.isSameNode(newTree)) {
+	if (existingTree.isSameNode?.(newTree)) {
 		return existingTree;
 	}
 

@@ -186,6 +186,7 @@ export default class Doars extends EventDispatcher {
 		super();
 
 		// Deconstruct options.
+		// biome-ignore lint/suspicious/noAssignInExpressions: Assignment in destructure
 		let { prefix, processor, root } = (options = Object.assign(
 			{
 				prefix: "d",
@@ -334,9 +335,9 @@ export default class Doars extends EventDispatcher {
 			processExpression = processor;
 		} else if (
 			processorType === "string" &&
-			this.constructor[processor + "Expression"]
+			this.constructor[`${processor}Expression`]
 		) {
-			processExpression = this.constructor[processor + "Expression"];
+			processExpression = this.constructor[`${processor}Expression`];
 		} else {
 			console.warn(
 				"Doars: Expression processor not found. Using fallback instead.",
@@ -429,14 +430,14 @@ export default class Doars extends EventDispatcher {
 			const { stateDirectiveName, ignoreDirectiveName } = this.getOptions();
 
 			// Scan for components.
-			const componentName = prefix + "-" + stateDirectiveName;
-			const ignoreName = prefix + "-" + ignoreDirectiveName;
+			const componentName = `${prefix}-${stateDirectiveName}`;
+			const ignoreName = `${prefix}-${ignoreDirectiveName}`;
 			const componentElements = [
-				...root.querySelectorAll("[" + componentName + "]"),
+				...root.querySelectorAll(`[${componentName}]`),
 			];
 			// Remove any elements that should be ignored.
 			for (let i = componentElements.length - 1; i >= 0; i--) {
-				if (componentElements[i].closest("[" + ignoreName + "]")) {
+				if (componentElements[i].closest(`[${ignoreName}]`)) {
 					componentElements.splice(i, 1);
 				}
 			}
@@ -929,8 +930,8 @@ export default class Doars extends EventDispatcher {
 			const { stateDirectiveName, ignoreDirectiveName } = this.getOptions();
 
 			// Construct component name.
-			const componentName = prefix + "-" + stateDirectiveName;
-			const ignoreName = prefix + "-" + ignoreDirectiveName;
+			const componentName = `${prefix}-${stateDirectiveName}`;
+			const ignoreName = `${prefix}-${ignoreDirectiveName}`;
 
 			// Store new attribute and elements that define new components.
 			const componentsToAdd = [];
@@ -972,6 +973,7 @@ export default class Doars extends EventDispatcher {
 						for (const attribute of element[ATTRIBUTES]) {
 							attribute.getComponent().removeAttribute(attribute);
 						}
+						// biome-ignore lint/suspicious/noAssignInExpressions: Common while loop pattern
 					} while ((element = iterator()));
 				}
 			};
@@ -982,18 +984,18 @@ export default class Doars extends EventDispatcher {
 				}
 
 				// Skip if inside an ignore tag.
-				const ignoreParent = element.closest("[" + ignoreName + "]");
+				const ignoreParent = element.closest(`[${ignoreName}]`);
 				if (ignoreParent) {
 					return;
 				}
 
 				// Scan for new components and add them to the list.
 				const componentElements = element.querySelectorAll(
-					"[" + componentName + "]",
+					`[${componentName}]`,
 				);
 				for (const componentElement of componentElements) {
 					// Skip if inside an ignore tag.
-					const ignoreParent = componentElement.closest("[" + ignoreName + "]");
+					const ignoreParent = componentElement.closest(`[${ignoreName}]`);
 					if (ignoreParent) {
 						continue;
 					}
@@ -1050,6 +1052,7 @@ export default class Doars extends EventDispatcher {
 								for (const attribute of currentElement[ATTRIBUTES]) {
 									component.removeAttribute(attribute);
 								}
+								// biome-ignore lint/suspicious/noAssignInExpressions: Common while loop pattern
 							} while ((currentElement = iterator()));
 						}
 

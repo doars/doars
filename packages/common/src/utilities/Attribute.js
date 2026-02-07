@@ -155,7 +155,7 @@ export const setAttribute = (element, key, data) => {
 		} else if (typeof data === "object") {
 			// List keys of object as a string if the value is truthy.
 			data = Object.entries(data)
-				.filter(([key, value]) => value)
+				.filter(([_key, value]) => value)
 				.map(([key]) => key)
 				.join(" ");
 		}
@@ -168,7 +168,7 @@ export const setAttribute = (element, key, data) => {
 		} else if (typeof data === "object") {
 			// List keys of object as a string if the value is truthy.
 			data = Object.entries(data)
-				.map(([key, value]) => key + ":" + value)
+				.map(([key, value]) => `${key}:${value}`)
 				.join(";");
 		}
 	}

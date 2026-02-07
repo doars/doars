@@ -5,8 +5,8 @@ var update_default = ({ updateContextName }, updater) => {
   const time = updater.getTime();
   return {
     name: updateContextName,
-    create: (component, attribute) => {
-      const onGet = (target, path) => attribute.accessed(id, path.join("."));
+    create: (_component, attribute) => {
+      const onGet = (_target, path) => attribute.accessed(id, path.join("."));
       proxy.addEventListener("get", onGet);
       return {
         value: time,
@@ -49,7 +49,7 @@ var update_default2 = ({ defaultOrder, updateDirectiveName }) => {
         order
       });
     },
-    destroy: (component, attribute) => {
+    destroy: (_component, attribute) => {
       const id = attribute.getId();
       const index = itemIds.indexOf(id);
       if (index >= 0) {
@@ -124,8 +124,8 @@ class EventDispatcher {
       }
       const eventData = events[name];
       for (let i = 0;i < eventData.length; i++) {
-        const event = options && options.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
-        if (event.options && event.options.once) {
+        const event = options?.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
+        if (event.options?.once) {
           eventData.splice(i, 1);
         }
         event.callback(...parameters);
@@ -345,4 +345,4 @@ export {
   DoarsUpdate_default as default
 };
 
-//# debugId=1204A0CE8C7100D764756E2164756E21
+//# debugId=E15CBF4649AC8E3D64756E2164756E21

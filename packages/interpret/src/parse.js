@@ -152,7 +152,7 @@ export default (expression) => {
 					separatorCount >= parameters.length
 				) {
 					throw new Error(
-						"Unexpected token " + String.fromCharCode(termination),
+						`Unexpected token ${String.fromCharCode(termination)}`,
 					);
 				}
 				break;
@@ -183,7 +183,7 @@ export default (expression) => {
 		}
 
 		if (!closed) {
-			throw new Error("Expected " + String.fromCharCode(termination));
+			throw new Error(`Expected ${String.fromCharCode(termination)}`);
 		}
 
 		return parameters;
@@ -207,12 +207,13 @@ export default (expression) => {
 
 		let right = gobbleToken();
 		if (!right) {
-			throw new Error("Expected expression after " + operator);
+			throw new Error(`Expected expression after ${operator}`);
 		}
 
 		const stack = [left, binaryOperationInfo, right];
 
 		let node;
+		// biome-ignore lint/suspicious/noAssignInExpressions: Common parser pattern
 		while ((operator = gobbleBinaryOperation())) {
 			const precedence = BINARY_OPERATORS[operator] || 0;
 
@@ -243,7 +244,7 @@ export default (expression) => {
 			node = gobbleToken();
 
 			if (!node) {
-				throw new Error("Expected expression after " + currentBinaryOperation);
+				throw new Error(`Expected expression after ${currentBinaryOperation}`);
 			}
 
 			stack.push(binaryOperationInfo, node);
@@ -310,7 +311,7 @@ export default (expression) => {
 					if (characterIndex === untilCharacterCode) {
 						break;
 					}
-					throw new Error('Unexpected "' + expression.charAt(index) + '"');
+					throw new Error(`Unexpected "${expression.charAt(index)}"`);
 				}
 			}
 		}
@@ -324,7 +325,7 @@ export default (expression) => {
 		if (isIdentifierStart(character)) {
 			index++;
 		} else {
-			throw new Error("Unexpected " + expression.charAt(index));
+			throw new Error(`Unexpected ${expression.charAt(index)}`);
 		}
 
 		while (index < expression.length) {
@@ -369,7 +370,7 @@ export default (expression) => {
 
 			if (!isDecimalDigit(expression.charCodeAt(index - 1))) {
 				throw new Error(
-					"Expected exponent (" + number + expression.charAt(index) + ")",
+					`Expected exponent (${number}${expression.charAt(index)})`,
 				);
 			}
 		}
@@ -404,7 +405,7 @@ export default (expression) => {
 		index++;
 
 		const properties = [];
-		while (!isNaN(expression.charCodeAt(index))) {
+		while (!Number.isNaN(expression.charCodeAt(index))) {
 			gobbleSpaces();
 			if (expression.charCodeAt(index) === CLOSING_BRACES_CODE) {
 				index++;
@@ -539,7 +540,7 @@ export default (expression) => {
 		}
 
 		if (!closed) {
-			throw new Error('Unclosed quote after "' + string + '"');
+			throw new Error(`Unclosed quote after "${string}"`);
 		}
 
 		return {
@@ -746,7 +747,7 @@ export default (expression) => {
 			!node.parameter ||
 			(node.parameter.type !== IDENTIFIER && node.parameter.type !== MEMBER)
 		) {
-			throw new Error("Unexpected " + node.operator);
+			throw new Error(`Unexpected ${node.operator}`);
 		}
 		return node;
 	};

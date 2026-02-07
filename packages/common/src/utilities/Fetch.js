@@ -7,10 +7,6 @@
 export const parseResponse = (response, type) => {
 	let promise;
 	switch (String.prototype.toLowerCase.call(type)) {
-		default:
-			console.warn('Unknown response type "' + type + '" used.');
-			break;
-
 		case "arraybuffer":
 			promise = response.arrayBuffer();
 			break;
@@ -35,6 +31,10 @@ export const parseResponse = (response, type) => {
 		case "text":
 		case "xml":
 			promise = response.text();
+			break;
+
+		default:
+			console.warn(`Unknown response type "${type}" used.`);
 			break;
 	}
 

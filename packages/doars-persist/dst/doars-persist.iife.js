@@ -47,8 +47,8 @@
         }
         const eventData = events[name];
         for (let i = 0;i < eventData.length; i++) {
-          const event = options && options.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
-          if (event.options && event.options.once) {
+          const event = options?.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
+          if (event.options?.once) {
             eventData.splice(i, 1);
           }
           event.callback(...parameters);
@@ -141,10 +141,10 @@
 
   // ../common/src/factories/createState.js
   var createState_default = (name, id, state, proxy) => {
-    return (component, attribute, update) => {
-      const onDelete = (target, path) => update(id, name + "." + path.join("."));
-      const onGet = (target, path) => attribute.accessed(id, name + "." + path.join("."));
-      const onSet = (target, path) => update(id, name + "." + path.join("."));
+    return (_component, attribute, update) => {
+      const onDelete = (_target, path) => update(id, `${name}.${path.join(".")}`);
+      const onGet = (_target, path) => attribute.accessed(id, `${name}.${path.join(".")}`);
+      const onSet = (_target, path) => update(id, `${name}.${path.join(".")}`);
       proxy.addEventListener("delete", onDelete);
       proxy.addEventListener("get", onGet);
       proxy.addEventListener("set", onSet);
@@ -182,7 +182,7 @@
   var set = (name, value = "", days = 60) => {
     name = name.trim();
     if (!value || value === "") {
-      document.cookie = name + "=; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Path=/; SameSite=Strict;";
+      document.cookie = `${name}=; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Path=/; SameSite=Strict;`;
       if (_cache !== null) {
         delete _cache[name];
       }
@@ -191,23 +191,20 @@
       if (days) {
         const date = new Date;
         date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-        expires = "; expires=" + date.toUTCString();
+        expires = `; expires=${date.toUTCString()}`;
       }
-      document.cookie = name + "=" + encodeURIComponent(value) + expires + "; Path=/; SameSite=Strict;";
+      document.cookie = `${name}=${encodeURIComponent(value)}${expires}; Path=/; SameSite=Strict;`;
       getAll();
       _cache[name] = value;
     }
   };
 
   // src/contexts/cookies.js
-  var cookies_default = ({
-    cookiesContextDeconstruct,
-    cookiesContextName
-  }) => {
+  var cookies_default = ({ cookiesContextDeconstruct, cookiesContextName }) => {
     const proxy = new ProxyDispatcher;
     const onMutate = (target, path) => {
       if (path.length > 1) {
-        console.warn('Nested cookies impossible tried to set "' + path.join(".") + '".');
+        console.warn(`Nested cookies impossible tried to set "${path.join(".")}".`);
       }
       set(path[0], target[path[0]]);
     };
@@ -232,15 +229,15 @@
     localStorageContextName
   }) => {
     const proxy = new ProxyDispatcher;
-    proxy.addEventListener("delete", (target, path) => {
+    proxy.addEventListener("delete", (_target, path) => {
       if (path.length > 1) {
-        console.warn('Nested local storage impossible tried to set "' + path.join(".") + '".');
+        console.warn(`Nested local storage impossible tried to set "${path.join(".")}".`);
       }
       localStorage.removeItem(path[0]);
     });
     proxy.addEventListener("set", (target, path) => {
       if (path.length > 1) {
-        console.warn('Nested local storage impossible tried to set "' + path.join(".") + '".');
+        console.warn(`Nested local storage impossible tried to set "${path.join(".")}".`);
       }
       localStorage.setItem(path[0], target[path[0]]);
     });
@@ -263,15 +260,15 @@
     sessionStorageContextName
   }) => {
     const proxy = new ProxyDispatcher;
-    proxy.addEventListener("delete", (target, path) => {
+    proxy.addEventListener("delete", (_target, path) => {
       if (path.length > 1) {
-        console.warn('Nested local storage impossible tried to set "' + path.join(".") + '".');
+        console.warn(`Nested local storage impossible tried to set "${path.join(".")}".`);
       }
       sessionStorage.removeItem(path[0]);
     });
     proxy.addEventListener("set", (target, path) => {
       if (path.length > 1) {
-        console.warn('Nested local storage impossible tried to set "' + path.join(".") + '".');
+        console.warn(`Nested local storage impossible tried to set "${path.join(".")}".`);
       }
       sessionStorage.setItem(path[0], target[path[0]]);
     });
@@ -332,4 +329,4 @@
   window.DoarsPersist = DoarsPersist_default;
 })();
 
-//# debugId=BB2799D58A9E894F64756E2164756E21
+//# debugId=D8905E18EEF8E9C164756E2164756E21

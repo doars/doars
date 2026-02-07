@@ -7,7 +7,7 @@ const CLICK = "click";
 export default ({ routeToDirectiveName }) => ({
 	name: routeToDirectiveName,
 
-	update: (component, attribute) => {
+	update: (_component, attribute) => {
 		const element = attribute.getElement();
 		const modifiers = attribute.getModifiers();
 		const value = attribute.getValue();
@@ -56,7 +56,7 @@ export default ({ routeToDirectiveName }) => ({
 		};
 	},
 
-	destroy: (component, attribute) => {
+	destroy: (_component, attribute) => {
 		if (!attribute[ROUTE_TO]) {
 			return;
 		}

@@ -38,7 +38,7 @@ export default ({ onDirectiveName }) => ({
 
 		// Check if required key is set.
 		if (!eventName) {
-			console.warn('Doars: "' + directive + '" directive must have a key.');
+			console.warn(`Doars: "${directive}" directive must have a key.`);
 			return;
 		}
 
@@ -175,7 +175,7 @@ export default ({ onDirectiveName }) => ({
 			if ((eventName === "keydown" || eventName === "keyup") && key) {
 				// Check if all key press modifiers are held.
 				for (const keypressModifier of keypressModifiers) {
-					if (!event[keypressModifier + "Key"]) {
+					if (!event[`${keypressModifier}Key`]) {
 						return;
 					}
 				}
@@ -273,7 +273,7 @@ export default ({ onDirectiveName }) => ({
 						if (cancelHeldName === "keyup" && key) {
 							// Check if all key press modifiers are held.
 							for (const keypressModifier of keypressModifiers) {
-								if (!cancelEvent[keypressModifier + "Key"]) {
+								if (!cancelEvent[`${keypressModifier}Key`]) {
 									attribute[ON].prevent = false;
 									return;
 								}
@@ -342,7 +342,7 @@ export default ({ onDirectiveName }) => ({
 
 							// Check if all key press modifiers are held.
 							for (const keypressModifier of keypressModifiers) {
-								if (!cancelEvent[keypressModifier + "Key"]) {
+								if (!cancelEvent[`${keypressModifier}Key`]) {
 									keyLetGo = true;
 								}
 							}
@@ -455,7 +455,7 @@ export default ({ onDirectiveName }) => ({
 		};
 	},
 
-	destroy: (component, attribute) => {
+	destroy: (_component, attribute) => {
 		// Exit early if no listeners can be found.
 		if (!attribute[ON]) {
 			return;

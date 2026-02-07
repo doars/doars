@@ -84,8 +84,8 @@ class EventDispatcher {
       }
       const eventData = events[name];
       for (let i = 0;i < eventData.length; i++) {
-        const event = options && options.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
-        if (event.options && event.options.once) {
+        const event = options?.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
+        if (event.options?.once) {
           eventData.splice(i, 1);
         }
         event.callback(...parameters);
@@ -471,11 +471,11 @@ var closestRouter_default = closestRouter;
 // src/contexts/router.js
 var router_default = ({ routerContextName }) => ({
   name: routerContextName,
-  create: (component, attribute) => {
+  create: (_component, attribute) => {
     const element = attribute.getElement();
     let router = null;
     const revocable = Proxy.revocable({}, {
-      get: (target, propertyKey, receiver) => {
+      get: (_target, propertyKey, receiver) => {
         if (router === null) {
           if (element[ROUTER]) {
             router = element[ROUTER];
@@ -555,7 +555,7 @@ var parseSelector = (selector) => {
         }
         break;
       case "[": {
-        const [full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
+        const [_full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
         attributes[key] = value;
         break;
       }
@@ -575,8 +575,8 @@ var transition = (type, libraryOptions, element, callback = null) => {
   }
   const transitionDirectiveName = libraryOptions.prefix + TRANSITION_NAME + type;
   const dispatchEvent = (phase) => {
-    element.dispatchEvent(new CustomEvent("transition-" + phase));
-    element.dispatchEvent(new CustomEvent("transition-" + type + "-" + phase));
+    element.dispatchEvent(new CustomEvent(`transition-${phase}`));
+    element.dispatchEvent(new CustomEvent(`transition-${type}-${phase}`));
   };
   let name, value, timeout, requestFrame;
   let isDone = false;
@@ -587,7 +587,7 @@ var transition = (type, libraryOptions, element, callback = null) => {
     selectors.during = parseSelector(value);
     addAttributes(element, selectors.during);
   }
-  name = transitionDirectiveName + ".from";
+  name = `${transitionDirectiveName}.from`;
   value = element.getAttribute(name);
   if (value) {
     selectors.from = parseSelector(value);
@@ -603,7 +603,7 @@ var transition = (type, libraryOptions, element, callback = null) => {
       removeAttributes(element, selectors.from);
       selectors.from = undefined;
     }
-    name = transitionDirectiveName + ".to";
+    name = `${transitionDirectiveName}.to`;
     value = element.getAttribute(name);
     if (value) {
       selectors.to = parseSelector(value);
@@ -701,10 +701,10 @@ var route_default = ({ routeDirectiveName }) => ({
       };
       const value = attribute.getValue();
       router.addRoute(value);
-      const handleChange = (router2, route) => {
+      const handleChange = (_router, route) => {
         if (route !== value) {
           if (element.tagName === "TEMPLATE") {
-            if (attribute[ROUTE] && attribute[ROUTE].element) {
+            if (attribute[ROUTE]?.element) {
               const routeElement = attribute[ROUTE].element;
               transitionOut(libraryOptions, routeElement, () => {
                 routeElement.remove();
@@ -737,7 +737,7 @@ var route_default = ({ routeDirectiveName }) => ({
     const libraryOptions = component.getLibrary().getOptions();
     const element = attribute.getElement();
     if (element.tagName === "TEMPLATE") {
-      if (attribute[ROUTE] && attribute[ROUTE].element) {
+      if (attribute[ROUTE]?.element) {
         const routeElement = attribute[ROUTE].element;
         transitionOut2(libraryOptions, routeElement, () => {
           routeElement.remove();
@@ -796,7 +796,7 @@ var ROUTE_TO = Symbol("ROUTE_TO");
 var CLICK = "click";
 var routeTo_default = ({ routeToDirectiveName }) => ({
   name: routeToDirectiveName,
-  update: (component, attribute) => {
+  update: (_component, attribute) => {
     const element = attribute.getElement();
     const modifiers = attribute.getModifiers();
     const value = attribute.getValue();
@@ -828,7 +828,7 @@ var routeTo_default = ({ routeToDirectiveName }) => ({
       value
     };
   },
-  destroy: (component, attribute) => {
+  destroy: (_component, attribute) => {
     if (!attribute[ROUTE_TO]) {
       return;
     }
@@ -880,4 +880,4 @@ export {
   DoarsRouter_default as default
 };
 
-//# debugId=BA661E3911C1578E64756E2164756E21
+//# debugId=FDCD34A28EFCA7AF64756E2164756E21

@@ -50,7 +50,7 @@ export default ({ forContextDeconstruct, forContextName }) => ({
 
 		// Create revocable proxy.
 		const revocable = Proxy.revocable(target, {
-			get: (target, key) => {
+			get: (_target, key) => {
 				for (const item of items) {
 					if (key in item.variables) {
 						// Mark as accessed for data.

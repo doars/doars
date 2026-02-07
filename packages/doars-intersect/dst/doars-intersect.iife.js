@@ -106,7 +106,7 @@
             return;
           }
           execute();
-        } else if (executionModifier === EXECUTION_MODIFIERS.BUFFER) {
+        } else if (executionModifier === EXECUTION_MODIFIERS.DEBOUNCE) {
           if (attribute[INTERSECT].timeout) {
             clearTimeout(attribute[INTERSECT].timeout);
             attribute[INTERSECT].timeout = null;
@@ -134,7 +134,7 @@
         value
       };
     },
-    destroy: (component, attribute) => {
+    destroy: (_component, attribute) => {
       if (!attribute[INTERSECT]) {
         return;
       }
@@ -189,4 +189,4 @@
   window.DoarsIntersect = DoarsIntersect_default;
 })();
 
-//# debugId=BEEBCFD25EB3CF2164756E2164756E21
+//# debugId=E12B1FBFABEBCFCD64756E2164756E21

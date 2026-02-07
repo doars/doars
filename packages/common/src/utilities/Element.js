@@ -32,7 +32,7 @@ export const fromString = (string) => {
  * @returns {boolean} Whether the nodes are the same.
  */
 export const isSame = (a, b) => {
-	if (a.isSameNode && a.isSameNode(b)) {
+	if (a.isSameNode?.(b)) {
 		return true;
 	}
 
@@ -78,7 +78,7 @@ export const select = (node, component, attribute, processExpression) => {
 			element.getAttribute(attributeName),
 		);
 		if (typeof selector !== "string") {
-			console.warn("Doars: `" + attributeName + "` must return a string.");
+			console.warn(`Doars: \`${attributeName}\` must return a string.`);
 			return null;
 		}
 	} else {

@@ -29,6 +29,7 @@ export default ({ childrenContextName }) => ({
 				}
 
 				// If not a number then do a normal access.
+				// biome-ignore lint/suspicious/noGlobalIsNan: Intentional coercion
 				if (isNaN(key)) {
 					return Reflect.get(childrenContexts, key, receiver);
 				}
@@ -47,7 +48,9 @@ export default ({ childrenContextName }) => ({
 			destroy: () => {
 				// Call destroy on all created contexts.
 				if (childrenContexts) {
-					childrenContexts.forEach((child) => child.destroy());
+					childrenContexts.forEach((child) => {
+						child.destroy();
+					});
 				}
 
 				// Revoke proxy.

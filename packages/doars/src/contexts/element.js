@@ -11,7 +11,7 @@
 export default ({ elementContextName }) => ({
 	name: elementContextName,
 
-	create: (component, attribute) => ({
+	create: (_component, attribute) => ({
 		// Return the attribute's element.
 		value: attribute.getElement(),
 	}),

@@ -53,7 +53,7 @@ export const interpret = (
 		console.error(
 			"ExpressionError in:",
 			expression,
-			"\n" + error.name + ": " + error.message,
+			`\n${error.name}: ${error.message}`,
 		);
 		result = null;
 	}

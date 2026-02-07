@@ -6,8 +6,8 @@
     const time = updater.getTime();
     return {
       name: updateContextName,
-      create: (component, attribute) => {
-        const onGet = (target, path) => attribute.accessed(id, path.join("."));
+      create: (_component, attribute) => {
+        const onGet = (_target, path) => attribute.accessed(id, path.join("."));
         proxy.addEventListener("get", onGet);
         return {
           value: time,
@@ -50,7 +50,7 @@
           order
         });
       },
-      destroy: (component, attribute) => {
+      destroy: (_component, attribute) => {
         const id = attribute.getId();
         const index = itemIds.indexOf(id);
         if (index >= 0) {
@@ -125,8 +125,8 @@
         }
         const eventData = events[name];
         for (let i = 0;i < eventData.length; i++) {
-          const event = options && options.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
-          if (event.options && event.options.once) {
+          const event = options?.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
+          if (event.options?.once) {
             eventData.splice(i, 1);
           }
           event.callback(...parameters);
@@ -347,4 +347,4 @@
   window.DoarsUpdate = DoarsUpdate_default;
 })();
 
-//# debugId=82353E94760A412564756E2164756E21
+//# debugId=88419EDC35C13B8D64756E2164756E21

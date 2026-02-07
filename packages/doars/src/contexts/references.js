@@ -42,7 +42,7 @@ export default ({ referencesContextName }) => ({
 		const revocable = Proxy.revocable(cache, {
 			get: (target, propertyKey, receiver) => {
 				// Mark references as accessed.
-				attribute.accessed(component.getId(), "$references." + propertyKey);
+				attribute.accessed(component.getId(), `$references.${propertyKey}`);
 
 				// Return reference.
 				return Reflect.get(target, propertyKey, receiver);

@@ -39,9 +39,6 @@
   var parseResponse = (response, type) => {
     let promise;
     switch (String.prototype.toLowerCase.call(type)) {
-      default:
-        console.warn('Unknown response type "' + type + '" used.');
-        break;
       case "arraybuffer":
         promise = response.arrayBuffer();
         break;
@@ -61,6 +58,9 @@
       case "text":
       case "xml":
         promise = response.text();
+        break;
+      default:
+        console.warn(`Unknown response type "${type}" used.`);
         break;
     }
     if (!promise) {
@@ -218,7 +218,7 @@
           const returnType = options.returnType ? options.returnType : null;
           delete options.returnType;
           return fetchAndParse(url, options, returnType).then((result) => {
-            if (result && result.value) {
+            if (result?.value) {
               return result.value;
             }
           });
@@ -240,7 +240,7 @@
     return template.content.childNodes[0];
   };
   var isSame = (a, b) => {
-    if (a.isSameNode && a.isSameNode(b)) {
+    if (a.isSameNode?.(b)) {
       return true;
     }
     if (a.type === 3) {
@@ -263,7 +263,7 @@
     if (libraryOptions.selectFromElementDirectiveEvaluate) {
       selector = processExpression(component, attribute, element.getAttribute(attributeName));
       if (typeof selector !== "string") {
-        console.warn("Doars: `" + attributeName + "` must return a string.");
+        console.warn(`Doars: \`${attributeName}\` must return a string.`);
         return null;
       }
     } else {
@@ -434,7 +434,7 @@
           }
           break;
         case "[": {
-          const [full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
+          const [_full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
           attributes[key] = value;
           break;
         }
@@ -454,8 +454,8 @@
     }
     const transitionDirectiveName = libraryOptions.prefix + TRANSITION_NAME + type;
     const dispatchEvent = (phase) => {
-      element.dispatchEvent(new CustomEvent("transition-" + phase));
-      element.dispatchEvent(new CustomEvent("transition-" + type + "-" + phase));
+      element.dispatchEvent(new CustomEvent(`transition-${phase}`));
+      element.dispatchEvent(new CustomEvent(`transition-${type}-${phase}`));
     };
     let name, value, timeout, requestFrame;
     let isDone = false;
@@ -466,7 +466,7 @@
       selectors.during = parseSelector(value);
       addAttributes(element, selectors.during);
     }
-    name = transitionDirectiveName + ".from";
+    name = `${transitionDirectiveName}.from`;
     value = element.getAttribute(name);
     if (value) {
       selectors.from = parseSelector(value);
@@ -482,7 +482,7 @@
         removeAttributes(element, selectors.from);
         selectors.from = undefined;
       }
-      name = transitionDirectiveName + ".to";
+      name = `${transitionDirectiveName}.to`;
       value = element.getAttribute(name);
       if (value) {
         selectors.to = parseSelector(value);
@@ -599,11 +599,11 @@
       }
     }
     if (indicatorTemplate.tagName !== "TEMPLATE") {
-      console.warn("Doars: `" + attributeName + "` must be placed on a `<template>`.");
+      console.warn(`Doars: \`${attributeName}\` must be placed on a \`<template>\`.`);
       return;
     }
     if (indicatorTemplate.childCount > 1) {
-      console.warn("Doars: `" + attributeName + "` must have one child.");
+      console.warn(`Doars: \`${attributeName}\` must have one child.`);
       return;
     }
     if (attribute.indicator) {
@@ -651,7 +651,7 @@
     } else if (typeof newTree !== "object") {
       throw new Error("New tree should be an object.");
     }
-    if (options && options.childrenOnly || newTree.nodeType === 11) {
+    if (options?.childrenOnly || newTree.nodeType === 11) {
       _updateChildren(existingTree, newTree);
       return existingTree;
     }
@@ -708,7 +708,7 @@
     if (!newTree) {
       return null;
     }
-    if (existingTree.isSameNode && existingTree.isSameNode(newTree)) {
+    if (existingTree.isSameNode?.(newTree)) {
       return existingTree;
     }
     if (existingTree.tagName !== newTree.tagName) {
@@ -894,11 +894,11 @@
         eventName = loadedEvent;
       }
       const fetchHeaders = {
-        [libraryOptions.prefix + "-" + libraryOptions.requestHeaderName]: directive,
-        Vary: libraryOptions.prefix + "-" + libraryOptions.requestHeaderName
+        [`${libraryOptions.prefix}-${libraryOptions.requestHeaderName}`]: directive,
+        Vary: `${libraryOptions.prefix}-${libraryOptions.requestHeaderName}`
       };
       const dispatchEvent = (suffix = "", data = {}) => {
-        element.dispatchEvent(new CustomEvent(libraryOptions.prefix + "-" + directive + suffix, {
+        element.dispatchEvent(new CustomEvent(`${libraryOptions.prefix}-${directive}${suffix}`, {
           detail: Object.assign({
             attribute,
             component
@@ -1042,13 +1042,13 @@
               readdScripts(...target.children);
             }
           }
-          if (libraryOptions.redirectHeaderName && response.headers.has(libraryOptions.prefix + "-" + libraryOptions.redirectHeaderName)) {
-            window.location.href = response.headers.get(libraryOptions.prefix + "-" + libraryOptions.redirectHeaderName);
+          if (libraryOptions.redirectHeaderName && response.headers.has(`${libraryOptions.prefix}-${libraryOptions.redirectHeaderName}`)) {
+            window.location.href = response.headers.get(`${libraryOptions.prefix}-${libraryOptions.redirectHeaderName}`);
             return;
           }
           let documentTitle = "";
-          if (libraryOptions.titleHeaderName && response.headers.has(libraryOptions.prefix + "-" + libraryOptions.titleHeaderName)) {
-            documentTitle = response.headers.get(libraryOptions.prefix + "-" + libraryOptions.titleHeaderName);
+          if (libraryOptions.titleHeaderName && response.headers.has(`${libraryOptions.prefix}-${libraryOptions.titleHeaderName}`)) {
+            documentTitle = response.headers.get(`${libraryOptions.prefix}-${libraryOptions.titleHeaderName}`);
           }
           if (modifiers.history) {
             history.pushState({}, documentTitle, url);
@@ -1244,4 +1244,4 @@
   window.DoarsFetch = DoarsFetch_default;
 })();
 
-//# debugId=030E0450AD173FC464756E2164756E21
+//# debugId=2ECCA3A41A7A7CC164756E2164756E21

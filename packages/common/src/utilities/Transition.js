@@ -33,8 +33,8 @@ export const transition = (type, libraryOptions, element, callback = null) => {
 
 	// Setup dispatcher function.
 	const dispatchEvent = (phase) => {
-		element.dispatchEvent(new CustomEvent("transition-" + phase));
-		element.dispatchEvent(new CustomEvent("transition-" + type + "-" + phase));
+		element.dispatchEvent(new CustomEvent(`transition-${phase}`));
+		element.dispatchEvent(new CustomEvent(`transition-${type}-${phase}`));
 	};
 
 	// Declare variables for later.
@@ -52,7 +52,7 @@ export const transition = (type, libraryOptions, element, callback = null) => {
 	}
 
 	// Process transition from attribute.
-	name = transitionDirectiveName + ".from";
+	name = `${transitionDirectiveName}.from`;
 	value = element.getAttribute(name);
 	// Parse and apply returned selector.
 	if (value) {
@@ -78,7 +78,7 @@ export const transition = (type, libraryOptions, element, callback = null) => {
 		}
 
 		// Process transition to attribute.
-		name = transitionDirectiveName + ".to";
+		name = `${transitionDirectiveName}.to`;
 		value = element.getAttribute(name);
 		// Parse and apply returned selector.
 		if (value) {

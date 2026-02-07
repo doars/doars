@@ -31,7 +31,7 @@ export default (
 		resultExpected = [resultExpected];
 	}
 
-	describe(name + ": " + expression, () => {
+	describe(`${name}: ${expression}`, () => {
 		// Parse the expression.
 		const nodes = parse(expression);
 		// Verify parsed nodes.

@@ -176,7 +176,7 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 		const expression = parseForExpression(attribute.getValue());
 		if (!expression) {
 			console.error(
-				'Doars: Error in "' + directive + '" expression: ',
+				`Doars: Error in "${directive}" expression: `,
 				attribute.getValue(),
 			);
 			return;
@@ -332,6 +332,7 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 		// Get iterable value.
 		let result;
 		// Check if iterable is a number.
+		// biome-ignore lint/suspicious/noGlobalIsNan: Intentional coercion
 		if (!isNaN(expression.iterable)) {
 			result = Number(expression.iterable);
 		} else {

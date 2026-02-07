@@ -59,7 +59,7 @@ export const createContexts = (component, attribute, update, extra = null) => {
 		// Deconstruct options if marked as such.
 		if (creatableContext.deconstruct && typeof result.value === "object") {
 			deconstructed.push(creatableContext.name);
-			before += "with(" + creatableContext.name + ") { ";
+			before += `with(${creatableContext.name}) { `;
 			after += " }";
 		}
 
@@ -109,7 +109,7 @@ export const createContextsProxy = (
 	const revocable = Proxy.revocable(
 		{},
 		{
-			get: (target, property) => {
+			get: (_target, property) => {
 				// Create context.
 				if (!data) {
 					data = createContexts(component, attribute, update, extra);
@@ -143,7 +143,7 @@ export const createContextsProxy = (
 		contexts: revocable.proxy,
 		destroy: () => {
 			// Call destroy on created context.
-			if (data && data.destroy) {
+			if (data?.destroy) {
 				data.destroy(component, attribute);
 			}
 

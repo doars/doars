@@ -7,9 +7,9 @@ export default ({ updateContextName }, updater) => {
 	return {
 		name: updateContextName,
 
-		create: (component, attribute) => {
+		create: (_component, attribute) => {
 			// Create event handlers.
-			const onGet = (target, path) => attribute.accessed(id, path.join("."));
+			const onGet = (_target, path) => attribute.accessed(id, path.join("."));
 
 			// Add event listeners.
 			proxy.addEventListener("get", onGet);

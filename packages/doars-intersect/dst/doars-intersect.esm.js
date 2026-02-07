@@ -105,7 +105,7 @@ var intersect_default = ({ intersectDirectiveName }, intersectionDispatcher) => 
           return;
         }
         execute();
-      } else if (executionModifier === EXECUTION_MODIFIERS.BUFFER) {
+      } else if (executionModifier === EXECUTION_MODIFIERS.DEBOUNCE) {
         if (attribute[INTERSECT].timeout) {
           clearTimeout(attribute[INTERSECT].timeout);
           attribute[INTERSECT].timeout = null;
@@ -133,7 +133,7 @@ var intersect_default = ({ intersectDirectiveName }, intersectionDispatcher) => 
       value
     };
   },
-  destroy: (component, attribute) => {
+  destroy: (_component, attribute) => {
     if (!attribute[INTERSECT]) {
       return;
     }
@@ -187,4 +187,4 @@ export {
   DoarsIntersect_default as default
 };
 
-//# debugId=0E7955688EEBA03564756E2164756E21
+//# debugId=4C09443E8D48763564756E2164756E21

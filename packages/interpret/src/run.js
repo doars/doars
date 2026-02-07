@@ -117,10 +117,10 @@ const run = (node, context = {}) => {
 					return binaryLeft ?? binaryRight;
 				case "==":
 					// eslint-disable-next-line eqeqeq
-					return binaryLeft == binaryRight;
+					return binaryLeft === binaryRight;
 				case "!=":
 					// eslint-disable-next-line eqeqeq
-					return binaryLeft != binaryRight;
+					return binaryLeft !== binaryRight;
 				case "===":
 					return binaryLeft === binaryRight;
 				case "!==":
@@ -144,7 +144,7 @@ const run = (node, context = {}) => {
 				case "%":
 					return binaryLeft % binaryRight;
 			}
-			throw new Error("Unsupported operator: " + node.operator);
+			throw new Error(`Unsupported operator: ${node.operator}`);
 		}
 
 		case CALL: {
@@ -198,7 +198,7 @@ const run = (node, context = {}) => {
 				case "+":
 					return +unaryParameter;
 			}
-			throw new Error("Unsupported operator: " + node.operator);
+			throw new Error(`Unsupported operator: ${node.operator}`);
 		}
 
 		case UPDATE: {
@@ -209,7 +209,7 @@ const run = (node, context = {}) => {
 		}
 	}
 
-	throw new Error('Unexpected node type "' + node.type + '".');
+	throw new Error(`Unexpected node type "${node.type}".`);
 };
 
 export default run;

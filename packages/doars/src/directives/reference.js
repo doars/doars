@@ -50,7 +50,7 @@ const destroy = (component, attribute) => {
 	library.update([
 		{
 			id: componentId,
-			path: "$references." + name,
+			path: `$references.${name}`,
 		},
 	]);
 };
@@ -116,7 +116,7 @@ export default ({ referenceDirectiveName }) => ({
 		library.update([
 			{
 				id: componentId,
-				path: "$references." + name,
+				path: `$references.${name}`,
 			},
 		]);
 	},

@@ -46,8 +46,8 @@ class EventDispatcher {
       }
       const eventData = events[name];
       for (let i = 0;i < eventData.length; i++) {
-        const event = options && options.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
-        if (event.options && event.options.once) {
+        const event = options?.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
+        if (event.options?.once) {
           eventData.splice(i, 1);
         }
         event.callback(...parameters);
@@ -69,7 +69,7 @@ var fromString = (string) => {
   return template.content.childNodes[0];
 };
 var isSame = (a, b) => {
-  if (a.isSameNode && a.isSameNode(b)) {
+  if (a.isSameNode?.(b)) {
     return true;
   }
   if (a.type === 3) {
@@ -192,7 +192,7 @@ var escapeHtml = (text) => {
   return text.replace(/\\/g, "\\\\").replace(/\\'/g, "\\'").replace(/\\"/g, "\\\"").replace(/\n/g, "\\n");
 };
 var kebabToCamel = (text) => {
-  return text.replace(/-(\w)/g, (match, character) => character.toUpperCase());
+  return text.replace(/-(\w)/g, (_match, character) => character.toUpperCase());
 };
 var parseAttributeModifiers = (modifiers) => {
   const result = {};
@@ -222,8 +222,8 @@ var parseAttributeModifiers = (modifiers) => {
       type = "h";
       tmpValue = value.substring(-1);
     }
-    tmpValue = Number.parseInt(tmpValue);
-    if (!isNaN(tmpValue)) {
+    tmpValue = Number.parseInt(tmpValue, 10);
+    if (!Number.isNaN(tmpValue)) {
       value = tmpValue;
       switch (type) {
         case "h":
@@ -240,11 +240,11 @@ var parseAttributeModifiers = (modifiers) => {
   return result;
 };
 var parseAttributeName = (prefix, name) => {
-  name = name.match(new RegExp("^" + prefix + "-([a-z][0-9a-z-]{1,}):?([a-z][0-9a-z-]*)?(\\..*]*)?$", "i"));
+  name = name.match(new RegExp(`^${prefix}-([a-z][0-9a-z-]{1,}):?([a-z][0-9a-z-]*)?(\\..*]*)?$`, "i"));
   if (!name) {
     return;
   }
-  let [full, directive, keyRaw, modifiers] = name;
+  let [_full, directive, keyRaw, modifiers] = name;
   keyRaw = keyRaw !== "" ? keyRaw : null;
   const key = keyRaw ? kebabToCamel(keyRaw) : null;
   modifiers = modifiers ? modifiers.substring(1).split(".") : [];
@@ -291,7 +291,7 @@ var parseSelector = (selector) => {
         }
         break;
       case "[": {
-        const [full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
+        const [_full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
         attributes[key] = value;
         break;
       }
@@ -433,7 +433,7 @@ class Component {
     const { prefix, stateDirectiveName } = library.getOptions();
     const processExpression = library.getProcessor();
     let attributes = [], hasUpdated = false, isInitialized = false, data, proxy, state;
-    if (!element.attributes[prefix + "-" + stateDirectiveName]) {
+    if (!element.attributes[`${prefix}-${stateDirectiveName}`]) {
       console.error("Doars: element given to component does not contain a state attribute!");
       return;
     }
@@ -452,7 +452,7 @@ class Component {
       }
     }
     const dispatchEvent = (name, detail) => {
-      element.dispatchEvent(new CustomEvent(prefix + "-" + name, {
+      element.dispatchEvent(new CustomEvent(`${prefix}-${name}`, {
         detail,
         bubbles: true
       }));
@@ -490,7 +490,7 @@ class Component {
       }
       isInitialized = true;
       const { stateDirectiveName: stateDirectiveName2 } = this.getLibrary().getOptions();
-      const componentName = prefix + "-" + stateDirectiveName2;
+      const componentName = `${prefix}-${stateDirectiveName2}`;
       const value = element.attributes[componentName].value;
       data = value ? processExpression(this, new Attribute(this, element, null, value), value) : {};
       if (data === null) {
@@ -585,7 +585,7 @@ class Component {
       }
       const directives = library.getDirectivesObject;
       const directive = directives[attribute.getKey()];
-      if (directive && directive.destroy) {
+      if (directive?.destroy) {
         directive.destroy(this, attribute, processExpression);
       }
       attributes.splice(indexInAttributes, 1);
@@ -593,8 +593,8 @@ class Component {
     };
     this.scanAttributes = (element2) => {
       const { stateDirectiveName: stateDirectiveName2, ignoreDirectiveName } = this.getLibrary().getOptions();
-      const componentName = prefix + "-" + stateDirectiveName2;
-      const ignoreName = prefix + "-" + ignoreDirectiveName;
+      const componentName = `${prefix}-${stateDirectiveName2}`;
+      const ignoreName = `${prefix}-${ignoreDirectiveName}`;
       const newAttributes = [];
       const iterator = walk(element2, (element3) => !element3.hasAttribute(componentName) && !element3.hasAttribute(ignoreName));
       do {
@@ -687,7 +687,7 @@ var createContexts = (component, attribute, update, extra = null) => {
     }
     if (creatableContext.deconstruct && typeof result.value === "object") {
       deconstructed.push(creatableContext.name);
-      before += "with(" + creatableContext.name + ") { ";
+      before += `with(${creatableContext.name}) { `;
       after += " }";
     }
     contexts[creatableContext.name] = result.value;
@@ -712,7 +712,7 @@ var createContexts = (component, attribute, update, extra = null) => {
 var createContextsProxy = (component, attribute, update, extra = null) => {
   let data = null;
   const revocable = Proxy.revocable({}, {
-    get: (target, property) => {
+    get: (_target, property) => {
       if (!data) {
         data = createContexts(component, attribute, update, extra);
       }
@@ -731,7 +731,7 @@ var createContextsProxy = (component, attribute, update, extra = null) => {
   return {
     contexts: revocable.proxy,
     destroy: () => {
-      if (data && data.destroy) {
+      if (data?.destroy) {
         data.destroy(component, attribute);
       }
       revocable.revoke();
@@ -782,7 +782,9 @@ var children_default = ({ childrenContextName }) => ({
       value: revocable.proxy,
       destroy: () => {
         if (childrenContexts) {
-          childrenContexts.forEach((child) => child.destroy());
+          childrenContexts.forEach((child) => {
+            child.destroy();
+          });
         }
         revocable.revoke();
       }
@@ -816,7 +818,7 @@ var dispatch_default = ({ dispatchContextName }) => ({
 // src/contexts/element.js
 var element_default = ({ elementContextName }) => ({
   name: elementContextName,
-  create: (component, attribute) => ({
+  create: (_component, attribute) => ({
     value: attribute.getElement()
   })
 });
@@ -845,7 +847,7 @@ var for_default = ({ forContextDeconstruct, forContextName }) => ({
       return;
     }
     const revocable = Proxy.revocable(target, {
-      get: (target2, key) => {
+      get: (_target, key) => {
         for (const item of items) {
           if (key in item.variables) {
             attribute.accessed(item.id, "$for");
@@ -1015,7 +1017,7 @@ var references_default = ({ referencesContextName }) => ({
     }
     const revocable = Proxy.revocable(cache, {
       get: (target, propertyKey, receiver) => {
-        attribute.accessed(component.getId(), "$references." + propertyKey);
+        attribute.accessed(component.getId(), `$references.${propertyKey}`);
         return Reflect.get(target, propertyKey, receiver);
       }
     });
@@ -1058,7 +1060,9 @@ var siblings_default = ({ siblingsContextName }) => ({
       value: revocable.proxy,
       destroy: () => {
         if (siblingsContexts) {
-          siblingsContexts.forEach((child) => child.destroy());
+          siblingsContexts.forEach((child) => {
+            child.destroy();
+          });
         }
         revocable.revoke();
       }
@@ -1068,10 +1072,10 @@ var siblings_default = ({ siblingsContextName }) => ({
 
 // ../common/src/factories/createState.js
 var createState_default = (name, id, state, proxy) => {
-  return (component, attribute, update) => {
-    const onDelete = (target, path) => update(id, name + "." + path.join("."));
-    const onGet = (target, path) => attribute.accessed(id, name + "." + path.join("."));
-    const onSet = (target, path) => update(id, name + "." + path.join("."));
+  return (_component, attribute, update) => {
+    const onDelete = (_target, path) => update(id, `${name}.${path.join(".")}`);
+    const onGet = (_target, path) => attribute.accessed(id, `${name}.${path.join(".")}`);
+    const onSet = (_target, path) => update(id, `${name}.${path.join(".")}`);
     proxy.addEventListener("delete", onDelete);
     proxy.addEventListener("get", onGet);
     proxy.addEventListener("set", onSet);
@@ -1362,14 +1366,14 @@ var setAttribute = (element, key, data) => {
     if (Array.isArray(data)) {
       data = data.join(" ");
     } else if (typeof data === "object") {
-      data = Object.entries(data).filter(([key2, value]) => value).map(([key2]) => key2).join(" ");
+      data = Object.entries(data).filter(([_key, value]) => value).map(([key2]) => key2).join(" ");
     }
   }
   if (key === "style") {
     if (Array.isArray(data)) {
       data = data.join(" ");
     } else if (typeof data === "object") {
-      data = Object.entries(data).map(([key2, value]) => key2 + ":" + value).join(";");
+      data = Object.entries(data).map(([key2, value]) => `${key2}:${value}`).join(";");
     }
   }
   if (data === false || data === null || data === undefined) {
@@ -1444,8 +1448,8 @@ var transition = (type, libraryOptions, element, callback = null) => {
   }
   const transitionDirectiveName = libraryOptions.prefix + TRANSITION_NAME + type;
   const dispatchEvent = (phase) => {
-    element.dispatchEvent(new CustomEvent("transition-" + phase));
-    element.dispatchEvent(new CustomEvent("transition-" + type + "-" + phase));
+    element.dispatchEvent(new CustomEvent(`transition-${phase}`));
+    element.dispatchEvent(new CustomEvent(`transition-${type}-${phase}`));
   };
   let name, value, timeout, requestFrame;
   let isDone = false;
@@ -1456,7 +1460,7 @@ var transition = (type, libraryOptions, element, callback = null) => {
     selectors.during = parseSelector(value);
     addAttributes(element, selectors.during);
   }
-  name = transitionDirectiveName + ".from";
+  name = `${transitionDirectiveName}.from`;
   value = element.getAttribute(name);
   if (value) {
     selectors.from = parseSelector(value);
@@ -1472,7 +1476,7 @@ var transition = (type, libraryOptions, element, callback = null) => {
       removeAttributes(element, selectors.from);
       selectors.from = undefined;
     }
-    name = transitionDirectiveName + ".to";
+    name = `${transitionDirectiveName}.to`;
     value = element.getAttribute(name);
     if (value) {
       selectors.to = parseSelector(value);
@@ -1652,7 +1656,7 @@ var for_default2 = ({ allowInlineScript, forDirectiveName }) => ({
     }
     const expression = parseForExpression(attribute.getValue());
     if (!expression) {
-      console.error('Doars: Error in "' + directive + '" expression: ', attribute.getValue());
+      console.error(`Doars: Error in "${directive}" expression: `, attribute.getValue());
       return;
     }
     const triggers = {};
@@ -1797,7 +1801,7 @@ var morphTree = (existingTree, newTree, options) => {
   } else if (typeof newTree !== "object") {
     throw new Error("New tree should be an object.");
   }
-  if (options && options.childrenOnly || newTree.nodeType === 11) {
+  if (options?.childrenOnly || newTree.nodeType === 11) {
     _updateChildren(existingTree, newTree);
     return existingTree;
   }
@@ -1854,7 +1858,7 @@ var _updateTree = (existingTree, newTree) => {
   if (!newTree) {
     return null;
   }
-  if (existingTree.isSameNode && existingTree.isSameNode(newTree)) {
+  if (existingTree.isSameNode?.(newTree)) {
     return existingTree;
   }
   if (existingTree.tagName !== newTree.tagName) {
@@ -1964,7 +1968,7 @@ var html_default = ({ allowInlineScript, htmlDirectiveName }) => ({
         }
         return;
       }
-      console.error('Doars: Unknown type returned to "' + directive + '" directive.');
+      console.error(`Doars: Unknown type returned to "${directive}" directive.`);
     };
     const result = processExpression(component, attribute, attribute.getValue());
     attribute.setData(result);
@@ -1990,11 +1994,11 @@ var if_default = ({ allowInlineScript, ifDirectiveName }) => ({
     const modifiers = attribute.getModifiers();
     const template = attribute.getElement();
     if (template.tagName !== "TEMPLATE") {
-      console.warn('Doars: "' + directive + '" must be placed on a `<template>`.');
+      console.warn(`Doars: "${directive}" must be placed on a \`<template>\`.`);
       return;
     }
     if (template.childCount > 1) {
-      console.warn('Doars: "' + directive + '" must have one child.');
+      console.warn(`Doars: "${directive}" must have one child.`);
       return;
     }
     const set = (result2) => {
@@ -2059,7 +2063,7 @@ var destroy = (component, attribute) => {
     return;
   }
   const element = component.getElement();
-  const name = component.getLibrary().getOptions().prefix + "-updated";
+  const name = `${component.getLibrary().getOptions().prefix}-updated`;
   element.removeEventListener(name, attribute[INITIALIZED].handler);
   delete attribute[INITIALIZED];
 };
@@ -2068,7 +2072,7 @@ var initialized_default = ({ initializedDirectiveName }) => ({
   update: (component, attribute, processExpression) => {
     const element = component.getElement();
     const value = attribute.getValue();
-    const name = component.getLibrary().getOptions().prefix + "-updated";
+    const name = `${component.getLibrary().getOptions().prefix}-updated`;
     if (attribute[INITIALIZED]) {
       if (attribute[INITIALIZED].value === value) {
         return;
@@ -2117,7 +2121,7 @@ var on_default = ({ onDirectiveName }) => ({
     const directive = attribute.getDirective();
     let eventName = attribute.getKeyRaw();
     if (!eventName) {
-      console.warn('Doars: "' + directive + '" directive must have a key.');
+      console.warn(`Doars: "${directive}" directive must have a key.`);
       return;
     }
     let key;
@@ -2213,7 +2217,7 @@ var on_default = ({ onDirectiveName }) => ({
       }
       if ((eventName === "keydown" || eventName === "keyup") && key) {
         for (const keypressModifier of keypressModifiers) {
-          if (!event[keypressModifier + "Key"]) {
+          if (!event[`${keypressModifier}Key`]) {
             return;
           }
         }
@@ -2268,7 +2272,7 @@ var on_default = ({ onDirectiveName }) => ({
             }
             if (cancelHeldName === "keyup" && key) {
               for (const keypressModifier of keypressModifiers) {
-                if (!cancelEvent[keypressModifier + "Key"]) {
+                if (!cancelEvent[`${keypressModifier}Key`]) {
                   attribute[ON].prevent = false;
                   return;
                 }
@@ -2309,7 +2313,7 @@ var on_default = ({ onDirectiveName }) => ({
             if (cancelHoldName === "keyup" && key) {
               let keyLetGo = false;
               for (const keypressModifier of keypressModifiers) {
-                if (!cancelEvent[keypressModifier + "Key"]) {
+                if (!cancelEvent[`${keypressModifier}Key`]) {
                   keyLetGo = true;
                 }
               }
@@ -2377,7 +2381,7 @@ var on_default = ({ onDirectiveName }) => ({
       prevent: false
     };
   },
-  destroy: (component, attribute) => {
+  destroy: (_component, attribute) => {
     if (!attribute[ON]) {
       return;
     }
@@ -2412,7 +2416,7 @@ var destroy2 = (component, attribute) => {
   library.update([
     {
       id: componentId,
-      path: "$references." + name
+      path: `$references.${name}`
     }
   ]);
 };
@@ -2443,7 +2447,7 @@ var reference_default = ({ referenceDirectiveName }) => ({
     library.update([
       {
         id: componentId,
-        path: "$references." + name
+        path: `$references.${name}`
       }
     ]);
   },
@@ -2575,7 +2579,7 @@ var sync_default = ({ syncDirectiveName }) => ({
     let value = attribute.getValue().trim();
     const key = attribute.getKey();
     if (key) {
-      value = "$" + key + "." + value;
+      value = `$${key}.${value}`;
     }
     if (!/^[_$a-z]{1}[._$a-z0-9]{0,}$/i.test(value)) {
       console.warn('Doars: "' + directive + `" directive's value not a valid variable name "` + value + '".');
@@ -2702,7 +2706,7 @@ var sync_default = ({ syncDirectiveName }) => ({
         break;
     }
   },
-  destroy: (component, attribute) => {
+  destroy: (_component, attribute) => {
     if (!attribute[SYNC]) {
       return;
     }
@@ -2867,8 +2871,8 @@ class Doars extends EventDispatcher {
     let processExpression;
     if (processorType === "function") {
       processExpression = processor;
-    } else if (processorType === "string" && this.constructor[processor + "Expression"]) {
-      processExpression = this.constructor[processor + "Expression"];
+    } else if (processorType === "string" && this.constructor[`${processor}Expression`]) {
+      processExpression = this.constructor[`${processor}Expression`];
     } else {
       console.warn("Doars: Expression processor not found. Using fallback instead.");
       processExpression = this.constructor.executeExpression ?? this.constructor.interpretExpression ?? this.constructor.callExpression;
@@ -2907,13 +2911,13 @@ class Doars extends EventDispatcher {
         subtree: true
       });
       const { stateDirectiveName, ignoreDirectiveName } = this.getOptions();
-      const componentName = prefix + "-" + stateDirectiveName;
-      const ignoreName = prefix + "-" + ignoreDirectiveName;
+      const componentName = `${prefix}-${stateDirectiveName}`;
+      const ignoreName = `${prefix}-${ignoreDirectiveName}`;
       const componentElements = [
-        ...root.querySelectorAll("[" + componentName + "]")
+        ...root.querySelectorAll(`[${componentName}]`)
       ];
       for (let i = componentElements.length - 1;i >= 0; i--) {
-        if (componentElements[i].closest("[" + ignoreName + "]")) {
+        if (componentElements[i].closest(`[${ignoreName}]`)) {
           componentElements.splice(i, 1);
         }
       }
@@ -3155,8 +3159,8 @@ class Doars extends EventDispatcher {
       newMutations = [...mutations];
       mutations = [];
       const { stateDirectiveName, ignoreDirectiveName } = this.getOptions();
-      const componentName = prefix + "-" + stateDirectiveName;
-      const ignoreName = prefix + "-" + ignoreDirectiveName;
+      const componentName = `${prefix}-${stateDirectiveName}`;
+      const ignoreName = `${prefix}-${ignoreDirectiveName}`;
       const componentsToAdd = [];
       const componentsToRemove = [];
       const remove = (element) => {
@@ -3193,13 +3197,13 @@ class Doars extends EventDispatcher {
         if (element.nodeType !== 1) {
           return;
         }
-        const ignoreParent = element.closest("[" + ignoreName + "]");
+        const ignoreParent = element.closest(`[${ignoreName}]`);
         if (ignoreParent) {
           return;
         }
-        const componentElements = element.querySelectorAll("[" + componentName + "]");
+        const componentElements = element.querySelectorAll(`[${componentName}]`);
         for (const componentElement of componentElements) {
-          const ignoreParent2 = componentElement.closest("[" + ignoreName + "]");
+          const ignoreParent2 = componentElement.closest(`[${ignoreName}]`);
           if (ignoreParent2) {
             continue;
           }
@@ -3314,7 +3318,7 @@ var call = (component, attribute, expression, extra = null, options = null) => {
         result = result(contexts);
       } catch (error) {
         console.error("ExpressionError in:", expression, `
-` + error.name + ": " + error.message);
+${error.name}: ${error.message}`);
         result = null;
       }
     }
@@ -3332,4 +3336,4 @@ export {
   DoarsCall_default as default
 };
 
-//# debugId=720B48C261643A7B64756E2164756E21
+//# debugId=65F433EDAAE734CC64756E2164756E21

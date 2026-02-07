@@ -85,12 +85,12 @@ export const showIndicator = (component, attribute, processExpression) => {
 	// Check if placed on a template tag.
 	if (indicatorTemplate.tagName !== "TEMPLATE") {
 		console.warn(
-			"Doars: `" + attributeName + "` must be placed on a `<template>`.",
+			`Doars: \`${attributeName}\` must be placed on a \`<template>\`.`,
 		);
 		return;
 	}
 	if (indicatorTemplate.childCount > 1) {
-		console.warn("Doars: `" + attributeName + "` must have one child.");
+		console.warn(`Doars: \`${attributeName}\` must have one child.`);
 		return;
 	}
 

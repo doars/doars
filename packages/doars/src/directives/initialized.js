@@ -24,7 +24,7 @@ const destroy = (component, attribute) => {
 	const element = component.getElement();
 
 	// Create event name.
-	const name = component.getLibrary().getOptions().prefix + "-updated";
+	const name = `${component.getLibrary().getOptions().prefix}-updated`;
 
 	// Remove existing listener and delete directive data.
 	element.removeEventListener(name, attribute[INITIALIZED].handler);
@@ -47,7 +47,7 @@ export default ({ initializedDirectiveName }) => ({
 		const value = attribute.getValue();
 
 		// Create event name.
-		const name = component.getLibrary().getOptions().prefix + "-updated";
+		const name = `${component.getLibrary().getOptions().prefix}-updated`;
 
 		// Check if existing listener exists.
 		if (attribute[INITIALIZED]) {

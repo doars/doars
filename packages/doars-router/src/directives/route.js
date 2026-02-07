@@ -45,10 +45,10 @@ export default ({ routeDirectiveName }) => ({
 			router.addRoute(value);
 
 			// Handle router changes.
-			const handleChange = (router, route) => {
+			const handleChange = (_router, route) => {
 				if (route !== value) {
 					if (element.tagName === "TEMPLATE") {
-						if (attribute[ROUTE] && attribute[ROUTE].element) {
+						if (attribute[ROUTE]?.element) {
 							// Transition out.
 							const routeElement = attribute[ROUTE].element;
 							transitionOut(libraryOptions, routeElement, () => {
@@ -103,7 +103,7 @@ export default ({ routeDirectiveName }) => ({
 		// Deconstruct attribute.
 		const element = attribute.getElement();
 		if (element.tagName === "TEMPLATE") {
-			if (attribute[ROUTE] && attribute[ROUTE].element) {
+			if (attribute[ROUTE]?.element) {
 				// Transition out.
 				const routeElement = attribute[ROUTE].element;
 				transitionOut(libraryOptions, routeElement, () => {

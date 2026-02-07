@@ -66,14 +66,14 @@ export default ({
 			}
 
 			const fetchHeaders = {
-				[libraryOptions.prefix + "-" + libraryOptions.requestHeaderName]:
+				[`${libraryOptions.prefix}-${libraryOptions.requestHeaderName}`]:
 					directive,
-				Vary: libraryOptions.prefix + "-" + libraryOptions.requestHeaderName,
+				Vary: `${libraryOptions.prefix}-${libraryOptions.requestHeaderName}`,
 			};
 
 			const dispatchEvent = (suffix = "", data = {}) => {
 				element.dispatchEvent(
-					new CustomEvent(libraryOptions.prefix + "-" + directive + suffix, {
+					new CustomEvent(`${libraryOptions.prefix}-${directive}${suffix}`, {
 						detail: Object.assign(
 							{
 								attribute,
@@ -222,11 +222,11 @@ export default ({
 						if (
 							libraryOptions.redirectHeaderName &&
 							response.headers.has(
-								libraryOptions.prefix + "-" + libraryOptions.redirectHeaderName,
+								`${libraryOptions.prefix}-${libraryOptions.redirectHeaderName}`,
 							)
 						) {
 							window.location.href = response.headers.get(
-								libraryOptions.prefix + "-" + libraryOptions.redirectHeaderName,
+								`${libraryOptions.prefix}-${libraryOptions.redirectHeaderName}`,
 							);
 							return;
 						}
@@ -236,11 +236,11 @@ export default ({
 						if (
 							libraryOptions.titleHeaderName &&
 							response.headers.has(
-								libraryOptions.prefix + "-" + libraryOptions.titleHeaderName,
+								`${libraryOptions.prefix}-${libraryOptions.titleHeaderName}`,
 							)
 						) {
 							documentTitle = response.headers.get(
-								libraryOptions.prefix + "-" + libraryOptions.titleHeaderName,
+								`${libraryOptions.prefix}-${libraryOptions.titleHeaderName}`,
 							);
 						}
 
