@@ -1864,7 +1864,7 @@ var _updateTree = (existingTree, newTree) => {
   _updateChildren(existingTree, newTree);
   return existingTree;
 };
-var setBefore = "moveBefore" in window?.Element?.prototype ? "moveBefore" : "insertBefore";
+var setBefore = typeof window !== "undefined" && window.Element?.prototype?.moveBefore ? "moveBefore" : "insertBefore";
 var _updateChildren = (existingNode, newNode) => {
   let existingChild, newChild, morphed, existingMatch;
   let offset = 0;
@@ -3332,4 +3332,4 @@ export {
   DoarsCall_default as default
 };
 
-//# debugId=25D08EAFC05D60C464756E2164756E21
+//# debugId=720B48C261643A7B64756E2164756E21

@@ -1865,7 +1865,7 @@
     _updateChildren(existingTree, newTree);
     return existingTree;
   };
-  var setBefore = "moveBefore" in window?.Element?.prototype ? "moveBefore" : "insertBefore";
+  var setBefore = typeof window !== "undefined" && window.Element?.prototype?.moveBefore ? "moveBefore" : "insertBefore";
   var _updateChildren = (existingNode, newNode) => {
     let existingChild, newChild, morphed, existingMatch;
     let offset = 0;
@@ -4104,4 +4104,4 @@
   window.Doars = DoarsInterpret_default;
 })();
 
-//# debugId=7685A1C8797DD1E664756E2164756E21
+//# debugId=82FFC93884D985DA64756E2164756E21
