@@ -2,7 +2,8 @@
 
 ## 2.2.0
 
-- Started using `moveBefore` when available.
+- Using `moveBefore` if available.
+- Added custom parsers and more build-in parsing options.
 - Remove revocable proxy polyfill.
 
 ## 2.1.2

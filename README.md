@@ -72,7 +72,6 @@ If you are using _Doars_ then please [let me know](https://rondekker.nl/en-gb#co
 
 ## Ideas
 
-- Allow fetch plugin to automatically parse data before returning results, like [vroagn](https://github.com/doars/staark/tree/main/packages/vroagn#readme).
 - Add template literal support for the interpreter.
 - `$id` context for generating unique identifiers.
 - Focus plugin for setting and trapping the focus.

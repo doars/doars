@@ -35,11 +35,17 @@ const EXECUTION_MODIFIERS = {
 };
 
 /**
+ * @typedef {import('../DoarsFetch.js').ResponseParser} ResponseParser
+ */
+
+/**
  * @typedef DirectiveOptions
  * @type {object}
  * @property {object} fetchOptions - Object of options given to the fetch method when submitting data.
  * @property {boolean} fetchDirectiveEvaluate - If set to false the fetch directive's value is read as a string literal instead of an expression to process.
  * @property {string} fetchDirectiveName - The name of the fetch directive.
+ * @property {boolean} [fetchAutoParse=true] - Whether to automatically parse the response based on content type. Enabled by default.
+ * @property {ResponseParser[]} [fetchParsers] - Custom parsers to use in addition to built-in ones. Useful for adding support for YAML, TOML, CSV, etc.
  * @property {string|false} intersectionEvent - The name of the intersect special event listener.
  * @property {string|false} loadedEvent - The name of the load special event listener.
  */
@@ -54,6 +60,8 @@ export default (
 		fetchOptions,
 		fetchDirectiveEvaluate,
 		fetchDirectiveName,
+		fetchAutoParse,
+		fetchParsers,
 
 		intersectionEvent,
 
@@ -271,6 +279,10 @@ export default (
 					headers: Object.assign({}, _fetchOptions.headers, fetchHeaders),
 				}),
 				"text",
+				{
+					autoParse: fetchAutoParse,
+					parsers: fetchParsers,
+				},
 			)
 				.then((response) => {
 					isLoading = false;

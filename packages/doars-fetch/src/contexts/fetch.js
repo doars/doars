@@ -2,7 +2,12 @@
 import { fetchAndParse } from "@doars/common/src/utilities/Fetch.js";
 import { deepAssign } from "@doars/common/src/utilities/Object.js";
 
-export default ({ fetchContextName, fetchOptions }) => ({
+export default ({
+	fetchContextName,
+	fetchOptions,
+	fetchAutoParse,
+	fetchParsers,
+}) => ({
 	name: fetchContextName,
 
 	create: () => {
@@ -17,8 +22,18 @@ export default ({ fetchContextName, fetchOptions }) => ({
 				const returnType = options.returnType ? options.returnType : null;
 				delete options.returnType;
 
+				// Extract per-request parsers and autoParse if provided
+				const requestParsers = options.parsers || fetchParsers;
+				const requestAutoParse =
+					options.autoParse !== undefined ? options.autoParse : fetchAutoParse;
+				delete options.parsers;
+				delete options.autoParse;
+
 				// Perform and process fetch request.
-				return fetchAndParse(url, options, returnType).then((result) => {
+				return fetchAndParse(url, options, returnType, {
+					autoParse: requestAutoParse,
+					parsers: requestParsers,
+				}).then((result) => {
 					if (result?.value) {
 						return result.value;
 					}

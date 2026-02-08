@@ -42,6 +42,6 @@
 		"@doars/doars": "^3.1.1"
 	},
 	"dependencies": {
-		"@doars/common": "^2.1.2"
+		"@doars/common": "^2.2.0"
 	}
 }

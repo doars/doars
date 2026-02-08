@@ -1,72 +1,105 @@
 /**
+ * @typedef {Object} ResponseParser Defines a response parser.
+ * @property {string[]} types The types of responses the parser can handle.
+ * @property {(response: Response, type: string) => Promise<any>} parser The function to parse the response.
+ */
+
+/**
+ * Built-in parsers for common response types.
+ * @type {ResponseParser[]}
+ */
+const builtInParsers = [
+	{
+		types: ["arraybuffer"],
+		parser: (response) => response.arrayBuffer(),
+	},
+	{
+		types: ["blob"],
+		parser: (response) => response.blob(),
+	},
+	{
+		types: ["formdata"],
+		parser: (response) => response.formData(),
+	},
+	{
+		types: ["json"],
+		parser: (response) => response.json(),
+	},
+	{
+		types: ["text", "txt"],
+		parser: (response) => response.text(),
+	},
+	{
+		types: ["element", "html-partial"],
+		parser: async (response) => {
+			const text = await response.text();
+			const template = document.createElement("template");
+			template.innerHTML = text;
+			return template.content.childNodes;
+		},
+	},
+	{
+		types: ["html"],
+		parser: async (response) => {
+			const text = await response.text();
+			return new DOMParser().parseFromString(text, "text/html");
+		},
+	},
+	{
+		types: ["svg"],
+		parser: async (response) => {
+			const text = await response.text();
+			return new DOMParser().parseFromString(text, "image/svg+xml");
+		},
+	},
+	{
+		types: ["xml"],
+		parser: async (response) => {
+			const text = await response.text();
+			return new DOMParser().parseFromString(text, "application/xml");
+		},
+	},
+];
+
+/**
+ * Find a parser for the given type.
+ * @param {string} type The type to find a parser for.
+ * @param {ResponseParser[]} customParsers Additional custom parsers to check.
+ * @returns {ResponseParser|undefined} The matching parser or undefined.
+ */
+const findParser = (type, customParsers = []) => {
+	const lowerType = String.prototype.toLowerCase.call(type);
+	// Check custom parsers first
+	for (const parser of customParsers) {
+		if (parser.types.includes(lowerType)) {
+			return parser;
+		}
+	}
+	// Check built-in parsers
+	for (const parser of builtInParsers) {
+		if (parser.types.includes(lowerType)) {
+			return parser;
+		}
+	}
+	return undefined;
+};
+
+/**
  * Convert response to a desired type.
  * @param {Response} response The response to parse.
  * @param {string} type Simplified type name the data should be converted to.
+ * @param {ResponseParser[]} [customParsers] Custom parsers to use in addition to built-in ones.
  * @returns {Promise<any>} Resulting data.
  */
-export const parseResponse = (response, type) => {
-	let promise;
-	switch (String.prototype.toLowerCase.call(type)) {
-		case "arraybuffer":
-			promise = response.arrayBuffer();
-			break;
+export const parseResponse = (response, type, customParsers) => {
+	const parser = findParser(type, customParsers);
 
-		case "blob":
-			promise = response.blob();
-			break;
-
-		case "formdata":
-			promise = response.formData();
-			break;
-
-		case "json":
-			promise = response.json();
-			break;
-
-		// HTML and xml need to be converted to text before being able to be parsed.
-		case "element":
-		case "html-partial":
-		case "html":
-		case "svg":
-		case "text":
-		case "xml":
-			promise = response.text();
-			break;
-
-		default:
-			console.warn(`Unknown response type "${type}" used.`);
-			break;
-	}
-
-	if (!promise) {
+	if (!parser) {
+		console.warn(`Unknown response type "${type}" used.`);
 		return null;
 	}
 
-	return promise.then((response) => {
-		switch (type) {
-			// Convert from html to HTMLElement inside a document fragment.
-			case "element":
-			case "html-partial": {
-				const template = document.createElement("template");
-				template.innerHTML = response;
-				response = template.content.childNodes[0];
-				break;
-			}
-
-			// Parse some values via the DOM parser.
-			case "html":
-				response = new DOMParser().parseFromString(response, "text/html");
-				break;
-			case "svg":
-				response = new DOMParser().parseFromString(response, "image/svg+xml");
-				break;
-			case "xml":
-				response = new DOMParser().parseFromString(response, "application/xml");
-				break;
-		}
-
-		return response;
-	});
+	return parser.parser(response, type);
 };
 
 /**
@@ -159,14 +192,23 @@ export const simplifyType = (mimeType) => {
 };
 
 /**
+ * @typedef {Object} FetchAndParseOptions
+ * @property {boolean} [autoParse=true] Whether to automatically parse the response based on content type.
+ * @property {ResponseParser[]} [parsers] Custom parsers to use in addition to built-in ones.
+ */
+
+/**
  *
  * @param {string} url Fetch URL.
  * @param {Request} options Fetch options.
  * @param {string} returnType Simplified type name the data should be converted to.
+ * @param {FetchAndParseOptions} [parseOptions] Options for parsing the response.
  * @returns {Promise<any>} Resulting data.
  */
-export const fetchAndParse = (url, options, returnType) =>
+export const fetchAndParse = (url, options, returnType, parseOptions = {}) =>
 	new Promise((resolve, reject) => {
+		const { autoParse = true, parsers = [] } = parseOptions;
+
 		fetch(url, options)
 			.then((response) => {
 				if (response.status < 200 || response.status >= 500) {
@@ -174,12 +216,20 @@ export const fetchAndParse = (url, options, returnType) =>
 					return;
 				}
 
-				// Automatically base return type on header.
-				if (!returnType || returnType === "auto") {
+				// Automatically base return type on header if autoParse is enabled.
+				if (autoParse && (!returnType || returnType === "auto")) {
 					returnType = responseType(response, options);
 				}
+
+				// If autoParse is disabled and no returnType specified, return raw response.
+				if (!autoParse && !returnType) {
+					response.value = response;
+					resolve(response);
+					return;
+				}
+
 				// Parse response based on return type.
-				const responseParse = parseResponse(response, returnType);
+				const responseParse = parseResponse(response, returnType, parsers);
 				if (!responseParse) {
 					throw new Error("No valid response returned.");
 				}
@@ -198,4 +248,6 @@ export default {
 	parseResponse,
 	responseType,
 	simplifyType,
+	builtInParsers,
+	findParser,
 };

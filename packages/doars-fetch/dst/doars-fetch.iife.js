@@ -36,57 +36,79 @@
   }
 
   // ../common/src/utilities/Fetch.js
-  var parseResponse = (response, type) => {
-    let promise;
-    switch (String.prototype.toLowerCase.call(type)) {
-      case "arraybuffer":
-        promise = response.arrayBuffer();
-        break;
-      case "blob":
-        promise = response.blob();
-        break;
-      case "formdata":
-        promise = response.formData();
-        break;
-      case "json":
-        promise = response.json();
-        break;
-      case "element":
-      case "html-partial":
-      case "html":
-      case "svg":
-      case "text":
-      case "xml":
-        promise = response.text();
-        break;
-      default:
-        console.warn(`Unknown response type "${type}" used.`);
-        break;
+  var builtInParsers = [
+    {
+      types: ["arraybuffer"],
+      parser: (response) => response.arrayBuffer()
+    },
+    {
+      types: ["blob"],
+      parser: (response) => response.blob()
+    },
+    {
+      types: ["formdata"],
+      parser: (response) => response.formData()
+    },
+    {
+      types: ["json"],
+      parser: (response) => response.json()
+    },
+    {
+      types: ["text", "txt"],
+      parser: (response) => response.text()
+    },
+    {
+      types: ["element", "html-partial"],
+      parser: async (response) => {
+        const text = await response.text();
+        const template = document.createElement("template");
+        template.innerHTML = text;
+        return template.content.childNodes;
+      }
+    },
+    {
+      types: ["html"],
+      parser: async (response) => {
+        const text = await response.text();
+        return new DOMParser().parseFromString(text, "text/html");
+      }
+    },
+    {
+      types: ["svg"],
+      parser: async (response) => {
+        const text = await response.text();
+        return new DOMParser().parseFromString(text, "image/svg+xml");
+      }
+    },
+    {
+      types: ["xml"],
+      parser: async (response) => {
+        const text = await response.text();
+        return new DOMParser().parseFromString(text, "application/xml");
+      }
     }
-    if (!promise) {
+  ];
+  var findParser = (type, customParsers = []) => {
+    const lowerType = String.prototype.toLowerCase.call(type);
+    for (const parser of customParsers) {
+      if (parser.types.includes(lowerType)) {
+        return parser;
+      }
+    }
+    for (const parser of builtInParsers) {
+      if (parser.types.includes(lowerType)) {
+        return parser;
+      }
+    }
+    return;
+  };
+  var parseResponse = (response, type, customParsers) => {
+    const parser = findParser(type, customParsers);
+    if (!parser) {
+      console.warn(`Unknown response type "${type}" used.`);
       return null;
     }
-    return promise.then((response2) => {
-      switch (type) {
-        case "element":
-        case "html-partial": {
-          const template = document.createElement("template");
-          template.innerHTML = response2;
-          response2 = template.content.childNodes[0];
-          break;
-        }
-        case "html":
-          response2 = new DOMParser().parseFromString(response2, "text/html");
-          break;
-        case "svg":
-          response2 = new DOMParser().parseFromString(response2, "image/svg+xml");
-          break;
-        case "xml":
-          response2 = new DOMParser().parseFromString(response2, "application/xml");
-          break;
-      }
-      return response2;
-    });
+    return parser.parser(response, type);
   };
   var responseType = (response, request = null) => {
     let contentType = response.headers.get("Content-Type");
@@ -149,16 +171,22 @@
         return "xml";
     }
   };
-  var fetchAndParse = (url, options, returnType) => new Promise((resolve, reject) => {
+  var fetchAndParse = (url, options, returnType, parseOptions = {}) => new Promise((resolve, reject) => {
+    const { autoParse = true, parsers = [] } = parseOptions;
     fetch(url, options).then((response) => {
       if (response.status < 200 || response.status >= 500) {
         reject(response);
         return;
       }
-      if (!returnType || returnType === "auto") {
+      if (autoParse && (!returnType || returnType === "auto")) {
         returnType = responseType(response, options);
       }
-      const responseParse = parseResponse(response, returnType);
+      if (!autoParse && !returnType) {
+        response.value = response;
+        resolve(response);
+        return;
+      }
+      const responseParse = parseResponse(response, returnType, parsers);
       if (!responseParse) {
         throw new Error("No valid response returned.");
       }
@@ -207,7 +235,12 @@
   };
 
   // src/contexts/fetch.js
-  var fetch_default = ({ fetchContextName, fetchOptions }) => ({
+  var fetch_default = ({
+    fetchContextName,
+    fetchOptions,
+    fetchAutoParse,
+    fetchParsers
+  }) => ({
     name: fetchContextName,
     create: () => {
       return {
@@ -217,7 +250,14 @@
           }
           const returnType = options.returnType ? options.returnType : null;
           delete options.returnType;
-          return fetchAndParse(url, options, returnType).then((result) => {
+          const requestParsers = options.parsers || fetchParsers;
+          const requestAutoParse = options.autoParse !== undefined ? options.autoParse : fetchAutoParse;
+          delete options.parsers;
+          delete options.autoParse;
+          return fetchAndParse(url, options, returnType, {
+            autoParse: requestAutoParse,
+            parsers: requestParsers
+          }).then((result) => {
             if (result?.value) {
               return result.value;
             }
@@ -825,6 +865,8 @@
     fetchOptions,
     fetchDirectiveEvaluate,
     fetchDirectiveName,
+    fetchAutoParse,
+    fetchParsers,
     intersectionEvent,
     loadedEvent
   }, intersectionDispatcher) => ({
@@ -969,7 +1011,10 @@
         });
         return fetchAndParse(url, Object.assign({}, fetchOptions, _fetchOptions, {
           headers: Object.assign({}, _fetchOptions.headers, fetchHeaders)
-        }), "text").then((response) => {
+        }), "text", {
+          autoParse: fetchAutoParse,
+          parsers: fetchParsers
+        }).then((response) => {
           isLoading = false;
           let html = response.value;
           if (modifiers.decode) {
@@ -1203,6 +1248,8 @@
       fetchDirectiveEvaluate: true,
       fetchDirectiveName: "fetch",
       fetchOptions: {},
+      fetchAutoParse: true,
+      fetchParsers: [],
       intersectionEvent: "intersect",
       intersectionRoot: null,
       intersectionMargin: "0px",
@@ -1248,4 +1295,4 @@
   window.DoarsFetch = DoarsFetch_default;
 })();
 
-//# debugId=30AAA1424972B00064756E2164756E21
+//# debugId=7D3AE053E7BD3EE664756E2164756E21

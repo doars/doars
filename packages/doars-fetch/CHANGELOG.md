@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## 3.2.0
+
+- Updated `@doars/common` dependency.
+- Added auto parse and custom parsers options.
+- Fix bugs.
+
 ## 3.1.2
 
 - Updated `@doars/common` dependency.

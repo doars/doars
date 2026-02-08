@@ -71,7 +71,10 @@ Call the fetch API.
 - Type: `function`
 - Parameters:
   - `{string} url` Url to fetch from.
-  - `{object} options = {}` Fetch options, [see Fetch docs on MDN](https://developer.mozilla.org/docs/Web/API/WindowOrWorkerGlobalScope/fetch#parameters). An additional option, `returnType`, has been added to automatically get and convert the returned data. The return type can be one of the following types: `arrayBuffer`, `blob`, `element`, `html`, `formData`, `json`, `svg`, `text`, `xml`, or `auto`. When the value `auto` is used it will try to automatically parse the response based on the content type, extension, or accept type header used by the response.
+  - `{object} options = {}` Fetch options, [see Fetch docs on MDN](https://developer.mozilla.org/docs/Web/API/WindowOrWorkerGlobalScope/fetch#parameters). Additional options:
+    - `returnType`: Automatically get and convert the returned data. Can be one of: `arrayBuffer`, `blob`, `element`, `html`, `formData`, `json`, `svg`, `text`, `xml`, or `auto`. When `auto` is used it will try to automatically parse the response based on the content type, extension, or accept type header.
+    - `autoParse`: Override the global `autoParse` option for this request. When `true` (default), automatically parses the response based on content type.
+    - `parsers`: Override the global custom parsers for this request. Array of custom parser objects with `types` and `parser` properties.
 - Returns: `Promise`
 
 ```HTML
@@ -267,11 +270,56 @@ Dispatched when the contents has successfully been updated.
 - `{boolean} fetchDirectiveEvaluate = true` If set to false the fetch directive's value is read as a string literal instead of an expression to process.
 - `{string} fetchDirectiveName = 'fetch'` The name of the fetch directive.
 - `{object} fetchOptions = {}` Default fetch options to use, the options object provided when calling fetch will be merged with this default.
+- `{boolean} fetchAutoParse = true` Whether to automatically parse the response based on content type headers. When enabled, the response will be automatically converted based on the content type (JSON, HTML, XML, etc.).
+- `{ResponseParser[]} fetchParsers = []` Custom parsers to use in addition to built-in ones. Each parser should have a `types` array (containing the type names it handles) and a `parser` function that receives the response and type, returning a Promise with the parsed data. Useful for adding support for YAML, TOML, CSV, etc.
 - `{string|boolean} intersectionEvent = 'intersect'` The name of the intersect special event listener. To disable the event from ever triggering set this option to false.
 - `{HTMLElement} intersectionRoot = null` The element to be used as the viewport for checking the visibility of the elements. It must be an ancestor of the targeted elements. By default it is the browsers viewport.
 - `{CSS margin property} intersectionMargin = '0px'` Margin around the root.
 - `{number|Array<number>} intersectionThreshold = 0` Thresholds of visibility the directive should be executed. `0` results in as soon as a pixel is in view. `1` results in that the entire element needs to be in view. `[0, 0.5, 1]` results in three possible calls when it is a pixel in view, 50% in view and entirely in view.
 - `{string|boolean} loadedEvent = 'load'` The name of the load special event listener. To disable the event from ever triggering set this option to false.
+
+#### Custom Parsers
+
+You can add custom parsers to handle additional content types like YAML, TOML, or CSV:
+
+```JavaScript
+// Setup the plugin with custom parsers.
+const doarsFetch = DoarsFetch(doars, {
+  fetchParsers: [
+    {
+      types: ['yaml', 'yml'],
+      parser: async (response) => {
+        const text = await response.text()
+        return jsYaml.load(text) // Using js-yaml library
+      }
+    },
+    {
+      types: ['csv'],
+      parser: async (response) => {
+        const text = await response.text()
+        return text.split('\n').map(row => row.split(','))
+      }
+    }
+  ]
+})
+```
+
+Then use the custom type when fetching:
+
+```HTML
+<!-- Fetch YAML data and automatically parse it -->
+<div d-state="{ config: null }"
+  d-initialized="
+    $fetch('/config.yaml', { returnType: 'yaml' })
+      .then((data) => {
+        $inContext(({ $state }) => {
+          $state.config = data
+        })
+      })
+  ">
+  <div d-text="config ? config.title : 'Loading...'"></div>
+</div>
+```
 
 ## Compatible versions
 

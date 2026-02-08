@@ -1312,65 +1312,157 @@ The utilities arguments has the following properties:
 
 Besides the `name` and `create` properties, an additional `deconstruct` property can be set. If `deconstruct` is set to a truthy value then the value returned by the context will be deconstructed using the [`with`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/with) statement. The result is that the context's name will not be needed in order to get the properties on the context. For example `$state.something.or.another` will also be accessible via `something.or.another`. Do note that the with statement is called in the same order that the contexts are added to by the `addContexts` function. In other words if two context both have the `deconstruct` property set and both contain the same property then the one later in the list will be used.
 
-A more advanced context example is the `$state` context. It needs to get the state from the component and trigger an update if the state is changed as well as mark any properties accessed on it as accessed by the attribute. Finally when the contexts is no longer needed it will need to remove the listeners and revoke access to it.
-
-```JavaScript
-export default {
-  // Mark the context for deconstruction.
-  deconstruct: true,
-
-  // The name of the context.
-  name: '$state',
-
-  // The function to process in order to create the context.
-  create: (component, attribute, update, { RevocableProxy }) => {
-    // Get and check values from the component.
-    const proxy = component.getProxy()
-    const state = component.getState()
-    if (!proxy || !state) {
-      return
-    }
-
-    // Create event handlers that trigger an update if a property on the state is deleted or set, and mark a value as accessed if a value is retrieved.
-    const onDelete = (target, path) =>
-      update(component.getId(), '$state.' + path.join('.'))
-    const onGet = (target, path) =>
-      attribute.accessed(component.getId(), '$state.' + path.join('.'))
-    const onSet = (target, path) =>
-      update(component.getId(), '$state.' + path.join('.'))
-
-    // Add event listeners.
-    proxy.addEventListener('delete', onDelete)
-    proxy.addEventListener('get', onGet)
-    proxy.addEventListener('set', onSet)
-
-    // Wrap in a revocable proxy.
-    const revocable = RevocableProxy(state, {})
-
-    return {
-      // Set the value to make available under the context's name.
-      value: revocable.proxy,
-
-      destroy: () => {
-        // Remove event listeners.
-        proxy.removeEventListener('delete', onDelete)
-        proxy.removeEventListener('get', onGet)
-        proxy.removeEventListener('set', onSet)
-
-        // Revoke access to state.
-        revocable.revoke()
-      },
-    }
-  },
-}
-```
+A more advanced context example is the [`$state` context](./src/contexts/state.js). It needs to get the state from the component and trigger an update if the state is changed as well as mark any properties accessed on it as accessed by the attribute. Finally when the contexts is no longer needed it will need to remove the listeners and revoke access to it.
 
 And there you have it, most of what you need to know about writing your own custom contexts. For more examples see the [build-in contexts](https://github.com/doars/doars/tree/main/packages/doars/src/contexts) and [plugin packages](https://github.com/doars/doars/tree/main/packages).
 
 ## Writing directives
 
-> TODO: See the [build-in directives](https://github.com/doars/doars/tree/main/packages/doars/src/directives) and [plugin packages](https://github.com/doars/doars/tree/main/packages) for now.
+Directives can be added to the Doars instance using the `addDirectives` function where the first parameter is the index to add them to in the list, and the rest of the parameters the directives you want to add.
+
+Technically a directive is nothing more than an object with a `name` property and an `update` property. The `name` is used to match against attribute names, and `update` is a function that will be called whenever the directive's attribute value changes. The `update` function is given three arguments, the first is the `Component`, the second the `Attribute`, and the third is `processExpression` which is used to execute the directive's expression value.
+
+Take for example the [`d-text`](./src/directives/text.js) directive. All it needs to do is evaluate the expression and set the result as the element's text content. The directive receives the library options in its factory function and returns an object with the `name` and `update` properties.
+
+```JavaScript
+export default ({ textDirectiveName }) => ({
+  name: textDirectiveName,
+
+  update: (component, attribute, processExpression) => {
+    const element = attribute.getElement();
+    const result = processExpression(component, attribute, attribute.getValue());
+    element.innerText = typeof result === 'string' ? result : String(result);
+  },
+})
+```
+
+> The actual directive has a few more features, but this is the fundamentally the case.
+
+In addition to the `update` function, directives can optionally include a `destroy` function. This is called when the attribute is removed from the document or the component is destroyed. Use this to clean up any event listeners, timeouts, or other resources. The `destroy` function receives the component, the attribute, and an object containing utility functions like `transitionOut`.
+
+A more advanced directive example is the [`d-on`](./src/directives/on.js) directive which handles event listening. It needs to get the event name from the directive's key, process modifiers like `once` or `prevent`, set up event listeners, and most importantly clean up those listeners when the directive is destroyed or the value changes. Symbols are commonly used to store directive-specific data on the attribute for later cleanup.
+
+The `processExpression` function executes the directive's expression and returns the result. It accepts the component, attribute, expression string, optional additional contexts to make available in the expression, and execution options. For instance, the `d-on` directive provides `$event` as an additional context so the expression can access the DOM event. The execution options include a `return` property which can be set to `false` for event handlers where the return value is not needed.
+
+If your directive handles asynchronous operations, you should store the promise on the attribute using `attribute.setData()` and check that it hasn't been superseded before applying the result. The `isPromise` utility from `@doars/common` can help detect promises.
+
+```JavaScript
+import { isPromise } from "@doars/common/src/utilities/Promise.js";
+
+update: (component, attribute, processExpression) => {
+  const result = processExpression(component, attribute, attribute.getValue());
+  attribute.setData(result);
+
+  if (isPromise(result)) {
+    Promise.resolve(result).then((resolved) => {
+      // Only apply if this is still the current result
+      if (attribute.getData() !== result) return;
+      // Apply resolved value...
+    });
+  } else {
+    // Apply synchronous result...
+  }
+}
+```
+
+And there you have it, most of what you need to know about writing your own custom directives. For more examples see the [build-in directives](https://github.com/doars/doars/tree/main/packages/doars/src/directives) and [plugin packages](https://github.com/doars/doars/tree/main/packages).
 
 ## Writing plugins
 
-> TODO: See the [plugin packages](https://github.com/doars/doars/tree/main/packages) for now.
+Plugins are the recommended way to extend Doars with custom functionality. A plugin is typically a factory function that receives the Doars instance and an options object, then creates and manages contexts and directives. The plugin should listen to the library's lifecycle events to add and remove its features at the appropriate times. The `enabling` event is fired when the library is about to be enabled and is where you should add your contexts and directives. The `disabling` event is fired when the library is about to be disabled and is where you should remove your features and clean up any resources.
+
+Here's a simple example plugin that adds a `$now` context which updates every second. The plugin merges the provided options with sensible defaults, creates a context that returns the current date, and sets up an interval to trigger updates when the library is enabled.
+
+```JavaScript
+export default function (library, options = {}) {
+  options = Object.assign({
+    contextName: '$now',
+    interval: 1000,
+  }, options);
+
+  let intervalId = null;
+
+  const nowContext = {
+    name: options.contextName,
+    create: () => ({ value: new Date() }),
+  };
+
+  const onEnable = () => {
+    library.addContexts(0, nowContext);
+    intervalId = setInterval(() => library.update(), options.interval);
+  };
+
+  const onDisable = () => {
+    library.removeContexts(nowContext);
+    if (intervalId) {
+      clearInterval(intervalId);
+      intervalId = null;
+    }
+  };
+
+  this.enable = () => {
+    library.addEventListener('enabling', onEnable);
+    library.addEventListener('disabling', onDisable);
+  };
+
+  this.disable = () => {
+    library.removeEventListener('enabling', onEnable);
+    library.removeEventListener('disabling', onDisable);
+    onDisable();
+  };
+
+  this.enable();
+}
+```
+
+A more comprehensive plugin example is the doars-fetch plugin which adds both a context and a directive. It accepts options for customizing the context and directive names, merges them with defaults, creates the context and directive using separate factory functions, and manages them through the lifecycle events. The plugin also exposes `enable` and `disable` methods for manual control and tracks whether it is currently enabled to prevent duplicate event listener registration.
+
+```JavaScript
+export default function (library, options = null) {
+  options = Object.assign({
+    fetchContextName: "$fetch",
+    fetchDirectiveName: "fetch",
+    fetchOptions: {},
+  }, options);
+
+  let isEnabled = false;
+  const fetchContext = createFetchContext(options);
+  const fetchDirective = createFetchDirective(options);
+
+  const onEnable = () => {
+    library.addContexts(0, fetchContext);
+    library.addDirectives(-1, fetchDirective);
+  };
+
+  const onDisable = () => {
+    library.removeContexts(fetchContext);
+    library.removeDirectives(fetchDirective);
+  };
+
+  this.disable = () => {
+    if (!library.getEnabled() && isEnabled) {
+      isEnabled = false;
+      library.removeEventListener("enabling", onEnable);
+      library.removeEventListener("disabling", onDisable);
+    }
+  };
+
+  this.enable = () => {
+    if (!isEnabled) {
+      isEnabled = true;
+      library.addEventListener("enabling", onEnable);
+      library.addEventListener("disabling", onDisable);
+    }
+  };
+
+  this.enable();
+}
+```
+
+A typical plugin should follow several patterns. Merge provided options with sensible defaults using `Object.assign`. Store any state like `isEnabled`, timers, or references in closure variables. Listen to `enabling` and `disabling` events to manage the plugin lifecycle. Expose `enable` and `disable` methods for manual control. Call `enable` automatically when the plugin is created so it works out of the box.
+
+Use the library's methods to add your features. Contexts are added at a specific index where lower indices have higher priority, so use index 0 to ensure your context is checked first. Directives are also added at a specific index, and you can use -1 to append them to the end of the list. When disabling, remove your contexts and directives to clean up properly.
+
+Plugins can listen to several other library events in addition to the lifecycle events. The `enabling` and `enabled` events fire when the library is being or has been enabled. The `disabling` and `disabled` events fire when the library is being or has been disabled. For a full list of events see [Doars events](#doars-events).
+
+And there you have it, most of what you need to know about writing your own custom plugins. For more examples see the [plugin packages](https://github.com/doars/doars/tree/main/packages).

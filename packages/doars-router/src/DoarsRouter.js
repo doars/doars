@@ -69,6 +69,7 @@ export default function (library, options = null) {
 		library.addContexts(0, routerContext);
 		library.addDirectives(
 			-1,
+			// Order is important!
 			routerDirective,
 			routeDirective,
 			routeToDirective,
