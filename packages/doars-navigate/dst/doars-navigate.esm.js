@@ -522,6 +522,10 @@ var showIndicator = (component, attribute, processExpression) => {
     }
   }
   const indicatorElement = document.importNode(indicatorTemplate.content, true).firstElementChild;
+  if (!indicatorElement) {
+    console.warn("Unable to get element from indicator template");
+    return;
+  }
   indicatorTemplate.insertAdjacentElement("afterend", indicatorElement);
   attribute.indicator = {
     indicatorElement,
@@ -998,4 +1002,4 @@ export {
   DoarsNavigate_default as default
 };
 
-//# debugId=A128C82A981E522464756E2164756E21
+//# debugId=04B8125212B421B764756E2164756E21

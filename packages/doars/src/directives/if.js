@@ -70,14 +70,18 @@ export default ({ allowInlineScript, ifDirectiveName }) => ({
 
 				// Create new element from template.
 				element = document.importNode(template.content, true).firstElementChild;
-				// Add element after the template element.
-				template.insertAdjacentElement("afterend", element);
-				if (allowInlineScript || modifiers.script) {
-					readdScripts(element);
-				}
+				if (element) {
+					// Add element after the template element.
+					template.insertAdjacentElement("afterend", element);
+					if (allowInlineScript || modifiers.script) {
+						readdScripts(element);
+					}
 
-				// Transition element in.
-				transition = transitionIn(libraryOptions, element);
+					// Transition element in.
+					transition = transitionIn(libraryOptions, element);
+				} else {
+					console.warn("Unable to get element from if template");
+				}
 			}
 
 			// Store results.

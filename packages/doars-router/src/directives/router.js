@@ -12,10 +12,10 @@ export default (options) => ({
 		const element = attribute.getElement();
 
 		// Get router.
-		let router = element[ROUTER];
+		const router = element[ROUTER];
 		if (!router) {
 			// Create router
-			router = element[ROUTER] = new Router(
+			element[ROUTER] = new Router(
 				Object.assign(
 					{},
 					options,

@@ -1618,6 +1618,10 @@ var setAfter = (component, update, template, elements, index, value, variables, 
     return;
   }
   const element = document.importNode(template.content, true).firstElementChild;
+  if (element) {
+    console.warn("Unable to get element from for template");
+    return;
+  }
   const sibling = index === -1 ? template : elements[index];
   sibling.insertAdjacentElement("afterend", element);
   if (allowInlineScript) {
@@ -2019,11 +2023,15 @@ var if_default = ({ allowInlineScript, ifDirectiveName }) => ({
           transition2();
         }
         element = document.importNode(template.content, true).firstElementChild;
-        template.insertAdjacentElement("afterend", element);
-        if (allowInlineScript || modifiers.script) {
-          readdScripts(element);
+        if (element) {
+          template.insertAdjacentElement("afterend", element);
+          if (allowInlineScript || modifiers.script) {
+            readdScripts(element);
+          }
+          transition2 = transitionIn(libraryOptions, element);
+        } else {
+          console.warn("Unable to get element from if template");
         }
-        transition2 = transitionIn(libraryOptions, element);
       }
       attribute.setData(Object.assign({}, data2, {
         element,
@@ -4106,4 +4114,4 @@ export {
   DoarsInterpret_default as default
 };
 
-//# debugId=D8E7378F8FFE28D064756E2164756E21
+//# debugId=05DDEA37CED1C04964756E2164756E21

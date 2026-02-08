@@ -615,6 +615,10 @@
       }
     }
     const indicatorElement = document.importNode(indicatorTemplate.content, true).firstElementChild;
+    if (!indicatorElement) {
+      console.warn("Unable to get element from indicator template");
+      return;
+    }
     indicatorTemplate.insertAdjacentElement("afterend", indicatorElement);
     attribute.indicator = {
       indicatorElement,
@@ -1244,4 +1248,4 @@
   window.DoarsFetch = DoarsFetch_default;
 })();
 
-//# debugId=2ECCA3A41A7A7CC164756E2164756E21
+//# debugId=30AAA1424972B00064756E2164756E21

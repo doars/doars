@@ -1619,6 +1619,10 @@
       return;
     }
     const element = document.importNode(template.content, true).firstElementChild;
+    if (element) {
+      console.warn("Unable to get element from for template");
+      return;
+    }
     const sibling = index === -1 ? template : elements[index];
     sibling.insertAdjacentElement("afterend", element);
     if (allowInlineScript) {
@@ -2020,11 +2024,15 @@
             transition2();
           }
           element = document.importNode(template.content, true).firstElementChild;
-          template.insertAdjacentElement("afterend", element);
-          if (allowInlineScript || modifiers.script) {
-            readdScripts(element);
+          if (element) {
+            template.insertAdjacentElement("afterend", element);
+            if (allowInlineScript || modifiers.script) {
+              readdScripts(element);
+            }
+            transition2 = transitionIn(libraryOptions, element);
+          } else {
+            console.warn("Unable to get element from if template");
           }
-          transition2 = transitionIn(libraryOptions, element);
         }
         attribute.setData(Object.assign({}, data2, {
           element,
@@ -3338,4 +3346,4 @@ ${error.name}: ${error.message}`);
   window.Doars = DoarsCall_default;
 })();
 
-//# debugId=74919AC4E56BDE4164756E2164756E21
+//# debugId=2C70F32CE84B7D2C64756E2164756E21

@@ -718,9 +718,13 @@ var route_default = ({ routeDirectiveName }) => ({
           }
         } else if (element.tagName === "TEMPLATE") {
           const newElement = document.importNode(element.content, true).firstElementChild;
-          element.insertAdjacentElement("afterend", newElement);
-          attribute[ROUTE].element = element;
-          transitionIn(libraryOptions, attribute[ROUTE].element);
+          if (newElement) {
+            element.insertAdjacentElement("afterend", newElement);
+            attribute[ROUTE].element = newElement;
+            transitionIn(libraryOptions, attribute[ROUTE].element);
+          } else {
+            console.warn("Unable to get element from route template");
+          }
         } else {
           element.style.display = null;
           transitionIn(libraryOptions, element);
@@ -767,9 +771,9 @@ var router_default2 = (options) => ({
   name: options.routerDirectiveName,
   update: (component, attribute, processExpression) => {
     const element = attribute.getElement();
-    let router = element[ROUTER];
+    const router = element[ROUTER];
     if (!router) {
-      router = element[ROUTER] = new Router(Object.assign({}, options, processExpression(component, attribute, attribute.getValue())));
+      element[ROUTER] = new Router(Object.assign({}, options, processExpression(component, attribute, attribute.getValue())));
     }
   },
   destroy: (component, attribute) => {
@@ -854,11 +858,11 @@ function DoarsRouter_default(library, options = null) {
   const routerContext = router_default(options), routeDirective = route_default(options), routerDirective = router_default2(options), routeToDirective = routeTo_default(options);
   const onEnable = () => {
     library.addContexts(0, routerContext);
-    library.addDirectives(-1, routeDirective, routerDirective, routeToDirective);
+    library.addDirectives(-1, routerDirective, routeDirective, routeToDirective);
   };
   const onDisable = () => {
     library.removeContexts(routerContext);
-    library.removeDirectives(routeDirective, routerDirective, routeToDirective);
+    library.removeDirectives(routeToDirective, routeDirective, routerDirective);
   };
   this.disable = () => {
     if (!library.getEnabled() && isEnabled) {
@@ -880,4 +884,4 @@ export {
   DoarsRouter_default as default
 };
 
-//# debugId=FDCD34A28EFCA7AF64756E2164756E21
+//# debugId=E8627F49F1FC887964756E2164756E21

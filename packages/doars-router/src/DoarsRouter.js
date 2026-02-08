@@ -69,15 +69,15 @@ export default function (library, options = null) {
 		library.addContexts(0, routerContext);
 		library.addDirectives(
 			-1,
-			routeDirective,
 			routerDirective,
+			routeDirective,
 			routeToDirective,
 		);
 	};
 	const onDisable = () => {
 		// Remove contexts and directives.
 		library.removeContexts(routerContext);
-		library.removeDirectives(routeDirective, routerDirective, routeToDirective);
+		library.removeDirectives(routeToDirective, routeDirective, routerDirective);
 	};
 
 	this.disable = () => {

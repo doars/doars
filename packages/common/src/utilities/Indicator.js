@@ -109,6 +109,10 @@ export const showIndicator = (component, attribute, processExpression) => {
 		indicatorTemplate.content,
 		true,
 	).firstElementChild;
+	if (!indicatorElement) {
+		console.warn("Unable to get element from indicator template");
+		return;
+	}
 	// Add element after the template element.
 	indicatorTemplate.insertAdjacentElement("afterend", indicatorElement);
 	attribute.indicator = {

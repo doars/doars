@@ -69,12 +69,16 @@ export default ({ routeDirectiveName }) => ({
 						element.content,
 						true,
 					).firstElementChild;
-					// Add element after the template element.
-					element.insertAdjacentElement("afterend", newElement);
-					attribute[ROUTE].element = element;
+					if (newElement) {
+						// Add element after the template element.
+						element.insertAdjacentElement("afterend", newElement);
+						attribute[ROUTE].element = newElement;
 
-					// Transition in.
-					transitionIn(libraryOptions, attribute[ROUTE].element);
+						// Transition in.
+						transitionIn(libraryOptions, attribute[ROUTE].element);
+					} else {
+						console.warn("Unable to get element from route template");
+					}
 				} else {
 					// Remove display none.
 					element.style.display = null;
