@@ -4,13 +4,18 @@
 import EventDispatcher from "@doars/common/src/events/EventDispatcher.js";
 import { pathToRegexp } from "path-to-regexp";
 
+/**
+ * @typedef RouterOptions
+ * @type {object}
+ * @property {string} [basePath] - Base path of the routes.
+ * @property {string} [path] - Initial active path.
+ * @property {object} [pathToRegexp] - Path-to-RegExp options used for parsing route paths.
+ * @property {boolean} [updateHistory] - Whether to update the History API.
+ */
+
 export default class Router extends EventDispatcher {
 	/**
-	 * @param {object} options Router options.
-	 * - {string} basePath = '' - Base path of the routes.
-	 * - {string} path = '' - Initial active path.
-	 * - {object} pathToRegexp = {} - Path-to-RegExp options used for parsing route paths.
-	 * - {boolean} updateHistory = false - Whether to update the [History API](https://developer.mozilla.org/docs/Web/API/History_API).
+	 * @param {RouterOptions} [options] Router options.
 	 */
 	constructor(options = {}) {
 		super();

@@ -7,9 +7,23 @@ import createFetchContext from "./contexts/fetch.js";
 import createFetchDirective from "./directives/fetch.js";
 
 /**
+ * @typedef DoarsFetchOptions
+ * @type {object}
+ * @property {string} [fetchContextName] - The name of the fetch context.
+ * @property {boolean} [fetchDirectiveEvaluate] - If set to false the fetch directive's value is read as a string literal instead of an expression to process.
+ * @property {string} [fetchDirectiveName] - The name of the fetch directive.
+ * @property {object} [fetchOptions] - Default fetch options to use, the options object provided when calling fetch will be merged with this default.
+ * @property {string|false} [intersectionEvent] - The name of the intersect special event listener. To disable the event from ever triggering set this option to false.
+ * @property {HTMLElement} [intersectionRoot] - The element to be used as the viewport for checking the visibility of the elements.
+ * @property {string} [intersectionMargin] - Margin around the root.
+ * @property {number|Array<number>} [intersectionThreshold] - Thresholds of visibility the directive should be executed.
+ * @property {string|false} [loadedEvent] - The name of the load special event listener. To disable the event from ever triggering set this option to false.
+ */
+
+/**
  * Create plugin instance.
  * @param {Doars} library Doars instance to add onto.
- * @param {object} options The plugin options.
+ * @param {DoarsFetchOptions} [options] The plugin options.
  */
 export default function (library, options = null) {
 	// Clone options.

@@ -7,9 +7,18 @@ import createUpdateDirective from "./directives/update.js";
 import Updater from "./Updater.js";
 
 /**
+ * @typedef DoarsUpdateOptions
+ * @type {object}
+ * @property {number} [defaultOrder] - Default order modifier value of update directive.
+ * @property {number} [stepMinimum] - Minimum amount of time in milliseconds between updates.
+ * @property {string} [updateContextName] - The name of the update context.
+ * @property {string} [updateDirectiveName] - The name of the update directive.
+ */
+
+/**
  * Create plugin instance.
  * @param {Doars} library Doars instance to add onto.
- * @param {object} options The plugin options.
+ * @param {DoarsUpdateOptions} [options] The plugin options.
  */
 export default function (library, options = null) {
 	// Clone options.

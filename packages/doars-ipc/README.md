@@ -9,7 +9,7 @@
 
 # @doars/doars-ipc
 
-Adds an IPC context and directive that handles communication between the back-end (Bun) and the front-end (WebView). Designed for use with `@webviewjs/webview` or similar webview libraries that support bidirectional communication via `postMessage` (WebView → Bun) and `evaluateScript` (Bun → WebView).
+Adds an IPC context and directive that handles communication between the back-end (Bun) and the front-end (WebView). Designed for use with [`@webviewjs/webview`](https://github.com/webviewjs/webview#readme) or similar webview libraries that support bidirectional communication via `postMessage` (WebView → Bun) and `evaluateScript` (Bun → WebView).
 
 The plugin automatically creates a client-side IPC handler that uses `window.ipc.postMessage()` to send requests to the host, and expects the host to route responses back via JavaScript evaluation.
 
@@ -68,7 +68,7 @@ To use this plugin, you need to set up the server-side handler in your applicati
 
 ```JavaScript
 import { Application } from '@webviewjs/webview'
-import createServer from '@doars/doars-ipc/src/utilities/server.js'
+import createServer from '@doars/doars-ipc/src/IPCServer.js'
 
 const app = new Application()
 const window = app.createBrowserWindow()
@@ -78,7 +78,7 @@ const webview = window.createWebview({
 })
 
 // Create server handler with the path and evaluate function
-const server = createServer('__doarsIPC', (js) => webview.evaluateScript(js))
+const server = createServer('__doarsIPC', webview.evaluateScript)
 
 // Register routes
 server.register('getResults', async (data) => {
@@ -271,7 +271,7 @@ Dispatched when the call has successfully been resolved.
 The server-side handler that routes incoming IPC messages to registered callbacks.
 
 ```JavaScript
-import createServer from '@doars/doars-ipc/src/utilities/server.js'
+import createServer from '@doars/doars-ipc/src/IPCServer.js'
 
 const server = createServer(path, evaluate)
 ```
@@ -289,9 +289,9 @@ const server = createServer(path, evaluate)
 **Example:**
 
 ```JavaScript
-import createServer from '@doars/doars-ipc/src/utilities/server.js'
+import createServer from '@doars/doars-ipc/src/IPCServer.js'
 
-const server = createServer('__doarsIPC', (js) => webview.evaluateScript(js))
+const server = createServer('__doarsIPC', webview.evaluateScript)
 
 // Register routes
 server.register('getUser', async (data) => {

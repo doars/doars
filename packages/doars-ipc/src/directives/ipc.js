@@ -34,7 +34,9 @@ const EXECUTION_MODIFIERS = {
 /**
  * @typedef DirectiveOptions
  * @type {object}
- * TODO:
+ * @property {string} ipcDirectiveName - The name of the IPC directive.
+ * @property {string|false} intersectionEvent - The name of the intersect special event listener.
+ * @property {string|false} loadedEvent - The name of the load special event listener.
  */
 
 /**

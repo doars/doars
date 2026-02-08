@@ -6,9 +6,18 @@ import IntersectionDispatcher from "@doars/common/src/polyfills/IntersectionDisp
 import createIntersectDirective from "./directives/intersect.js";
 
 /**
+ * @typedef DoarsIntersectOptions
+ * @type {object}
+ * @property {string} [intersectDirectiveName] - The name of the intersect directive.
+ * @property {HTMLElement} [intersectionRoot] - The element to be used as the viewport for checking the visibility of the elements.
+ * @property {string} [intersectionMargin] - Margin around the root.
+ * @property {number|Array<number>} [intersectionThreshold] - Thresholds of visibility the directive should be executed.
+ */
+
+/**
  * Create plugin instance.
  * @param {Doars} library Doars instance to add onto.
- * @param {object} options The plugin options.
+ * @param {DoarsIntersectOptions} [options] The plugin options.
  */
 export default function (library, options = null) {
 	// Clone options.

@@ -9,9 +9,22 @@ import createClientHandler from "./utilities/client.js";
 import { deleteNestedProperty, setNestedProperty } from "./utilities/nested.js";
 
 /**
+ * @typedef DoarsIPCOptions
+ * @type {object}
+ * @property {string} [ipcContextName] - The name of the IPC context.
+ * @property {string} [ipcDirectiveName] - The name of the IPC directive.
+ * @property {string} [ipcPath] - The path on the window object where the IPC client handler is mounted.
+ * @property {string|false} [intersectionEvent] - The name of the intersect special event listener. To disable the event from ever triggering set this option to false.
+ * @property {HTMLElement} [intersectionRoot] - The element to be used as the viewport for checking the visibility of the elements.
+ * @property {string} [intersectionMargin] - Margin around the root.
+ * @property {number|Array<number>} [intersectionThreshold] - Thresholds of visibility the directive should be executed.
+ * @property {string|false} [loadedEvent] - The name of the load special event listener. To disable the event from ever triggering set this option to false.
+ */
+
+/**
  * Create plugin instance.
  * @param {Doars} library Doars instance to add onto.
- * @param {object} options The plugin options.
+ * @param {DoarsIPCOptions} [options] The plugin options.
  */
 export default function (library, options = null) {
 	// Clone options.

@@ -7,9 +7,20 @@ import createSessionStorageContext from "./contexts/sessionStorage.js";
  */
 
 /**
+ * @typedef DoarsPersistOptions
+ * @type {object}
+ * @property {string} cookiesContextName - The name of the cookies context.
+ * @property {boolean} cookiesContextDeconstruct - Whether to deconstruct the context so when accessing the properties you do not need to prefix it with `$cookies`.
+ * @property {string} localStorageContextName - The name of the local storage context.
+ * @property {boolean} localStorageContextDeconstruct - Whether to deconstruct the context so when accessing the properties you do not need to prefix it with `$localStorage`.
+ * @property {string} sessionStorageContextName - The name of the session storage context.
+ * @property {boolean} sessionStorageContextDeconstruct - Whether to deconstruct the context so when accessing the properties you do not need to prefix it with `$sessionStorage`.
+ */
+
+/**
  * Create plugin instance.
  * @param {Doars} library Doars instance to add onto.
- * @param {object} options The plugin options.
+ * @param {DoarsPersistOptions} [options] The plugin options.
  */
 export default function (library, options = null) {
 	// Clone options.

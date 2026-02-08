@@ -5,10 +5,15 @@ import ProxyDispatcher from "@doars/common/src/events/ProxyDispatcher.js";
  * @callback UpdateCallback
  */
 
+/**
+ * @typedef UpdaterOptions
+ * @type {object}
+ * @property {number} stepMinimum - Minimum duration of a tick in milliseconds.
+ */
+
 export default class Updater {
 	/**
-	 * @param {object} options Updater options.
-	 * @param {number} options.stepMinimum Minimum duration of a tick in milliseconds.
+	 * @param {UpdaterOptions} options Updater options.
 	 * @param {UpdateCallback} callback Called every update tick.
 	 */
 	constructor({ stepMinimum }, callback) {
