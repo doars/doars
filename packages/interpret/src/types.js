@@ -9,7 +9,6 @@ export const LITERAL = 3;
 export const MEMBER = 10;
 export const OBJECT = 11;
 export const PROPERTY = 4;
-export const REGEX = 16;
 export const RETURN = 17;
 export const SEQUENCE = 12;
 export const SPREAD = 18;
@@ -29,7 +28,6 @@ export default {
 	MEMBER,
 	OBJECT,
 	PROPERTY,
-	REGEX,
 	RETURN,
 	SEQUENCE,
 	SPREAD,

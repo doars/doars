@@ -18,6 +18,7 @@ import {
 	OBJECT,
 	PROPERTY,
 	SEQUENCE,
+	SPREAD,
 	UNARY,
 	UPDATE,
 } from "./types.js";
@@ -61,22 +62,22 @@ const CLOSING_BRACES_CODE = 125; // }
  * Assignment operators modify the left-hand side with the right-hand side value.
  */
 const ASSIGNMENT_OPERATORS = [
-	"=",
-	"||=",
-	"&&=",
-	"??=",
-	"*=",
-	"**=",
-	"/=",
-	"%=",
-	"+=",
 	"-=",
-	// '<<=',
-	// '>>=',
-	// '>>>=',
-	// '&=',
-	// '^=',
-	// '|=',
+	"??=",
+	"**=",
+	"*=",
+	"/=",
+	"&&=",
+	"&=",
+	"%=",
+	"^=",
+	"+=",
+	"<<=",
+	"=",
+	">>=",
+	">>>=",
+	"|=",
+	"||=",
 ];
 /**
  * Binary operators with precedence levels (higher number = higher precedence).
@@ -93,18 +94,18 @@ const BINARY_OPERATORS = {
 	"%=": 1,
 	"+=": 1,
 	"-=": 1,
-	// '<<=': 1,
-	// '>>=': 1,
-	// '>>>=': 1,
-	// '&=': 1,
-	// '^=': 1,
-	// '|=': 1,
+	"<<=": 1,
+	">>=": 1,
+	">>>=": 1,
+	"&=": 1,
+	"^=": 1,
+	"|=": 1,
 	"||": 2,
 	"&&": 3,
 	"??": 4,
-	// '|': 5,
-	// '^': 6,
-	// '&': 7,
+	"|": 5,
+	"^": 6,
+	"&": 7,
 	"==": 8,
 	"!=": 8,
 	"===": 8,
@@ -113,10 +114,11 @@ const BINARY_OPERATORS = {
 	">": 9,
 	"<=": 9,
 	">=": 9,
-	// '<<': 10,
-	// '>>': 10,
-	// '>>>': 10,
+	"<<": 10,
+	">>": 10,
+	">>>": 10,
 	"*": 11,
+	"**": 11,
 	"/": 11,
 	"%": 11,
 	"+": 11,
@@ -125,12 +127,7 @@ const BINARY_OPERATORS = {
 /**
  * Unary operators that take a single operand and return a result.
  */
-const UNARY_OPERATORS = [
-	"-",
-	"!",
-	// '~',
-	"+",
-];
+const UNARY_OPERATORS = ["-", "!", "~", "+"];
 const UPDATE_OPERATOR_DECREMENT = "--";
 const UPDATE_OPERATOR_INCREMENT = "++";
 
@@ -786,11 +783,23 @@ export default (expression) => {
 		gobbleSpaces();
 
 		const character = expression.charCodeAt(index);
-		if (isDecimalDigit(character) || character === PERIOD_CODE) {
-			return gobbleNumericLiteral();
-		}
 
-		if (character === DOUBLE_QUOTE_CODE || character === SINGLE_QUOTE_CODE) {
+		if (
+			character === PERIOD_CODE &&
+			expression.charCodeAt(index + 1) === PERIOD_CODE &&
+			expression.charCodeAt(index + 2) === PERIOD_CODE
+		) {
+			index += 3;
+			node = {
+				type: SPREAD,
+				arguments: gobbleExpression(),
+			};
+		} else if (isDecimalDigit(character) || character === PERIOD_CODE) {
+			return gobbleNumericLiteral();
+		} else if (
+			character === DOUBLE_QUOTE_CODE ||
+			character === SINGLE_QUOTE_CODE
+		) {
 			node = gobbleStringLiteral();
 		} else if (character === OPENING_BRACKET_CODE) {
 			node = gobbleArray();

@@ -10,6 +10,7 @@ var MEMBER = 10;
 var OBJECT = 11;
 var PROPERTY = 4;
 var SEQUENCE = 12;
+var SPREAD = 18;
 var UNARY = 13;
 var UPDATE = 14;
 
@@ -44,16 +45,22 @@ var UPPER_Z_CODE = 122;
 var OPENING_BRACES_CODE = 123;
 var CLOSING_BRACES_CODE = 125;
 var ASSIGNMENT_OPERATORS = [
-  "=",
-  "||=",
-  "&&=",
+  "-=",
   "??=",
-  "*=",
   "**=",
+  "*=",
   "/=",
+  "&&=",
+  "&=",
   "%=",
+  "^=",
   "+=",
-  "-="
+  "<<=",
+  "=",
+  ">>=",
+  ">>>=",
+  "|=",
+  "||="
 ];
 var BINARY_OPERATORS = {
   "=": 1,
@@ -66,9 +73,18 @@ var BINARY_OPERATORS = {
   "%=": 1,
   "+=": 1,
   "-=": 1,
+  "<<=": 1,
+  ">>=": 1,
+  ">>>=": 1,
+  "&=": 1,
+  "^=": 1,
+  "|=": 1,
   "||": 2,
   "&&": 3,
   "??": 4,
+  "|": 5,
+  "^": 6,
+  "&": 7,
   "==": 8,
   "!=": 8,
   "===": 8,
@@ -77,17 +93,17 @@ var BINARY_OPERATORS = {
   ">": 9,
   "<=": 9,
   ">=": 9,
+  "<<": 10,
+  ">>": 10,
+  ">>>": 10,
   "*": 11,
+  "**": 11,
   "/": 11,
   "%": 11,
   "+": 11,
   "-": 11
 };
-var UNARY_OPERATORS = [
-  "-",
-  "!",
-  "+"
-];
+var UNARY_OPERATORS = ["-", "!", "~", "+"];
 var UPDATE_OPERATOR_DECREMENT = "--";
 var UPDATE_OPERATOR_INCREMENT = "++";
 var LITERALS = {
@@ -508,10 +524,15 @@ var parse_default = (expression) => {
     }
     gobbleSpaces();
     const character = expression.charCodeAt(index);
-    if (isDecimalDigit(character) || character === PERIOD_CODE) {
+    if (character === PERIOD_CODE && expression.charCodeAt(index + 1) === PERIOD_CODE && expression.charCodeAt(index + 2) === PERIOD_CODE) {
+      index += 3;
+      node = {
+        type: SPREAD,
+        arguments: gobbleExpression()
+      };
+    } else if (isDecimalDigit(character) || character === PERIOD_CODE) {
       return gobbleNumericLiteral();
-    }
-    if (character === DOUBLE_QUOTE_CODE || character === SINGLE_QUOTE_CODE) {
+    } else if (character === DOUBLE_QUOTE_CODE || character === SINGLE_QUOTE_CODE) {
       node = gobbleStringLiteral();
     } else if (character === OPENING_BRACKET_CODE) {
       node = gobbleArray();
@@ -680,7 +701,11 @@ var run = (node, context = {}) => {
     case ARRAY: {
       const arrayResults = [];
       for (const arrayElement of node.elements) {
-        arrayResults.push(run(arrayElement, context));
+        if (arrayElement.type === SPREAD) {
+          arrayResults.push(...run(arrayElement.arguments, context));
+        } else {
+          arrayResults.push(run(arrayElement, context));
+        }
       }
       return arrayResults;
     }
@@ -689,15 +714,8 @@ var run = (node, context = {}) => {
       if (node.operator !== "=") {
         const assignmentLeft = run(node.left, context);
         switch (node.operator) {
-          case "||=":
-            if (assignmentLeft) {
-              return assignmentLeft;
-            }
-            break;
-          case "&&=":
-            if (!assignmentLeft) {
-              return assignmentLeft;
-            }
+          case "-=":
+            assignmentValue = assignmentLeft - assignmentValue;
             break;
           case "??=":
             if (assignmentLeft !== null && assignmentLeft !== undefined) {
@@ -713,14 +731,39 @@ var run = (node, context = {}) => {
           case "/=":
             assignmentValue = assignmentLeft / assignmentValue;
             break;
+          case "&=":
+            assignmentValue = assignmentLeft & assignmentValue;
+            break;
+          case "&&=":
+            if (!assignmentLeft) {
+              return assignmentLeft;
+            }
+            break;
           case "%=":
             assignmentValue = assignmentLeft % assignmentValue;
+            break;
+          case "^=":
+            assignmentValue = assignmentLeft ^ assignmentValue;
             break;
           case "+=":
             assignmentValue = assignmentLeft + assignmentValue;
             break;
-          case "-=":
-            assignmentValue = assignmentLeft - assignmentValue;
+          case "<<=":
+            assignmentValue = assignmentLeft << assignmentValue;
+            break;
+          case ">>=":
+            assignmentValue = assignmentLeft >> assignmentValue;
+            break;
+          case ">>>=":
+            assignmentValue = assignmentLeft >>> assignmentValue;
+            break;
+          case "|=":
+            assignmentValue = assignmentLeft | assignmentValue;
+            break;
+          case "||=":
+            if (assignmentLeft) {
+              return assignmentLeft;
+            }
             break;
         }
       }
@@ -730,45 +773,63 @@ var run = (node, context = {}) => {
       const binaryLeft = run(node.left, context);
       const binaryRight = run(node.right, context);
       switch (node.operator) {
-        case "||":
-          return binaryLeft || binaryRight;
-        case "&&":
-          return binaryLeft && binaryRight;
-        case "??":
-          return binaryLeft ?? binaryRight;
-        case "==":
-          return binaryLeft === binaryRight;
-        case "!=":
-          return binaryLeft !== binaryRight;
-        case "===":
-          return binaryLeft === binaryRight;
-        case "!==":
-          return binaryLeft !== binaryRight;
-        case "<":
-          return binaryLeft < binaryRight;
-        case ">":
-          return binaryLeft > binaryRight;
-        case "<=":
-          return binaryLeft <= binaryRight;
-        case ">=":
-          return binaryLeft >= binaryRight;
         case "-":
           return binaryLeft - binaryRight;
-        case "+":
-          return binaryLeft + binaryRight;
+        case "!=":
+          return binaryLeft !== binaryRight;
+        case "!==":
+          return binaryLeft !== binaryRight;
+        case "??":
+          return binaryLeft ?? binaryRight;
         case "*":
           return binaryLeft * binaryRight;
+        case "**":
+          return binaryLeft ** binaryRight;
         case "/":
           return binaryLeft / binaryRight;
+        case "&":
+          return binaryLeft & binaryRight;
+        case "&&":
+          return binaryLeft && binaryRight;
         case "%":
           return binaryLeft % binaryRight;
+        case "^":
+          return binaryLeft ^ binaryRight;
+        case "+":
+          return binaryLeft + binaryRight;
+        case "<":
+          return binaryLeft < binaryRight;
+        case "<<":
+          return binaryLeft << binaryRight;
+        case "<=":
+          return binaryLeft <= binaryRight;
+        case "==":
+          return binaryLeft === binaryRight;
+        case "===":
+          return binaryLeft === binaryRight;
+        case ">":
+          return binaryLeft > binaryRight;
+        case ">=":
+          return binaryLeft >= binaryRight;
+        case ">>":
+          return binaryLeft >> binaryRight;
+        case ">>>":
+          return binaryLeft >>> binaryRight;
+        case "|":
+          return binaryLeft | binaryRight;
+        case "||":
+          return binaryLeft || binaryRight;
       }
       throw new Error(`Unsupported operator: ${node.operator}`);
     }
     case CALL: {
       const parameters = [];
       for (const parameter of node.parameters) {
-        parameters.push(run(parameter, context));
+        if (parameter.type === SPREAD) {
+          parameters.push(...run(parameter.arguments, context));
+        } else {
+          parameters.push(run(parameter, context));
+        }
       }
       return run(node.callee, context)(...parameters);
     }
@@ -791,15 +852,19 @@ var run = (node, context = {}) => {
     }
     case SEQUENCE:
       return node.expressions.map((node2) => run(node2, context));
+    case SPREAD:
+      return run(node.arguments, context);
     case UNARY: {
       const unaryParameter = run(node.parameter, context);
       switch (node.operator) {
-        case "!":
-          return !unaryParameter;
         case "-":
           return -unaryParameter;
+        case "!":
+          return !unaryParameter;
         case "+":
           return +unaryParameter;
+        case "~":
+          return ~unaryParameter;
       }
       throw new Error(`Unsupported operator: ${node.operator}`);
     }
@@ -869,4 +934,4 @@ export {
   ARRAY2 as ARRAY
 };
 
-//# debugId=38BBD02A8B3779D664756E2164756E21
+//# debugId=ACF075D0C6C8717564756E2164756E21

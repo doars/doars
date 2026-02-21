@@ -15,6 +15,7 @@ import {
 	MEMBER,
 	OBJECT,
 	SEQUENCE,
+	SPREAD,
 	UNARY,
 	UPDATE,
 } from "./types.js";
@@ -84,7 +85,11 @@ const run = (node, context = {}) => {
 		case ARRAY: {
 			const arrayResults = [];
 			for (const arrayElement of node.elements) {
-				arrayResults.push(run(arrayElement, context));
+				if (arrayElement.type === SPREAD) {
+					arrayResults.push(...run(arrayElement.arguments, context));
+				} else {
+					arrayResults.push(run(arrayElement, context));
+				}
 			}
 			return arrayResults;
 		}
@@ -96,15 +101,8 @@ const run = (node, context = {}) => {
 			if (node.operator !== "=") {
 				const assignmentLeft = run(node.left, context);
 				switch (node.operator) {
-					case "||=":
-						if (assignmentLeft) {
-							return assignmentLeft;
-						}
-						break;
-					case "&&=":
-						if (!assignmentLeft) {
-							return assignmentLeft;
-						}
+					case "-=":
+						assignmentValue = assignmentLeft - assignmentValue;
 						break;
 					case "??=":
 						if (assignmentLeft !== null && assignmentLeft !== undefined) {
@@ -120,14 +118,39 @@ const run = (node, context = {}) => {
 					case "/=":
 						assignmentValue = assignmentLeft / assignmentValue;
 						break;
+					case "&=":
+						assignmentValue = assignmentLeft & assignmentValue;
+						break;
+					case "&&=":
+						if (!assignmentLeft) {
+							return assignmentLeft;
+						}
+						break;
 					case "%=":
 						assignmentValue = assignmentLeft % assignmentValue;
+						break;
+					case "^=":
+						assignmentValue = assignmentLeft ^ assignmentValue;
 						break;
 					case "+=":
 						assignmentValue = assignmentLeft + assignmentValue;
 						break;
-					case "-=":
-						assignmentValue = assignmentLeft - assignmentValue;
+					case "<<=":
+						assignmentValue = assignmentLeft << assignmentValue;
+						break;
+					case ">>=":
+						assignmentValue = assignmentLeft >> assignmentValue;
+						break;
+					case ">>>=":
+						assignmentValue = assignmentLeft >>> assignmentValue;
+						break;
+					case "|=":
+						assignmentValue = assignmentLeft | assignmentValue;
+						break;
+					case "||=":
+						if (assignmentLeft) {
+							return assignmentLeft;
+						}
 						break;
 				}
 			}
@@ -139,38 +162,52 @@ const run = (node, context = {}) => {
 			const binaryLeft = run(node.left, context);
 			const binaryRight = run(node.right, context);
 			switch (node.operator) {
-				case "||":
-					return binaryLeft || binaryRight;
-				case "&&":
-					return binaryLeft && binaryRight;
-				case "??":
-					return binaryLeft ?? binaryRight;
-				case "==":
-					return binaryLeft === binaryRight;
-				case "!=":
-					return binaryLeft !== binaryRight;
-				case "===":
-					return binaryLeft === binaryRight;
-				case "!==":
-					return binaryLeft !== binaryRight;
-				case "<":
-					return binaryLeft < binaryRight;
-				case ">":
-					return binaryLeft > binaryRight;
-				case "<=":
-					return binaryLeft <= binaryRight;
-				case ">=":
-					return binaryLeft >= binaryRight;
 				case "-":
 					return binaryLeft - binaryRight;
-				case "+":
-					return binaryLeft + binaryRight;
+				case "!=":
+					return binaryLeft !== binaryRight;
+				case "!==":
+					return binaryLeft !== binaryRight;
+				case "??":
+					return binaryLeft ?? binaryRight;
 				case "*":
 					return binaryLeft * binaryRight;
+				case "**":
+					return binaryLeft ** binaryRight;
 				case "/":
 					return binaryLeft / binaryRight;
+				case "&":
+					return binaryLeft & binaryRight;
+				case "&&":
+					return binaryLeft && binaryRight;
 				case "%":
 					return binaryLeft % binaryRight;
+				case "^":
+					return binaryLeft ^ binaryRight;
+				case "+":
+					return binaryLeft + binaryRight;
+				case "<":
+					return binaryLeft < binaryRight;
+				case "<<":
+					return binaryLeft << binaryRight;
+				case "<=":
+					return binaryLeft <= binaryRight;
+				case "==":
+					return binaryLeft === binaryRight;
+				case "===":
+					return binaryLeft === binaryRight;
+				case ">":
+					return binaryLeft > binaryRight;
+				case ">=":
+					return binaryLeft >= binaryRight;
+				case ">>":
+					return binaryLeft >> binaryRight;
+				case ">>>":
+					return binaryLeft >>> binaryRight;
+				case "|":
+					return binaryLeft | binaryRight;
+				case "||":
+					return binaryLeft || binaryRight;
 			}
 			throw new Error(`Unsupported operator: ${node.operator}`);
 		}
@@ -179,7 +216,11 @@ const run = (node, context = {}) => {
 		case CALL: {
 			const parameters = [];
 			for (const parameter of node.parameters) {
-				parameters.push(run(parameter, context));
+				if (parameter.type === SPREAD) {
+					parameters.push(...run(parameter.arguments, context));
+				} else {
+					parameters.push(run(parameter, context));
+				}
 			}
 			return run(node.callee, context)(...parameters);
 		}
@@ -221,16 +262,21 @@ const run = (node, context = {}) => {
 		case SEQUENCE:
 			return node.expressions.map((node) => run(node, context));
 
+		case SPREAD:
+			return run(node.arguments, context);
+
 		// Unary operations - logical negation, numeric negation, and numeric conversion
 		case UNARY: {
 			const unaryParameter = run(node.parameter, context);
 			switch (node.operator) {
-				case "!":
-					return !unaryParameter;
 				case "-":
 					return -unaryParameter;
+				case "!":
+					return !unaryParameter;
 				case "+":
 					return +unaryParameter;
+				case "~":
+					return ~unaryParameter;
 			}
 			throw new Error(`Unsupported operator: ${node.operator}`);
 		}
