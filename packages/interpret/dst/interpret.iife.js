@@ -21,14 +21,28 @@
     13,
     32
   ];
+  var DOUBLE_QUOTE_CODE = 34;
+  var DOLLAR_CODE = 36;
+  var SINGLE_QUOTE_CODE = 39;
   var OPENING_PARENTHESIS_CODE = 40;
   var CLOSING_PARENTHESIS_CODE = 41;
   var COMMA_CODE = 44;
   var PERIOD_CODE = 46;
+  var FORWARD_SLASH_CODE = 47;
+  var ZERO_CODE = 48;
+  var NINE_CODE = 57;
   var COLON_CODE = 58;
+  var SEMICOLON_CODE = 59;
   var QUESTION_MARK_CODE = 63;
+  var LOWER_A_CODE = 65;
+  var LOWER_Z_CODE = 90;
   var OPENING_BRACKET_CODE = 91;
+  var BACK_SLASH_CODE = 92;
   var CLOSING_BRACKET_CODE = 93;
+  var UNDERSCORE_CODE = 95;
+  var UPPER_A_CODE = 97;
+  var UPPER_Z_CODE = 122;
+  var OPENING_BRACES_CODE = 123;
   var CLOSING_BRACES_CODE = 125;
   var ASSIGNMENT_OPERATORS = [
     "=",
@@ -83,9 +97,9 @@
     null: null,
     undefined: undefined
   };
-  var isDecimalDigit = (character) => character >= 48 && character <= 57;
+  var isDecimalDigit = (character) => character >= ZERO_CODE && character <= NINE_CODE;
   var isIdentifierPart = (character) => isIdentifierStart(character) || isDecimalDigit(character);
-  var isIdentifierStart = (character) => character === 36 || character >= 48 && character <= 57 || character === 95 || character >= 65 && character <= 90 || character >= 97 && character <= 122;
+  var isIdentifierStart = (character) => character >= ZERO_CODE && character <= NINE_CODE || character >= LOWER_A_CODE && character <= LOWER_Z_CODE || character >= UPPER_A_CODE && character <= UPPER_Z_CODE || character === DOLLAR_CODE || character === UNDERSCORE_CODE;
   var parse_default = (expression) => {
     let index = 0;
     const gobbleArray = () => {
@@ -221,7 +235,7 @@
       const nodes2 = [];
       while (index < expression.length) {
         const characterIndex = expression.charCodeAt(index);
-        if (characterIndex === 59 || characterIndex === COMMA_CODE) {
+        if (characterIndex === SEMICOLON_CODE || characterIndex === COMMA_CODE) {
           index++;
         } else {
           const node = gobbleExpression();
@@ -295,57 +309,93 @@
       };
     };
     const gobbleObjectExpression = () => {
-      if (expression.charCodeAt(index) !== 123) {
-        return;
-      }
-      index++;
-      const properties = [];
-      while (!Number.isNaN(expression.charCodeAt(index))) {
-        gobbleSpaces();
-        if (expression.charCodeAt(index) === CLOSING_BRACES_CODE) {
-          index++;
-          return gobbleTokenProperty({
-            type: OBJECT,
-            properties
-          });
-        }
-        const key = gobbleToken();
-        if (!key) {
-          throw new Error("Missing }");
-        }
-        gobbleSpaces();
-        if (key.type === IDENTIFIER && (expression.charCodeAt(index) === COMMA_CODE || expression.charCodeAt(index) === CLOSING_BRACES_CODE)) {
-          properties.push({
-            type: PROPERTY,
-            computed: false,
-            key,
-            value: key,
-            shorthand: true
-          });
-        } else if (expression.charCodeAt(index) === COLON_CODE) {
-          index++;
+      if (expression.charCodeAt(index) === OPENING_BRACES_CODE) {
+        index++;
+        const properties = [];
+        while (!Number.isNaN(expression.charCodeAt(index))) {
           gobbleSpaces();
-          const value = gobbleExpression();
-          if (!value) {
-            throw new Error("Unexpected object property");
+          if (expression.charCodeAt(index) === CLOSING_BRACES_CODE) {
+            index++;
+            return gobbleTokenProperty({
+              type: OBJECT,
+              properties
+            });
           }
-          const computed = key.type === ARRAY;
-          properties.push({
-            computed,
-            key: computed ? key.elements[0] : key,
-            shorthand: false,
-            type: PROPERTY,
-            value
-          });
+          const key = gobbleToken();
+          if (!key) {
+            throw new Error("Missing }");
+          }
           gobbleSpaces();
-        } else if (key) {
-          properties.push(key);
+          if (key.type === IDENTIFIER && (expression.charCodeAt(index) === COMMA_CODE || expression.charCodeAt(index) === CLOSING_BRACES_CODE)) {
+            properties.push({
+              type: PROPERTY,
+              computed: false,
+              key,
+              value: key,
+              shorthand: true
+            });
+          } else if (expression.charCodeAt(index) === COLON_CODE) {
+            index++;
+            gobbleSpaces();
+            const value = gobbleExpression();
+            if (!value) {
+              throw new Error("Unexpected object property");
+            }
+            const computed = key.type === ARRAY;
+            properties.push({
+              computed,
+              key: computed ? key.elements[0] : key,
+              shorthand: false,
+              type: PROPERTY,
+              value
+            });
+            gobbleSpaces();
+          } else if (key) {
+            properties.push(key);
+          }
+          if (expression.charCodeAt(index) === COMMA_CODE) {
+            index++;
+          }
         }
-        if (expression.charCodeAt(index) === COMMA_CODE) {
-          index++;
-        }
+        throw new Error("Missing }");
       }
-      throw new Error("Missing }");
+    };
+    const gobbleRegularExpression = () => {
+      if (expression.charCodeAt(index) === FORWARD_SLASH_CODE) {
+        const startIndex = ++index;
+        let inCharSet = false;
+        while (index < expression.length) {
+          if (expression.charCodeAt(index) === FORWARD_SLASH_CODE && !inCharSet) {
+            const pattern = expression.slice(startIndex, index);
+            let flags = "";
+            while (++index < expression.length) {
+              const code = expression.charCodeAt(index);
+              if (code >= LOWER_A_CODE && code <= LOWER_Z_CODE || code >= UPPER_A_CODE && code <= UPPER_Z_CODE || code >= ZERO_CODE && code <= NINE_CODE) {
+                flags += expression.charAt(index);
+              } else {
+                break;
+              }
+            }
+            let value;
+            try {
+              value = new RegExp(pattern, flags);
+            } catch (error) {
+              null.throwError(error.message);
+            }
+            return gobbleTokenProperty({
+              type: LITERAL,
+              value
+            });
+          }
+          if (expression.charCodeAt(index) === OPENING_BRACKET_CODE) {
+            inCharSet = true;
+          } else if (inCharSet && expression.charCodeAt(index) === CLOSING_BRACKET_CODE) {
+            inCharSet = false;
+          }
+          index += expression.charCodeAt(index) === BACK_SLASH_CODE ? 2 : 1;
+        }
+        null.throwError("Unclosed Regular expression");
+      }
     };
     const gobbleSequence = () => {
       index++;
@@ -462,10 +512,12 @@
       if (isDecimalDigit(character) || character === PERIOD_CODE) {
         return gobbleNumericLiteral();
       }
-      if (character === 34 || character === 39) {
+      if (character === DOUBLE_QUOTE_CODE || character === SINGLE_QUOTE_CODE) {
         node = gobbleStringLiteral();
       } else if (character === OPENING_BRACKET_CODE) {
         node = gobbleArray();
+      } else if (character === FORWARD_SLASH_CODE) {
+        node = gobbleRegularExpression();
       } else {
         let toCheck = expression.substring(index, index + 1);
         let toCheckLength = toCheck.length;
@@ -482,7 +534,7 @@
               parameter
             });
           }
-          toCheck = toCheck.substr(0, --toCheckLength);
+          toCheck = toCheck.substring(0, --toCheckLength);
         }
         if (isIdentifierStart(character)) {
           node = gobbleIdentifier();
@@ -553,29 +605,22 @@
       return node;
     };
     const gobbleUpdatePrefixExpression = () => {
-      if (index + 1 >= expression.length) {
-        return;
+      if (index + 1 < expression.length) {
+        const characters = expression.substring(index, index + 2);
+        if (characters === UPDATE_OPERATOR_DECREMENT || characters === UPDATE_OPERATOR_INCREMENT) {
+          index += 2;
+          const node = {
+            type: UPDATE,
+            operator: characters,
+            parameter: gobbleTokenProperty(gobbleIdentifier()),
+            prefix: true
+          };
+          if (!node.parameter || node.parameter.type !== IDENTIFIER && node.parameter.type !== MEMBER) {
+            throw new Error(`Unexpected ${node.operator}`);
+          }
+          return node;
+        }
       }
-      const characters = expression.substring(index, index + 2);
-      let operator = null;
-      if (characters === UPDATE_OPERATOR_DECREMENT) {
-        operator = UPDATE_OPERATOR_DECREMENT;
-      } else if (characters === UPDATE_OPERATOR_INCREMENT) {
-        operator = UPDATE_OPERATOR_INCREMENT;
-      } else {
-        return;
-      }
-      index += 2;
-      const node = {
-        type: UPDATE,
-        operator,
-        parameter: gobbleTokenProperty(gobbleIdentifier()),
-        prefix: true
-      };
-      if (!node.parameter || node.parameter.type !== IDENTIFIER && node.parameter.type !== MEMBER) {
-        throw new Error(`Unexpected ${node.operator}`);
-      }
-      return node;
     };
     const gobbleUpdateSuffixExpression = (node) => {
       if (!node || index + 1 >= expression.length) {
@@ -783,4 +828,4 @@
   };
 })();
 
-//# debugId=EA959E9D6F7AF1BD64756E2164756E21
+//# debugId=7D70A43F6341234964756E2164756E21

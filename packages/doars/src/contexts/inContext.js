@@ -11,6 +11,8 @@ import { createContexts } from "../utilities/Context.js";
  * @returns {Context} The context.
  */
 export default ({ inContextContextName }) => ({
+	revocable: false,
+
 	name: inContextContextName,
 
 	create: (component, attribute) => ({

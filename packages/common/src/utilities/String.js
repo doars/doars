@@ -121,7 +121,7 @@ export const parseAttributeName = (prefix, name) => {
 		return;
 	}
 	// Deconstruct match.
-	let [_full, directive, keyRaw, modifiers] = name; // eslint-disable-line no-unused-vars
+	let [_full, directive, keyRaw, modifiers] = name;
 	// If no key provided set it to null instead of empty.
 	keyRaw = keyRaw !== "" ? keyRaw : null;
 	const key = keyRaw ? kebabToCamel(keyRaw) : null;
@@ -219,7 +219,7 @@ export const parseSelector = (selector) => {
 				// Remove brackets and split key from value.
 				const [_full, key, value] = selectorSegment.match(
 					/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i,
-				); // eslint-disable-line no-unused-vars
+				);
 				// Store attribute value in results.
 				attributes[key] = value;
 				break;

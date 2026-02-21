@@ -2,7 +2,7 @@ import createState from "./createState.js";
 
 /**
  * @typedef {import('../events/ProxyDispatcher.js').default} ProxyDispatcher
- * @typedef {ReturnType<typeof Proxy.revocable>} RevocableProxy
+ * @typedef {ReturnType<typeof RevocableProxy>} RevocableProxy
  */
 
 /**

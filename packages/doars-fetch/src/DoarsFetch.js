@@ -64,9 +64,7 @@ export default function (library, options = null) {
 	// Setup observer.
 	const intersectionDispatcher = options.intersectionEvent
 		? new IntersectionDispatcher({
-				root: options.intersectionRoot
-					? options.intersectionRoot
-					: library.getOptions().root,
+				root: options.intersectionRoot,
 				rootMargin: options.intersectionMargin,
 				threshold: options.intersectionThreshold,
 			})

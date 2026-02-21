@@ -89,7 +89,7 @@ As well as several value types and most operators. See an overview below for mor
 - Arithmetic: `2 ** 3`, as well as `*`, `/`, `%`, `+`, and `-`.
 - Logical: `false || true`, as well as `&&` and `??`.
 - Equality: `true == false`, as well as `!=`, `===`, and `!==`.
-- Relation: `1 > 0`, as well as `>`, `<=`, and `>=`.
+- Relation: `1 > 0`, as well as `<`, `<=`, and `>=`.
 - Ternary: `true ? 0 : 1`.
 - Unary: `+1` as well as `-1` and `!false`.
 - Decrement and increment: `--hello` as well as `hello--`, `++hello`, and `hello++`.

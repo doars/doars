@@ -1,4 +1,5 @@
 // Import symbols.
+import RevocableProxy from "@doars/common/src/polyfills/RevocableProxy.js";
 import { REFERENCES, REFERENCES_CACHE } from "../symbols.js";
 
 /**
@@ -39,7 +40,7 @@ export default ({ referencesContextName }) => ({
 		}
 
 		// Create revocable proxy.
-		const revocable = Proxy.revocable(cache, {
+		const revocable = RevocableProxy(cache, {
 			get: (target, propertyKey, receiver) => {
 				// Mark references as accessed.
 				attribute.accessed(component.getId(), `$references.${propertyKey}`);

@@ -302,9 +302,9 @@ export default class Doars extends EventDispatcher {
 				createWatchContext(options),
 
 				// Order of `store`, `state` and `for` context is important for deconstruction.
-				createStoreContext(options),
-				createStateContext(options),
-				createForContext(options),
+				createStoreContext(options), // FIXME: Needs to be created on enable and the proxies within destroyed on disable.
+				createStateContext(options), // FIXME: Needs to be created on enable and the proxies within destroyed on disable.
+				createForContext(options), // FIXME: Needs to be created on enable and the proxies within destroyed on disable.
 			];
 		const directives = [
 			// Must happen first as other directives can rely on it.
@@ -417,7 +417,7 @@ export default class Doars extends EventDispatcher {
 					directivesNames.join("|") +
 					")(?:[$-_.a-z0-9]{0,})?$",
 				"i",
-			); // eslint-disable-line prefer-regex-literals
+			);
 
 			// Create mutation observer.
 			observer = new MutationObserver(handleMutation.bind(this));

@@ -1,4 +1,5 @@
 // Import symbols.
+import RevocableProxy from "@doars/common/src/polyfills/RevocableProxy.js";
 import { FOR } from "../symbols.js";
 
 /**
@@ -49,7 +50,7 @@ export default ({ forContextDeconstruct, forContextName }) => ({
 		}
 
 		// Create revocable proxy.
-		const revocable = Proxy.revocable(target, {
+		const revocable = RevocableProxy(target, {
 			get: (_target, key) => {
 				for (const item of items) {
 					if (key in item.variables) {

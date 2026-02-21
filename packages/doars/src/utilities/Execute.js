@@ -58,7 +58,7 @@ export const execute = (
 		result = new Function(
 			...Object.keys(contexts),
 			before + expression + after,
-		)(...Object.values(contexts)); // eslint-disable-line no-new-func
+		)(...Object.values(contexts));
 	} catch (error) {
 		console.error(
 			"ExpressionError in:",

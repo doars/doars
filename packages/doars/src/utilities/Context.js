@@ -6,6 +6,8 @@
  * @typedef {import('../Doars.js').ContextMap} ContextMap
  */
 
+import RevocableProxy from "@doars/common/src/polyfills/RevocableProxy.js";
+
 /**
  * @typedef CreatedContexts
  * @type {object}
@@ -40,6 +42,9 @@ export const createContexts = (component, attribute, update, extra = null) => {
 	// Store destroy functions.
 	/** @type {Array<DestroyFunction>} */
 	const destroyFunctions = [];
+	/** @type {Array<string>} */
+	const irrevocableContexts = [];
+	// TODO: Remove context with duplicate names.
 	for (const creatableContext of creatableContexts) {
 		if (!creatableContext || !creatableContext.name) {
 			continue;
@@ -63,6 +68,11 @@ export const createContexts = (component, attribute, update, extra = null) => {
 			after += " }";
 		}
 
+		// If revocable is explicitly marked as no, then ensure it remains available.
+		if (creatableContext.revocable === false) {
+			irrevocableContexts.push(creatableContext.name);
+		}
+
 		// Store result value in context results.
 		contexts[creatableContext.name] = result.value;
 	}
@@ -76,10 +86,11 @@ export const createContexts = (component, attribute, update, extra = null) => {
 
 	return {
 		contexts,
+		irrevocableContexts,
 		destroy: () => {
 			// Call all destroy functions.
-			for (const destroyFunction of destroyFunctions) {
-				destroyFunction();
+			for (let index = destroyFunctions.length - 1; index >= 0; index--) {
+				destroyFunctions[index]();
 			}
 		},
 
@@ -106,7 +117,7 @@ export const createContextsProxy = (
 	// Store context after first call.
 	let data = null;
 	// Create context proxy.
-	const revocable = Proxy.revocable(
+	const revocable = RevocableProxy(
 		{},
 		{
 			get: (_target, property) => {
@@ -170,16 +181,26 @@ export const createAutoContexts = (component, attribute, extra = null) => {
 	};
 
 	// Create function context.
-	const { contexts, destroy } = createContexts(
+	const { contexts, destroy, irrevocableContexts } = createContexts(
 		component,
 		attribute,
 		update,
 		extra,
 	);
 
-	return [
+	const contextProxy = RevocableProxy(
 		contexts,
+		{},
+		{
+			irrevocable: irrevocableContexts,
+		},
+	);
+
+	return [
+		contextProxy.proxy,
 		() => {
+			contextProxy.revoke();
+
 			// Invoke destroy.
 			destroy();
 

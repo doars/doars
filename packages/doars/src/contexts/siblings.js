@@ -1,3 +1,4 @@
+import RevocableProxy from "@doars/common/src/polyfills/RevocableProxy.js";
 import { createContextsProxy } from "../utilities/Context.js";
 
 /**
@@ -22,7 +23,7 @@ export default ({ siblingsContextName }) => ({
 		}
 		// Create contexts proxy for children.
 		let siblingsContexts;
-		const revocable = Proxy.revocable(
+		const revocable = RevocableProxy(
 			parent.getChildren().filter((sibling) => sibling !== component),
 			{
 				get: (target, key, receiver) => {

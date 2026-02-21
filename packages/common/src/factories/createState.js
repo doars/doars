@@ -2,6 +2,8 @@
  * @typedef {import('../events/ProxyDispatcher.js').ProxyDispatcher} ProxyDispatcher
  */
 
+import RevocableProxy from "../polyfills/RevocableProxy.js";
+
 /**
  * Factory function to create a context for a state which dispatched update events when mutated.
  * @param {string} name Name of the state.
@@ -24,7 +26,7 @@ export default (name, id, state, proxy) => {
 		proxy.addEventListener("set", onSet);
 
 		// Wrap in a revocable proxy.
-		const revocable = Proxy.revocable(state, {});
+		const revocable = RevocableProxy(state, {});
 
 		return {
 			value: revocable.proxy,
