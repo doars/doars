@@ -19,6 +19,7 @@ import {
 	PROPERTY,
 	SEQUENCE,
 	SPREAD,
+	TEMPLATE,
 	UNARY,
 	UPDATE,
 } from "./types.js";
@@ -52,6 +53,7 @@ const OPENING_BRACKET_CODE = 91; // [
 const BACK_SLASH_CODE = 92; // \
 const CLOSING_BRACKET_CODE = 93; // ]
 const UNDERSCORE_CODE = 95; // _
+const BACKTICK_CODE = 96; // `
 const UPPER_A_CODE = 97; // A
 const UPPER_Z_CODE = 122; // Z
 const OPENING_BRACES_CODE = 123; // {
@@ -267,46 +269,46 @@ export default (expression) => {
 			return left;
 		}
 
-		let operator = gobbleBinaryOperation();
-		if (!operator) {
+		let value = gobbleBinaryOperation();
+		if (!value) {
 			return left;
 		}
 
 		let binaryOperationInfo = {
-			value: operator,
-			precedence: BINARY_OPERATORS[operator] || 0,
+			value,
+			precedence: BINARY_OPERATORS[value] || 0,
 		};
 
 		let right = gobbleToken();
 		if (!right) {
-			throw new Error(`Expected expression after ${operator}`);
+			throw new Error(`Expected expression after ${value}`);
 		}
 
 		const stack = [left, binaryOperationInfo, right];
 
 		let node;
 		// biome-ignore lint/suspicious/noAssignInExpressions: Common parser pattern
-		while ((operator = gobbleBinaryOperation())) {
-			const precedence = BINARY_OPERATORS[operator] || 0;
+		while ((value = gobbleBinaryOperation())) {
+			const precedence = BINARY_OPERATORS[value] || 0;
 
 			if (precedence === 0) {
-				index -= operator.length;
+				index -= value.length;
 				break;
 			}
 
 			binaryOperationInfo = {
-				value: operator,
+				value,
 				precedence,
 			};
 
-			const currentBinaryOperation = operator;
+			const currentBinaryOperation = value;
 			while (stack.length > 2 && stack[stack.length - 2] > precedence) {
 				right = stack.pop();
-				operator = stack.pop().value;
+				value = stack.pop().value;
 				left = stack.pop();
 				node = {
-					type: ASSIGNMENT_OPERATORS.indexOf(operator) >= 0 ? ASSIGN : BINARY,
-					operator,
+					type: ASSIGNMENT_OPERATORS.indexOf(value) >= 0 ? ASSIGN : BINARY,
+					operator: value,
 					left,
 					right,
 				};
@@ -326,10 +328,10 @@ export default (expression) => {
 		node = stack[i];
 
 		while (i > 1) {
-			operator = stack[i - 1].value;
+			value = stack[i - 1].value;
 			node = {
-				type: ASSIGNMENT_OPERATORS.indexOf(operator) >= 0 ? ASSIGN : BINARY,
-				operator,
+				type: ASSIGNMENT_OPERATORS.indexOf(value) >= 0 ? ASSIGN : BINARY,
+				operator: value,
 				left: stack[i - 2],
 				right: node,
 			};
@@ -658,63 +660,116 @@ export default (expression) => {
 	 * @throws {Error} If the string is not properly closed
 	 */
 	const gobbleStringLiteral = () => {
-		let string = "";
+		let value = "";
 		// const startIndex = index
-		const quote = expression.charAt(index++);
-		let closed = false;
+		const quote = expression.charCodeAt(index++);
 
 		while (index < expression.length) {
-			let character = expression.charAt(index++);
-
-			if (character === quote) {
-				closed = true;
-				break;
+			const characterCode = expression.charCodeAt(index++);
+			if (characterCode === quote) {
+				return {
+					type: LITERAL,
+					value,
+					// raw: expression.substring(startIndex, index),
+				};
 			}
-			if (character === "\\") {
-				character = expression.charAt(index++);
+			if (characterCode === BACK_SLASH_CODE) {
+				const character = expression.charAt(index++);
 
 				switch (character) {
 					case "n":
-						string += "\n";
+						value += "\n";
 						break;
-
 					case "r":
-						string += "\r";
+						value += "\r";
 						break;
-
 					case "t":
-						string += "\t";
+						value += "\t";
 						break;
-
 					case "b":
-						string += "\b";
+						value += "\b";
 						break;
-
 					case "f":
-						string += "\f";
+						value += "\f";
 						break;
-
 					case "v":
-						string += "\x0B";
+						value += "\x0B";
 						break;
-
 					default:
-						string += character;
+						value += character;
 				}
 			} else {
-				string += character;
+				value += expression.charAt(index - 1);
 			}
 		}
+		throw new Error(`Unclosed quote after "${value}"`);
+	};
 
-		if (!closed) {
-			throw new Error(`Unclosed quote after "${string}"`);
+	const gobbleTemplateLiteral = () => {
+		index++;
+		let value = "";
+		// const startIndex = index
+
+		const elements = [];
+		const expressions = [];
+
+		while (index < expression.length) {
+			const characterCode = expression.charCodeAt(index++);
+			if (characterCode === BACKTICK_CODE) {
+				elements.push(value);
+				value = "";
+
+				return {
+					type: TEMPLATE,
+					expressions,
+					elements,
+					// raw: expression.substring(startIndex, index),
+				};
+			}
+			if (
+				characterCode === DOLLAR_CODE &&
+				expression.charCodeAt(index) === OPENING_BRACES_CODE
+			) {
+				index++;
+
+				elements.push(value);
+				value = "";
+
+				expressions.push(...gobbleExpressions(CLOSING_BRACES_CODE));
+				if (expression.charCodeAt(index) !== CLOSING_BRACES_CODE) {
+					throw new Error(`Unclosed \${ in template "${value}"`);
+				}
+				index++;
+			} else if (characterCode === BACK_SLASH_CODE) {
+				const character = expression.charAt(index++);
+
+				switch (character) {
+					case "n":
+						value += "\n";
+						break;
+					case "r":
+						value += "\r";
+						break;
+					case "t":
+						value += "\t";
+						break;
+					case "b":
+						value += "\b";
+						break;
+					case "f":
+						value += "\f";
+						break;
+					case "v":
+						value += "\x0B";
+						break;
+					default:
+						value += character;
+				}
+			} else {
+				value += expression.charAt(index - 1);
+			}
 		}
-
-		return {
-			type: LITERAL,
-			value: string,
-			// raw: expression.substring(startIndex, index),
-		};
+		throw new Error(`Unclosed template after "${value}"`);
 	};
 
 	/**
@@ -794,13 +849,15 @@ export default (expression) => {
 				type: SPREAD,
 				arguments: gobbleExpression(),
 			};
-		} else if (isDecimalDigit(character) || character === PERIOD_CODE) {
+		} else if (character === PERIOD_CODE || isDecimalDigit(character)) {
 			return gobbleNumericLiteral();
 		} else if (
 			character === DOUBLE_QUOTE_CODE ||
 			character === SINGLE_QUOTE_CODE
 		) {
 			node = gobbleStringLiteral();
+		} else if (character === BACKTICK_CODE) {
+			node = gobbleTemplateLiteral();
 		} else if (character === OPENING_BRACKET_CODE) {
 			node = gobbleArray();
 		} else if (character === FORWARD_SLASH_CODE) {

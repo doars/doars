@@ -16,6 +16,7 @@ import {
 	OBJECT,
 	SEQUENCE,
 	SPREAD,
+	TEMPLATE,
 	UNARY,
 	UPDATE,
 } from "./types.js";
@@ -264,6 +265,17 @@ const run = (node, context = {}) => {
 
 		case SPREAD:
 			return run(node.arguments, context);
+
+		case TEMPLATE:
+			return node.elements
+				.map(
+					(element, index) =>
+						element +
+						(index < node.expressions.length
+							? run(node.expressions[index], context).toString()
+							: ""),
+				)
+				.join("");
 
 		// Unary operations - logical negation, numeric negation, and numeric conversion
 		case UNARY: {
