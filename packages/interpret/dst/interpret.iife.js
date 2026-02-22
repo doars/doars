@@ -232,7 +232,7 @@
     };
     const gobbleBinaryOperation = () => {
       gobbleSpaces();
-      let toCheck = expression.substring(index, index + 3);
+      let toCheck = expression.substring(index, index + 4);
       let toCheckLength = toCheck.length;
       while (toCheckLength > 0) {
         if (Object.hasOwn(BINARY_OPERATORS, toCheck) && (!isIdentifierStart(expression.charCodeAt(index)) || index + toCheck.length < expression.length && !isIdentifierPart(expression.charCodeAt(index + toCheck.length)))) {
@@ -950,4 +950,4 @@
   };
 })();
 
-//# debugId=609EE42D0A3376ED64756E2164756E21
+//# debugId=EF3A8EF92EDC4F2F64756E2164756E21

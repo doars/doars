@@ -1,12 +1,49 @@
-import { BINARY, IDENTIFIER, LITERAL } from "../../src/types.js";
+import { BINARY, IDENTIFIER, LITERAL, UNARY } from "../../src/types.js";
 import test from "./utilities/test.js";
 
-test("Binary", "false || true", true, {
+test("Binary", "2 - 4", -2, {
+	left: {
+		type: LITERAL,
+		value: 2,
+	},
+	operator: "-",
+	right: {
+		type: LITERAL,
+		value: 4,
+	},
+	type: BINARY,
+});
+
+test(
+	"Binary with identifier",
+	"2 - hello",
+	-2,
+	{
+		left: {
+			type: LITERAL,
+			value: 2,
+		},
+		operator: "-",
+		right: {
+			name: "hello",
+			type: IDENTIFIER,
+		},
+		type: BINARY,
+	},
+	{
+		hello: 4,
+	},
+	{
+		hello: 4,
+	},
+);
+
+test("Binary", "false != true", true, {
 	left: {
 		type: LITERAL,
 		value: false,
 	},
-	operator: "||",
+	operator: "!=",
 	right: {
 		type: LITERAL,
 		value: true,
@@ -14,25 +51,12 @@ test("Binary", "false || true", true, {
 	type: BINARY,
 });
 
-test("Binary", "false || false", false, {
+test("Binary", "true != true", false, {
 	left: {
 		type: LITERAL,
-		value: false,
+		value: true,
 	},
-	operator: "||",
-	right: {
-		type: LITERAL,
-		value: false,
-	},
-	type: BINARY,
-});
-
-test("Binary", "false && true", false, {
-	left: {
-		type: LITERAL,
-		value: false,
-	},
-	operator: "&&",
+	operator: "!=",
 	right: {
 		type: LITERAL,
 		value: true,
@@ -40,12 +64,25 @@ test("Binary", "false && true", false, {
 	type: BINARY,
 });
 
-test("Binary", "true && true", true, {
+test("Binary", "false !== true", true, {
+	left: {
+		type: LITERAL,
+		value: false,
+	},
+	operator: "!==",
+	right: {
+		type: LITERAL,
+		value: true,
+	},
+	type: BINARY,
+});
+
+test("Binary", "true !== true", false, {
 	left: {
 		type: LITERAL,
 		value: true,
 	},
-	operator: "&&",
+	operator: "!==",
 	right: {
 		type: LITERAL,
 		value: true,
@@ -105,12 +142,77 @@ test("Binary", "true ?? false", true, {
 	type: BINARY,
 });
 
-test("Binary", "false == true", false, {
+test("Binary", "2 * 4", 8, {
+	left: {
+		type: LITERAL,
+		value: 2,
+	},
+	operator: "*",
+	right: {
+		type: LITERAL,
+		value: 4,
+	},
+	type: BINARY,
+});
+
+test("Binary", "2 ** 4", 16, {
+	left: {
+		type: LITERAL,
+		value: 2,
+	},
+	operator: "**",
+	right: {
+		type: LITERAL,
+		value: 4,
+	},
+	type: BINARY,
+});
+
+test("Binary", "2 / 4", 0.5, {
+	left: {
+		type: LITERAL,
+		value: 2,
+	},
+	operator: "/",
+	right: {
+		type: LITERAL,
+		value: 4,
+	},
+	type: BINARY,
+});
+
+test("Binary", "5 & 3", 1, {
+	left: {
+		type: LITERAL,
+		value: 5,
+	},
+	operator: "&",
+	right: {
+		type: LITERAL,
+		value: 3,
+	},
+	type: BINARY,
+});
+
+test("Binary", "5 & 2", 0, {
+	left: {
+		type: LITERAL,
+		value: 5,
+	},
+	operator: "&",
+	right: {
+		type: LITERAL,
+		value: 2,
+	},
+	type: BINARY,
+});
+
+test("Binary", "false && true", false, {
 	left: {
 		type: LITERAL,
 		value: false,
 	},
-	operator: "==",
+	operator: "&&",
 	right: {
 		type: LITERAL,
 		value: true,
@@ -118,12 +220,12 @@ test("Binary", "false == true", false, {
 	type: BINARY,
 });
 
-test("Binary", "true == true", true, {
+test("Binary", "true && true", true, {
 	left: {
 		type: LITERAL,
 		value: true,
 	},
-	operator: "==",
+	operator: "&&",
 	right: {
 		type: LITERAL,
 		value: true,
@@ -131,80 +233,54 @@ test("Binary", "true == true", true, {
 	type: BINARY,
 });
 
-test("Binary", "false != true", true, {
+test("Binary", "4 % 2", 0, {
 	left: {
 		type: LITERAL,
-		value: false,
+		value: 4,
 	},
-	operator: "!=",
+	operator: "%",
 	right: {
 		type: LITERAL,
-		value: true,
+		value: 2,
 	},
 	type: BINARY,
 });
 
-test("Binary", "true != true", false, {
+test("Binary", "4 % 3", 1, {
 	left: {
 		type: LITERAL,
-		value: true,
+		value: 4,
 	},
-	operator: "!=",
+	operator: "%",
 	right: {
 		type: LITERAL,
-		value: true,
+		value: 3,
 	},
 	type: BINARY,
 });
 
-test("Binary", "false === true", false, {
+test("Binary", "5 ^ 3", 6, {
 	left: {
 		type: LITERAL,
-		value: false,
+		value: 5,
 	},
-	operator: "===",
+	operator: "^",
 	right: {
 		type: LITERAL,
-		value: true,
+		value: 3,
 	},
 	type: BINARY,
 });
 
-test("Binary", "true === true", true, {
+test("Binary", "2 + 4", 6, {
 	left: {
 		type: LITERAL,
-		value: true,
+		value: 2,
 	},
-	operator: "===",
+	operator: "+",
 	right: {
 		type: LITERAL,
-		value: true,
-	},
-	type: BINARY,
-});
-
-test("Binary", "false !== true", true, {
-	left: {
-		type: LITERAL,
-		value: false,
-	},
-	operator: "!==",
-	right: {
-		type: LITERAL,
-		value: true,
-	},
-	type: BINARY,
-});
-
-test("Binary", "true !== true", false, {
-	left: {
-		type: LITERAL,
-		value: true,
-	},
-	operator: "!==",
-	right: {
-		type: LITERAL,
-		value: true,
+		value: 4,
 	},
 	type: BINARY,
 });
@@ -248,41 +324,15 @@ test("Binary", "1 < 0", false, {
 	type: BINARY,
 });
 
-test("Binary", "0 > 1", false, {
+test("Binary", "5 << 2", 20, {
 	left: {
 		type: LITERAL,
-		value: 0,
+		value: 5,
 	},
-	operator: ">",
+	operator: "<<",
 	right: {
 		type: LITERAL,
-		value: 1,
-	},
-	type: BINARY,
-});
-
-test("Binary", "0 > 0", false, {
-	left: {
-		type: LITERAL,
-		value: 0,
-	},
-	operator: ">",
-	right: {
-		type: LITERAL,
-		value: 0,
-	},
-	type: BINARY,
-});
-
-test("Binary", "1 > 0", true, {
-	left: {
-		type: LITERAL,
-		value: 1,
-	},
-	operator: ">",
-	right: {
-		type: LITERAL,
-		value: 0,
+		value: 2,
 	},
 	type: BINARY,
 });
@@ -319,6 +369,97 @@ test("Binary", "1 <= 0", false, {
 		value: 1,
 	},
 	operator: "<=",
+	right: {
+		type: LITERAL,
+		value: 0,
+	},
+	type: BINARY,
+});
+
+test("Binary", "false == true", false, {
+	left: {
+		type: LITERAL,
+		value: false,
+	},
+	operator: "==",
+	right: {
+		type: LITERAL,
+		value: true,
+	},
+	type: BINARY,
+});
+
+test("Binary", "true == true", true, {
+	left: {
+		type: LITERAL,
+		value: true,
+	},
+	operator: "==",
+	right: {
+		type: LITERAL,
+		value: true,
+	},
+	type: BINARY,
+});
+
+test("Binary", "false === true", false, {
+	left: {
+		type: LITERAL,
+		value: false,
+	},
+	operator: "===",
+	right: {
+		type: LITERAL,
+		value: true,
+	},
+	type: BINARY,
+});
+
+test("Binary", "true === true", true, {
+	left: {
+		type: LITERAL,
+		value: true,
+	},
+	operator: "===",
+	right: {
+		type: LITERAL,
+		value: true,
+	},
+	type: BINARY,
+});
+
+test("Binary", "0 > 1", false, {
+	left: {
+		type: LITERAL,
+		value: 0,
+	},
+	operator: ">",
+	right: {
+		type: LITERAL,
+		value: 1,
+	},
+	type: BINARY,
+});
+
+test("Binary", "0 > 0", false, {
+	left: {
+		type: LITERAL,
+		value: 0,
+	},
+	operator: ">",
+	right: {
+		type: LITERAL,
+		value: 0,
+	},
+	type: BINARY,
+});
+
+test("Binary", "1 > 0", true, {
+	left: {
+		type: LITERAL,
+		value: 1,
+	},
+	operator: ">",
 	right: {
 		type: LITERAL,
 		value: 0,
@@ -365,38 +506,12 @@ test("Binary", "1 >= 0", true, {
 	type: BINARY,
 });
 
-test("Binary", "2 * 4", 8, {
+test("Binary", "5 >> 2", 1, {
 	left: {
 		type: LITERAL,
-		value: 2,
+		value: 5,
 	},
-	operator: "*",
-	right: {
-		type: LITERAL,
-		value: 4,
-	},
-	type: BINARY,
-});
-
-test("Binary", "2 / 4", 0.5, {
-	left: {
-		type: LITERAL,
-		value: 2,
-	},
-	operator: "/",
-	right: {
-		type: LITERAL,
-		value: 4,
-	},
-	type: BINARY,
-});
-
-test("Binary", "4 % 2", 0, {
-	left: {
-		type: LITERAL,
-		value: 4,
-	},
-	operator: "%",
+	operator: ">>",
 	right: {
 		type: LITERAL,
 		value: 2,
@@ -404,65 +519,75 @@ test("Binary", "4 % 2", 0, {
 	type: BINARY,
 });
 
-test("Binary", "4 % 3", 1, {
+test("Binary", "-5 >> 2", -2, {
 	left: {
-		type: LITERAL,
-		value: 4,
-	},
-	operator: "%",
-	right: {
-		type: LITERAL,
-		value: 3,
-	},
-	type: BINARY,
-});
-
-test("Binary", "2 + 4", 6, {
-	left: {
-		type: LITERAL,
-		value: 2,
-	},
-	operator: "+",
-	right: {
-		type: LITERAL,
-		value: 4,
-	},
-	type: BINARY,
-});
-
-test("Binary", "2 - 4", -2, {
-	left: {
-		type: LITERAL,
-		value: 2,
-	},
-	operator: "-",
-	right: {
-		type: LITERAL,
-		value: 4,
-	},
-	type: BINARY,
-});
-
-test(
-	"Binary with identifier",
-	"2 - hello",
-	-2,
-	{
-		left: {
-			type: LITERAL,
-			value: 2,
-		},
 		operator: "-",
-		right: {
-			name: "hello",
-			type: IDENTIFIER,
+		parameter: {
+			type: LITERAL,
+			value: 5,
 		},
-		type: BINARY,
+		type: UNARY,
 	},
-	{
-		hello: 4,
+	operator: ">>",
+	right: {
+		type: LITERAL,
+		value: 2,
 	},
-	{
-		hello: 4,
+	type: BINARY,
+});
+
+test("Binary", "5 >>> 2", 1, {
+	left: {
+		type: LITERAL,
+		value: 5,
 	},
-);
+	operator: ">>>",
+	right: {
+		type: LITERAL,
+		value: 2,
+	},
+	type: BINARY,
+});
+
+test("Binary", "-5 >>> 2", 1073741822, {
+	left: {
+		operator: "-",
+		parameter: {
+			type: LITERAL,
+			value: 5,
+		},
+		type: UNARY,
+	},
+	operator: ">>>",
+	right: {
+		type: LITERAL,
+		value: 2,
+	},
+	type: BINARY,
+});
+
+test("Binary", "false || true", true, {
+	left: {
+		type: LITERAL,
+		value: false,
+	},
+	operator: "||",
+	right: {
+		type: LITERAL,
+		value: true,
+	},
+	type: BINARY,
+});
+
+test("Binary", "false || false", false, {
+	left: {
+		type: LITERAL,
+		value: false,
+	},
+	operator: "||",
+	right: {
+		type: LITERAL,
+		value: false,
+	},
+	type: BINARY,
+});

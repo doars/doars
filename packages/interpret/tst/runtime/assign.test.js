@@ -1,4 +1,4 @@
-import { ASSIGN, IDENTIFIER, LITERAL } from "../../src/types.js";
+import { ASSIGN, IDENTIFIER, LITERAL, UNARY } from "../../src/types.js";
 import test from "./utilities/test.js";
 
 test(
@@ -71,101 +71,27 @@ test(
 	},
 );
 
-// Logical assignments.
-
 test(
 	"Assign",
-	"hello ||= true",
-	true,
+	"hello -= 4",
+	-2,
 	{
 		left: {
 			name: "hello",
 			type: IDENTIFIER,
 		},
-		operator: "||=",
+		operator: "-=",
 		right: {
 			type: LITERAL,
-			value: true,
+			value: 4,
 		},
 		type: ASSIGN,
 	},
 	{
-		hello: false,
+		hello: 2,
 	},
 	{
-		hello: true,
-	},
-);
-
-test(
-	"Assign",
-	"hello ||= false",
-	true,
-	{
-		left: {
-			name: "hello",
-			type: IDENTIFIER,
-		},
-		operator: "||=",
-		right: {
-			type: LITERAL,
-			value: false,
-		},
-		type: ASSIGN,
-	},
-	{
-		hello: true,
-	},
-	{
-		hello: true,
-	},
-);
-
-test(
-	"Assign",
-	"hello &&= false",
-	false,
-	{
-		left: {
-			name: "hello",
-			type: IDENTIFIER,
-		},
-		operator: "&&=",
-		right: {
-			type: LITERAL,
-			value: false,
-		},
-		type: ASSIGN,
-	},
-	{
-		hello: true,
-	},
-	{
-		hello: false,
-	},
-);
-
-test(
-	"Assign",
-	"hello &&= true",
-	false,
-	{
-		left: {
-			name: "hello",
-			type: IDENTIFIER,
-		},
-		operator: "&&=",
-		right: {
-			type: LITERAL,
-			value: true,
-		},
-		type: ASSIGN,
-	},
-	{
-		hello: false,
-	},
-	{
-		hello: false,
+		hello: -2,
 	},
 );
 
@@ -241,7 +167,29 @@ test(
 	},
 );
 
-// Arithmetic assignments.
+test(
+	"Assign",
+	"hello *= 4",
+	8,
+	{
+		left: {
+			name: "hello",
+			type: IDENTIFIER,
+		},
+		operator: "*=",
+		right: {
+			type: LITERAL,
+			value: 4,
+		},
+		type: ASSIGN,
+	},
+	{
+		hello: 2,
+	},
+	{
+		hello: 8,
+	},
+);
 
 test(
 	"Assign",
@@ -269,30 +217,6 @@ test(
 
 test(
 	"Assign",
-	"hello *= 4",
-	8,
-	{
-		left: {
-			name: "hello",
-			type: IDENTIFIER,
-		},
-		operator: "*=",
-		right: {
-			type: LITERAL,
-			value: 4,
-		},
-		type: ASSIGN,
-	},
-	{
-		hello: 2,
-	},
-	{
-		hello: 8,
-	},
-);
-
-test(
-	"Assign",
 	"hello /= 4",
 	0.5,
 	{
@@ -312,6 +236,78 @@ test(
 	},
 	{
 		hello: 0.5,
+	},
+);
+
+test(
+	"Assign",
+	"hello &= 3",
+	1,
+	{
+		left: {
+			name: "hello",
+			type: IDENTIFIER,
+		},
+		operator: "&=",
+		right: {
+			type: LITERAL,
+			value: 3,
+		},
+		type: ASSIGN,
+	},
+	{
+		hello: 5,
+	},
+	{
+		hello: 1,
+	},
+);
+
+test(
+	"Assign",
+	"hello &&= false",
+	false,
+	{
+		left: {
+			name: "hello",
+			type: IDENTIFIER,
+		},
+		operator: "&&=",
+		right: {
+			type: LITERAL,
+			value: false,
+		},
+		type: ASSIGN,
+	},
+	{
+		hello: true,
+	},
+	{
+		hello: false,
+	},
+);
+
+test(
+	"Assign",
+	"hello &&= true",
+	false,
+	{
+		left: {
+			name: "hello",
+			type: IDENTIFIER,
+		},
+		operator: "&&=",
+		right: {
+			type: LITERAL,
+			value: true,
+		},
+		type: ASSIGN,
+	},
+	{
+		hello: false,
+	},
+	{
+		hello: false,
 	},
 );
 
@@ -365,6 +361,30 @@ test(
 
 test(
 	"Assign",
+	"hello ^= 3",
+	6,
+	{
+		left: {
+			name: "hello",
+			type: IDENTIFIER,
+		},
+		operator: "^=",
+		right: {
+			type: LITERAL,
+			value: 3,
+		},
+		type: ASSIGN,
+	},
+	{
+		hello: 5,
+	},
+	{
+		hello: 6,
+	},
+);
+
+test(
+	"Assign",
 	"hello += 4",
 	6,
 	{
@@ -389,24 +409,192 @@ test(
 
 test(
 	"Assign",
-	"hello -= 4",
+	"hello <<= 2",
+	20,
+	{
+		left: {
+			name: "hello",
+			type: IDENTIFIER,
+		},
+		operator: "<<=",
+		right: {
+			type: LITERAL,
+			value: 2,
+		},
+		type: ASSIGN,
+	},
+	{
+		hello: 5,
+	},
+	{
+		hello: 20,
+	},
+);
+
+test(
+	"Assign",
+	"hello >>= 2",
+	1,
+	{
+		left: {
+			name: "hello",
+			type: IDENTIFIER,
+		},
+		operator: ">>=",
+		right: {
+			type: LITERAL,
+			value: 2,
+		},
+		type: ASSIGN,
+	},
+	{
+		hello: 5,
+	},
+	{
+		hello: 1,
+	},
+);
+
+test(
+	"Assign",
+	"hello >>= 2",
 	-2,
 	{
 		left: {
 			name: "hello",
 			type: IDENTIFIER,
 		},
-		operator: "-=",
+		operator: ">>=",
 		right: {
 			type: LITERAL,
-			value: 4,
+			value: 2,
 		},
 		type: ASSIGN,
 	},
 	{
-		hello: 2,
+		hello: -5,
 	},
 	{
 		hello: -2,
+	},
+);
+
+test(
+	"Assign",
+	"hello >>>= 2",
+	1,
+	{
+		left: {
+			name: "hello",
+			type: IDENTIFIER,
+		},
+		operator: ">>>=",
+		right: {
+			type: LITERAL,
+			value: 2,
+		},
+		type: ASSIGN,
+	},
+	{
+		hello: 5,
+	},
+	{
+		hello: 1,
+	},
+);
+
+test(
+	"Assign",
+	"hello >>>= 2",
+	1073741822,
+	{
+		left: {
+			name: "hello",
+			type: IDENTIFIER,
+		},
+		operator: ">>>=",
+		right: {
+			type: LITERAL,
+			value: 2,
+		},
+		type: ASSIGN,
+	},
+	{
+		hello: -5,
+	},
+	{
+		hello: 1073741822,
+	},
+);
+
+test(
+	"Assign",
+	"hello |= 3",
+	7,
+	{
+		left: {
+			name: "hello",
+			type: IDENTIFIER,
+		},
+		operator: "|=",
+		right: {
+			type: LITERAL,
+			value: 3,
+		},
+		type: ASSIGN,
+	},
+	{
+		hello: 5,
+	},
+	{
+		hello: 7,
+	},
+);
+
+test(
+	"Assign",
+	"hello ||= true",
+	true,
+	{
+		left: {
+			name: "hello",
+			type: IDENTIFIER,
+		},
+		operator: "||=",
+		right: {
+			type: LITERAL,
+			value: true,
+		},
+		type: ASSIGN,
+	},
+	{
+		hello: false,
+	},
+	{
+		hello: true,
+	},
+);
+
+test(
+	"Assign",
+	"hello ||= false",
+	true,
+	{
+		left: {
+			name: "hello",
+			type: IDENTIFIER,
+		},
+		operator: "||=",
+		right: {
+			type: LITERAL,
+			value: false,
+		},
+		type: ASSIGN,
+	},
+	{
+		hello: true,
+	},
+	{
+		hello: true,
 	},
 );

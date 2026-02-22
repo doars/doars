@@ -1,9 +1,7 @@
 /**
  * @file parse.js
  * @description Expression parser that converts JavaScript expressions into an Abstract Syntax Tree (AST).
- * Based on jsep v1.3.6 (https://github.com/EricSmekens/jsep).
- * Supports: identifiers, literals, arrays, objects, binary/unary operations, member access,
- * function calls, conditionals (ternary), assignments, and update expressions.
+ * Supports: identifiers, literals, arrays, objects, binary/unary operations, member access, function calls, conditionals (ternary), assignments, templates, regular expressions, spread operators, arrow functions, and update expressions. Based on jsep v1.3.6 (https://github.com/EricSmekens/jsep).
  */
 
 import {
@@ -25,8 +23,7 @@ import {
 } from "./types.js";
 
 /**
- * Character code constants for parsing.
- * These represent ASCII/Unicode character codes used to identify syntax elements.
+ * Character code constants for parsing. These represent ASCII/Unicode character codes used to identify syntax elements.
  */
 const SPACE_CODES = [
 	9, // Tab
@@ -60,8 +57,7 @@ const OPENING_BRACES_CODE = 123; // {
 const CLOSING_BRACES_CODE = 125; // }
 
 /**
- * Operator definitions for expression parsing.
- * Assignment operators modify the left-hand side with the right-hand side value.
+ * Operator definitions for expression parsing. Assignment operators modify the left-hand side with the right-hand side value.
  */
 const ASSIGNMENT_OPERATORS = [
 	"-=",
@@ -82,8 +78,7 @@ const ASSIGNMENT_OPERATORS = [
 	"||=",
 ];
 /**
- * Binary operators with precedence levels (higher number = higher precedence).
- * Operators with the same precedence are evaluated left-to-right.
+ * Binary operators with precedence levels (higher number = higher precedence). Operators with the same precedence are evaluated left-to-right.
  */
 const BINARY_OPERATORS = {
 	"=": 1,
@@ -134,8 +129,7 @@ const UPDATE_OPERATOR_DECREMENT = "--";
 const UPDATE_OPERATOR_INCREMENT = "++";
 
 /**
- * Built-in literal values that are recognized as keywords.
- * These map identifier names to their actual values.
+ * Built-in literal values that are recognized as keywords. These map identifier names to their actual values.
  */
 const LITERALS = {
 	true: true,
@@ -146,25 +140,24 @@ const LITERALS = {
 
 /**
  * Checks if a character code represents a decimal digit (0-9).
- * @param {number} character - The character code to check
- * @returns {boolean} True if the character is a digit
+ * @param {number} character - The character code to check.
+ * @returns {boolean} True if the character is a digit.
  */
 const isDecimalDigit = (character) =>
-	character >= ZERO_CODE && character <= NINE_CODE; // Between 0 and 9
+	character >= ZERO_CODE && character <= NINE_CODE;
 
 /**
  * Checks if a character code is valid as part of an identifier (after the first character).
- * @param {number} character - The character code to check
- * @returns {boolean} True if the character can be part of an identifier
+ * @param {number} character - The character code to check.
+ * @returns {boolean} True if the character can be part of an identifier.
  */
 const isIdentifierPart = (character) =>
 	isIdentifierStart(character) || isDecimalDigit(character);
 
 /**
- * Checks if a character code is valid as the first character of an identifier.
- * Valid start characters are letters, underscore, and dollar sign.
- * @param {number} character - The character code to check
- * @returns {boolean} True if the character can start an identifier
+ * Checks if a character code is valid as the first character of an identifier. Valid start characters are letters, underscore, and dollar sign.
+ * @param {number} character - The character code to check.
+ * @returns {boolean} True if the character can start an identifier.
  */
 const isIdentifierStart = (character) =>
 	(character >= ZERO_CODE && character <= NINE_CODE) ||
@@ -175,16 +168,15 @@ const isIdentifierStart = (character) =>
 
 /**
  * Parses a JavaScript expression string into an Abstract Syntax Tree (AST).
- * @param {string} expression - The expression string to parse
- * @returns {Array|undefined} An array of AST nodes, or undefined if empty
+ * @param {string} expression - The expression string to parse.
+ * @returns {Array|undefined} An array of AST nodes, or undefined if empty.
  */
 export default (expression) => {
 	let index = 0;
 
 	/**
-	 * Parses an array literal expression like [1, 2, 3].
-	 * Consumes elements between square brackets.
-	 * @returns {Object} AST node with type ARRAY and elements array
+	 * Parses an array literal expression like [1, 2, 3]. Consumes elements between square brackets.
+	 * @returns {Object} AST node with type ARRAY and elements array.
 	 */
 	const gobbleArray = () => {
 		index++;
@@ -196,11 +188,10 @@ export default (expression) => {
 	};
 
 	/**
-	 * Parses a comma-separated list of expressions until a termination character.
-	 * Used for parsing function arguments and array elements.
-	 * @param {number} termination - Character code that ends the parameter list (e.g., ')' or ']')
-	 * @returns {Array} Array of parsed expression nodes
-	 * @throws {Error} If the list is not properly terminated or has syntax errors
+	 * Parses a comma-separated list of expressions until a termination character. Used for parsing function arguments and array elements.
+	 * @param {number} termination - Character code that ends the parameter list (e.g., ')' or ']').
+	 * @returns {Array} Array of parsed expression nodes.
+	 * @throws {Error} If the list is not properly terminated or has syntax errors.
 	 */
 	const gobbleParameters = (termination) => {
 		const parameters = [];
@@ -259,15 +250,16 @@ export default (expression) => {
 	};
 
 	/**
-	 * Parses a binary expression with operator precedence handling.
-	 * Uses the shunting-yard algorithm to build the AST with correct precedence.
-	 * @returns {Object} AST node representing the binary expression
+	 * Parses a binary expression with operator precedence handling. Uses the shunting-yard algorithm to build the AST with correct precedence.
+	 * @returns {Object} AST node representing the binary expression.
 	 */
 	const gobbleBinaryExpression = () => {
 		let left = gobbleToken();
 		if (!left) {
 			return left;
 		}
+
+		// TODO: Should check for arrow function first?
 
 		let value = gobbleBinaryOperation();
 		if (!value) {
@@ -342,13 +334,12 @@ export default (expression) => {
 	};
 
 	/**
-	 * Parses a binary operator from the current position.
-	 * Checks for operators like +, -, *, /, ===, etc. based on the BINARY_OPERATORS list.
-	 * @returns {string|false} The operator string if found, false otherwise
+	 * Parses a binary operator from the current position. Checks for operators like +, -, *, /, ===, etc. based on the BINARY_OPERATORS list.
+	 * @returns {string|false} The operator string if found, false otherwise.
 	 */
 	const gobbleBinaryOperation = () => {
 		gobbleSpaces();
-		let toCheck = expression.substring(index, index + 3); // 3 = Maximum binary operator length.
+		let toCheck = expression.substring(index, index + 4); // 4 = Maximum binary operator length.
 		let toCheckLength = toCheck.length;
 
 		while (toCheckLength > 0) {
@@ -367,9 +358,8 @@ export default (expression) => {
 	};
 
 	/**
-	 * Parses a complete expression including binary operators and ternary conditionals.
-	 * This is the main entry point for parsing individual expressions.
-	 * @returns {Object} AST node representing the complete expression
+	 * Parses a complete expression including binary operators and ternary conditionals. This is the main entry point for parsing individual expressions.
+	 * @returns {Object} AST node representing the complete expression.
 	 */
 	const gobbleExpression = () => {
 		let node = gobbleBinaryExpression();
@@ -379,10 +369,9 @@ export default (expression) => {
 	};
 
 	/**
-	 * Parses multiple expressions separated by commas or semicolons.
-	 * Used for parsing sequences like (a, b, c) or function arguments.
-	 * @param {number} [untilCharacterCode] - Optional character code that terminates the expression list
-	 * @returns {Array} Array of parsed expression nodes
+	 * Parses multiple expressions separated by commas or semicolons. Used for parsing sequences like (a, b, c) or function arguments.
+	 * @param {number} [untilCharacterCode] - Optional character code that terminates the expression list.
+	 * @returns {Array} Array of parsed expression nodes.
 	 */
 	const gobbleExpressions = (untilCharacterCode) => {
 		const nodes = [];
@@ -406,10 +395,9 @@ export default (expression) => {
 	};
 
 	/**
-	 * Parses an identifier (variable name, function name, etc.).
-	 * Identifiers must start with a letter, underscore, or dollar sign.
-	 * @returns {Object} AST node with type IDENTIFIER and name property
-	 * @throws {Error} If the current character cannot start an identifier
+	 * Parses an identifier (variable name, function name, etc.). Identifiers must start with a letter, underscore, or dollar sign.
+	 * @returns {Object} AST node with type IDENTIFIER and name property.
+	 * @throws {Error} If the current character cannot start an identifier.
 	 */
 	const gobbleIdentifier = () => {
 		let character = expression.charCodeAt(index);
@@ -437,10 +425,9 @@ export default (expression) => {
 	};
 
 	/**
-	 * Parses a numeric literal (integer, decimal, or scientific notation).
-	 * Supports formats like: 42, 3.14, 1e10, 1.5e-3
-	 * @returns {Object} AST node with type LITERAL and numeric value
-	 * @throws {Error} If the number format is invalid
+	 * Parses a numeric literal (integer, decimal, or scientific notation). Supports formats like: 42, 3.14, 1e10, 1.5e-3
+	 * @returns {Object} AST node with type LITERAL and numeric value.
+	 * @throws {Error} If the number format is invalid.
 	 */
 	const gobbleNumericLiteral = () => {
 		let number = "";
@@ -497,9 +484,8 @@ export default (expression) => {
 	};
 
 	/**
-	 * Parses an object literal expression like {a: 1, b: 2}.
-	 * Supports shorthand properties {a}, computed properties {[key]: value}, and regular key-value pairs.
-	 * @returns {Object|undefined} AST node with type OBJECT and properties array, or undefined if not an object
+	 * Parses an object literal expression like {a: 1, b: 2}. Supports shorthand properties {a}, computed properties {[key]: value}, and regular key-value pairs.
+	 * @returns {Object|undefined} AST node with type OBJECT and properties array, or undefined if not an object.
 	 */
 	const gobbleObjectExpression = () => {
 		if (expression.charCodeAt(index) === OPENING_BRACES_CODE) {
@@ -615,10 +601,9 @@ export default (expression) => {
 	};
 
 	/**
-	 * Parses a parenthesized expression or sequence like (a, b, c).
-	 * Single expressions in parentheses are returned directly; multiple become a SEQUENCE node.
-	 * @returns {Object|false} The inner expression node, a SEQUENCE node, or false if empty
-	 * @throws {Error} If the parentheses are not closed
+	 * Parses a parenthesized expression or sequence like (a, b, c). Single expressions in parentheses are returned directly; multiple become a SEQUENCE node.
+	 * @returns {Object|false} The inner expression node, a SEQUENCE node, or false if empty.
+	 * @throws {Error} If the parentheses are not closed.
 	 */
 	const gobbleSequence = () => {
 		index++;
@@ -644,8 +629,7 @@ export default (expression) => {
 	};
 
 	/**
-	 * Skips whitespace characters (space, tab, newline, carriage return).
-	 * Advances the index past any consecutive whitespace.
+	 * Skips whitespace characters (space, tab, newline, carriage return). Advances the index past any consecutive whitespace.
 	 */
 	const gobbleSpaces = () => {
 		while (SPACE_CODES.indexOf(expression.charCodeAt(index)) >= 0) {
@@ -654,10 +638,9 @@ export default (expression) => {
 	};
 
 	/**
-	 * Parses a string literal enclosed in single or double quotes.
-	 * Supports escape sequences like \n, \t, \r, etc.
-	 * @returns {Object} AST node with type LITERAL and string value
-	 * @throws {Error} If the string is not properly closed
+	 * Parses a string literal enclosed in single or double quotes. Supports escape sequences like \n, \t, \r, etc.
+	 * @returns {Object} AST node with type LITERAL and string value.
+	 * @throws {Error} If the string is not properly closed.
 	 */
 	const gobbleStringLiteral = () => {
 		let value = "";
@@ -773,11 +756,10 @@ export default (expression) => {
 	};
 
 	/**
-	 * Parses a ternary conditional expression (condition ? consequent : alternate).
-	 * Takes the already-parsed condition node and adds the branches.
-	 * @param {Object} node - The condition expression node
-	 * @returns {Object} A CONDITION node with condition, consequent, and alternate properties
-	 * @throws {Error} If the ternary syntax is invalid (missing : or expressions)
+	 * Parses a ternary conditional expression (condition ? consequent : alternate). Takes the already-parsed condition node and adds the branches.
+	 * @param {Object} node - The condition expression node.
+	 * @returns {Object} A CONDITION node with condition, consequent, and alternate properties.
+	 * @throws {Error} If the ternary syntax is invalid (missing : or expressions).
 	 */
 	const gobbleTernary = (node) => {
 		if (!node || expression.charCodeAt(index) !== QUESTION_MARK_CODE) {
@@ -826,9 +808,8 @@ export default (expression) => {
 	};
 
 	/**
-	 * Parses a single token (identifier, literal, or complex expression).
-	 * This is the lowest-level parsing function that handles all token types.
-	 * @returns {Object|undefined} AST node for the token, or undefined if no token found
+	 * Parses a single token (identifier, literal, or complex expression). This is the lowest-level parsing function that handles all token types.
+	 * @returns {Object|undefined} AST node for the token, or undefined if no token found.
 	 */
 	const gobbleToken = () => {
 		let node = gobbleObjectExpression() || gobbleUpdatePrefixExpression();
@@ -906,11 +887,9 @@ export default (expression) => {
 	};
 
 	/**
-	 * Parses property access, method calls, and computed member access on a token.
-	 * Handles dot notation (obj.prop), bracket notation (obj[prop]), and function calls (fn()).
-	 * Also supports optional chaining (obj?.prop).
-	 * @param {Object} node - The base expression node
-	 * @returns {Object} The node with any chained property accesses or calls attached
+	 * Parses property access, method calls, and computed member access on a token. Handles dot notation (obj.prop), bracket notation (obj[prop]), and function calls (fn()). Also supports optional chaining (obj?.prop).
+	 * @param {Object} node - The base expression node.
+	 * @returns {Object} The node with any chained property accesses or calls attached.
 	 */
 	const gobbleTokenProperty = (node) => {
 		gobbleSpaces();
@@ -978,10 +957,9 @@ export default (expression) => {
 	};
 
 	/**
-	 * Parses prefix increment/decrement operators (++x, --x).
-	 * The operator appears before the operand and the value is modified before returning.
-	 * @returns {Object|undefined} UPDATE node with prefix: true, or undefined if not an update expression
-	 * @throws {Error} If the operator is not followed by a valid identifier or member expression
+	 * Parses prefix increment/decrement operators (++x, --x). The operator appears before the operand and the value is modified before returning.
+	 * @returns {Object|undefined} UPDATE node with prefix: true, or undefined if not an update expression.
+	 * @throws {Error} If the operator is not followed by a valid identifier or member expression.
 	 */
 	const gobbleUpdatePrefixExpression = () => {
 		if (index + 1 < expression.length) {
@@ -1009,10 +987,9 @@ export default (expression) => {
 	};
 
 	/**
-	 * Parses suffix/postfix increment/decrement operators (x++, x--).
-	 * The operator appears after the operand and the original value is returned before modification.
-	 * @param {Object} node - The expression node that might have a suffix update operator
-	 * @returns {Object} The original node, or an UPDATE node with prefix: false if suffix operator found
+	 * Parses suffix/postfix increment/decrement operators (x++, x--). The operator appears after the operand and the original value is returned before modification.
+	 * @param {Object} node - The expression node that might have a suffix update operator.
+	 * @returns {Object} The original node, or an UPDATE node with prefix: false if suffix operator found.
 	 */
 	const gobbleUpdateSuffixExpression = (node) => {
 		if (!node || index + 1 >= expression.length) {
@@ -1042,9 +1019,7 @@ export default (expression) => {
 	const nodes = gobbleExpressions();
 
 	/**
-	 * Parse complete and return the AST.
-	 * Returns undefined if no expressions were parsed (empty input).
-	 * Returns an array of nodes if multiple expressions were parsed.
+	 * Parse complete and return the AST. Returns undefined if no expressions were parsed (empty input). Returns an array of nodes if multiple expressions were parsed.
 	 */
 	return nodes.length === 0 ? undefined : nodes;
 };

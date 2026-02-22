@@ -22,14 +22,13 @@ import {
 } from "./types.js";
 
 /**
- * Assigns a value to a context location based on the node type.
- * Handles both simple identifier assignments (x = 5) and member assignments (obj.prop = 5).
+ * Assigns a value to a context location based on the node type. Handles both simple identifier assignments (x = 5) and member assignments (obj.prop = 5).
  *
- * @param {Object} node - The AST node representing the assignment target
- * @param {*} value - The value to assign
- * @param {Object} [context={}] - The context object where values are stored
- * @returns {*} The assigned value
- * @throws {Error} If the assignment target is not supported
+ * @param {Object} node - The AST node representing the assignment target.
+ * @param {*} value - The value to assign.
+ * @param {Object} [context={}] - The context object where values are stored.
+ * @returns {*} The assigned value.
+ * @throws {Error} If the assignment target is not supported.
  */
 const setToContext = (node, value, context = {}) => {
 	switch (node.type) {
@@ -56,13 +55,12 @@ const setToContext = (node, value, context = {}) => {
 };
 
 /**
- * Recursively evaluates an AST node or array of nodes against a context.
- * This is the main execution function that handles all node types.
+ * Recursively evaluates an AST node or array of nodes against a context. This is the main execution function that handles all node types.
  *
- * @param {Object|Array} node - The AST node(s) to evaluate
- * @param {Object} [context={}] - The context object containing variable values
- * @returns {*} The result of evaluating the node
- * @throws {Error} If an unexpected node type is encountered
+ * @param {Object|Array} node - The AST node(s) to evaluate.
+ * @param {Object} [context={}] - The context object containing variable values.
+ * @returns {*} The result of evaluating the node.
+ * @throws {Error} If an unexpected node type is encountered.
  */
 const run = (node, context = {}) => {
 	if (!node) {
@@ -74,15 +72,15 @@ const run = (node, context = {}) => {
 	}
 
 	switch (node.type) {
-		// Variable lookup - retrieves value from context by identifier name
+		// Variable lookup - retrieves value from context by identifier name.
 		case IDENTIFIER:
 			return context[node.name];
 
-		// Literal values - returns the raw value directly
+		// Literal values - returns the raw value directly.
 		case LITERAL:
 			return node.value;
 
-		// Array literal - evaluates each element and returns as array
+		// Array literal - evaluates each element and returns as array.
 		case ARRAY: {
 			const arrayResults = [];
 			for (const arrayElement of node.elements) {
@@ -95,7 +93,7 @@ const run = (node, context = {}) => {
 			return arrayResults;
 		}
 
-		// Assignment operation - handles both simple (=) and compound assignments (+=, *=, etc.)
+		// Assignment operation - handles both simple (=) and compound assignments (+=, *=, etc.).
 		case ASSIGN: {
 			let assignmentValue = run(node.right, context);
 			// Modify value if not a direct assignment.
@@ -158,7 +156,7 @@ const run = (node, context = {}) => {
 			return setToContext(node.left, assignmentValue, context);
 		}
 
-		// Binary operations - arithmetic, comparison, and logical operators
+		// Binary operations - arithmetic, comparison, and logical operators.
 		case BINARY: {
 			const binaryLeft = run(node.left, context);
 			const binaryRight = run(node.right, context);
@@ -213,7 +211,7 @@ const run = (node, context = {}) => {
 			throw new Error(`Unsupported operator: ${node.operator}`);
 		}
 
-		// Function call - evaluates callee and arguments, then invokes the function
+		// Function call - evaluates callee and arguments, then invokes the function.
 		case CALL: {
 			const parameters = [];
 			for (const parameter of node.parameters) {
@@ -226,13 +224,13 @@ const run = (node, context = {}) => {
 			return run(node.callee, context)(...parameters);
 		}
 
-		// Ternary conditional - evaluates condition and returns consequent or alternate
+		// Ternary conditional - evaluates condition and returns consequent or alternate.
 		case CONDITION:
 			return run(node.condition, context)
 				? run(node.consequent, context)
 				: run(node.alternate, context);
 
-		// Member access - evaluates object.property or object[property]
+		// Member access - evaluates object.property or object[property].
 		case MEMBER: {
 			const memberObject = run(node.object, context);
 			const memberProperty =
@@ -245,7 +243,7 @@ const run = (node, context = {}) => {
 			return memberObject[memberProperty];
 		}
 
-		// Object literal - evaluates each property and builds an object
+		// Object literal - evaluates each property and builds an object.
 		case OBJECT: {
 			const objectResult = {};
 			for (const objectProperty of node.properties) {
@@ -259,7 +257,7 @@ const run = (node, context = {}) => {
 			return objectResult;
 		}
 
-		// Sequence expression - evaluates multiple expressions and returns results as array
+		// Sequence expression - evaluates multiple expressions and returns results as array.
 		case SEQUENCE:
 			return node.expressions.map((node) => run(node, context));
 
@@ -277,7 +275,7 @@ const run = (node, context = {}) => {
 				)
 				.join("");
 
-		// Unary operations - logical negation, numeric negation, and numeric conversion
+		// Unary operations - logical negation, numeric negation, and numeric conversion.
 		case UNARY: {
 			const unaryParameter = run(node.parameter, context);
 			switch (node.operator) {
@@ -293,7 +291,7 @@ const run = (node, context = {}) => {
 			throw new Error(`Unsupported operator: ${node.operator}`);
 		}
 
-		// Update operations - prefix/postfix increment and decrement (++, --)
+		// Update operations - prefix/postfix increment and decrement (++, --).
 		case UPDATE: {
 			const updateResult = run(node.parameter, context);
 			const updateValue = node.operator === "--" ? -1 : 1;

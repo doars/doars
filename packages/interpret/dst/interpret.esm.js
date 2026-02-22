@@ -231,7 +231,7 @@ var parse_default = (expression) => {
   };
   const gobbleBinaryOperation = () => {
     gobbleSpaces();
-    let toCheck = expression.substring(index, index + 3);
+    let toCheck = expression.substring(index, index + 4);
     let toCheckLength = toCheck.length;
     while (toCheckLength > 0) {
       if (Object.hasOwn(BINARY_OPERATORS, toCheck) && (!isIdentifierStart(expression.charCodeAt(index)) || index + toCheck.length < expression.length && !isIdentifierPart(expression.charCodeAt(index + toCheck.length)))) {
@@ -991,4 +991,4 @@ export {
   ARRAY2 as ARRAY
 };
 
-//# debugId=3A0DC7401C97B3E864756E2164756E21
+//# debugId=2487C414FF12781A64756E2164756E21
