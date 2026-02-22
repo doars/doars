@@ -226,20 +226,8 @@ export default class Component {
 				}
 			}
 
-			// Remove reference from element.
-			delete element[COMPONENT];
-
 			// Reset variables.
 			attributes = [];
-
-			// Set as not initialized.
-			isInitialized = false;
-
-			// Remove state and state handling.
-			proxy.remove(data);
-			state = null;
-			proxy = null;
-			data = null;
 
 			// Store update triggers.
 			const triggers = [];
@@ -286,6 +274,18 @@ export default class Component {
 			if (triggers.length > 0) {
 				library.update(triggers);
 			}
+
+			// Remove reference from element.
+			delete element[COMPONENT];
+
+			// Set as not initialized.
+			isInitialized = false;
+
+			// Remove state and state handling.
+			proxy.remove(data);
+			state = null;
+			proxy = null;
+			data = null;
 
 			// Dispatch event.
 			dispatchEvent("destroyed", {

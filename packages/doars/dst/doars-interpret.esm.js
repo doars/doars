@@ -105,6 +105,55 @@ var walk = (node, filter) => {
   };
 };
 
+// ../common/src/polyfills/RevocableProxy.js
+var PROXY_TRAPS = [
+  "apply",
+  "construct",
+  "defineProperty",
+  "deleteProperty",
+  "get",
+  "getOwnPropertyDescriptor",
+  "getPrototypeOf",
+  "has",
+  "isExtensible",
+  "ownKeys",
+  "preventExtensions",
+  "set",
+  "setPrototypeOf"
+];
+var RevocableProxy_default = (target, handler, options = {}) => {
+  options = Object.assign({
+    irrevocable: []
+  }, options);
+  let revoked = false;
+  const revocableHandler = {};
+  for (const key of PROXY_TRAPS) {
+    revocableHandler[key] = (...parameters) => {
+      const [localTarget, ...localParameters] = parameters;
+      if (revoked) {
+        for (const key2 of Object.keys(localTarget)) {
+          if (!options.irrevocable || options.irrevocable.indexOf(key2) < 0) {
+            localTarget[key2] = undefined;
+          }
+        }
+      }
+      if (key in handler) {
+        const trap = handler[key];
+        if (typeof trap === "function") {
+          return trap(localTarget, ...localParameters);
+        }
+      }
+      return Reflect[key](localTarget, ...localParameters);
+    };
+  }
+  return {
+    proxy: new Proxy(target, revocableHandler),
+    revoke: () => {
+      revoked = true;
+    }
+  };
+};
+
 // ../common/src/events/ProxyDispatcher.js
 class ProxyDispatcher extends EventDispatcher {
   constructor(options = {}) {
@@ -167,8 +216,8 @@ class ProxyDispatcher extends EventDispatcher {
           return true;
         };
       }
-      const revocable = Proxy.revocable(target, handler);
-      map.set(revocable, target);
+      const revocable = RevocableProxy_default(target, handler);
+      map.set(target, revocable);
       return revocable.proxy;
     };
     this.remove = (target) => {
@@ -176,7 +225,7 @@ class ProxyDispatcher extends EventDispatcher {
         return;
       }
       const revocable = map.get(target);
-      map.delete(revocable);
+      map.delete(target);
       for (const property in revocable.proxy) {
         if (typeof revocable.proxy[property] === "object") {
           this.remove(revocable.proxy[property]);
@@ -522,13 +571,7 @@ class Component {
           attribute.destroy();
         }
       }
-      delete element[COMPONENT];
       attributes = [];
-      isInitialized = false;
-      proxy.remove(data);
-      state = null;
-      proxy = null;
-      data = null;
       const triggers = [];
       if (children.length > 0) {
         for (const child of children) {
@@ -559,6 +602,12 @@ class Component {
       if (triggers.length > 0) {
         library.update(triggers);
       }
+      delete element[COMPONENT];
+      isInitialized = false;
+      proxy.remove(data);
+      state = null;
+      proxy = null;
+      data = null;
       dispatchEvent("destroyed", {
         element,
         id
@@ -674,6 +723,7 @@ var createContexts = (component, attribute, update, extra = null) => {
   let after = "", before = "";
   const creatableContexts = library.getContexts();
   const destroyFunctions = [];
+  const irrevocableContexts = [];
   for (const creatableContext of creatableContexts) {
     if (!creatableContext || !creatableContext.name) {
       continue;
@@ -690,6 +740,9 @@ var createContexts = (component, attribute, update, extra = null) => {
       before += `with(${creatableContext.name}) { `;
       after += " }";
     }
+    if (creatableContext.revocable === false) {
+      irrevocableContexts.push(creatableContext.name);
+    }
     contexts[creatableContext.name] = result.value;
   }
   if (typeof extra === "object") {
@@ -699,9 +752,10 @@ var createContexts = (component, attribute, update, extra = null) => {
   }
   return {
     contexts,
+    irrevocableContexts,
     destroy: () => {
-      for (const destroyFunction of destroyFunctions) {
-        destroyFunction();
+      for (let index = destroyFunctions.length - 1;index >= 0; index--) {
+        destroyFunctions[index]();
       }
     },
     after,
@@ -711,7 +765,7 @@ var createContexts = (component, attribute, update, extra = null) => {
 };
 var createContextsProxy = (component, attribute, update, extra = null) => {
   let data = null;
-  const revocable = Proxy.revocable({}, {
+  const revocable = RevocableProxy_default({}, {
     get: (_target, property) => {
       if (!data) {
         data = createContexts(component, attribute, update, extra);
@@ -746,10 +800,14 @@ var createAutoContexts = (component, attribute, extra = null) => {
       path: context
     });
   };
-  const { contexts, destroy } = createContexts(component, attribute, update, extra);
+  const { contexts, destroy, irrevocableContexts } = createContexts(component, attribute, update, extra);
+  const contextProxy = RevocableProxy_default(contexts, {}, {
+    irrevocable: irrevocableContexts
+  });
   return [
-    contexts,
+    contextProxy.proxy,
     () => {
+      contextProxy.revoke();
       destroy();
       if (triggers.length > 0) {
         component.getLibrary().update(triggers);
@@ -763,7 +821,7 @@ var children_default = ({ childrenContextName }) => ({
   name: childrenContextName,
   create: (component, attribute, update) => {
     let childrenContexts;
-    const revocable = Proxy.revocable(component.getChildren(), {
+    const revocable = RevocableProxy_default(component.getChildren(), {
       get: (target, key, receiver) => {
         if (!childrenContexts) {
           childrenContexts = target.map((child2) => createContextsProxy(child2, attribute, update));
@@ -846,7 +904,7 @@ var for_default = ({ forContextDeconstruct, forContextName }) => ({
     if (items.length === 0) {
       return;
     }
-    const revocable = Proxy.revocable(target, {
+    const revocable = RevocableProxy_default(target, {
       get: (_target, key) => {
         for (const item of items) {
           if (key in item.variables) {
@@ -867,6 +925,7 @@ var for_default = ({ forContextDeconstruct, forContextName }) => ({
 
 // src/contexts/inContext.js
 var inContext_default = ({ inContextContextName }) => ({
+  revocable: false,
   name: inContextContextName,
   create: (component, attribute) => ({
     value: (callback) => {
@@ -1015,7 +1074,7 @@ var references_default = ({ referencesContextName }) => ({
       }
       component[REFERENCES_CACHE] = cache;
     }
-    const revocable = Proxy.revocable(cache, {
+    const revocable = RevocableProxy_default(cache, {
       get: (target, propertyKey, receiver) => {
         attribute.accessed(component.getId(), `$references.${propertyKey}`);
         return Reflect.get(target, propertyKey, receiver);
@@ -1041,7 +1100,7 @@ var siblings_default = ({ siblingsContextName }) => ({
       };
     }
     let siblingsContexts;
-    const revocable = Proxy.revocable(parent.getChildren().filter((sibling) => sibling !== component), {
+    const revocable = RevocableProxy_default(parent.getChildren().filter((sibling) => sibling !== component), {
       get: (target, key, receiver) => {
         if (!siblingsContexts) {
           siblingsContexts = target.map((child) => createContextsProxy(child, attribute, update));
@@ -1079,7 +1138,7 @@ var createState_default = (name, id, state, proxy) => {
     proxy.addEventListener("delete", onDelete);
     proxy.addEventListener("get", onGet);
     proxy.addEventListener("set", onSet);
-    const revocable = Proxy.revocable(state, {});
+    const revocable = RevocableProxy_default(state, {});
     return {
       value: revocable.proxy,
       destroy: () => {
@@ -3309,6 +3368,7 @@ class Doars extends EventDispatcher {
 
 // ../interpret/src/types.js
 var ARRAY = 5;
+var ARROW = 15;
 var ASSIGN = 6;
 var BINARY = 7;
 var CALL = 8;
@@ -3318,7 +3378,10 @@ var LITERAL = 3;
 var MEMBER = 10;
 var OBJECT = 11;
 var PROPERTY = 4;
+var RETURN = 16;
 var SEQUENCE = 12;
+var SPREAD = 17;
+var TEMPLATE = 18;
 var UNARY = 13;
 var UPDATE = 14;
 
@@ -3329,26 +3392,49 @@ var SPACE_CODES = [
   13,
   32
 ];
+var DOUBLE_QUOTE_CODE = 34;
+var DOLLAR_CODE = 36;
+var SINGLE_QUOTE_CODE = 39;
 var OPENING_PARENTHESIS_CODE = 40;
 var CLOSING_PARENTHESIS_CODE = 41;
 var COMMA_CODE = 44;
 var PERIOD_CODE = 46;
+var FORWARD_SLASH_CODE = 47;
+var ZERO_CODE = 48;
+var NINE_CODE = 57;
 var COLON_CODE = 58;
+var SEMICOLON_CODE = 59;
+var EQUAL_CODE = 61;
+var ANGLE_RIGHT_CODE = 62;
 var QUESTION_MARK_CODE = 63;
+var LOWER_A_CODE = 65;
+var LOWER_Z_CODE = 90;
 var OPENING_BRACKET_CODE = 91;
+var BACK_SLASH_CODE = 92;
 var CLOSING_BRACKET_CODE = 93;
+var UNDERSCORE_CODE = 95;
+var BACKTICK_CODE = 96;
+var UPPER_A_CODE = 97;
+var UPPER_Z_CODE = 122;
+var OPENING_BRACES_CODE = 123;
 var CLOSING_BRACES_CODE = 125;
 var ASSIGNMENT_OPERATORS = [
-  "=",
-  "||=",
-  "&&=",
+  "-=",
   "??=",
-  "*=",
   "**=",
+  "*=",
   "/=",
+  "&&=",
+  "&=",
   "%=",
+  "^=",
   "+=",
-  "-="
+  "<<=",
+  "=",
+  ">>=",
+  ">>>=",
+  "|=",
+  "||="
 ];
 var BINARY_OPERATORS = {
   "=": 1,
@@ -3361,9 +3447,18 @@ var BINARY_OPERATORS = {
   "%=": 1,
   "+=": 1,
   "-=": 1,
+  "<<=": 1,
+  ">>=": 1,
+  ">>>=": 1,
+  "&=": 1,
+  "^=": 1,
+  "|=": 1,
   "||": 2,
   "&&": 3,
   "??": 4,
+  "|": 5,
+  "^": 6,
+  "&": 7,
   "==": 8,
   "!=": 8,
   "===": 8,
@@ -3372,17 +3467,17 @@ var BINARY_OPERATORS = {
   ">": 9,
   "<=": 9,
   ">=": 9,
+  "<<": 10,
+  ">>": 10,
+  ">>>": 10,
   "*": 11,
+  "**": 11,
   "/": 11,
   "%": 11,
   "+": 11,
   "-": 11
 };
-var UNARY_OPERATORS = [
-  "-",
-  "!",
-  "+"
-];
+var UNARY_OPERATORS = ["-", "!", "~", "+"];
 var UPDATE_OPERATOR_DECREMENT = "--";
 var UPDATE_OPERATOR_INCREMENT = "++";
 var LITERALS = {
@@ -3391,9 +3486,9 @@ var LITERALS = {
   null: null,
   undefined: undefined
 };
-var isDecimalDigit = (character) => character >= 48 && character <= 57;
+var isDecimalDigit = (character) => character >= ZERO_CODE && character <= NINE_CODE;
 var isIdentifierPart = (character) => isIdentifierStart(character) || isDecimalDigit(character);
-var isIdentifierStart = (character) => character === 36 || character >= 48 && character <= 57 || character === 95 || character >= 65 && character <= 90 || character >= 97 && character <= 122;
+var isIdentifierStart = (character) => character >= ZERO_CODE && character <= NINE_CODE || character >= LOWER_A_CODE && character <= LOWER_Z_CODE || character >= UPPER_A_CODE && character <= UPPER_Z_CODE || character === DOLLAR_CODE || character === UNDERSCORE_CODE;
 var parse_default = (expression) => {
   let index = 0;
   const gobbleArray = () => {
@@ -3449,38 +3544,38 @@ var parse_default = (expression) => {
     if (!left) {
       return left;
     }
-    let operator = gobbleBinaryOperation();
-    if (!operator) {
-      return left;
+    let value = gobbleBinaryOperation();
+    if (!value) {
+      return gobbleArrowFunction(left);
     }
     let binaryOperationInfo = {
-      value: operator,
-      precedence: BINARY_OPERATORS[operator] || 0
+      value,
+      precedence: BINARY_OPERATORS[value] || 0
     };
     let right = gobbleToken();
     if (!right) {
-      throw new Error(`Expected expression after ${operator}`);
+      throw new Error(`Expected expression after ${value}`);
     }
     const stack = [left, binaryOperationInfo, right];
     let node;
-    while (operator = gobbleBinaryOperation()) {
-      const precedence = BINARY_OPERATORS[operator] || 0;
+    while (value = gobbleBinaryOperation()) {
+      const precedence = BINARY_OPERATORS[value] || 0;
       if (precedence === 0) {
-        index -= operator.length;
+        index -= value.length;
         break;
       }
       binaryOperationInfo = {
-        value: operator,
+        value,
         precedence
       };
-      const currentBinaryOperation = operator;
+      const currentBinaryOperation = value;
       while (stack.length > 2 && stack[stack.length - 2] > precedence) {
         right = stack.pop();
-        operator = stack.pop().value;
+        value = stack.pop().value;
         left = stack.pop();
         node = {
-          type: ASSIGNMENT_OPERATORS.indexOf(operator) >= 0 ? ASSIGN : BINARY,
-          operator,
+          type: ASSIGNMENT_OPERATORS.indexOf(value) >= 0 ? ASSIGN : BINARY,
+          operator: value,
           left,
           right
         };
@@ -3495,10 +3590,10 @@ var parse_default = (expression) => {
     let i = stack.length - 1;
     node = stack[i];
     while (i > 1) {
-      operator = stack[i - 1].value;
+      value = stack[i - 1].value;
       node = {
-        type: ASSIGNMENT_OPERATORS.indexOf(operator) >= 0 ? ASSIGN : BINARY,
-        operator,
+        type: ASSIGNMENT_OPERATORS.indexOf(value) >= 0 ? ASSIGN : BINARY,
+        operator: value,
         left: stack[i - 2],
         right: node
       };
@@ -3508,10 +3603,10 @@ var parse_default = (expression) => {
   };
   const gobbleBinaryOperation = () => {
     gobbleSpaces();
-    let toCheck = expression.substring(index, index + 3);
+    let toCheck = expression.substring(index, index + 4);
     let toCheckLength = toCheck.length;
     while (toCheckLength > 0) {
-      if (Object.hasOwn(BINARY_OPERATORS, toCheck) && (!isIdentifierStart(expression.charCodeAt(index)) || index + toCheck.length < expression.length && !isIdentifierPart(expression.charCodeAt(index + toCheck.length)))) {
+      if (Object.hasOwn(BINARY_OPERATORS, toCheck) && (!isIdentifierStart(expression.charCodeAt(index)) || index + toCheck.length < expression.length && !isIdentifierPart(expression.charCodeAt(index + toCheck.length))) && !(toCheck === "=" && expression.charCodeAt(index + 1) === 62)) {
         index += toCheckLength;
         return toCheck;
       }
@@ -3523,18 +3618,110 @@ var parse_default = (expression) => {
     let node = gobbleBinaryExpression();
     gobbleSpaces();
     node = gobbleTernary(node);
+    node = gobbleArrowFunction(node);
     return node;
+  };
+  const gobbleArrowFunction = (node) => {
+    gobbleSpaces();
+    if (node && (node.type === IDENTIFIER || node.type === ARRAY || node.type === OBJECT || node.type === ARROW)) {
+      if (expression.charCodeAt(index) === EQUAL_CODE && expression.charCodeAt(index + 1) === ANGLE_RIGHT_CODE) {
+        index += 2;
+        gobbleSpaces();
+        let body;
+        if (expression.charCodeAt(index) === OPENING_BRACES_CODE) {
+          body = gobbleBlockBody();
+        } else {
+          body = gobbleExpression();
+        }
+        let parameters;
+        if (node.type === IDENTIFIER) {
+          parameters = [node];
+        } else if (node.type === ARRAY) {
+          parameters = node.elements;
+        } else if (node.type === OBJECT) {
+          parameters = [node];
+        } else {
+          parameters = [];
+        }
+        return {
+          type: ARROW,
+          parameters,
+          body
+        };
+      } else if (expression.charCodeAt(index) === OPENING_BRACES_CODE) {
+        const body = gobbleBlockBody();
+        return {
+          type: ARROW,
+          parameters: node.type === ARRAY ? node.elements : [node],
+          body
+        };
+      }
+    }
+    return node;
+  };
+  const gobbleBlockBody = () => {
+    const startIndex = index;
+    index++;
+    gobbleSpaces();
+    let isObjectLiteral = false;
+    let checkIndex = index;
+    while (checkIndex < expression.length) {
+      const ch = expression.charCodeAt(checkIndex);
+      if (ch === CLOSING_BRACES_CODE) {
+        break;
+      }
+      if (ch === COLON_CODE) {
+        isObjectLiteral = true;
+        break;
+      }
+      if (ch === COMMA_CODE) {
+        isObjectLiteral = true;
+        break;
+      }
+      if (ch === OPENING_BRACKET_CODE) {
+        isObjectLiteral = true;
+        break;
+      }
+      checkIndex++;
+    }
+    index = startIndex;
+    if (isObjectLiteral) {
+      return gobbleExpression();
+    }
+    index++;
+    gobbleSpaces();
+    const nodes2 = gobbleExpressions(CLOSING_BRACES_CODE);
+    gobbleSpaces();
+    if (expression.charCodeAt(index) === CLOSING_BRACES_CODE) {
+      index++;
+    }
+    if (nodes2.length === 0) {
+      return;
+    }
+    if (nodes2.length === 1 && nodes2[0].type !== RETURN) {
+      return nodes2[0];
+    }
+    return {
+      type: RETURN,
+      argument: nodes2.length === 1 ? nodes2[0].argument : undefined
+    };
   };
   const gobbleExpressions = (untilCharacterCode) => {
     const nodes2 = [];
     while (index < expression.length) {
       const characterIndex = expression.charCodeAt(index);
-      if (characterIndex === 59 || characterIndex === COMMA_CODE) {
+      if (characterIndex === SEMICOLON_CODE || characterIndex === COMMA_CODE) {
         index++;
       } else {
         const node = gobbleExpression();
         if (node) {
           nodes2.push(node);
+          if (node.type === RETURN) {
+            if (expression.charCodeAt(index) === SEMICOLON_CODE) {
+              index++;
+            }
+            break;
+          }
         } else if (index < expression.length) {
           if (characterIndex === untilCharacterCode) {
             break;
@@ -3603,63 +3790,115 @@ var parse_default = (expression) => {
     };
   };
   const gobbleObjectExpression = () => {
-    if (expression.charCodeAt(index) !== 123) {
-      return;
-    }
-    index++;
-    const properties = [];
-    while (!Number.isNaN(expression.charCodeAt(index))) {
-      gobbleSpaces();
-      if (expression.charCodeAt(index) === CLOSING_BRACES_CODE) {
-        index++;
-        return gobbleTokenProperty({
-          type: OBJECT,
-          properties
-        });
-      }
-      const key = gobbleToken();
-      if (!key) {
-        throw new Error("Missing }");
-      }
-      gobbleSpaces();
-      if (key.type === IDENTIFIER && (expression.charCodeAt(index) === COMMA_CODE || expression.charCodeAt(index) === CLOSING_BRACES_CODE)) {
-        properties.push({
-          type: PROPERTY,
-          computed: false,
-          key,
-          value: key,
-          shorthand: true
-        });
-      } else if (expression.charCodeAt(index) === COLON_CODE) {
-        index++;
+    if (expression.charCodeAt(index) === OPENING_BRACES_CODE) {
+      index++;
+      const properties = [];
+      while (!Number.isNaN(expression.charCodeAt(index))) {
         gobbleSpaces();
-        const value = gobbleExpression();
-        if (!value) {
-          throw new Error("Unexpected object property");
+        if (expression.charCodeAt(index) === CLOSING_BRACES_CODE) {
+          index++;
+          return gobbleTokenProperty({
+            type: OBJECT,
+            properties
+          });
         }
-        const computed = key.type === ARRAY;
-        properties.push({
-          computed,
-          key: computed ? key.elements[0] : key,
-          shorthand: false,
-          type: PROPERTY,
-          value
-        });
+        const key = gobbleToken();
+        if (!key) {
+          throw new Error("Missing }");
+        }
         gobbleSpaces();
-      } else if (key) {
-        properties.push(key);
+        if (key.type === IDENTIFIER && (expression.charCodeAt(index) === COMMA_CODE || expression.charCodeAt(index) === CLOSING_BRACES_CODE)) {
+          properties.push({
+            type: PROPERTY,
+            computed: false,
+            key,
+            value: key,
+            shorthand: true
+          });
+        } else if (expression.charCodeAt(index) === COLON_CODE) {
+          index++;
+          gobbleSpaces();
+          const value = gobbleExpression();
+          if (!value) {
+            throw new Error("Unexpected object property");
+          }
+          const computed = key.type === ARRAY;
+          properties.push({
+            computed,
+            key: computed ? key.elements[0] : key,
+            shorthand: false,
+            type: PROPERTY,
+            value
+          });
+          gobbleSpaces();
+        } else if (key) {
+          properties.push(key);
+        }
+        if (expression.charCodeAt(index) === COMMA_CODE) {
+          index++;
+        }
       }
-      if (expression.charCodeAt(index) === COMMA_CODE) {
-        index++;
-      }
+      throw new Error("Missing }");
     }
-    throw new Error("Missing }");
+  };
+  const gobbleRegularExpression = () => {
+    if (expression.charCodeAt(index) === FORWARD_SLASH_CODE) {
+      const startIndex = ++index;
+      let inCharSet = false;
+      while (index < expression.length) {
+        if (expression.charCodeAt(index) === FORWARD_SLASH_CODE && !inCharSet) {
+          const pattern = expression.slice(startIndex, index);
+          let flags = "";
+          while (++index < expression.length) {
+            const code = expression.charCodeAt(index);
+            if (code >= LOWER_A_CODE && code <= LOWER_Z_CODE || code >= UPPER_A_CODE && code <= UPPER_Z_CODE || code >= ZERO_CODE && code <= NINE_CODE) {
+              flags += expression.charAt(index);
+            } else {
+              break;
+            }
+          }
+          let value;
+          try {
+            value = new RegExp(pattern, flags);
+          } catch (error) {
+            null.throwError(error.message);
+          }
+          return gobbleTokenProperty({
+            type: LITERAL,
+            value
+          });
+        }
+        if (expression.charCodeAt(index) === OPENING_BRACKET_CODE) {
+          inCharSet = true;
+        } else if (inCharSet && expression.charCodeAt(index) === CLOSING_BRACKET_CODE) {
+          inCharSet = false;
+        }
+        index += expression.charCodeAt(index) === BACK_SLASH_CODE ? 2 : 1;
+      }
+      null.throwError("Unclosed Regular expression");
+    }
   };
   const gobbleSequence = () => {
     index++;
     const nodes2 = gobbleExpressions(CLOSING_PARENTHESIS_CODE);
     if (expression.charCodeAt(index) === CLOSING_PARENTHESIS_CODE) {
       index++;
+      gobbleSpaces();
+      if (expression.charCodeAt(index) === EQUAL_CODE && expression.charCodeAt(index + 1) === ANGLE_RIGHT_CODE) {
+        index += 2;
+        gobbleSpaces();
+        let body;
+        if (expression.charCodeAt(index) === OPENING_BRACES_CODE) {
+          body = gobbleBlockBody();
+        } else {
+          body = gobbleExpression();
+        }
+        return {
+          type: ARROW,
+          parameters: nodes2,
+          body
+        };
+      }
       if (nodes2.length === 1) {
         return nodes2[0];
       }
@@ -3679,51 +3918,102 @@ var parse_default = (expression) => {
     }
   };
   const gobbleStringLiteral = () => {
-    let string = "";
-    const quote = expression.charAt(index++);
-    let closed = false;
+    let value = "";
+    const quote = expression.charCodeAt(index++);
     while (index < expression.length) {
-      let character = expression.charAt(index++);
-      if (character === quote) {
-        closed = true;
-        break;
+      const characterCode = expression.charCodeAt(index++);
+      if (characterCode === quote) {
+        return {
+          type: LITERAL,
+          value
+        };
       }
-      if (character === "\\") {
-        character = expression.charAt(index++);
+      if (characterCode === BACK_SLASH_CODE) {
+        const character = expression.charAt(index++);
         switch (character) {
           case "n":
-            string += `
+            value += `
 `;
             break;
           case "r":
-            string += "\r";
+            value += "\r";
             break;
           case "t":
-            string += "\t";
+            value += "\t";
             break;
           case "b":
-            string += "\b";
+            value += "\b";
             break;
           case "f":
-            string += "\f";
+            value += "\f";
             break;
           case "v":
-            string += "\v";
+            value += "\v";
             break;
           default:
-            string += character;
+            value += character;
         }
       } else {
-        string += character;
+        value += expression.charAt(index - 1);
       }
     }
-    if (!closed) {
-      throw new Error(`Unclosed quote after "${string}"`);
+    throw new Error(`Unclosed quote after "${value}"`);
+  };
+  const gobbleTemplateLiteral = () => {
+    index++;
+    let value = "";
+    const elements = [];
+    const expressions = [];
+    while (index < expression.length) {
+      const characterCode = expression.charCodeAt(index++);
+      if (characterCode === BACKTICK_CODE) {
+        elements.push(value);
+        value = "";
+        return {
+          type: TEMPLATE,
+          expressions,
+          elements
+        };
+      }
+      if (characterCode === DOLLAR_CODE && expression.charCodeAt(index) === OPENING_BRACES_CODE) {
+        index++;
+        elements.push(value);
+        value = "";
+        expressions.push(...gobbleExpressions(CLOSING_BRACES_CODE));
+        if (expression.charCodeAt(index) !== CLOSING_BRACES_CODE) {
+          throw new Error(`Unclosed \${ in template "${value}"`);
+        }
+        index++;
+      } else if (characterCode === BACK_SLASH_CODE) {
+        const character = expression.charAt(index++);
+        switch (character) {
+          case "n":
+            value += `
+`;
+            break;
+          case "r":
+            value += "\r";
+            break;
+          case "t":
+            value += "\t";
+            break;
+          case "b":
+            value += "\b";
+            break;
+          case "f":
+            value += "\f";
+            break;
+          case "v":
+            value += "\v";
+            break;
+          default:
+            value += character;
+        }
+      } else {
+        value += expression.charAt(index - 1);
+      }
     }
-    return {
-      type: LITERAL,
-      value: string
-    };
+    throw new Error(`Unclosed template after "${value}"`);
   };
   const gobbleTernary = (node) => {
     if (!node || expression.charCodeAt(index) !== QUESTION_MARK_CODE) {
@@ -3767,13 +4057,22 @@ var parse_default = (expression) => {
     }
     gobbleSpaces();
     const character = expression.charCodeAt(index);
-    if (isDecimalDigit(character) || character === PERIOD_CODE) {
+    if (character === PERIOD_CODE && expression.charCodeAt(index + 1) === PERIOD_CODE && expression.charCodeAt(index + 2) === PERIOD_CODE) {
+      index += 3;
+      node = {
+        type: SPREAD,
+        arguments: gobbleExpression()
+      };
+    } else if (character === PERIOD_CODE || isDecimalDigit(character)) {
       return gobbleNumericLiteral();
-    }
-    if (character === 34 || character === 39) {
+    } else if (character === DOUBLE_QUOTE_CODE || character === SINGLE_QUOTE_CODE) {
       node = gobbleStringLiteral();
+    } else if (character === BACKTICK_CODE) {
+      node = gobbleTemplateLiteral();
     } else if (character === OPENING_BRACKET_CODE) {
       node = gobbleArray();
+    } else if (character === FORWARD_SLASH_CODE) {
+      node = gobbleRegularExpression();
     } else {
       let toCheck = expression.substring(index, index + 1);
       let toCheckLength = toCheck.length;
@@ -3790,19 +4089,25 @@ var parse_default = (expression) => {
             parameter
           });
         }
-        toCheck = toCheck.substr(0, --toCheckLength);
+        toCheck = toCheck.substring(0, --toCheckLength);
       }
-      if (isIdentifierStart(character)) {
-        node = gobbleIdentifier();
-        if (Object.hasOwn(LITERALS, node.name)) {
-          node = {
-            type: LITERAL,
-            value: LITERALS[node.name]
-          };
-        }
-      } else if (character === OPENING_PARENTHESIS_CODE) {
-        node = gobbleSequence();
+    }
+    if (isIdentifierStart(character)) {
+      node = gobbleIdentifier();
+      if (Object.hasOwn(LITERALS, node.name)) {
+        node = {
+          type: LITERAL,
+          value: LITERALS[node.name]
+        };
+      } else if (node.name === "return") {
+        const argument = gobbleExpression();
+        node = {
+          type: RETURN,
+          argument
+        };
       }
+    } else if (character === OPENING_PARENTHESIS_CODE) {
+      node = gobbleSequence();
     }
     return gobbleUpdateSuffixExpression(gobbleTokenProperty(node));
   };
@@ -3861,29 +4166,22 @@ var parse_default = (expression) => {
     return node;
   };
   const gobbleUpdatePrefixExpression = () => {
-    if (index + 1 >= expression.length) {
-      return;
+    if (index + 1 < expression.length) {
+      const characters = expression.substring(index, index + 2);
+      if (characters === UPDATE_OPERATOR_DECREMENT || characters === UPDATE_OPERATOR_INCREMENT) {
+        index += 2;
+        const node = {
+          type: UPDATE,
+          operator: characters,
+          parameter: gobbleTokenProperty(gobbleIdentifier()),
+          prefix: true
+        };
+        if (!node.parameter || node.parameter.type !== IDENTIFIER && node.parameter.type !== MEMBER) {
+          throw new Error(`Unexpected ${node.operator}`);
+        }
+        return node;
+      }
     }
-    const characters = expression.substring(index, index + 2);
-    let operator = null;
-    if (characters === UPDATE_OPERATOR_DECREMENT) {
-      operator = UPDATE_OPERATOR_DECREMENT;
-    } else if (characters === UPDATE_OPERATOR_INCREMENT) {
-      operator = UPDATE_OPERATOR_INCREMENT;
-    } else {
-      return;
-    }
-    index += 2;
-    const node = {
-      type: UPDATE,
-      operator,
-      parameter: gobbleTokenProperty(gobbleIdentifier()),
-      prefix: true
-    };
-    if (!node.parameter || node.parameter.type !== IDENTIFIER && node.parameter.type !== MEMBER) {
-      throw new Error(`Unexpected ${node.operator}`);
-    }
-    return node;
   };
   const gobbleUpdateSuffixExpression = (node) => {
     if (!node || index + 1 >= expression.length) {
@@ -3934,34 +4232,67 @@ var run = (node, context = {}) => {
     return;
   }
   if (Array.isArray(node)) {
-    return node.map((node2) => run(node2, context));
+    if (node.length === 1 && node[0].type === ARROW) {
+      const arrowFn = run(node[0], context);
+      const args = node[0].parameters.map((param) => {
+        if (param.type === IDENTIFIER) {
+          return context[param.name];
+        }
+        return;
+      });
+      return [arrowFn(...args)];
+    }
+    const results = [];
+    for (const nodeItem of node) {
+      const result = run(nodeItem, context);
+      if (nodeItem.type === RETURN) {
+        results.push(result);
+        break;
+      }
+      results.push(result);
+    }
+    return results;
   }
   switch (node.type) {
-    case IDENTIFIER:
-      return context[node.name];
-    case LITERAL:
-      return node.value;
     case ARRAY: {
       const arrayResults = [];
       for (const arrayElement of node.elements) {
-        arrayResults.push(run(arrayElement, context));
+        if (arrayElement.type === SPREAD) {
+          arrayResults.push(...run(arrayElement.arguments, context));
+        } else {
+          arrayResults.push(run(arrayElement, context));
+        }
       }
       return arrayResults;
+    }
+    case ARROW: {
+      return (...args) => {
+        const localContext = Object.create(context);
+        for (let i = 0;i < node.parameters.length; i++) {
+          const parameter = node.parameters[i];
+          if (parameter?.type === IDENTIFIER) {
+            localContext[parameter.name] = args[i];
+          } else if (parameter?.type === OBJECT) {
+            const argument = args[i];
+            for (const property of parameter.properties) {
+              localContext[property.key.name] = argument[property.key.name];
+            }
+          }
+        }
+        const result = run(node.body, localContext);
+        if (result?.type === RETURN) {
+          return result.value;
+        }
+        return result;
+      };
     }
     case ASSIGN: {
       let assignmentValue = run(node.right, context);
       if (node.operator !== "=") {
         const assignmentLeft = run(node.left, context);
         switch (node.operator) {
-          case "||=":
-            if (assignmentLeft) {
-              return assignmentLeft;
-            }
-            break;
-          case "&&=":
-            if (!assignmentLeft) {
-              return assignmentLeft;
-            }
+          case "-=":
+            assignmentValue = assignmentLeft - assignmentValue;
             break;
           case "??=":
             if (assignmentLeft !== null && assignmentLeft !== undefined) {
@@ -3977,14 +4308,39 @@ var run = (node, context = {}) => {
           case "/=":
             assignmentValue = assignmentLeft / assignmentValue;
             break;
+          case "&=":
+            assignmentValue = assignmentLeft & assignmentValue;
+            break;
+          case "&&=":
+            if (!assignmentLeft) {
+              return assignmentLeft;
+            }
+            break;
           case "%=":
             assignmentValue = assignmentLeft % assignmentValue;
+            break;
+          case "^=":
+            assignmentValue = assignmentLeft ^ assignmentValue;
             break;
           case "+=":
             assignmentValue = assignmentLeft + assignmentValue;
             break;
-          case "-=":
-            assignmentValue = assignmentLeft - assignmentValue;
+          case "<<=":
+            assignmentValue = assignmentLeft << assignmentValue;
+            break;
+          case ">>=":
+            assignmentValue = assignmentLeft >> assignmentValue;
+            break;
+          case ">>>=":
+            assignmentValue = assignmentLeft >>> assignmentValue;
+            break;
+          case "|=":
+            assignmentValue = assignmentLeft | assignmentValue;
+            break;
+          case "||=":
+            if (assignmentLeft) {
+              return assignmentLeft;
+            }
             break;
         }
       }
@@ -3994,53 +4350,85 @@ var run = (node, context = {}) => {
       const binaryLeft = run(node.left, context);
       const binaryRight = run(node.right, context);
       switch (node.operator) {
-        case "||":
-          return binaryLeft || binaryRight;
-        case "&&":
-          return binaryLeft && binaryRight;
-        case "??":
-          return binaryLeft ?? binaryRight;
-        case "==":
-          return binaryLeft === binaryRight;
-        case "!=":
-          return binaryLeft !== binaryRight;
-        case "===":
-          return binaryLeft === binaryRight;
-        case "!==":
-          return binaryLeft !== binaryRight;
-        case "<":
-          return binaryLeft < binaryRight;
-        case ">":
-          return binaryLeft > binaryRight;
-        case "<=":
-          return binaryLeft <= binaryRight;
-        case ">=":
-          return binaryLeft >= binaryRight;
         case "-":
           return binaryLeft - binaryRight;
-        case "+":
-          return binaryLeft + binaryRight;
+        case "!=":
+          return binaryLeft !== binaryRight;
+        case "!==":
+          return binaryLeft !== binaryRight;
+        case "??":
+          return binaryLeft ?? binaryRight;
         case "*":
           return binaryLeft * binaryRight;
+        case "**":
+          return binaryLeft ** binaryRight;
         case "/":
           return binaryLeft / binaryRight;
+        case "&":
+          return binaryLeft & binaryRight;
+        case "&&":
+          return binaryLeft && binaryRight;
         case "%":
           return binaryLeft % binaryRight;
+        case "^":
+          return binaryLeft ^ binaryRight;
+        case "+":
+          return binaryLeft + binaryRight;
+        case "<":
+          return binaryLeft < binaryRight;
+        case "<<":
+          return binaryLeft << binaryRight;
+        case "<=":
+          return binaryLeft <= binaryRight;
+        case "==":
+          return binaryLeft === binaryRight;
+        case "===":
+          return binaryLeft === binaryRight;
+        case ">":
+          return binaryLeft > binaryRight;
+        case ">=":
+          return binaryLeft >= binaryRight;
+        case ">>":
+          return binaryLeft >> binaryRight;
+        case ">>>":
+          return binaryLeft >>> binaryRight;
+        case "|":
+          return binaryLeft | binaryRight;
+        case "||":
+          return binaryLeft || binaryRight;
       }
       throw new Error(`Unsupported operator: ${node.operator}`);
     }
     case CALL: {
+      const callee = run(node.callee, context);
+      if (node.callee?.optional && (callee === null || callee === undefined)) {
+        return;
+      }
       const parameters = [];
       for (const parameter of node.parameters) {
-        parameters.push(run(parameter, context));
+        if (parameter.type === SPREAD) {
+          parameters.push(...run(parameter.arguments, context));
+        } else {
+          parameters.push(run(parameter, context));
+        }
       }
-      return run(node.callee, context)(...parameters);
+      return callee(...parameters);
     }
     case CONDITION:
       return run(node.condition, context) ? run(node.consequent, context) : run(node.alternate, context);
+    case IDENTIFIER:
+      return context[node.name];
+    case LITERAL:
+      return node.value;
     case MEMBER: {
       const memberObject = run(node.object, context);
       const memberProperty = node.computed || node.property.type !== IDENTIFIER ? run(node.property, context) : node.property.name;
+      if (memberObject === null || memberObject === undefined) {
+        if (node.optional) {
+          return;
+        }
+        throw new Error(`Can not access property "${memberProperty}" on "${typeof memberObject}", node: ${JSON.stringify(node)}.`);
+      }
       if (typeof memberObject[memberProperty] === "function") {
         return memberObject[memberProperty].bind(memberObject);
       }
@@ -4049,21 +4437,32 @@ var run = (node, context = {}) => {
     case OBJECT: {
       const objectResult = {};
       for (const objectProperty of node.properties) {
-        objectResult[objectProperty.computed || objectProperty.key.type !== IDENTIFIER ? run(objectProperty.key, context) : objectProperty.key.name] = run(objectProperty.value, context);
+        objectResult[objectProperty.computed || objectProperty.key?.type !== IDENTIFIER && objectProperty.callee?.type !== IDENTIFIER ? run(objectProperty.key, context) : objectProperty.key?.name ?? objectProperty.callee?.name] = run(objectProperty.value, context);
       }
       return objectResult;
     }
+    case RETURN:
+      if (node.argument) {
+        return run(node.argument, context);
+      }
+      return;
     case SEQUENCE:
       return node.expressions.map((node2) => run(node2, context));
+    case SPREAD:
+      return run(node.arguments, context);
+    case TEMPLATE:
+      return node.elements.map((element, index) => element + (index < node.expressions.length ? run(node.expressions[index], context).toString() : "")).join("");
     case UNARY: {
       const unaryParameter = run(node.parameter, context);
       switch (node.operator) {
-        case "!":
-          return !unaryParameter;
         case "-":
           return -unaryParameter;
+        case "!":
+          return !unaryParameter;
         case "+":
           return +unaryParameter;
+        case "~":
+          return ~unaryParameter;
       }
       throw new Error(`Unsupported operator: ${node.operator}`);
     }
@@ -4114,4 +4513,4 @@ export {
   DoarsInterpret_default as default
 };
 
-//# debugId=05DDEA37CED1C04964756E2164756E21
+//# debugId=3B96EEAE63E16F9764756E2164756E21

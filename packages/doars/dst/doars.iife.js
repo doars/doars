@@ -106,6 +106,55 @@
     };
   };
 
+  // ../common/src/polyfills/RevocableProxy.js
+  var PROXY_TRAPS = [
+    "apply",
+    "construct",
+    "defineProperty",
+    "deleteProperty",
+    "get",
+    "getOwnPropertyDescriptor",
+    "getPrototypeOf",
+    "has",
+    "isExtensible",
+    "ownKeys",
+    "preventExtensions",
+    "set",
+    "setPrototypeOf"
+  ];
+  var RevocableProxy_default = (target, handler, options = {}) => {
+    options = Object.assign({
+      irrevocable: []
+    }, options);
+    let revoked = false;
+    const revocableHandler = {};
+    for (const key of PROXY_TRAPS) {
+      revocableHandler[key] = (...parameters) => {
+        const [localTarget, ...localParameters] = parameters;
+        if (revoked) {
+          for (const key2 of Object.keys(localTarget)) {
+            if (!options.irrevocable || options.irrevocable.indexOf(key2) < 0) {
+              localTarget[key2] = undefined;
+            }
+          }
+        }
+        if (key in handler) {
+          const trap = handler[key];
+          if (typeof trap === "function") {
+            return trap(localTarget, ...localParameters);
+          }
+        }
+        return Reflect[key](localTarget, ...localParameters);
+      };
+    }
+    return {
+      proxy: new Proxy(target, revocableHandler),
+      revoke: () => {
+        revoked = true;
+      }
+    };
+  };
+
   // ../common/src/events/ProxyDispatcher.js
   class ProxyDispatcher extends EventDispatcher {
     constructor(options = {}) {
@@ -168,8 +217,8 @@
             return true;
           };
         }
-        const revocable = Proxy.revocable(target, handler);
-        map.set(revocable, target);
+        const revocable = RevocableProxy_default(target, handler);
+        map.set(target, revocable);
         return revocable.proxy;
       };
       this.remove = (target) => {
@@ -177,7 +226,7 @@
           return;
         }
         const revocable = map.get(target);
-        map.delete(revocable);
+        map.delete(target);
         for (const property in revocable.proxy) {
           if (typeof revocable.proxy[property] === "object") {
             this.remove(revocable.proxy[property]);
@@ -523,13 +572,7 @@
             attribute.destroy();
           }
         }
-        delete element[COMPONENT];
         attributes = [];
-        isInitialized = false;
-        proxy.remove(data);
-        state = null;
-        proxy = null;
-        data = null;
         const triggers = [];
         if (children.length > 0) {
           for (const child of children) {
@@ -560,6 +603,12 @@
         if (triggers.length > 0) {
           library.update(triggers);
         }
+        delete element[COMPONENT];
+        isInitialized = false;
+        proxy.remove(data);
+        state = null;
+        proxy = null;
+        data = null;
         dispatchEvent("destroyed", {
           element,
           id
@@ -675,6 +724,7 @@
     let after = "", before = "";
     const creatableContexts = library.getContexts();
     const destroyFunctions = [];
+    const irrevocableContexts = [];
     for (const creatableContext of creatableContexts) {
       if (!creatableContext || !creatableContext.name) {
         continue;
@@ -691,6 +741,9 @@
         before += `with(${creatableContext.name}) { `;
         after += " }";
       }
+      if (creatableContext.revocable === false) {
+        irrevocableContexts.push(creatableContext.name);
+      }
       contexts[creatableContext.name] = result.value;
     }
     if (typeof extra === "object") {
@@ -700,9 +753,10 @@
     }
     return {
       contexts,
+      irrevocableContexts,
       destroy: () => {
-        for (const destroyFunction of destroyFunctions) {
-          destroyFunction();
+        for (let index = destroyFunctions.length - 1;index >= 0; index--) {
+          destroyFunctions[index]();
         }
       },
       after,
@@ -712,7 +766,7 @@
   };
   var createContextsProxy = (component, attribute, update, extra = null) => {
     let data = null;
-    const revocable = Proxy.revocable({}, {
+    const revocable = RevocableProxy_default({}, {
       get: (_target, property) => {
         if (!data) {
           data = createContexts(component, attribute, update, extra);
@@ -747,10 +801,14 @@
         path: context
       });
     };
-    const { contexts, destroy } = createContexts(component, attribute, update, extra);
+    const { contexts, destroy, irrevocableContexts } = createContexts(component, attribute, update, extra);
+    const contextProxy = RevocableProxy_default(contexts, {}, {
+      irrevocable: irrevocableContexts
+    });
     return [
-      contexts,
+      contextProxy.proxy,
       () => {
+        contextProxy.revoke();
         destroy();
         if (triggers.length > 0) {
           component.getLibrary().update(triggers);
@@ -764,7 +822,7 @@
     name: childrenContextName,
     create: (component, attribute, update) => {
       let childrenContexts;
-      const revocable = Proxy.revocable(component.getChildren(), {
+      const revocable = RevocableProxy_default(component.getChildren(), {
         get: (target, key, receiver) => {
           if (!childrenContexts) {
             childrenContexts = target.map((child2) => createContextsProxy(child2, attribute, update));
@@ -847,7 +905,7 @@
       if (items.length === 0) {
         return;
       }
-      const revocable = Proxy.revocable(target, {
+      const revocable = RevocableProxy_default(target, {
         get: (_target, key) => {
           for (const item of items) {
             if (key in item.variables) {
@@ -868,6 +926,7 @@
 
   // src/contexts/inContext.js
   var inContext_default = ({ inContextContextName }) => ({
+    revocable: false,
     name: inContextContextName,
     create: (component, attribute) => ({
       value: (callback) => {
@@ -1016,7 +1075,7 @@
         }
         component[REFERENCES_CACHE] = cache;
       }
-      const revocable = Proxy.revocable(cache, {
+      const revocable = RevocableProxy_default(cache, {
         get: (target, propertyKey, receiver) => {
           attribute.accessed(component.getId(), `$references.${propertyKey}`);
           return Reflect.get(target, propertyKey, receiver);
@@ -1042,7 +1101,7 @@
         };
       }
       let siblingsContexts;
-      const revocable = Proxy.revocable(parent.getChildren().filter((sibling) => sibling !== component), {
+      const revocable = RevocableProxy_default(parent.getChildren().filter((sibling) => sibling !== component), {
         get: (target, key, receiver) => {
           if (!siblingsContexts) {
             siblingsContexts = target.map((child) => createContextsProxy(child, attribute, update));
@@ -1080,7 +1139,7 @@
       proxy.addEventListener("delete", onDelete);
       proxy.addEventListener("get", onGet);
       proxy.addEventListener("set", onSet);
-      const revocable = Proxy.revocable(state, {});
+      const revocable = RevocableProxy_default(state, {});
       return {
         value: revocable.proxy,
         destroy: () => {
@@ -3347,4 +3406,4 @@ ${error.name}: ${error.message}`);
   window.Doars = DoarsExecute_default;
 })();
 
-//# debugId=E9BA4F0F215BB71064756E2164756E21
+//# debugId=2CA7700E74C2A89E64756E2164756E21

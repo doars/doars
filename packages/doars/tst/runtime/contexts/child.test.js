@@ -18,7 +18,7 @@ describe("Child Context", () => {
 	});
 
 	test("children context should list child components", async () => {
-		const captured = {};
+		let count = 0;
 
 		container.innerHTML = `
       <div d-state="{}" d-initialized="setCount($children.length)">
@@ -31,15 +31,15 @@ describe("Child Context", () => {
 			root: container,
 		});
 
-		doars.setSimpleContext("setCount", (count) => {
-			captured.count = count.toString();
+		doars.setSimpleContext("setCount", (_count) => {
+			count = _count;
 		});
 
 		doars.enable();
 
 		await new Promise((resolve) => setTimeout(resolve, 1));
 
-		expect(captured.count).toBe("2");
+		expect(count).toBe(2);
 	});
 
 	test("child context should access specific child component", async () => {
