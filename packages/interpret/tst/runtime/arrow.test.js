@@ -224,3 +224,129 @@ test(
 		arrowFunction,
 	},
 );
+
+// Nested arrow function - inner arrow function defined inside outer
+test("Nested arrow function invoked", "((x) => ((y) => x + y))(2)(1)", 3, {
+	callee: {
+		callee: {
+			body: {
+				body: {
+					type: BINARY,
+					operator: "+",
+					left: {
+						type: IDENTIFIER,
+						name: "x",
+					},
+					right: {
+						type: IDENTIFIER,
+						name: "y",
+					},
+				},
+				parameters: [
+					{
+						type: IDENTIFIER,
+						name: "y",
+					},
+				],
+				type: ARROW,
+			},
+			parameters: [
+				{
+					type: IDENTIFIER,
+					name: "x",
+				},
+			],
+			type: ARROW,
+		},
+		parameters: [
+			{
+				type: LITERAL,
+				value: 2,
+			},
+		],
+		type: CALL,
+	},
+	parameters: [
+		{
+			type: LITERAL,
+			value: 1,
+		},
+	],
+	type: CALL,
+});
+
+// Arrow function with object parameter (destructuring)
+test(
+	"Arrow function with object destructuring",
+	"(({ a, b }) => a * b)(c)",
+	15,
+	{
+		callee: {
+			body: {
+				left: {
+					name: "a",
+					type: IDENTIFIER,
+				},
+				operator: "*",
+				right: {
+					name: "b",
+					type: IDENTIFIER,
+				},
+				type: 7,
+			},
+			parameters: [
+				{
+					properties: [
+						{
+							computed: false,
+							key: {
+								name: "a",
+								type: IDENTIFIER,
+							},
+							shorthand: true,
+							type: PROPERTY,
+							value: {
+								name: "a",
+								type: IDENTIFIER,
+							},
+						},
+						{
+							computed: false,
+							key: {
+								name: "b",
+								type: IDENTIFIER,
+							},
+							shorthand: true,
+							type: PROPERTY,
+							value: {
+								name: "b",
+								type: IDENTIFIER,
+							},
+						},
+					],
+					type: OBJECT,
+				},
+			],
+			type: ARROW,
+		},
+		parameters: [
+			{
+				name: "c",
+				type: IDENTIFIER,
+			},
+		],
+		type: CALL,
+	},
+	{
+		c: {
+			a: 3,
+			b: 5,
+		},
+	},
+	{
+		c: {
+			a: 3,
+			b: 5,
+		},
+	},
+);

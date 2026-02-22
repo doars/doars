@@ -35,7 +35,6 @@ import {
 const setToContext = (node, value, context = {}) => {
 	switch (node.type) {
 		case IDENTIFIER:
-			// Assign to
 			context[node.name] = value;
 			return value;
 
@@ -110,11 +109,20 @@ const run = (node, context = {}) => {
 		// Arrow function - returns a function that executes the body with the provided parameters.
 		case ARROW: {
 			return (...args) => {
-				const localContext = { ...context };
+				const localContext = Object.create(context);
 				for (let i = 0; i < node.parameters.length; i++) {
-					const param = node.parameters[i];
-					if (param.type === IDENTIFIER) {
-						localContext[param.name] = args[i];
+					const parameter = node.parameters[i];
+					if (parameter?.type === IDENTIFIER) {
+						localContext[parameter.name] = args[i];
+					} else if (parameter?.type === OBJECT) {
+						const arg = args[i];
+						for (const prop of parameter.properties) {
+							if (prop.shorthand) {
+								localContext[prop.key.name] = arg[prop.key.name];
+							} else {
+								localContext[prop.key.name] = arg[prop.key.name];
+							}
+						}
 					}
 				}
 				const result = run(node.body, localContext);
@@ -278,8 +286,11 @@ const run = (node, context = {}) => {
 		// Member access - evaluates object.property or object[property].
 		case MEMBER: {
 			const memberObject = run(node.object, context);
-			// Handle optional chaining: if optional and object is null/undefined, return undefined
-			if (node.optional && (memberObject === null || memberObject === undefined)) {
+			// Handle optional chaining.
+			if (
+				node.optional &&
+				(memberObject === null || memberObject === undefined)
+			) {
 				return undefined;
 			}
 			const memberProperty =

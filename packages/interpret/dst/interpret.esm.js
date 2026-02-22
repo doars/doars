@@ -255,7 +255,7 @@ var parse_default = (expression) => {
   };
   const gobbleArrowFunction = (node) => {
     gobbleSpaces();
-    if (node && (node.type === IDENTIFIER || node.type === ARRAY || node.type === ARROW)) {
+    if (node && (node.type === IDENTIFIER || node.type === ARRAY || node.type === OBJECT || node.type === ARROW)) {
       if (expression.charCodeAt(index) === EQUAL_CODE && expression.charCodeAt(index + 1) === ANGLE_RIGHT_CODE) {
         index += 2;
         gobbleSpaces();
@@ -270,6 +270,8 @@ var parse_default = (expression) => {
           parameters = [node];
         } else if (node.type === ARRAY) {
           parameters = node.elements;
+        } else if (node.type === OBJECT) {
+          parameters = [node];
         } else {
           parameters = [];
         }
@@ -897,11 +899,20 @@ var run = (node, context = {}) => {
     }
     case ARROW: {
       return (...args) => {
-        const localContext = { ...context };
+        const localContext = Object.create(context);
         for (let i = 0;i < node.parameters.length; i++) {
-          const param = node.parameters[i];
-          if (param.type === IDENTIFIER) {
-            localContext[param.name] = args[i];
+          const parameter = node.parameters[i];
+          if (parameter?.type === IDENTIFIER) {
+            localContext[parameter.name] = args[i];
+          } else if (parameter?.type === OBJECT) {
+            const arg = args[i];
+            for (const prop of parameter.properties) {
+              if (prop.shorthand) {
+                localContext[prop.key.name] = arg[prop.key.name];
+              } else {
+                localContext[prop.key.name] = arg[prop.key.name];
+              }
+            }
           }
         }
         const result = run(node.body, localContext);
@@ -1154,4 +1165,4 @@ export {
   ARRAY2 as ARRAY
 };
 
-//# debugId=E60B09D2DB968C2664756E2164756E21
+//# debugId=F44CA02AB8B9E07664756E2164756E21

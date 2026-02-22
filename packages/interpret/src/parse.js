@@ -377,14 +377,14 @@ export default (expression) => {
 
 	/**
 	 * Parses an arrow function if the => operator is present.
-	 * @param {Object} node - The node that could be parameters (identifier or array of parameters in parentheses).
+	 * @param {Object} node - The node that could be parameters (identifier, array, or object for destructuring).
 	 * @returns {Object} The ARROW node if arrow function detected, otherwise the original node.
 	 */
 	const gobbleArrowFunction = (node) => {
 		gobbleSpaces();
 		if (
 			node &&
-			(node.type === IDENTIFIER || node.type === ARRAY || node.type === ARROW)
+			(node.type === IDENTIFIER || node.type === ARRAY || node.type === OBJECT || node.type === ARROW)
 		) {
 			if (
 				expression.charCodeAt(index) === EQUAL_CODE &&
@@ -403,6 +403,8 @@ export default (expression) => {
 					parameters = [node];
 				} else if (node.type === ARRAY) {
 					parameters = node.elements;
+				} else if (node.type === OBJECT) {
+					parameters = [node];
 				} else {
 					parameters = [];
 				}
