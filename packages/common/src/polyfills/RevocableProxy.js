@@ -50,8 +50,6 @@ const PROXY_TRAPS = [
 	"setPrototypeOf",
 ];
 
-let index = 0;
-
 /**
  * Revocable proxy made using regular a proxy and a simple boolean.
  * @param {object} target Object to proxy.
@@ -69,11 +67,6 @@ export default (target, handler, options = {}) => {
 	// Keep track of status.
 	let revoked = false;
 
-	index++;
-	const localIndex = index;
-	console.trace("setup", localIndex);
-
-	// Add revocable handlers for each given handlers.
 	/**
 	 * Copy of allowed handlers with a revocable layer in between.
 	 * @type {ProxyHandler}
@@ -81,29 +74,28 @@ export default (target, handler, options = {}) => {
 	const revocableHandler = {};
 	for (const key of PROXY_TRAPS) {
 		revocableHandler[key] = (...parameters) => {
-			console.log("Accessing on proxy", localIndex, parameters[1]);
-			if (
-				revoked &&
-				(parameters.length < 2 || !options.irrevocable.includes(parameters[1]))
-			) {
-				return;
+			const [localTarget, ...localParameters] = parameters;
+			if (revoked) {
+				for (const key of Object.keys(localTarget)) {
+					if (!options.irrevocable || options.irrevocable.indexOf(key) < 0) {
+						localTarget[key] = undefined;
+					}
+				}
 			}
 
 			if (key in handler) {
 				const trap = handler[key];
 				if (typeof trap === "function") {
-					return trap(...parameters);
+					return trap(localTarget, ...localParameters);
 				}
 			}
-			return Reflect[key](...parameters);
+			return Reflect[key](localTarget, ...localParameters);
 		};
 	}
 
-	// Return proxy and revoke method.
 	return {
 		proxy: new Proxy(target, revocableHandler),
 		revoke: () => {
-			console.log("revoke", localIndex);
 			revoked = true;
 		},
 	};
