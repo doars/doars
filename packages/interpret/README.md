@@ -60,7 +60,7 @@ Exported functions:
   - `@param {object} context` Context of the expression.
   - `@returns {Array}` results of the expression.
 
-The following node types are exported as variables: `ARRAY`, `ASSIGN`, `BINARY`, `CALL`, `CONDITION`, `IDENTIFIER`, `LITERAL`, `MEMBER`, `OBJECT`, `PROPERTY`, `SEQUENCE`, `UNARY`, `UPDATE`.
+The following node types are exported as variables: `ARROW`, `ARRAY`, `ASSIGN`, `BINARY`, `CALL`, `CONDITION`, `IDENTIFIER`, `LITERAL`, `MEMBER`, `OBJECT`, `PROPERTY`, `RETURN`, `SEQUENCE`, `SPREAD`, `TEMPLATE`, `UNARY`, `UPDATE`.
 
 > `interpret` is simply a short hand for `run(parse(expression), context)`.
 
@@ -70,6 +70,9 @@ The interpret does not support all JavaScript features. However any expression v
 
 - Identifiers and member access: `hello`, `hello.there`, `hello[there]` and `hello['there']`. Any identifiers need te be given via the context parameter when running the expression.
 - Function calls: `hello()`, `hello(there)` and `hello('there', 'general', 'kenobi')`. Any functions need te be given via the context parameter when running the expression.
+- Arrow functions: `() => 1`, `x => x`, `(x, y) => x + y`, `(x) => { return x * 2; }`. Parameters are bound from context values when the arrow function is auto-invoked at the top level.
+- Return: `return 1` stops execution and returns a value. Only valid in top-level expressions or inside arrow function block bodies.
+- Optional chaining: `hello?.there` and `hello?.there()`.
 - Multiple clauses: `hello(); world()`. The result of each expression is returned, hence the `interpret` and `run` functions always return an array.
 
 As well as several value types and most operators. See an overview below for more information.
@@ -80,7 +83,9 @@ As well as several value types and most operators. See an overview below for mor
 - Undefined: `undefined`.
 - Booleans: `false` and `true`.
 - Strings: `'hello'` and `"there"`.
+- Template strings: <code>`hello ${world}`</code>.
 - Numbers: `1` and `12.3`.
+- Regular expressions: `/pattern/flags`.
 - Arrays: `[]`, `['hello']`, and `['hello', 'there']`.
 - Objects: `{}`, `{ hello: 'there' }`, `{ hello: 'there', general: 'kenobi' }`, `{ [hello]: 'there' }`, `{ hello }`, and `{ hello, there }`.
 
@@ -96,3 +101,5 @@ As well as several value types and most operators. See an overview below for mor
 - Assignment: `hello = 'there'`.
 - Arithmetic assignment: `hello **= 2` as well as `*=`, `/=`, `%=`, `+=`, and `-=`.
 - Logical assignment: `hello ||= 'there'` as well as `&&=` and `??=`.
+- Spread: `...args` in array literals and function calls.
+- Bitwise: `5 & 3`, `5 | 3`, `5 ^ 3`, `~5`, `5 << 1`, `5 >> 1`, and `5 >>> 1`.

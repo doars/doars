@@ -674,6 +674,10 @@ export default (expression) => {
 		}
 	};
 
+	/**
+	 * Parses a regular expression literal like /pattern/flags. Supports flags like g, i, m, etc.
+	 * @returns {Object|undefined} AST node with type LITERAL and RegExp value, or undefined if not a regex.
+	 */
 	const gobbleRegularExpression = () => {
 		if (expression.charCodeAt(index) === FORWARD_SLASH_CODE) {
 			const startIndex = ++index;
@@ -834,6 +838,11 @@ export default (expression) => {
 		throw new Error(`Unclosed quote after "${value}"`);
 	};
 
+	/**
+	 * Parses a template literal string like `hello ${world}`. Supports string interpolation with expressions inside ${}.
+	 * @returns {Object} AST node with type TEMPLATE and elements/expressions arrays.
+	 * @throws {Error} If the template literal is not properly closed.
+	 */
 	const gobbleTemplateLiteral = () => {
 		index++;
 		let value = "";

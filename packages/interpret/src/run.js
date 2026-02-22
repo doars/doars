@@ -245,6 +245,11 @@ const run = (node, context = {}) => {
 
 		// Function call - evaluates callee and arguments, then invokes the function.
 		case CALL: {
+			const callee = run(node.callee, context);
+			// Handle optional chaining: if callee is undefined/null, return undefined
+			if (node.callee?.optional && (callee === null || callee === undefined)) {
+				return undefined;
+			}
 			const parameters = [];
 			for (const parameter of node.parameters) {
 				if (parameter.type === SPREAD) {
@@ -253,7 +258,7 @@ const run = (node, context = {}) => {
 					parameters.push(run(parameter, context));
 				}
 			}
-			return run(node.callee, context)(...parameters);
+			return callee(...parameters);
 		}
 
 		// Ternary conditional - evaluates condition and returns consequent or alternate.
@@ -273,6 +278,10 @@ const run = (node, context = {}) => {
 		// Member access - evaluates object.property or object[property].
 		case MEMBER: {
 			const memberObject = run(node.object, context);
+			// Handle optional chaining: if optional and object is null/undefined, return undefined
+			if (node.optional && (memberObject === null || memberObject === undefined)) {
+				return undefined;
+			}
 			const memberProperty =
 				node.computed || node.property.type !== IDENTIFIER
 					? run(node.property, context)

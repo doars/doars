@@ -1025,6 +1025,10 @@ var run = (node, context = {}) => {
       throw new Error(`Unsupported operator: ${node.operator}`);
     }
     case CALL: {
+      const callee = run(node.callee, context);
+      if (node.callee?.optional && (callee === null || callee === undefined)) {
+        return;
+      }
       const parameters = [];
       for (const parameter of node.parameters) {
         if (parameter.type === SPREAD) {
@@ -1033,7 +1037,7 @@ var run = (node, context = {}) => {
           parameters.push(run(parameter, context));
         }
       }
-      return run(node.callee, context)(...parameters);
+      return callee(...parameters);
     }
     case CONDITION:
       return run(node.condition, context) ? run(node.consequent, context) : run(node.alternate, context);
@@ -1043,6 +1047,9 @@ var run = (node, context = {}) => {
       return node.value;
     case MEMBER: {
       const memberObject = run(node.object, context);
+      if (node.optional && (memberObject === null || memberObject === undefined)) {
+        return;
+      }
       const memberProperty = node.computed || node.property.type !== IDENTIFIER ? run(node.property, context) : node.property.name;
       if (typeof memberObject[memberProperty] === "function") {
         return memberObject[memberProperty].bind(memberObject);
@@ -1147,4 +1154,4 @@ export {
   ARRAY2 as ARRAY
 };
 
-//# debugId=F05B73E6DA45B5A564756E2164756E21
+//# debugId=E60B09D2DB968C2664756E2164756E21
