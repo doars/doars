@@ -9,6 +9,7 @@ var LITERAL = 3;
 var MEMBER = 10;
 var OBJECT = 11;
 var PROPERTY = 4;
+var RETURN = 16;
 var SEQUENCE = 12;
 var SPREAD = 17;
 var TEMPLATE = 18;
@@ -258,6 +259,9 @@ var parse_default = (expression) => {
         const node = gobbleExpression();
         if (node) {
           nodes2.push(node);
+          if (node.type === RETURN) {
+            break;
+          }
         } else if (index < expression.length) {
           if (characterIndex === untilCharacterCode) {
             break;
@@ -618,6 +622,12 @@ var parse_default = (expression) => {
             type: LITERAL,
             value: LITERALS[node.name]
           };
+        } else if (node.name === "return") {
+          const argument = gobbleExpression();
+          node = {
+            type: RETURN,
+            argument
+          };
         }
       } else if (character === OPENING_PARENTHESIS_CODE) {
         node = gobbleSequence();
@@ -746,13 +756,18 @@ var run = (node, context = {}) => {
     return;
   }
   if (Array.isArray(node)) {
-    return node.map((node2) => run(node2, context));
+    const results = [];
+    for (const nodeItem of node) {
+      const result = run(nodeItem, context);
+      if (nodeItem.type === RETURN) {
+        results.push(result);
+        break;
+      }
+      results.push(result);
+    }
+    return results;
   }
   switch (node.type) {
-    case IDENTIFIER:
-      return context[node.name];
-    case LITERAL:
-      return node.value;
     case ARRAY: {
       const arrayResults = [];
       for (const arrayElement of node.elements) {
@@ -890,6 +905,10 @@ var run = (node, context = {}) => {
     }
     case CONDITION:
       return run(node.condition, context) ? run(node.consequent, context) : run(node.alternate, context);
+    case IDENTIFIER:
+      return context[node.name];
+    case LITERAL:
+      return node.value;
     case MEMBER: {
       const memberObject = run(node.object, context);
       const memberProperty = node.computed || node.property.type !== IDENTIFIER ? run(node.property, context) : node.property.name;
@@ -905,6 +924,11 @@ var run = (node, context = {}) => {
       }
       return objectResult;
     }
+    case RETURN:
+      if (node.argument) {
+        return run(node.argument, context);
+      }
+      return;
     case SEQUENCE:
       return node.expressions.map((node2) => run(node2, context));
     case SPREAD:
@@ -991,4 +1015,4 @@ export {
   ARRAY2 as ARRAY
 };
 
-//# debugId=2487C414FF12781A64756E2164756E21
+//# debugId=7E113F5B3798E0CF64756E2164756E21

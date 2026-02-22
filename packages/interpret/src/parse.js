@@ -15,6 +15,7 @@ import {
 	MEMBER,
 	OBJECT,
 	PROPERTY,
+	RETURN,
 	SEQUENCE,
 	SPREAD,
 	TEMPLATE,
@@ -383,6 +384,9 @@ export default (expression) => {
 				const node = gobbleExpression();
 				if (node) {
 					nodes.push(node);
+					if (node.type === RETURN) {
+						break;
+					}
 				} else if (index < expression.length) {
 					if (characterIndex === untilCharacterCode) {
 						break;
@@ -869,15 +873,21 @@ export default (expression) => {
 				toCheck = toCheck.substring(0, --toCheckLength);
 			}
 
-			if (isIdentifierStart(character)) {
-				node = gobbleIdentifier();
-				if (Object.hasOwn(LITERALS, node.name)) {
-					node = {
-						type: LITERAL,
-						value: LITERALS[node.name],
-						// raw: node.name,
-					};
-				}
+		if (isIdentifierStart(character)) {
+			node = gobbleIdentifier();
+			if (Object.hasOwn(LITERALS, node.name)) {
+				node = {
+					type: LITERAL,
+					value: LITERALS[node.name],
+					// raw: node.name,
+				};
+			} else if (node.name === "return") {
+				const argument = gobbleExpression();
+				node = {
+					type: RETURN,
+					argument,
+				};
+			}
 			} else if (character === OPENING_PARENTHESIS_CODE) {
 				node = gobbleSequence();
 			}

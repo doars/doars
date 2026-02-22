@@ -10,6 +10,7 @@
   var MEMBER = 10;
   var OBJECT = 11;
   var PROPERTY = 4;
+  var RETURN = 16;
   var SEQUENCE = 12;
   var SPREAD = 17;
   var TEMPLATE = 18;
@@ -259,6 +260,9 @@
           const node = gobbleExpression();
           if (node) {
             nodes2.push(node);
+            if (node.type === RETURN) {
+              break;
+            }
           } else if (index < expression.length) {
             if (characterIndex === untilCharacterCode) {
               break;
@@ -619,6 +623,12 @@
               type: LITERAL,
               value: LITERALS[node.name]
             };
+          } else if (node.name === "return") {
+            const argument = gobbleExpression();
+            node = {
+              type: RETURN,
+              argument
+            };
           }
         } else if (character === OPENING_PARENTHESIS_CODE) {
           node = gobbleSequence();
@@ -747,13 +757,18 @@
       return;
     }
     if (Array.isArray(node)) {
-      return node.map((node2) => run(node2, context));
+      const results = [];
+      for (const nodeItem of node) {
+        const result = run(nodeItem, context);
+        if (nodeItem.type === RETURN) {
+          results.push(result);
+          break;
+        }
+        results.push(result);
+      }
+      return results;
     }
     switch (node.type) {
-      case IDENTIFIER:
-        return context[node.name];
-      case LITERAL:
-        return node.value;
       case ARRAY: {
         const arrayResults = [];
         for (const arrayElement of node.elements) {
@@ -891,6 +906,10 @@
       }
       case CONDITION:
         return run(node.condition, context) ? run(node.consequent, context) : run(node.alternate, context);
+      case IDENTIFIER:
+        return context[node.name];
+      case LITERAL:
+        return node.value;
       case MEMBER: {
         const memberObject = run(node.object, context);
         const memberProperty = node.computed || node.property.type !== IDENTIFIER ? run(node.property, context) : node.property.name;
@@ -906,6 +925,11 @@
         }
         return objectResult;
       }
+      case RETURN:
+        if (node.argument) {
+          return run(node.argument, context);
+        }
+        return;
       case SEQUENCE:
         return node.expressions.map((node2) => run(node2, context));
       case SPREAD:
@@ -950,4 +974,4 @@
   };
 })();
 
-//# debugId=EF3A8EF92EDC4F2F64756E2164756E21
+//# debugId=214EA1D73B6154E064756E2164756E21

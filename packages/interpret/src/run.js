@@ -14,6 +14,7 @@ import {
 	LITERAL,
 	MEMBER,
 	OBJECT,
+	RETURN,
 	SEQUENCE,
 	SPREAD,
 	TEMPLATE,
@@ -68,18 +69,20 @@ const run = (node, context = {}) => {
 	}
 
 	if (Array.isArray(node)) {
-		return node.map((node) => run(node, context));
+		const results = [];
+		for (const nodeItem of node) {
+			const result = run(nodeItem, context);
+			// Iterate until a return type is encountered.
+			if (nodeItem.type === RETURN) {
+				results.push(result);
+				break;
+			}
+			results.push(result);
+		}
+		return results;
 	}
 
 	switch (node.type) {
-		// Variable lookup - retrieves value from context by identifier name.
-		case IDENTIFIER:
-			return context[node.name];
-
-		// Literal values - returns the raw value directly.
-		case LITERAL:
-			return node.value;
-
 		// Array literal - evaluates each element and returns as array.
 		case ARRAY: {
 			const arrayResults = [];
@@ -230,6 +233,14 @@ const run = (node, context = {}) => {
 				? run(node.consequent, context)
 				: run(node.alternate, context);
 
+		// Variable lookup - retrieves value from context by identifier name.
+		case IDENTIFIER:
+			return context[node.name];
+
+		// Literal values - returns the raw value directly.
+		case LITERAL:
+			return node.value;
+
 		// Member access - evaluates object.property or object[property].
 		case MEMBER: {
 			const memberObject = run(node.object, context);
@@ -256,6 +267,13 @@ const run = (node, context = {}) => {
 			}
 			return objectResult;
 		}
+
+		// Return statement - returns the argument value and signals to stop execution.
+		case RETURN:
+			if (node.argument) {
+				return run(node.argument, context);
+			}
+			return undefined;
 
 		// Sequence expression - evaluates multiple expressions and returns results as array.
 		case SEQUENCE:
