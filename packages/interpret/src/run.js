@@ -6,6 +6,7 @@
 
 import {
 	ARRAY,
+	ARROW,
 	ASSIGN,
 	BINARY,
 	CALL,
@@ -69,6 +70,16 @@ const run = (node, context = {}) => {
 	}
 
 	if (Array.isArray(node)) {
+		if (node.length === 1 && node[0].type === ARROW) {
+			const arrowFn = run(node[0], context);
+			const args = node[0].parameters.map((param) => {
+				if (param.type === IDENTIFIER) {
+					return context[param.name];
+				}
+				return undefined;
+			});
+			return [arrowFn(...args)];
+		}
 		const results = [];
 		for (const nodeItem of node) {
 			const result = run(nodeItem, context);
@@ -94,6 +105,24 @@ const run = (node, context = {}) => {
 				}
 			}
 			return arrayResults;
+		}
+
+		// Arrow function - returns a function that executes the body with the provided parameters.
+		case ARROW: {
+			return (...args) => {
+				const localContext = { ...context };
+				for (let i = 0; i < node.parameters.length; i++) {
+					const param = node.parameters[i];
+					if (param.type === IDENTIFIER) {
+						localContext[param.name] = args[i];
+					}
+				}
+				const result = run(node.body, localContext);
+				if (result?.type === RETURN) {
+					return result.value;
+				}
+				return result;
+			};
 		}
 
 		// Assignment operation - handles both simple (=) and compound assignments (+=, *=, etc.).

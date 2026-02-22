@@ -6,6 +6,7 @@
 
 import {
 	ARRAY,
+	ARROW,
 	ASSIGN,
 	BINARY,
 	CALL,
@@ -44,6 +45,8 @@ const ZERO_CODE = 48; // 0
 const NINE_CODE = 57; // 9
 const COLON_CODE = 58; // :
 const SEMICOLON_CODE = 59; // ;
+const EQUAL_CODE = 61; // =
+const ANGLE_RIGHT_CODE = 62; // >
 const QUESTION_MARK_CODE = 63; // ?
 const LOWER_A_CODE = 65; // a
 const LOWER_Z_CODE = 90; // z
@@ -260,11 +263,9 @@ export default (expression) => {
 			return left;
 		}
 
-		// TODO: Should check for arrow function first?
-
 		let value = gobbleBinaryOperation();
 		if (!value) {
-			return left;
+			return gobbleArrowFunction(left);
 		}
 
 		let binaryOperationInfo = {
@@ -348,7 +349,11 @@ export default (expression) => {
 				Object.hasOwn(BINARY_OPERATORS, toCheck) &&
 				(!isIdentifierStart(expression.charCodeAt(index)) ||
 					(index + toCheck.length < expression.length &&
-						!isIdentifierPart(expression.charCodeAt(index + toCheck.length))))
+						!isIdentifierPart(
+							expression.charCodeAt(index + toCheck.length),
+						))) &&
+				// Don't match "=" when it's part of "=>"
+				!(toCheck === "=" && expression.charCodeAt(index + 1) === 62) // 62 is ">"
 			) {
 				index += toCheckLength;
 				return toCheck;
@@ -366,7 +371,120 @@ export default (expression) => {
 		let node = gobbleBinaryExpression();
 		gobbleSpaces();
 		node = gobbleTernary(node);
+		node = gobbleArrowFunction(node);
 		return node;
+	};
+
+	/**
+	 * Parses an arrow function if the => operator is present.
+	 * @param {Object} node - The node that could be parameters (identifier or array of parameters in parentheses).
+	 * @returns {Object} The ARROW node if arrow function detected, otherwise the original node.
+	 */
+	const gobbleArrowFunction = (node) => {
+		gobbleSpaces();
+		if (
+			node &&
+			(node.type === IDENTIFIER || node.type === ARRAY || node.type === ARROW)
+		) {
+			if (
+				expression.charCodeAt(index) === EQUAL_CODE &&
+				expression.charCodeAt(index + 1) === ANGLE_RIGHT_CODE
+			) {
+				index += 2;
+				gobbleSpaces();
+				let body;
+				if (expression.charCodeAt(index) === OPENING_BRACES_CODE) {
+					body = gobbleBlockBody();
+				} else {
+					body = gobbleExpression();
+				}
+				let parameters;
+				if (node.type === IDENTIFIER) {
+					parameters = [node];
+				} else if (node.type === ARRAY) {
+					parameters = node.elements;
+				} else {
+					parameters = [];
+				}
+				return {
+					type: ARROW,
+					parameters,
+					body,
+				};
+			} else if (expression.charCodeAt(index) === OPENING_BRACES_CODE) {
+				const body = gobbleBlockBody();
+				return {
+					type: ARROW,
+					parameters: node.type === ARRAY ? node.elements : [node],
+					body,
+				};
+			}
+		}
+		return node;
+	};
+
+	/**
+	 * Parses a block body for arrow functions (expressions inside {} with optional return).
+	 * @returns {Object} RETURN node if there's a return statement, otherwise the last expression.
+	 */
+	const gobbleBlockBody = () => {
+		const startIndex = index;
+		index++;
+		gobbleSpaces();
+
+		// Check if this looks like an object literal or block body
+		// Object: { key: value } or { key } or { [computed]: value }
+		// Block: { return x; } or { x; } or { x }
+		// If we see an identifier followed by : or , or }, it's likely an object
+		// Otherwise, it's a block body
+		let isObjectLiteral = false;
+		let checkIndex = index;
+		while (checkIndex < expression.length) {
+			const ch = expression.charCodeAt(checkIndex);
+			if (ch === CLOSING_BRACES_CODE) {
+				break;
+			}
+			if (ch === COLON_CODE) {
+				isObjectLiteral = true;
+				break;
+			}
+			if (ch === COMMA_CODE) {
+				isObjectLiteral = true;
+				break;
+			}
+			if (ch === OPENING_BRACKET_CODE) {
+				isObjectLiteral = true;
+				break;
+			}
+			checkIndex++;
+		}
+
+		// Restore index to start of block
+		index = startIndex;
+
+		if (isObjectLiteral) {
+			// It's an object literal, parse as expression
+			return gobbleExpression();
+		}
+
+		// It's a block body - parse statements
+		index++; // skip opening {
+		gobbleSpaces();
+		const nodes = gobbleExpressions(CLOSING_BRACES_CODE);
+		gobbleSpaces(); // skip trailing spaces
+		if (expression.charCodeAt(index) === CLOSING_BRACES_CODE) {
+			index++;
+		}
+		if (nodes.length === 0) {
+			return undefined;
+		}
+		if (nodes.length === 1 && nodes[0].type !== RETURN) {
+			return nodes[0];
+		}
+		return {
+			type: RETURN,
+			argument: nodes.length === 1 ? nodes[0].argument : undefined,
+		};
 	};
 
 	/**
@@ -385,6 +503,9 @@ export default (expression) => {
 				if (node) {
 					nodes.push(node);
 					if (node.type === RETURN) {
+						if (expression.charCodeAt(index) === SEMICOLON_CODE) {
+							index++;
+						}
 						break;
 					}
 				} else if (index < expression.length) {
@@ -615,6 +736,27 @@ export default (expression) => {
 		const nodes = gobbleExpressions(CLOSING_PARENTHESIS_CODE);
 		if (expression.charCodeAt(index) === CLOSING_PARENTHESIS_CODE) {
 			index++;
+
+			gobbleSpaces();
+
+			if (
+				expression.charCodeAt(index) === EQUAL_CODE &&
+				expression.charCodeAt(index + 1) === ANGLE_RIGHT_CODE
+			) {
+				index += 2;
+				gobbleSpaces();
+				let body;
+				if (expression.charCodeAt(index) === OPENING_BRACES_CODE) {
+					body = gobbleBlockBody();
+				} else {
+					body = gobbleExpression();
+				}
+				return {
+					type: ARROW,
+					parameters: nodes,
+					body,
+				};
+			}
 
 			if (nodes.length === 1) {
 				return nodes[0];
@@ -872,6 +1014,7 @@ export default (expression) => {
 
 				toCheck = toCheck.substring(0, --toCheckLength);
 			}
+		}
 
 		if (isIdentifierStart(character)) {
 			node = gobbleIdentifier();
@@ -888,9 +1031,8 @@ export default (expression) => {
 					argument,
 				};
 			}
-			} else if (character === OPENING_PARENTHESIS_CODE) {
-				node = gobbleSequence();
-			}
+		} else if (character === OPENING_PARENTHESIS_CODE) {
+			node = gobbleSequence();
 		}
 
 		return gobbleUpdateSuffixExpression(gobbleTokenProperty(node));

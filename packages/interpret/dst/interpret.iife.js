@@ -1,6 +1,7 @@
 (() => {
   // src/types.js
   var ARRAY = 5;
+  var ARROW = 15;
   var ASSIGN = 6;
   var BINARY = 7;
   var CALL = 8;
@@ -36,6 +37,8 @@
   var NINE_CODE = 57;
   var COLON_CODE = 58;
   var SEMICOLON_CODE = 59;
+  var EQUAL_CODE = 61;
+  var ANGLE_RIGHT_CODE = 62;
   var QUESTION_MARK_CODE = 63;
   var LOWER_A_CODE = 65;
   var LOWER_Z_CODE = 90;
@@ -176,7 +179,7 @@
       }
       let value = gobbleBinaryOperation();
       if (!value) {
-        return left;
+        return gobbleArrowFunction(left);
       }
       let binaryOperationInfo = {
         value,
@@ -236,7 +239,7 @@
       let toCheck = expression.substring(index, index + 4);
       let toCheckLength = toCheck.length;
       while (toCheckLength > 0) {
-        if (Object.hasOwn(BINARY_OPERATORS, toCheck) && (!isIdentifierStart(expression.charCodeAt(index)) || index + toCheck.length < expression.length && !isIdentifierPart(expression.charCodeAt(index + toCheck.length)))) {
+        if (Object.hasOwn(BINARY_OPERATORS, toCheck) && (!isIdentifierStart(expression.charCodeAt(index)) || index + toCheck.length < expression.length && !isIdentifierPart(expression.charCodeAt(index + toCheck.length))) && !(toCheck === "=" && expression.charCodeAt(index + 1) === 62)) {
           index += toCheckLength;
           return toCheck;
         }
@@ -248,7 +251,91 @@
       let node = gobbleBinaryExpression();
       gobbleSpaces();
       node = gobbleTernary(node);
+      node = gobbleArrowFunction(node);
       return node;
+    };
+    const gobbleArrowFunction = (node) => {
+      gobbleSpaces();
+      if (node && (node.type === IDENTIFIER || node.type === ARRAY || node.type === ARROW)) {
+        if (expression.charCodeAt(index) === EQUAL_CODE && expression.charCodeAt(index + 1) === ANGLE_RIGHT_CODE) {
+          index += 2;
+          gobbleSpaces();
+          let body;
+          if (expression.charCodeAt(index) === OPENING_BRACES_CODE) {
+            body = gobbleBlockBody();
+          } else {
+            body = gobbleExpression();
+          }
+          let parameters;
+          if (node.type === IDENTIFIER) {
+            parameters = [node];
+          } else if (node.type === ARRAY) {
+            parameters = node.elements;
+          } else {
+            parameters = [];
+          }
+          return {
+            type: ARROW,
+            parameters,
+            body
+          };
+        } else if (expression.charCodeAt(index) === OPENING_BRACES_CODE) {
+          const body = gobbleBlockBody();
+          return {
+            type: ARROW,
+            parameters: node.type === ARRAY ? node.elements : [node],
+            body
+          };
+        }
+      }
+      return node;
+    };
+    const gobbleBlockBody = () => {
+      const startIndex = index;
+      index++;
+      gobbleSpaces();
+      let isObjectLiteral = false;
+      let checkIndex = index;
+      while (checkIndex < expression.length) {
+        const ch = expression.charCodeAt(checkIndex);
+        if (ch === CLOSING_BRACES_CODE) {
+          break;
+        }
+        if (ch === COLON_CODE) {
+          isObjectLiteral = true;
+          break;
+        }
+        if (ch === COMMA_CODE) {
+          isObjectLiteral = true;
+          break;
+        }
+        if (ch === OPENING_BRACKET_CODE) {
+          isObjectLiteral = true;
+          break;
+        }
+        checkIndex++;
+      }
+      index = startIndex;
+      if (isObjectLiteral) {
+        return gobbleExpression();
+      }
+      index++;
+      gobbleSpaces();
+      const nodes2 = gobbleExpressions(CLOSING_BRACES_CODE);
+      gobbleSpaces();
+      if (expression.charCodeAt(index) === CLOSING_BRACES_CODE) {
+        index++;
+      }
+      if (nodes2.length === 0) {
+        return;
+      }
+      if (nodes2.length === 1 && nodes2[0].type !== RETURN) {
+        return nodes2[0];
+      }
+      return {
+        type: RETURN,
+        argument: nodes2.length === 1 ? nodes2[0].argument : undefined
+      };
     };
     const gobbleExpressions = (untilCharacterCode) => {
       const nodes2 = [];
@@ -261,6 +348,9 @@
           if (node) {
             nodes2.push(node);
             if (node.type === RETURN) {
+              if (expression.charCodeAt(index) === SEMICOLON_CODE) {
+                index++;
+              }
               break;
             }
           } else if (index < expression.length) {
@@ -424,6 +514,22 @@
       const nodes2 = gobbleExpressions(CLOSING_PARENTHESIS_CODE);
       if (expression.charCodeAt(index) === CLOSING_PARENTHESIS_CODE) {
         index++;
+        gobbleSpaces();
+        if (expression.charCodeAt(index) === EQUAL_CODE && expression.charCodeAt(index + 1) === ANGLE_RIGHT_CODE) {
+          index += 2;
+          gobbleSpaces();
+          let body;
+          if (expression.charCodeAt(index) === OPENING_BRACES_CODE) {
+            body = gobbleBlockBody();
+          } else {
+            body = gobbleExpression();
+          }
+          return {
+            type: ARROW,
+            parameters: nodes2,
+            body
+          };
+        }
         if (nodes2.length === 1) {
           return nodes2[0];
         }
@@ -616,23 +722,23 @@
           }
           toCheck = toCheck.substring(0, --toCheckLength);
         }
-        if (isIdentifierStart(character)) {
-          node = gobbleIdentifier();
-          if (Object.hasOwn(LITERALS, node.name)) {
-            node = {
-              type: LITERAL,
-              value: LITERALS[node.name]
-            };
-          } else if (node.name === "return") {
-            const argument = gobbleExpression();
-            node = {
-              type: RETURN,
-              argument
-            };
-          }
-        } else if (character === OPENING_PARENTHESIS_CODE) {
-          node = gobbleSequence();
+      }
+      if (isIdentifierStart(character)) {
+        node = gobbleIdentifier();
+        if (Object.hasOwn(LITERALS, node.name)) {
+          node = {
+            type: LITERAL,
+            value: LITERALS[node.name]
+          };
+        } else if (node.name === "return") {
+          const argument = gobbleExpression();
+          node = {
+            type: RETURN,
+            argument
+          };
         }
+      } else if (character === OPENING_PARENTHESIS_CODE) {
+        node = gobbleSequence();
       }
       return gobbleUpdateSuffixExpression(gobbleTokenProperty(node));
     };
@@ -757,6 +863,16 @@
       return;
     }
     if (Array.isArray(node)) {
+      if (node.length === 1 && node[0].type === ARROW) {
+        const arrowFn = run(node[0], context);
+        const args = node[0].parameters.map((param) => {
+          if (param.type === IDENTIFIER) {
+            return context[param.name];
+          }
+          return;
+        });
+        return [arrowFn(...args)];
+      }
       const results = [];
       for (const nodeItem of node) {
         const result = run(nodeItem, context);
@@ -779,6 +895,22 @@
           }
         }
         return arrayResults;
+      }
+      case ARROW: {
+        return (...args) => {
+          const localContext = { ...context };
+          for (let i = 0;i < node.parameters.length; i++) {
+            const param = node.parameters[i];
+            if (param.type === IDENTIFIER) {
+              localContext[param.name] = args[i];
+            }
+          }
+          const result = run(node.body, localContext);
+          if (result?.type === RETURN) {
+            return result.value;
+          }
+          return result;
+        };
       }
       case ASSIGN: {
         let assignmentValue = run(node.right, context);
@@ -974,4 +1106,4 @@
   };
 })();
 
-//# debugId=214EA1D73B6154E064756E2164756E21
+//# debugId=C60F6F1B0356859464756E2164756E21
