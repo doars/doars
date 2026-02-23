@@ -384,7 +384,10 @@ export default (expression) => {
 		gobbleSpaces();
 		if (
 			node &&
-			(node.type === IDENTIFIER || node.type === ARRAY || node.type === OBJECT || node.type === ARROW)
+			(node.type === IDENTIFIER ||
+				node.type === ARRAY ||
+				node.type === OBJECT ||
+				node.type === ARROW)
 		) {
 			if (
 				expression.charCodeAt(index) === EQUAL_CODE &&
@@ -434,40 +437,8 @@ export default (expression) => {
 		index++;
 		gobbleSpaces();
 
-		// Check if this looks like an object literal or block body
-		// Object: { key: value } or { key } or { [computed]: value }
-		// Block: { return x; } or { x; } or { x }
-		// If we see an identifier followed by : or , or }, it's likely an object
-		// Otherwise, it's a block body
-		let isObjectLiteral = false;
-		let checkIndex = index;
-		while (checkIndex < expression.length) {
-			const ch = expression.charCodeAt(checkIndex);
-			if (ch === CLOSING_BRACES_CODE) {
-				break;
-			}
-			if (ch === COLON_CODE) {
-				isObjectLiteral = true;
-				break;
-			}
-			if (ch === COMMA_CODE) {
-				isObjectLiteral = true;
-				break;
-			}
-			if (ch === OPENING_BRACKET_CODE) {
-				isObjectLiteral = true;
-				break;
-			}
-			checkIndex++;
-		}
-
 		// Restore index to start of block
 		index = startIndex;
-
-		if (isObjectLiteral) {
-			// It's an object literal, parse as expression
-			return gobbleExpression();
-		}
 
 		// It's a block body - parse statements
 		index++; // skip opening {
@@ -483,10 +454,10 @@ export default (expression) => {
 		if (nodes.length === 1 && nodes[0].type !== RETURN) {
 			return nodes[0];
 		}
-		return {
-			type: RETURN,
-			argument: nodes.length === 1 ? nodes[0].argument : undefined,
-		};
+		if (nodes.length > 0) {
+			return nodes[nodes.length - 1];
+		}
+		return undefined;
 	};
 
 	/**
@@ -497,9 +468,12 @@ export default (expression) => {
 	const gobbleExpressions = (untilCharacterCode) => {
 		const nodes = [];
 		while (index < expression.length) {
+			gobbleSpaces();
 			const characterIndex = expression.charCodeAt(index);
 			if (characterIndex === SEMICOLON_CODE || characterIndex === COMMA_CODE) {
 				index++;
+			} else if (characterIndex === untilCharacterCode) {
+				break;
 			} else {
 				const node = gobbleExpression();
 				if (node) {
@@ -511,9 +485,6 @@ export default (expression) => {
 						break;
 					}
 				} else if (index < expression.length) {
-					if (characterIndex === untilCharacterCode) {
-						break;
-					}
 					throw new Error(`Unexpected "${expression.charAt(index)}"`);
 				}
 			}

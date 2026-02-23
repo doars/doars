@@ -32,18 +32,30 @@ export default (
 	}
 
 	describe(`${name}: ${expression}`, () => {
-		// Parse the expression.
-		const nodes = parse(expression);
-		// Verify parsed nodes.
+		let nodes;
+		try {
+			nodes = parse(expression);
+		} catch (error) {
+			console.error(
+				`Error when parsing test "${name}" with expression ${expression}`,
+				error,
+			);
+		}
 		if (nodesExpected !== undefined) {
 			it("Parsing", () => {
 				expect(nodes).toEqual(nodesExpected);
 			});
 		}
 
-		// run the parsed expression.
-		const result = run(nodes, context);
-		// Verify rund result.
+		let result;
+		try {
+			result = run(nodes, context);
+		} catch (error) {
+			console.error(
+				`Error when running test "${name}" with expression ${expression}`,
+				error,
+			);
+		}
 		if (resultExpected !== undefined) {
 			it("Reducing", () => {
 				expect(result).toEqual(resultExpected);

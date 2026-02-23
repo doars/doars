@@ -7,6 +7,7 @@ import {
 	OBJECT,
 	PROPERTY,
 	RETURN,
+	SEQUENCE,
 } from "../../src/types.js";
 import test from "./utilities/test.js";
 
@@ -203,6 +204,48 @@ test("IIFE arrow function", "(() => 42)()", 42, {
 	parameters: [],
 });
 
+test(
+	"IIFE arrow function with body and return",
+	"(() => { return 42 })()",
+	42,
+	{
+		callee: {
+			body: {
+				argument: {
+					type: LITERAL,
+					value: 42,
+				},
+				type: RETURN,
+			},
+			parameters: [],
+			type: ARROW,
+		},
+		parameters: [],
+		type: CALL,
+	},
+);
+
+test(
+	"IIFE arrow function with body and return",
+	"(() => { return 42 })()",
+	42,
+	{
+		callee: {
+			body: {
+				argument: {
+					type: LITERAL,
+					value: 42,
+				},
+				type: RETURN,
+			},
+			parameters: [],
+			type: ARROW,
+		},
+		parameters: [],
+		type: CALL,
+	},
+);
+
 // Arrow function in variable then called
 const arrowFunction = () => 100;
 test(
@@ -350,3 +393,16 @@ test(
 		},
 	},
 );
+
+test("Nested arrow function invoked", "(() => { 3; 5 })()", 5, {
+	callee: {
+		body: {
+			type: LITERAL,
+			value: 5,
+		},
+		parameters: [],
+		type: ARROW,
+	},
+	parameters: [],
+	type: CALL,
+});

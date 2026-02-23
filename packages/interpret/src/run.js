@@ -115,15 +115,19 @@ const run = (node, context = {}) => {
 					if (parameter?.type === IDENTIFIER) {
 						localContext[parameter.name] = args[i];
 					} else if (parameter?.type === OBJECT) {
-						const arg = args[i];
-						for (const prop of parameter.properties) {
-							if (prop.shorthand) {
-								localContext[prop.key.name] = arg[prop.key.name];
-							} else {
-								localContext[prop.key.name] = arg[prop.key.name];
-							}
+						const argument = args[i];
+						for (const property of parameter.properties) {
+							localContext[property.key.name] = argument[property.key.name];
 						}
 					}
+				}
+				// If body is a SEQUENCE, evaluate all expressions and return the last value.
+				if (node.body?.type === SEQUENCE) {
+					let lastValue;
+					for (const expr of node.body.expressions) {
+						lastValue = run(expr, localContext);
+					}
+					return lastValue;
 				}
 				const result = run(node.body, localContext);
 				if (result?.type === RETURN) {
@@ -286,17 +290,19 @@ const run = (node, context = {}) => {
 		// Member access - evaluates object.property or object[property].
 		case MEMBER: {
 			const memberObject = run(node.object, context);
-			// Handle optional chaining.
-			if (
-				node.optional &&
-				(memberObject === null || memberObject === undefined)
-			) {
-				return undefined;
-			}
 			const memberProperty =
 				node.computed || node.property.type !== IDENTIFIER
 					? run(node.property, context)
 					: node.property.name;
+			// Handle optional chaining.
+			if (memberObject === null || memberObject === undefined) {
+				if (node.optional) {
+					return undefined;
+				}
+				throw new Error(
+					`Can not access property "${memberProperty}" on "${typeof memberObject}", node: ${JSON.stringify(node)}.`,
+				);
+			}
 			if (typeof memberObject[memberProperty] === "function") {
 				return memberObject[memberProperty].bind(memberObject);
 			}
@@ -309,9 +315,11 @@ const run = (node, context = {}) => {
 			for (const objectProperty of node.properties) {
 				// Expects each property to be of type PROPERTY.
 				objectResult[
-					objectProperty.computed || objectProperty.key.type !== IDENTIFIER
+					objectProperty.computed ||
+					(objectProperty.key?.type !== IDENTIFIER &&
+						objectProperty.callee?.type !== IDENTIFIER)
 						? run(objectProperty.key, context)
-						: objectProperty.key.name
+						: (objectProperty.key?.name ?? objectProperty.callee?.name)
 				] = run(objectProperty.value, context);
 			}
 			return objectResult;
@@ -324,9 +332,14 @@ const run = (node, context = {}) => {
 			}
 			return undefined;
 
-		// Sequence expression - evaluates multiple expressions and returns results as array.
-		case SEQUENCE:
-			return node.expressions.map((node) => run(node, context));
+		// Sequence expression - evaluates multiple expressions and returns the last value (comma operator semantics).
+		case SEQUENCE: {
+			let lastValue;
+			for (const expr of node.expressions) {
+				lastValue = run(expr, context);
+			}
+			return lastValue;
+		}
 
 		case SPREAD:
 			return run(node.arguments, context);
