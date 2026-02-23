@@ -62,17 +62,8 @@ This mono-repository includes the core library as well as several plugins. See t
 | [@doars/doars-update](https://github.com/doars/doars/tree/main/packages/doars-update#readme)       | Plugin that adds an update loop context and directive.                                                                   |
 | [@doars/interpret](https://github.com/doars/doars/tree/main/packages/interpret#readme)             | Interpret a subset of JavaScript expressions without using the eval function or Function constructor.                    |
 
-## Contributing
-
-If you are using the library and are running into an problem that you don't know how to solve, or would love to see a particular feature then feel free to [create an issue](./issues/new/choose). Or perhaps you want to make that cool feature, or help out in any other way. Then you are more then welcome! Read more about how to [contribute](./CONTRIBUTING.md).
-
-## In the wild
-
-If you are using _Doars_ then please [let me know](https://rondekker.nl/en-gb#contact), I would love to hear about it!
-
 ## Ideas
 
-- Add template literal support for the interpreter.
 - `$id` context for generating unique identifiers.
 - Focus plugin for setting and trapping the focus.
 - Input masking plugin for formatting dates, money et cetera.
