@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 3.2.0
+
+- Fix bugs.
+
 ## 3.1.0
 
 - Added `delay` modifier to `intersect` directive.

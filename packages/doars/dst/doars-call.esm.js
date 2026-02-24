@@ -1677,7 +1677,7 @@ var setAfter = (component, update, template, elements, index, value, variables, 
     return;
   }
   const element = document.importNode(template.content, true).firstElementChild;
-  if (element) {
+  if (!element) {
     console.warn("Unable to get element from for template");
     return;
   }
@@ -3403,4 +3403,4 @@ export {
   DoarsCall_default as default
 };
 
-//# debugId=271EEDBF31C8EA7664756E2164756E21
+//# debugId=3A35BFE7E08ADA0C64756E2164756E21

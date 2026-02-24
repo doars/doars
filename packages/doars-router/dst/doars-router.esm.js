@@ -33,6 +33,55 @@ var isObject = (value) => {
   return value && typeof value === "object" && !Array.isArray(value);
 };
 
+// ../common/src/polyfills/RevocableProxy.js
+var PROXY_TRAPS = [
+  "apply",
+  "construct",
+  "defineProperty",
+  "deleteProperty",
+  "get",
+  "getOwnPropertyDescriptor",
+  "getPrototypeOf",
+  "has",
+  "isExtensible",
+  "ownKeys",
+  "preventExtensions",
+  "set",
+  "setPrototypeOf"
+];
+var RevocableProxy_default = (target, handler, options = {}) => {
+  options = Object.assign({
+    irrevocable: []
+  }, options);
+  let revoked = false;
+  const revocableHandler = {};
+  for (const key of PROXY_TRAPS) {
+    revocableHandler[key] = (...parameters) => {
+      const [localTarget, ...localParameters] = parameters;
+      if (revoked) {
+        for (const key2 of Object.keys(localTarget)) {
+          if (!options.irrevocable || options.irrevocable.indexOf(key2) < 0) {
+            localTarget[key2] = undefined;
+          }
+        }
+      }
+      if (key in handler) {
+        const trap = handler[key];
+        if (typeof trap === "function") {
+          return trap(localTarget, ...localParameters);
+        }
+      }
+      return Reflect[key](localTarget, ...localParameters);
+    };
+  }
+  return {
+    proxy: new Proxy(target, revocableHandler),
+    revoke: () => {
+      revoked = true;
+    }
+  };
+};
+
 // src/symbols.js
 var ROUTER = Symbol("ROUTER");
 
@@ -474,7 +523,7 @@ var router_default = ({ routerContextName }) => ({
   create: (_component, attribute) => {
     const element = attribute.getElement();
     let router = null;
-    const revocable = Proxy.revocable({}, {
+    const revocable = RevocableProxy_default({}, {
       get: (_target, propertyKey, receiver) => {
         if (router === null) {
           if (element[ROUTER]) {
@@ -884,4 +933,4 @@ export {
   DoarsRouter_default as default
 };
 
-//# debugId=E8627F49F1FC887964756E2164756E21
+//# debugId=3D929E1FCC0C04E664756E2164756E21

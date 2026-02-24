@@ -101,7 +101,7 @@ const setAfter = (
 
 	// Create new element from template.
 	const element = document.importNode(template.content, true).firstElementChild;
-	if (element) {
+	if (!element) {
 		console.warn("Unable to get element from for template");
 		return;
 	}

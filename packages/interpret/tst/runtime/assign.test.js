@@ -1,4 +1,4 @@
-import { ASSIGN, IDENTIFIER, LITERAL, UNARY } from "../../src/types.js";
+import { ASSIGN, IDENTIFIER, LITERAL } from "../../src/types.js";
 import test from "./utilities/test.js";
 
 test(

@@ -1678,7 +1678,7 @@
       return;
     }
     const element = document.importNode(template.content, true).firstElementChild;
-    if (element) {
+    if (!element) {
       console.warn("Unable to get element from for template");
       return;
     }
@@ -3406,4 +3406,4 @@ ${error.name}: ${error.message}`);
   window.Doars = DoarsExecute_default;
 })();
 
-//# debugId=2CA7700E74C2A89E64756E2164756E21
+//# debugId=5361089D2D99A3BB64756E2164756E21

@@ -1,4 +1,11 @@
-import { ASSIGN, BINARY, IDENTIFIER, LITERAL, RETURN, UNARY } from "../../src/types.js";
+import {
+	ASSIGN,
+	BINARY,
+	IDENTIFIER,
+	LITERAL,
+	RETURN,
+	UNARY,
+} from "../../src/types.js";
 import test from "./utilities/test.js";
 
 // Simple return statement
@@ -11,63 +18,78 @@ test("Return statement", "return 42", 42, {
 });
 
 // Return with identifier
-test("Return identifier", "return x", 5, {
-	type: RETURN,
-	argument: {
-		type: IDENTIFIER,
-		name: "x",
+test(
+	"Return identifier",
+	"return x",
+	5,
+	{
+		type: RETURN,
+		argument: {
+			type: IDENTIFIER,
+			name: "x",
+		},
 	},
-},
-{
-	x: 5,
-},
-{
-	x: 5,
-});
+	{
+		x: 5,
+	},
+	{
+		x: 5,
+	},
+);
 
 // Return with binary expression
-test("Return binary expression", "return x + y", 8, {
-	type: RETURN,
-	argument: {
-		type: BINARY,
-		operator: "+",
-		left: {
-			type: IDENTIFIER,
-			name: "x",
-		},
-		right: {
-			type: IDENTIFIER,
-			name: "y",
+test(
+	"Return binary expression",
+	"return x + y",
+	8,
+	{
+		type: RETURN,
+		argument: {
+			type: BINARY,
+			operator: "+",
+			left: {
+				type: IDENTIFIER,
+				name: "x",
+			},
+			right: {
+				type: IDENTIFIER,
+				name: "y",
+			},
 		},
 	},
-},
-{
-	x: 5,
-	y: 3,
-},
-{
-	x: 5,
-	y: 3,
-});
+	{
+		x: 5,
+		y: 3,
+	},
+	{
+		x: 5,
+		y: 3,
+	},
+);
 
 // Return with unary expression
-test("Return unary expression", "return -x", -5, {
-	type: RETURN,
-	argument: {
-		type: UNARY,
-		operator: "-",
-		parameter: {
-			type: IDENTIFIER,
-			name: "x",
+test(
+	"Return unary expression",
+	"return -x",
+	-5,
+	{
+		type: RETURN,
+		argument: {
+			type: UNARY,
+			operator: "-",
+			parameter: {
+				type: IDENTIFIER,
+				name: "x",
+			},
 		},
 	},
-},
-{
-	x: 5,
-},
-{
-	x: 5,
-});
+	{
+		x: 5,
+	},
+	{
+		x: 5,
+	},
+);
 
 // Return with literal string
 test("Return string literal", 'return "hello"', "hello", {
@@ -106,45 +128,50 @@ test("Return undefined literal", "return undefined", undefined, {
 });
 
 // Return with complex expression
-test("Return complex expression", "return (x * 2) + (y / 2)", 14, {
-	type: RETURN,
-	argument: {
-		type: BINARY,
-		operator: "+",
-		left: {
+test(
+	"Return complex expression",
+	"return (x * 2) + (y / 2)",
+	14,
+	{
+		type: RETURN,
+		argument: {
 			type: BINARY,
-			operator: "*",
+			operator: "+",
 			left: {
-				type: IDENTIFIER,
-				name: "x",
+				type: BINARY,
+				operator: "*",
+				left: {
+					type: IDENTIFIER,
+					name: "x",
+				},
+				right: {
+					type: LITERAL,
+					value: 2,
+				},
 			},
 			right: {
-				type: LITERAL,
-				value: 2,
-			},
-		},
-		right: {
-			type: BINARY,
-			operator: "/",
-			left: {
-				type: IDENTIFIER,
-				name: "y",
-			},
-			right: {
-				type: LITERAL,
-				value: 2,
+				type: BINARY,
+				operator: "/",
+				left: {
+					type: IDENTIFIER,
+					name: "y",
+				},
+				right: {
+					type: LITERAL,
+					value: 2,
+				},
 			},
 		},
 	},
-},
-{
-	x: 5,
-	y: 8,
-},
-{
-	x: 5,
-	y: 8,
-});
+	{
+		x: 5,
+		y: 8,
+	},
+	{
+		x: 5,
+		y: 8,
+	},
+);
 
 // Return stops execution - code after return should not execute
 test(

@@ -157,7 +157,7 @@
     }, options);
     let isEnabled = false;
     const intersectionDispatcher = new IntersectionDispatcher({
-      root: options.intersectionRoot ? options.intersectionRoot : library.getOptions().root,
+      root: options.intersectionRoot,
       rootMargin: options.intersectionMargin,
       threshold: options.intersectionThreshold
     });
@@ -189,4 +189,4 @@
   window.DoarsIntersect = DoarsIntersect_default;
 })();
 
-//# debugId=E12B1FBFABEBCFCD64756E2164756E21
+//# debugId=8397A48E514E78CE64756E2164756E21

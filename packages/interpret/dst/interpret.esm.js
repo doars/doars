@@ -295,31 +295,7 @@ var parse_default = (expression) => {
     const startIndex = index;
     index++;
     gobbleSpaces();
-    let isObjectLiteral = false;
-    let checkIndex = index;
-    while (checkIndex < expression.length) {
-      const ch = expression.charCodeAt(checkIndex);
-      if (ch === CLOSING_BRACES_CODE) {
-        break;
-      }
-      if (ch === COLON_CODE) {
-        isObjectLiteral = true;
-        break;
-      }
-      if (ch === COMMA_CODE) {
-        isObjectLiteral = true;
-        break;
-      }
-      if (ch === OPENING_BRACKET_CODE) {
-        isObjectLiteral = true;
-        break;
-      }
-      checkIndex++;
-    }
     index = startIndex;
-    if (isObjectLiteral) {
-      return gobbleExpression();
-    }
     index++;
     gobbleSpaces();
     const nodes2 = gobbleExpressions(CLOSING_BRACES_CODE);
@@ -333,17 +309,20 @@ var parse_default = (expression) => {
     if (nodes2.length === 1 && nodes2[0].type !== RETURN) {
       return nodes2[0];
     }
-    return {
-      type: RETURN,
-      argument: nodes2.length === 1 ? nodes2[0].argument : undefined
-    };
+    if (nodes2.length > 0) {
+      return nodes2[nodes2.length - 1];
+    }
+    return;
   };
   const gobbleExpressions = (untilCharacterCode) => {
     const nodes2 = [];
     while (index < expression.length) {
+      gobbleSpaces();
       const characterIndex = expression.charCodeAt(index);
       if (characterIndex === SEMICOLON_CODE || characterIndex === COMMA_CODE) {
         index++;
+      } else if (characterIndex === untilCharacterCode) {
+        break;
       } else {
         const node = gobbleExpression();
         if (node) {
@@ -355,9 +334,6 @@ var parse_default = (expression) => {
             break;
           }
         } else if (index < expression.length) {
-          if (characterIndex === untilCharacterCode) {
-            break;
-          }
           throw new Error(`Unexpected "${expression.charAt(index)}"`);
         }
       }
@@ -905,15 +881,18 @@ var run = (node, context = {}) => {
           if (parameter?.type === IDENTIFIER) {
             localContext[parameter.name] = args[i];
           } else if (parameter?.type === OBJECT) {
-            const arg = args[i];
-            for (const prop of parameter.properties) {
-              if (prop.shorthand) {
-                localContext[prop.key.name] = arg[prop.key.name];
-              } else {
-                localContext[prop.key.name] = arg[prop.key.name];
-              }
+            const argument = args[i];
+            for (const property of parameter.properties) {
+              localContext[property.key.name] = argument[property.key.name];
             }
           }
+        }
+        if (node.body?.type === SEQUENCE) {
+          let lastValue;
+          for (const expr of node.body.expressions) {
+            lastValue = run(expr, localContext);
+          }
+          return lastValue;
         }
         const result = run(node.body, localContext);
         if (result?.type === RETURN) {
@@ -1058,10 +1037,13 @@ var run = (node, context = {}) => {
       return node.value;
     case MEMBER: {
       const memberObject = run(node.object, context);
-      if (node.optional && (memberObject === null || memberObject === undefined)) {
-        return;
-      }
       const memberProperty = node.computed || node.property.type !== IDENTIFIER ? run(node.property, context) : node.property.name;
+      if (memberObject === null || memberObject === undefined) {
+        if (node.optional) {
+          return;
+        }
+        throw new Error(`Can not access property "${memberProperty}" on "${typeof memberObject}", node: ${JSON.stringify(node)}.`);
+      }
       if (typeof memberObject[memberProperty] === "function") {
         return memberObject[memberProperty].bind(memberObject);
       }
@@ -1070,7 +1052,7 @@ var run = (node, context = {}) => {
     case OBJECT: {
       const objectResult = {};
       for (const objectProperty of node.properties) {
-        objectResult[objectProperty.computed || objectProperty.key.type !== IDENTIFIER ? run(objectProperty.key, context) : objectProperty.key.name] = run(objectProperty.value, context);
+        objectResult[objectProperty.computed || objectProperty.key?.type !== IDENTIFIER && objectProperty.callee?.type !== IDENTIFIER ? run(objectProperty.key, context) : objectProperty.key?.name ?? objectProperty.callee?.name] = run(objectProperty.value, context);
       }
       return objectResult;
     }
@@ -1079,8 +1061,13 @@ var run = (node, context = {}) => {
         return run(node.argument, context);
       }
       return;
-    case SEQUENCE:
-      return node.expressions.map((node2) => run(node2, context));
+    case SEQUENCE: {
+      let lastValue;
+      for (const expr of node.expressions) {
+        lastValue = run(expr, context);
+      }
+      return lastValue;
+    }
     case SPREAD:
       return run(node.arguments, context);
     case TEMPLATE:
@@ -1165,4 +1152,4 @@ export {
   ARRAY2 as ARRAY
 };
 
-//# debugId=F44CA02AB8B9E07664756E2164756E21
+//# debugId=81720FB802B8326E64756E2164756E21

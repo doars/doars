@@ -1,3 +1,52 @@
+// ../common/src/polyfills/RevocableProxy.js
+var PROXY_TRAPS = [
+  "apply",
+  "construct",
+  "defineProperty",
+  "deleteProperty",
+  "get",
+  "getOwnPropertyDescriptor",
+  "getPrototypeOf",
+  "has",
+  "isExtensible",
+  "ownKeys",
+  "preventExtensions",
+  "set",
+  "setPrototypeOf"
+];
+var RevocableProxy_default = (target, handler, options = {}) => {
+  options = Object.assign({
+    irrevocable: []
+  }, options);
+  let revoked = false;
+  const revocableHandler = {};
+  for (const key of PROXY_TRAPS) {
+    revocableHandler[key] = (...parameters) => {
+      const [localTarget, ...localParameters] = parameters;
+      if (revoked) {
+        for (const key2 of Object.keys(localTarget)) {
+          if (!options.irrevocable || options.irrevocable.indexOf(key2) < 0) {
+            localTarget[key2] = undefined;
+          }
+        }
+      }
+      if (key in handler) {
+        const trap = handler[key];
+        if (typeof trap === "function") {
+          return trap(localTarget, ...localParameters);
+        }
+      }
+      return Reflect[key](localTarget, ...localParameters);
+    };
+  }
+  return {
+    proxy: new Proxy(target, revocableHandler),
+    revoke: () => {
+      revoked = true;
+    }
+  };
+};
+
 // ../common/src/events/EventDispatcher.js
 class EventDispatcher {
   constructor() {
@@ -118,8 +167,8 @@ class ProxyDispatcher extends EventDispatcher {
           return true;
         };
       }
-      const revocable = Proxy.revocable(target, handler);
-      map.set(revocable, target);
+      const revocable = RevocableProxy_default(target, handler);
+      map.set(target, revocable);
       return revocable.proxy;
     };
     this.remove = (target) => {
@@ -127,7 +176,7 @@ class ProxyDispatcher extends EventDispatcher {
         return;
       }
       const revocable = map.get(target);
-      map.delete(revocable);
+      map.delete(target);
       for (const property in revocable.proxy) {
         if (typeof revocable.proxy[property] === "object") {
           this.remove(revocable.proxy[property]);
@@ -147,7 +196,7 @@ var createState_default = (name, id, state, proxy) => {
     proxy.addEventListener("delete", onDelete);
     proxy.addEventListener("get", onGet);
     proxy.addEventListener("set", onSet);
-    const revocable = Proxy.revocable(state, {});
+    const revocable = RevocableProxy_default(state, {});
     return {
       value: revocable.proxy,
       destroy: () => {
@@ -327,4 +376,4 @@ export {
   DoarsPersist_default as default
 };
 
-//# debugId=733DED8AED582A2764756E2164756E21
+//# debugId=23A736705BC5563564756E2164756E21

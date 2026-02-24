@@ -1261,7 +1261,7 @@
     }
     let isEnabled = false;
     const intersectionDispatcher = options.intersectionEvent ? new IntersectionDispatcher({
-      root: options.intersectionRoot ? options.intersectionRoot : library.getOptions().root,
+      root: options.intersectionRoot,
       rootMargin: options.intersectionMargin,
       threshold: options.intersectionThreshold
     }) : null;
@@ -1295,4 +1295,4 @@
   window.DoarsFetch = DoarsFetch_default;
 })();
 
-//# debugId=7D3AE053E7BD3EE664756E2164756E21
+//# debugId=813A8EFB8178F4D364756E2164756E21

@@ -1678,7 +1678,7 @@
       return;
     }
     const element = document.importNode(template.content, true).firstElementChild;
-    if (element) {
+    if (!element) {
       console.warn("Unable to get element from for template");
       return;
     }
@@ -3664,31 +3664,7 @@
       const startIndex = index;
       index++;
       gobbleSpaces();
-      let isObjectLiteral = false;
-      let checkIndex = index;
-      while (checkIndex < expression.length) {
-        const ch = expression.charCodeAt(checkIndex);
-        if (ch === CLOSING_BRACES_CODE) {
-          break;
-        }
-        if (ch === COLON_CODE) {
-          isObjectLiteral = true;
-          break;
-        }
-        if (ch === COMMA_CODE) {
-          isObjectLiteral = true;
-          break;
-        }
-        if (ch === OPENING_BRACKET_CODE) {
-          isObjectLiteral = true;
-          break;
-        }
-        checkIndex++;
-      }
       index = startIndex;
-      if (isObjectLiteral) {
-        return gobbleExpression();
-      }
       index++;
       gobbleSpaces();
       const nodes2 = gobbleExpressions(CLOSING_BRACES_CODE);
@@ -3702,17 +3678,20 @@
       if (nodes2.length === 1 && nodes2[0].type !== RETURN) {
         return nodes2[0];
       }
-      return {
-        type: RETURN,
-        argument: nodes2.length === 1 ? nodes2[0].argument : undefined
-      };
+      if (nodes2.length > 0) {
+        return nodes2[nodes2.length - 1];
+      }
+      return;
     };
     const gobbleExpressions = (untilCharacterCode) => {
       const nodes2 = [];
       while (index < expression.length) {
+        gobbleSpaces();
         const characterIndex = expression.charCodeAt(index);
         if (characterIndex === SEMICOLON_CODE || characterIndex === COMMA_CODE) {
           index++;
+        } else if (characterIndex === untilCharacterCode) {
+          break;
         } else {
           const node = gobbleExpression();
           if (node) {
@@ -3724,9 +3703,6 @@
               break;
             }
           } else if (index < expression.length) {
-            if (characterIndex === untilCharacterCode) {
-              break;
-            }
             throw new Error(`Unexpected "${expression.charAt(index)}"`);
           }
         }
@@ -4280,6 +4256,13 @@
               }
             }
           }
+          if (node.body?.type === SEQUENCE) {
+            let lastValue;
+            for (const expr of node.body.expressions) {
+              lastValue = run(expr, localContext);
+            }
+            return lastValue;
+          }
           const result = run(node.body, localContext);
           if (result?.type === RETURN) {
             return result.value;
@@ -4447,8 +4430,13 @@
           return run(node.argument, context);
         }
         return;
-      case SEQUENCE:
-        return node.expressions.map((node2) => run(node2, context));
+      case SEQUENCE: {
+        let lastValue;
+        for (const expr of node.expressions) {
+          lastValue = run(expr, context);
+        }
+        return lastValue;
+      }
       case SPREAD:
         return run(node.arguments, context);
       case TEMPLATE:
@@ -4515,4 +4503,4 @@ ${error.name}: ${error.message}`);
   window.Doars = DoarsInterpret_default;
 })();
 
-//# debugId=6D20141A428DFDAF64756E2164756E21
+//# debugId=9651C3CCFEC811B564756E2164756E21

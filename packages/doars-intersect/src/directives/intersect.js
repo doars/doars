@@ -145,7 +145,6 @@ export default ({ intersectDirectiveName }, intersectionDispatcher) => ({
 			}
 		};
 
-		console.log(element);
 		// Start observing the element.
 		intersectionDispatcher.add(element, handler);
 

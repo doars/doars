@@ -874,6 +874,7 @@ test(
 
 test(
 	"Sequence with template literal",
+	// biome-ignore lint/suspicious/noTemplateCurlyInString: Purposeful testing of templates in strings
 	"(`a${x}`, `b${y}`)",
 	"b10",
 	{

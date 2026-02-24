@@ -156,7 +156,7 @@ function DoarsIntersect_default(library, options = null) {
   }, options);
   let isEnabled = false;
   const intersectionDispatcher = new IntersectionDispatcher({
-    root: options.intersectionRoot ? options.intersectionRoot : library.getOptions().root,
+    root: options.intersectionRoot,
     rootMargin: options.intersectionMargin,
     threshold: options.intersectionThreshold
   });
@@ -187,4 +187,4 @@ export {
   DoarsIntersect_default as default
 };
 
-//# debugId=4C09443E8D48763564756E2164756E21
+//# debugId=66A36585E92BB6C064756E2164756E21

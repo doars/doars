@@ -7,7 +7,6 @@ import {
 	OBJECT,
 	PROPERTY,
 	RETURN,
-	SEQUENCE,
 } from "../../src/types.js";
 import test from "./utilities/test.js";
 

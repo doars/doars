@@ -1025,7 +1025,7 @@
     let isEnabled = false;
     const ipcInstance = client_default();
     const intersectionDispatcher = options.intersectionEvent ? new IntersectionDispatcher({
-      root: options.intersectionRoot ? options.intersectionRoot : library.getOptions().root,
+      root: options.intersectionRoot,
       rootMargin: options.intersectionMargin,
       threshold: options.intersectionThreshold
     }) : null;
@@ -1061,4 +1061,4 @@
   window.DoarsIPC = DoarsIPC_default;
 })();
 
-//# debugId=8A0951EA7B58C28164756E2164756E21
+//# debugId=F048F1C84C44E52E64756E2164756E21
