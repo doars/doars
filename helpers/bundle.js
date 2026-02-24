@@ -1,6 +1,6 @@
+import fs from "node:fs";
+import path from "node:path";
 import { file as fileSize } from "brotli-size";
-import fs from "fs";
-import path from "path";
 
 const isProduction = process.env.NODE_ENV === "production";
 

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+
+  <body>
+    <div d-state="{ message: 'empty string' }" d-initialized="
+      $fetch('https://doars.js.org', { returnType: 'text' })
+        .then((text) => {
+          $inContext(({ $state }) => {
+            $state.message = text
+          })
+        })
+      ">
+
+      <div d-text="message"></div>
+    </div>
+
+    <script src="../../../doars/dst/doars.iife.js"></script>
+    <script src="../../dst/doars-fetch.iife.js"></script>
+    <script>
+      // Wait for the DOM to be interactive.
+      document.addEventListener('DOMContentLoaded', () => {
+        // Setup a library instance.
+        const doars = new window.Doars()
+
+        // Add plugin.
+        window.DoarsFetch(doars)
+
+        // Enable library.
+        doars.enable()
+      })
+    </script>
+  </body>
+
+</html>

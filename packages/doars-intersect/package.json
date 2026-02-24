@@ -39,6 +39,7 @@
 	"files": [
 		"dst",
 		"src",
+		"skills",
 		"CHANGELOG.md",
 		"README.md"
 	],
