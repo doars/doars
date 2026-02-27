@@ -191,7 +191,9 @@ class ProxyDispatcher extends EventDispatcher {
 var createState_default = (name, id, state, proxy) => {
   return (_component, attribute, update) => {
     const onDelete = (_target, path) => update(id, `${name}.${path.join(".")}`);
-    const onGet = (_target, path) => attribute.accessed(id, `${name}.${path.join(".")}`);
+    const onGet = (_target, path) => {
+      attribute.accessed(id, `${name}.${path.join(".")}`);
+    };
     const onSet = (_target, path) => update(id, `${name}.${path.join(".")}`);
     proxy.addEventListener("delete", onDelete);
     proxy.addEventListener("get", onGet);
@@ -376,4 +378,4 @@ export {
   DoarsPersist_default as default
 };
 
-//# debugId=23A736705BC5563564756E2164756E21
+//# debugId=16CE93C0DA7380F164756E2164756E21

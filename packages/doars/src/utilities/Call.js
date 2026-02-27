@@ -33,11 +33,7 @@ export const call = (
 	);
 
 	// Create contexts.
-	const [contexts, destroyContexts] = createAutoContexts(
-		component,
-		attribute,
-		extra,
-	);
+	const { contexts, destroy } = createAutoContexts(component, attribute, extra);
 
 	// Get result from the expression.
 	expression = expression.trim();
@@ -65,7 +61,7 @@ export const call = (
 	}
 
 	// Cleanup contexts.
-	destroyContexts();
+	destroy();
 
 	if (options.return) {
 		return result;

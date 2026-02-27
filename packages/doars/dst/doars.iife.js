@@ -720,8 +720,6 @@
   var createContexts = (component, attribute, update, extra = null) => {
     const library = component.getLibrary();
     const contexts = library.getSimpleContexts();
-    const deconstructed = [];
-    let after = "", before = "";
     const creatableContexts = library.getContexts();
     const destroyFunctions = [];
     const irrevocableContexts = [];
@@ -737,9 +735,11 @@
         destroyFunctions.push(result.destroy);
       }
       if (creatableContext.deconstruct && typeof result.value === "object") {
-        deconstructed.push(creatableContext.name);
-        before += `with(${creatableContext.name}) { `;
-        after += " }";
+        for (const key in result.value) {
+          if (Object.hasOwn(result.value, key)) {
+            contexts[key] = result.value[key];
+          }
+        }
       }
       if (creatableContext.revocable === false) {
         irrevocableContexts.push(creatableContext.name);
@@ -758,10 +758,7 @@
         for (let index = destroyFunctions.length - 1;index >= 0; index--) {
           destroyFunctions[index]();
         }
-      },
-      after,
-      before,
-      deconstructed
+      }
     };
   };
   var createContextsProxy = (component, attribute, update, extra = null) => {
@@ -805,16 +802,16 @@
     const contextProxy = RevocableProxy_default(contexts, {}, {
       irrevocable: irrevocableContexts
     });
-    return [
-      contextProxy.proxy,
-      () => {
+    return {
+      contexts: contextProxy.proxy,
+      destroy: () => {
         contextProxy.revoke();
         destroy();
         if (triggers.length > 0) {
           component.getLibrary().update(triggers);
         }
       }
-    ];
+    };
   };
 
   // src/contexts/children.js
@@ -1134,7 +1131,9 @@
   var createState_default = (name, id, state, proxy) => {
     return (_component, attribute, update) => {
       const onDelete = (_target, path) => update(id, `${name}.${path.join(".")}`);
-      const onGet = (_target, path) => attribute.accessed(id, `${name}.${path.join(".")}`);
+      const onGet = (_target, path) => {
+        attribute.accessed(id, `${name}.${path.join(".")}`);
+      };
       const onSet = (_target, path) => update(id, `${name}.${path.join(".")}`);
       proxy.addEventListener("delete", onDelete);
       proxy.addEventListener("get", onGet);
@@ -2659,15 +2658,15 @@
         switch (element.tagName) {
           case "DIV":
             handler = () => {
-              const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone());
+              const { contexts, destroy: destroy3 } = createAutoContexts(component, attribute.clone());
               setDeeply(contexts, valueSplit, escapeHtml(element.innerText));
-              destroyContexts();
+              destroy3();
             };
             break;
           case "INPUT":
             handler = () => {
               const elementValue = escapeHtml(element.value);
-              const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone());
+              const { contexts, destroy: destroy3 } = createAutoContexts(component, attribute.clone());
               if (element.type === "checkbox") {
                 const dataValue2 = getDeeply(contexts, valueSplit);
                 if (element.checked) {
@@ -2695,19 +2694,19 @@
               } else {
                 setDeeply(contexts, valueSplit, elementValue);
               }
-              destroyContexts();
+              destroy3();
             };
             break;
           case "TEXTAREA":
             handler = () => {
-              const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone());
+              const { contexts, destroy: destroy3 } = createAutoContexts(component, attribute.clone());
               setDeeply(contexts, valueSplit, escapeHtml(element.innerText));
-              destroyContexts();
+              destroy3();
             };
             break;
           case "SELECT":
             handler = () => {
-              const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone());
+              const { contexts, destroy: destroy3 } = createAutoContexts(component, attribute.clone());
               if (element.multiple) {
                 const elementValues = [];
                 for (const option of element.selectedOptions) {
@@ -2717,7 +2716,7 @@
               } else {
                 setDeeply(contexts, valueSplit, escapeHtml(element.selectedOptions[0].value));
               }
-              destroyContexts();
+              destroy3();
             };
             break;
         }
@@ -3379,13 +3378,10 @@
         path: context
       });
     };
-    let { after, before, contexts, destroy: destroy3 } = createContexts(component, attribute, update, extra);
-    if (options.return) {
-      before += "return ";
-    }
+    const { contexts, destroy: destroy3 } = createContexts(component, attribute, update, extra);
     let result;
     try {
-      result = new Function(...Object.keys(contexts), before + expression + after)(...Object.values(contexts));
+      result = new Function(...Object.keys(contexts), (options.return ? "return " : "") + expression)(...Object.values(contexts));
     } catch (error) {
       console.error("ExpressionError in:", expression, `
 ${error.name}: ${error.message}`);
@@ -3406,4 +3402,4 @@ ${error.name}: ${error.message}`);
   window.Doars = DoarsExecute_default;
 })();
 
-//# debugId=5361089D2D99A3BB64756E2164756E21
+//# debugId=52EC82EA8BB2162864756E2164756E21

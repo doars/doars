@@ -1,11 +1,11 @@
+import fs from "node:fs";
+import fsPromises from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
+import { gzip } from "node:zlib";
 import { sync as brotliSizeSync } from "brotli-size";
-import fs from "fs";
-import fsPromises from "fs/promises";
-import path from "path";
 import { chromium } from "playwright";
-import { fileURLToPath } from "url";
-import { promisify } from "util";
-import { gzip } from "zlib";
 
 const gzipAsync = promisify(gzip);
 
@@ -39,8 +39,8 @@ const options = {
 	minified: false,
 	profile: false,
 
-	complexity: 10,
-	iterations: 100,
+	complexity: 8,
+	iterations: 10,
 };
 const args = process.argv.slice(2);
 args.forEach((arg) => {

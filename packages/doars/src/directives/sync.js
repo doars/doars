@@ -72,12 +72,12 @@ export default ({ syncDirectiveName }) => ({
 				case "DIV":
 					handler = () => {
 						// Update value.
-						const [contexts, destroyContexts] = createAutoContexts(
+						const { contexts, destroy } = createAutoContexts(
 							component,
 							attribute.clone(),
 						);
 						setDeeply(contexts, valueSplit, escapeHtml(element.innerText));
-						destroyContexts();
+						destroy();
 					};
 					break;
 
@@ -85,7 +85,7 @@ export default ({ syncDirectiveName }) => ({
 					handler = () => {
 						const elementValue = escapeHtml(element.value);
 						// Setup contexts.
-						const [contexts, destroyContexts] = createAutoContexts(
+						const { contexts, destroy } = createAutoContexts(
 							component,
 							attribute.clone(),
 						);
@@ -124,26 +124,26 @@ export default ({ syncDirectiveName }) => ({
 						}
 
 						// Cleanup contexts.
-						destroyContexts();
+						destroy();
 					};
 					break;
 
 				case "TEXTAREA":
 					handler = () => {
 						// Update value.
-						const [contexts, destroyContexts] = createAutoContexts(
+						const { contexts, destroy } = createAutoContexts(
 							component,
 							attribute.clone(),
 						);
 						setDeeply(contexts, valueSplit, escapeHtml(element.innerText));
-						destroyContexts();
+						destroy();
 					};
 					break;
 
 				case "SELECT":
 					handler = () => {
 						// Create contexts.
-						const [contexts, destroyContexts] = createAutoContexts(
+						const { contexts, destroy } = createAutoContexts(
 							component,
 							attribute.clone(),
 						);
@@ -166,7 +166,7 @@ export default ({ syncDirectiveName }) => ({
 						}
 
 						// Cleanup contexts.
-						destroyContexts();
+						destroy();
 					};
 					break;
 			}

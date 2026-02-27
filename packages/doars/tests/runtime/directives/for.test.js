@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import Doars from "../../../src/DoarsExecute.js";
+import DoarsInterpret from "../../../src/DoarsInterpret.js";
 import { document } from "../test-setup.js";
 
 describe("For Directive", () => {

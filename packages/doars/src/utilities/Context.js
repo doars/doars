@@ -33,10 +33,6 @@ export const createContexts = (component, attribute, update, extra = null) => {
 	// Start with the simple contexts.
 	const contexts = library.getSimpleContexts();
 
-	/** @type {Array<string>} */
-	const deconstructed = [];
-	let after = "",
-		before = "";
 	// Iterate over all contexts.
 	const creatableContexts = library.getContexts();
 	// Store destroy functions.
@@ -63,9 +59,11 @@ export const createContexts = (component, attribute, update, extra = null) => {
 
 		// Deconstruct options if marked as such.
 		if (creatableContext.deconstruct && typeof result.value === "object") {
-			deconstructed.push(creatableContext.name);
-			before += `with(${creatableContext.name}) { `;
-			after += " }";
+			for (const key in result.value) {
+				if (Object.hasOwn(result.value, key)) {
+					contexts[key] = result.value[key];
+				}
+			}
 		}
 
 		// If revocable is explicitly marked as no, then ensure it remains available.
@@ -87,16 +85,13 @@ export const createContexts = (component, attribute, update, extra = null) => {
 	return {
 		contexts,
 		irrevocableContexts,
+
 		destroy: () => {
 			// Call all destroy functions.
 			for (let index = destroyFunctions.length - 1; index >= 0; index--) {
 				destroyFunctions[index]();
 			}
 		},
-
-		after,
-		before,
-		deconstructed,
 	};
 };
 
@@ -152,6 +147,7 @@ export const createContextsProxy = (
 	// Return context.
 	return {
 		contexts: revocable.proxy,
+
 		destroy: () => {
 			// Call destroy on created context.
 			if (data?.destroy) {
@@ -196,9 +192,10 @@ export const createAutoContexts = (component, attribute, extra = null) => {
 		},
 	);
 
-	return [
-		contextProxy.proxy,
-		() => {
+	return {
+		contexts: contextProxy.proxy,
+
+		destroy: () => {
 			contextProxy.revoke();
 
 			// Invoke destroy.
@@ -209,7 +206,7 @@ export const createAutoContexts = (component, attribute, extra = null) => {
 				component.getLibrary().update(triggers);
 			}
 		},
-	];
+	};
 };
 
 export default {

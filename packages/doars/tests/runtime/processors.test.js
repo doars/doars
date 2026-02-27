@@ -89,4 +89,27 @@ describe("Processors", () => {
 
 		expect(captured).toBe(true);
 	});
+
+	test("interpret processor interprets expressions with deconstructed state", async () => {
+		let captured = "Hello there!";
+
+		container.innerHTML = `
+      <div d-state="{ message: 'General Kenobi.' }" d-initialized="capture(message)"></div>
+    `;
+
+		// Create Doars with interpret processor.
+		doars = new DoarsInterpret({
+			root: container,
+		});
+
+		doars.setSimpleContext("capture", (message) => {
+			captured = message;
+		});
+
+		doars.enable();
+
+		await new Promise((resolve) => setTimeout(resolve, 1));
+
+		expect(captured).toBe("General Kenobi.");
+	});
 });

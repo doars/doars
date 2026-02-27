@@ -14,6 +14,10 @@ bundle([
 		outfile: "dst/doars.js",
 	},
 	{
+		entrypoints: "src/libraries/doars-interpret.js",
+		outfile: "dst/doars-interpret.js",
+	},
+	{
 		entrypoints: "src/libraries/doars+fetch.js",
 		outfile: "dst/doars+fetch.js",
 	},

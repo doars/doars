@@ -1,5 +1,3 @@
-// Import symbols.
-
 // Import event dispatcher.
 import EventDispatcher from "@doars/common/src/events/EventDispatcher.js";
 import { walk } from "@doars/common/src/utilities/Element.js";

@@ -40,24 +40,19 @@ export const execute = (
 	};
 
 	// Create function context.
-	let { after, before, contexts, destroy } = createContexts(
+	const { contexts, destroy } = createContexts(
 		component,
 		attribute,
 		update,
 		extra,
 	);
 
-	// Apply options.
-	if (options.return) {
-		before += "return ";
-	}
-
 	// Try to execute code.
 	let result;
 	try {
 		result = new Function(
 			...Object.keys(contexts),
-			before + expression + after,
+			(options.return ? "return " : "") + expression,
 		)(...Object.values(contexts));
 	} catch (error) {
 		console.error(

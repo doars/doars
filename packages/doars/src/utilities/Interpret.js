@@ -31,11 +31,7 @@ export const interpret = (
 	);
 
 	// Create contexts.
-	const [contexts, destroyContexts] = createAutoContexts(
-		component,
-		attribute,
-		extra,
-	);
+	const { contexts, destroy } = createAutoContexts(component, attribute, extra);
 
 	// Get result from the expression.
 	let result;
@@ -59,7 +55,7 @@ export const interpret = (
 	}
 
 	// Cleanup contexts.
-	destroyContexts();
+	destroy();
 
 	// Unwrap results.
 	if (options.return && result) {
