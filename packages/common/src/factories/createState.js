@@ -16,10 +16,8 @@ export default (name, id, state, proxy) => {
 	return (_component, attribute, update) => {
 		// Create event handlers.
 		const onDelete = (_target, path) => update(id, `${name}.${path.join(".")}`);
-		const onGet = (_target, path) => {
-			// console.log("accessed", path); // FIXME:
+		const onGet = (_target, path) =>
 			attribute.accessed(id, `${name}.${path.join(".")}`);
-		};
 		const onSet = (_target, path) => update(id, `${name}.${path.join(".")}`);
 
 		// Add event listeners.

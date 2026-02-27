@@ -192,9 +192,7 @@
   var createState_default = (name, id, state, proxy) => {
     return (_component, attribute, update) => {
       const onDelete = (_target, path) => update(id, `${name}.${path.join(".")}`);
-      const onGet = (_target, path) => {
-        attribute.accessed(id, `${name}.${path.join(".")}`);
-      };
+      const onGet = (_target, path) => attribute.accessed(id, `${name}.${path.join(".")}`);
       const onSet = (_target, path) => update(id, `${name}.${path.join(".")}`);
       proxy.addEventListener("delete", onDelete);
       proxy.addEventListener("get", onGet);
@@ -380,4 +378,4 @@
   window.DoarsPersist = DoarsPersist_default;
 })();
 
-//# debugId=DAF0A48A7F0814E464756E2164756E21
+//# debugId=B8E899E9D2B607E164756E2164756E21

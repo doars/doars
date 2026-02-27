@@ -1131,9 +1131,7 @@
   var createState_default = (name, id, state, proxy) => {
     return (_component, attribute, update) => {
       const onDelete = (_target, path) => update(id, `${name}.${path.join(".")}`);
-      const onGet = (_target, path) => {
-        attribute.accessed(id, `${name}.${path.join(".")}`);
-      };
+      const onGet = (_target, path) => attribute.accessed(id, `${name}.${path.join(".")}`);
       const onSet = (_target, path) => update(id, `${name}.${path.join(".")}`);
       proxy.addEventListener("delete", onDelete);
       proxy.addEventListener("get", onGet);
@@ -3402,4 +3400,4 @@ ${error.name}: ${error.message}`);
   window.Doars = DoarsExecute_default;
 })();
 
-//# debugId=52EC82EA8BB2162864756E2164756E21
+//# debugId=54B7684E638BB44564756E2164756E21

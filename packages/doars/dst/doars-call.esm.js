@@ -1130,9 +1130,7 @@ var siblings_default = ({ siblingsContextName }) => ({
 var createState_default = (name, id, state, proxy) => {
   return (_component, attribute, update) => {
     const onDelete = (_target, path) => update(id, `${name}.${path.join(".")}`);
-    const onGet = (_target, path) => {
-      attribute.accessed(id, `${name}.${path.join(".")}`);
-    };
+    const onGet = (_target, path) => attribute.accessed(id, `${name}.${path.join(".")}`);
     const onSet = (_target, path) => update(id, `${name}.${path.join(".")}`);
     proxy.addEventListener("delete", onDelete);
     proxy.addEventListener("get", onGet);
@@ -3402,4 +3400,4 @@ export {
   DoarsCall_default as default
 };
 
-//# debugId=98D62B059B46993B64756E2164756E21
+//# debugId=A32796C41AB7ACEC64756E2164756E21
