@@ -551,7 +551,7 @@ class Component {
       if (data === null) {
         data = {};
       } else if (typeof data !== "object" || Array.isArray(data)) {
-        console.error("Doars: component tag must return an object!");
+        console.error("Doars: component tag must return an object!", data);
         return;
       }
       proxy = new ProxyDispatcher;
@@ -1781,7 +1781,9 @@ var for_default2 = ({ allowInlineScript, forDirectiveName }) => ({
     if (!isNaN(expression.iterable)) {
       result = Number(expression.iterable);
     } else {
-      result = processExpression(component, attribute, expression.iterable);
+      result = processExpression(component, attribute, expression.iterable, {}, {
+        return: true
+      });
     }
     const data = attribute.getData();
     attribute.setData(Object.assign({}, data, {
@@ -3207,7 +3209,6 @@ class Doars extends EventDispatcher {
       isUpdating = false;
       updatePromise = null;
       if (Object.getOwnPropertySymbols(triggers).length > 0) {
-        console.warn("Doars: during an update another update has been triggered. This should not happen unless an expression in one of the directives is causing a infinite loop by mutating the state.");
         await this.update();
         return;
       }
@@ -3373,14 +3374,7 @@ class Doars extends EventDispatcher {
 
 // src/utilities/Execute.js
 var execute = (component, attribute, expression, extra = null, options = null) => {
-  const triggers = [];
-  const update = (id, context) => {
-    triggers.push({
-      id,
-      path: context
-    });
-  };
-  const { contexts, destroy: destroy3 } = createContexts(component, attribute, update, extra);
+  const { contexts, destroy: destroy3 } = createAutoContexts(component, attribute, extra);
   let result;
   try {
     result = new Function(...Object.keys(contexts), (!options || options?.return ? "return " : "") + expression)(...Object.values(contexts));
@@ -3390,10 +3384,9 @@ ${error.name}: ${error.message}`);
     result = null;
   }
   destroy3();
-  if (triggers.length > 0) {
-    component.getLibrary().update(triggers);
+  if (!options || options?.return) {
+    return result;
   }
-  return result;
 };
 
 // src/DoarsExecute.js
@@ -3403,4 +3396,4 @@ export {
   DoarsExecute_default as default
 };
 
-//# debugId=33DAEAC26EC92C5B64756E2164756E21
+//# debugId=C62E5097C044963F64756E2164756E21

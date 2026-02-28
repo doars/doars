@@ -217,7 +217,6 @@ export default class Attribute extends EventDispatcher {
 		 * @param {string} path Context path.
 		 */
 		this.accessed = (id, path) => {
-			// TODO: Keep the ids in a shadow set for quicker lookups, and convert paths for each id to a set as well.
 			if (accessedItemIds.has(id)) {
 				if (accessedItems[id].has(path)) {
 					return;

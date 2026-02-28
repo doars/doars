@@ -1151,9 +1151,14 @@ export default (expression) => {
 	};
 
 	const nodes = gobbleExpressions();
-
 	/**
 	 * Parse complete and return the AST. Returns undefined if no expressions were parsed (empty input). Returns an array of nodes if multiple expressions were parsed.
 	 */
-	return nodes.length === 0 ? undefined : nodes;
+	if (!nodes || nodes.length === 0) {
+		return undefined;
+	}
+	if (nodes.length === 1) {
+		return nodes[0];
+	}
+	return nodes;
 };

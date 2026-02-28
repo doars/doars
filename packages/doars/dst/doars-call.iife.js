@@ -552,7 +552,7 @@
         if (data === null) {
           data = {};
         } else if (typeof data !== "object" || Array.isArray(data)) {
-          console.error("Doars: component tag must return an object!");
+          console.error("Doars: component tag must return an object!", data);
           return;
         }
         proxy = new ProxyDispatcher;
@@ -1782,7 +1782,9 @@
       if (!isNaN(expression.iterable)) {
         result = Number(expression.iterable);
       } else {
-        result = processExpression(component, attribute, expression.iterable);
+        result = processExpression(component, attribute, expression.iterable, {}, {
+          return: true
+        });
       }
       const data = attribute.getData();
       attribute.setData(Object.assign({}, data, {
@@ -3208,7 +3210,6 @@
         isUpdating = false;
         updatePromise = null;
         if (Object.getOwnPropertySymbols(triggers).length > 0) {
-          console.warn("Doars: during an update another update has been triggered. This should not happen unless an expression in one of the directives is causing a infinite loop by mutating the state.");
           await this.update();
           return;
         }
@@ -3407,4 +3408,4 @@ ${error.name}: ${error.message}`);
   window.Doars = DoarsCall_default;
 })();
 
-//# debugId=D4C1E42AFE3E533864756E2164756E21
+//# debugId=058C97336ED4D15A64756E2164756E21

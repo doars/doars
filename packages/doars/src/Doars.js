@@ -890,9 +890,7 @@ export default class Doars extends EventDispatcher {
 
 			// If there are triggers again then update again.
 			if (Object.getOwnPropertySymbols(triggers).length > 0) {
-				console.warn(
-					"Doars: during an update another update has been triggered. This should not happen unless an expression in one of the directives is causing a infinite loop by mutating the state.",
-				);
+				// console.warn("Doars: during an update another update has been triggered. This should not happen unless an expression in one of the directives is causing a infinite loop by mutating the state.");
 				await this.update();
 				return;
 			}

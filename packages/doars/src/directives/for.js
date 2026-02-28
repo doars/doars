@@ -341,7 +341,15 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 			result = Number(expression.iterable);
 		} else {
 			// Get iterable data, and this will automatically mark the data as being accessed by this component.
-			result = processExpression(component, attribute, expression.iterable);
+			result = processExpression(
+				component,
+				attribute,
+				expression.iterable,
+				{},
+				{
+					return: true,
+				},
+			);
 		}
 
 		// Get stored data.

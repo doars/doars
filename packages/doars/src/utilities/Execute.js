@@ -1,5 +1,5 @@
 // Import context.
-import { createContexts } from "./Context.js";
+import { createAutoContexts } from "./Context.js";
 
 /**
  * @typedef {import('../Attribute.js').default} Attribute
@@ -22,22 +22,8 @@ export const execute = (
 	extra = null,
 	options = null,
 ) => {
-	// Collect update triggers.
-	const triggers = [];
-	const update = (id, context) => {
-		triggers.push({
-			id,
-			path: context,
-		});
-	};
-
 	// Create function context.
-	const { contexts, destroy } = createContexts(
-		component,
-		attribute,
-		update,
-		extra,
-	);
+	const { contexts, destroy } = createAutoContexts(component, attribute, extra);
 
 	// Try to execute code.
 	let result;
@@ -58,12 +44,9 @@ export const execute = (
 	// Invoke destroy.
 	destroy();
 
-	// Dispatch update triggers.
-	if (triggers.length > 0) {
-		component.getLibrary().update(triggers);
+	if (!options || options?.return) {
+		return result;
 	}
-
-	return result;
 };
 
 export default {

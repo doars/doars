@@ -54,8 +54,7 @@ export const interpret = (
 	destroy();
 
 	// Unwrap results.
-	if ((!options || options?.return) && result) {
-		result = result[0];
+	if (!options || options?.return) {
 		return result;
 	}
 };

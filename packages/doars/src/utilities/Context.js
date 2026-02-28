@@ -29,10 +29,8 @@ import RevocableProxy from "@doars/common/src/polyfills/RevocableProxy.js";
 export const createContexts = (component, attribute, update, extra = null) => {
 	// TODO: Reduce memory footprint of contexts generation. Make it a proxy and only initially setup deconstructed contexts, then create the rest on request using a proxy.
 
-	// Get library.
 	const library = component.getLibrary();
 
-	// Start with the simple contexts.
 	const contexts = library.getSimpleContexts();
 
 	// Iterate over all contexts.

@@ -552,7 +552,7 @@
         if (data === null) {
           data = {};
         } else if (typeof data !== "object" || Array.isArray(data)) {
-          console.error("Doars: component tag must return an object!");
+          console.error("Doars: component tag must return an object!", data);
           return;
         }
         proxy = new ProxyDispatcher;
@@ -1782,7 +1782,9 @@
       if (!isNaN(expression.iterable)) {
         result = Number(expression.iterable);
       } else {
-        result = processExpression(component, attribute, expression.iterable);
+        result = processExpression(component, attribute, expression.iterable, {}, {
+          return: true
+        });
       }
       const data = attribute.getData();
       attribute.setData(Object.assign({}, data, {
@@ -3208,7 +3210,6 @@
         isUpdating = false;
         updatePromise = null;
         if (Object.getOwnPropertySymbols(triggers).length > 0) {
-          console.warn("Doars: during an update another update has been triggered. This should not happen unless an expression in one of the directives is causing a infinite loop by mutating the state.");
           await this.update();
           return;
         }
@@ -4188,7 +4189,13 @@
       return node;
     };
     const nodes = gobbleExpressions();
-    return nodes.length === 0 ? undefined : nodes;
+    if (!nodes || nodes.length === 0) {
+      return;
+    }
+    if (nodes.length === 1) {
+      return nodes[0];
+    }
+    return nodes;
   };
 
   // ../interpret/src/run.js
@@ -4491,8 +4498,7 @@ ${error.name}: ${error.message}`);
       result = null;
     }
     destroy3();
-    if ((!options || options?.return) && result) {
-      result = result[0];
+    if (!options || options?.return) {
       return result;
     }
   };
@@ -4505,4 +4511,4 @@ ${error.name}: ${error.message}`);
   window.Doars = DoarsInterpret_default;
 })();
 
-//# debugId=2ACD2FFA83AE85C564756E2164756E21
+//# debugId=71C592698DBC598E64756E2164756E21

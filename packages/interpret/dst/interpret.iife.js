@@ -815,7 +815,13 @@
       return node;
     };
     const nodes = gobbleExpressions();
-    return nodes.length === 0 ? undefined : nodes;
+    if (!nodes || nodes.length === 0) {
+      return;
+    }
+    if (nodes.length === 1) {
+      return nodes[0];
+    }
+    return nodes;
   };
 
   // src/run.js
@@ -1111,4 +1117,4 @@
   };
 })();
 
-//# debugId=42E3C565BB56721664756E2164756E21
+//# debugId=C36DABAB6F3BA10B64756E2164756E21

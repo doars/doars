@@ -814,7 +814,13 @@ var parse_default = (expression) => {
     return node;
   };
   const nodes = gobbleExpressions();
-  return nodes.length === 0 ? undefined : nodes;
+  if (!nodes || nodes.length === 0) {
+    return;
+  }
+  if (nodes.length === 1) {
+    return nodes[0];
+  }
+  return nodes;
 };
 
 // src/run.js
@@ -1152,4 +1158,4 @@ export {
   ARRAY2 as ARRAY
 };
 
-//# debugId=81720FB802B8326E64756E2164756E21
+//# debugId=47D4492BD8C9E63C64756E2164756E21

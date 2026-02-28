@@ -188,7 +188,7 @@ export default class Component {
 			if (data === null) {
 				data = {};
 			} else if (typeof data !== "object" || Array.isArray(data)) {
-				console.error("Doars: component tag must return an object!");
+				console.error("Doars: component tag must return an object!", data);
 				return;
 			}
 

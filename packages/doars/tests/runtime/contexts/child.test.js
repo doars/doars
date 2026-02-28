@@ -63,7 +63,6 @@ describe("Child Context", () => {
 
 		await new Promise((resolve) => setTimeout(resolve, 1));
 
-		console.log(captured);
 		expect(captured).toBe("General Kenobi");
 	});
 });
