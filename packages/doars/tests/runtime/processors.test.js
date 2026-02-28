@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import DoarsCall from "../../src/DoarsCall.js";
 import DoarsExecute from "../../src/DoarsExecute.js";
 import DoarsInterpret from "../../src/DoarsInterpret.js";
-import { document } from "./test-setup.js";
+import "./test-setup.js";
 
 describe("Processors", () => {
 	let container, doars;

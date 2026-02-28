@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import Doars from "../../../src/DoarsExecute.js";
-import { document } from "../test-setup.js";
+import "../test-setup.js";
 
 describe("If Directive", () => {
 	let container, doars;

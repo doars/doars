@@ -1,11 +1,11 @@
-import fs from "node:fs";
-import fsPromises from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { promisify } from "node:util";
-import { gzip } from "node:zlib";
 import { sync as brotliSizeSync } from "brotli-size";
+import fs from "fs";
+import fsPromises from "fs/promises";
+import path from "path";
 import { chromium } from "playwright";
+import { fileURLToPath } from "url";
+import { promisify } from "util";
+import { gzip } from "zlib";
 
 const gzipAsync = promisify(gzip);
 
@@ -39,8 +39,8 @@ const options = {
 	minified: false,
 	profile: false,
 
-	complexity: 8,
-	iterations: 10,
+	complexity: 10,
+	iterations: 100,
 };
 const args = process.argv.slice(2);
 args.forEach((arg) => {
@@ -143,23 +143,25 @@ async function runBenchmark(
 		await client.send("HeapProfiler.collectGarbage");
 
 		let tracingPromise;
+		const traceData = [];
+		const onTraceCollected = (params) => {
+			traceData.push(...params.value);
+		};
+		let tracingCompleteResolve;
+		const onTraceCompleted = () => {
+			const trace =
+				'{"traceEvents": [' +
+				traceData.map((event) => JSON.stringify(event)).join(",") +
+				"]}";
+			fs.writeFileSync(traceFilePath, trace);
+			tracingCompleteResolve();
+		};
 		if (traceFilePath) {
-			const traceData = [];
-			let tracingCompleteResolve;
 			tracingPromise = new Promise((resolve) => {
 				tracingCompleteResolve = resolve;
 			});
-			client.on("Tracing.dataCollected", (params) => {
-				traceData.push(...params.value);
-			});
-			client.on("Tracing.tracingComplete", () => {
-				const trace =
-					'{"traceEvents": [' +
-					traceData.map((event) => JSON.stringify(event)).join(",") +
-					"]}";
-				fs.writeFileSync(traceFilePath, trace);
-				tracingCompleteResolve();
-			});
+			client.on("Tracing.dataCollected", onTraceCollected);
+			client.on("Tracing.tracingComplete", onTraceCompleted);
 			await client.send("Tracing.start", {
 				categories: [
 					"-*",
@@ -196,6 +198,8 @@ async function runBenchmark(
 		if (traceFilePath) {
 			await client.send("Tracing.end");
 			await tracingPromise;
+			client.off("Tracing.dataCollected", onTraceCollected);
+			client.off("Tracing.tracingComplete", onTraceCompleted);
 		}
 
 		return result;

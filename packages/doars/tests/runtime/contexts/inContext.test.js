@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import Doars from "../../../src/DoarsInterpret.js";
-import { document } from "../test-setup.js";
+import "../test-setup.js";
 
 /**
  * The with keyword and function constructor used in DoarsExecute means that the revocable proxy can't revoke the initial set of properties it exposes. Therefore we test with the interpreter for more accurate results.

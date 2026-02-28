@@ -14,9 +14,8 @@
 		"serve": "bun ./helpers/serve.js ./"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.3.13",
-		"@playwright/test": "^1.49.1",
+		"@biomejs/biome": "^2.4.4",
 		"brotli-size": "^4.0.0",
-		"happy-dom": "^15.11.6"
+		"happy-dom": "^20.7.0"
 	}
 }
