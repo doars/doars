@@ -207,7 +207,4 @@ test(
 		b: 1,
 		c: undefined,
 	},
-	{
-		expectCompound: true,
-	},
 );

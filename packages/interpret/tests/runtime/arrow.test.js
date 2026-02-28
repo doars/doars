@@ -11,31 +11,44 @@ import {
 import test from "./utilities/test.js";
 
 // Arrow function with no parameters
-test("Arrow function no params", "() => 1", 1, {
-	type: ARROW,
+test("Arrow function no params", "(() => 1)()", 1, {
+	type: CALL,
 	parameters: [],
-	body: {
-		type: LITERAL,
-		value: 1,
+	callee: {
+		type: ARROW,
+		parameters: [],
+		body: {
+			type: LITERAL,
+			value: 1,
+		},
 	},
 });
 
 // Arrow function with single parameter (no parentheses)
 test(
 	"Arrow function single param",
-	"x => x",
+	"(x => x)(x)",
 	5,
 	{
-		type: ARROW,
+		type: CALL,
 		parameters: [
 			{
 				type: IDENTIFIER,
 				name: "x",
 			},
 		],
-		body: {
-			type: IDENTIFIER,
-			name: "x",
+		callee: {
+			type: ARROW,
+			parameters: [
+				{
+					type: IDENTIFIER,
+					name: "x",
+				},
+			],
+			body: {
+				type: IDENTIFIER,
+				name: "x",
+			},
 		},
 	},
 	{
@@ -49,19 +62,28 @@ test(
 // Arrow function with single parameter (with parentheses)
 test(
 	"Arrow function single param with parens",
-	"(x) => x",
+	"((x) => x)(x)",
 	5,
 	{
-		type: ARROW,
+		type: CALL,
 		parameters: [
 			{
 				type: IDENTIFIER,
 				name: "x",
 			},
 		],
-		body: {
-			type: IDENTIFIER,
-			name: "x",
+		callee: {
+			type: ARROW,
+			parameters: [
+				{
+					type: IDENTIFIER,
+					name: "x",
+				},
+			],
+			body: {
+				type: IDENTIFIER,
+				name: "x",
+			},
 		},
 	},
 	{
@@ -75,10 +97,10 @@ test(
 // Arrow function with multiple parameters
 test(
 	"Arrow function multiple params",
-	"(x, y) => x + y",
+	"((x, y) => x + y)(x, y)",
 	8,
 	{
-		type: ARROW,
+		type: CALL,
 		parameters: [
 			{
 				type: IDENTIFIER,
@@ -89,16 +111,29 @@ test(
 				name: "y",
 			},
 		],
-		body: {
-			type: BINARY,
-			operator: "+",
-			left: {
-				type: IDENTIFIER,
-				name: "x",
-			},
-			right: {
-				type: IDENTIFIER,
-				name: "y",
+		callee: {
+			type: ARROW,
+			parameters: [
+				{
+					type: IDENTIFIER,
+					name: "x",
+				},
+				{
+					type: IDENTIFIER,
+					name: "y",
+				},
+			],
+			body: {
+				type: BINARY,
+				operator: "+",
+				left: {
+					type: IDENTIFIER,
+					name: "x",
+				},
+				right: {
+					type: IDENTIFIER,
+					name: "y",
+				},
 			},
 		},
 	},
@@ -115,33 +150,42 @@ test(
 // Arrow function returning an object (wrapped in parentheses)
 test(
 	"Arrow function returns object",
-	"x => ({ value: x })",
+	"(x => ({ value: x }))(x)",
 	{ value: 10 },
 	{
-		type: ARROW,
+		type: CALL,
 		parameters: [
 			{
 				type: IDENTIFIER,
 				name: "x",
 			},
 		],
-		body: {
-			type: OBJECT,
-			properties: [
+		callee: {
+			type: ARROW,
+			parameters: [
 				{
-					type: PROPERTY,
-					computed: false,
-					key: {
-						type: IDENTIFIER,
-						name: "value",
-					},
-					shorthand: false,
-					value: {
-						type: IDENTIFIER,
-						name: "x",
-					},
+					type: IDENTIFIER,
+					name: "x",
 				},
 			],
+			body: {
+				type: OBJECT,
+				properties: [
+					{
+						type: PROPERTY,
+						computed: false,
+						key: {
+							type: IDENTIFIER,
+							name: "value",
+						},
+						shorthand: false,
+						value: {
+							type: IDENTIFIER,
+							name: "x",
+						},
+					},
+				],
+			},
 		},
 	},
 	{
@@ -153,11 +197,15 @@ test(
 );
 
 // Arrow function with block body and explicit return
-test(
-	"Arrow function with block body",
-	"(x) => { return x * 2; }",
-	10,
-	{
+test("Arrow function with block body", "((x) => { return x * 2; })(5)", 10, {
+	type: CALL,
+	parameters: [
+		{
+			type: LITERAL,
+			value: 5,
+		},
+	],
+	callee: {
 		type: ARROW,
 		parameters: [
 			{
@@ -181,13 +229,7 @@ test(
 			},
 		},
 	},
-	{
-		x: 5,
-	},
-	{
-		x: 5,
-	},
-);
+});
 
 // IIFE with arrow function
 test("IIFE arrow function", "(() => 42)()", 42, {
