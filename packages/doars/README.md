@@ -478,27 +478,27 @@ Keep the value of an element in sync with a value in the state. It works on inpu
 
 ### d-text
 
-Set the inner text or text content of the element. The directive's value should be a function expression returning the text to set, or a promise resolving into the text to set. The inner text or text content is only updated if differs from the current value.
+Set the text content or inner text of the element. The directive's value should be a function expression returning the text to set, or a promise resolving into the text to set. The text content or inner text is only updated if differs from the current value.
 
 #### d-text modifiers
 
-- `{boolean} content = false` Whether to write to `textContent` instead of `innerText`. See [the MDN docs for the differences between `innerText` and `textContent`](https://developer.mozilla.org/docs/Web/API/Node/textContent#differences_from_innertext).
+- `{boolean} inner = false` Whether to write to `innerText` instead of `textContent`. See [the MDN docs for the differences between `textContent` and `innerText`](https://developer.mozilla.org/docs/Web/API/Node/textContent#differences_from_innertext).
 
 #### d-text examples
 
 ```HTML
-<!-- Write a string to the inner text fo the element. -->
+<!-- Write a string to the text content fo the element. -->
 <div d-text="'Afterwards'"></div>
 ```
 
 ```HTML
-<!-- Write a value from the state to the inner text fo the element. -->
+<!-- Write a value from the state to the text content fo the element. -->
 <div d-text="$state.message"></div>
 ```
 
 ```HTML
-<!-- Write a value from the state to the text content of the element. -->
-<div d-text.content="$state.message"></div>
+<!-- Write a value from the state to the inner text of the element. -->
+<div d-text.inner="$state.message"></div>
 ```
 
 ### d-transition

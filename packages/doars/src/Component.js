@@ -27,14 +27,18 @@ export default class Component {
 		const id = Symbol("ID_COMPONENT");
 
 		// Deconstruct library options.
-		const { prefix, stateDirectiveName } = library.getOptions();
+		const { prefix, stateDirectiveName, ignoreDirectiveName } =
+			library.getOptions();
 
 		// Get the expression processor.
 		const processExpression = library.getProcessor();
 
+		// Cache directive name strings.
+		const componentName = `${prefix}-${stateDirectiveName}`;
+		const ignoreName = `${prefix}-${ignoreDirectiveName}`;
+
 		// create private variables.
 		let attributes = [],
-			hasUpdated = false,
 			isInitialized = false,
 			data,
 			proxy,
@@ -195,6 +199,15 @@ export default class Component {
 
 			// Scan for attributes.
 			this.scanAttributes(element);
+			if (attributes.length > 0) {
+				this.updateAttributes(attributes);
+			} else {
+				dispatchEvent("updated", {
+					attributes,
+					element,
+					id,
+				});
+			}
 		};
 
 		/**
@@ -361,13 +374,6 @@ export default class Component {
 		 * @returns {Array<Attribute>} New attributes.
 		 */
 		this.scanAttributes = (element) => {
-			const { stateDirectiveName, ignoreDirectiveName } =
-				this.getLibrary().getOptions();
-
-			// Get component's state attribute.
-			const componentName = `${prefix}-${stateDirectiveName}`;
-			const ignoreName = `${prefix}-${ignoreDirectiveName}`;
-
 			// Store new attributes.
 			const newAttributes = [];
 
@@ -427,15 +433,6 @@ export default class Component {
 		 */
 		this.updateAttributes = (attributes) => {
 			if (!isInitialized || attributes.length <= 0) {
-				if (!hasUpdated) {
-					// Dispatch updated event anyway.
-					hasUpdated = true;
-					dispatchEvent("updated", {
-						attributes,
-						element,
-						id,
-					});
-				}
 				return;
 			}
 
@@ -444,7 +441,6 @@ export default class Component {
 			}
 
 			// Dispatch updated event.
-			hasUpdated = true;
 			dispatchEvent("updated", {
 				attributes,
 				element,
@@ -476,8 +472,7 @@ export default class Component {
 			}
 
 			// Dispatch updated event.
-			if (!hasUpdated || updatedAttributes.length > 0) {
-				hasUpdated = true;
+			if (updatedAttributes.length > 0) {
 				dispatchEvent("updated", {
 					attributes: updatedAttributes,
 					element,

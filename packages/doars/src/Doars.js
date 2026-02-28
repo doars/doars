@@ -184,68 +184,69 @@ export default class Doars extends EventDispatcher {
 		super();
 
 		// Deconstruct options.
-		// biome-ignore lint/suspicious/noAssignInExpressions: Assignment in destructure
-		let { prefix, processor, root } = (options = Object.assign(
-			{
-				prefix: "d",
-				processor: "execute",
-				root: document.body,
+		let { prefix, processor, root, ignoreDirectiveName, stateDirectiveName } =
+			// biome-ignore lint/suspicious/noAssignInExpressions: Assignment in destructure
+			(options = Object.assign(
+				{
+					prefix: "d",
+					processor: "execute",
+					root: document.body,
 
-				allowInlineScript: false,
-				forContextDeconstruct: true,
-				stateContextDeconstruct: true,
-				storeContextDeconstruct: false,
-				storeContextInitial: {},
-				indicatorDirectiveEvaluate: true,
-				referenceDirectiveEvaluate: true,
-				selectFromElementDirectiveEvaluate: true,
-				targetDirectiveEvaluate: true,
+					allowInlineScript: false,
+					forContextDeconstruct: true,
+					stateContextDeconstruct: true,
+					storeContextDeconstruct: false,
+					storeContextInitial: {},
+					indicatorDirectiveEvaluate: true,
+					referenceDirectiveEvaluate: true,
+					selectFromElementDirectiveEvaluate: true,
+					targetDirectiveEvaluate: true,
 
-				// Context names must pass regex: /^[_$a-z]{1}[_$a-z0-9]{0,}$/i.test(name)
-				childrenContextName: "$children",
-				componentContextName: "$component",
-				dispatchContextName: "$dispatch",
-				elementContextName: "$element",
-				forContextName: "$for",
-				inContextContextName: "$inContext",
-				nextSiblingContextName: "$nextSibling",
-				nextTickContextName: "$nextTick",
-				parentContextName: "$parent",
-				previousSiblingContextName: "$previousSibling",
-				referencesContextName: "$references",
-				siblingsContextName: "$siblings",
-				stateContextName: "$state",
-				storeContextName: "$store",
-				watchContextName: "$watch",
+					// Context names must pass regex: /^[_$a-z]{1}[_$a-z0-9]{0,}$/i.test(name)
+					childrenContextName: "$children",
+					componentContextName: "$component",
+					dispatchContextName: "$dispatch",
+					elementContextName: "$element",
+					forContextName: "$for",
+					inContextContextName: "$inContext",
+					nextSiblingContextName: "$nextSibling",
+					nextTickContextName: "$nextTick",
+					parentContextName: "$parent",
+					previousSiblingContextName: "$previousSibling",
+					referencesContextName: "$references",
+					siblingsContextName: "$siblings",
+					stateContextName: "$state",
+					storeContextName: "$store",
+					watchContextName: "$watch",
 
-				// Directive names must pass regex: /^[_\-$a-z]{1}[_\-$a-z0-9]{0,}$/i.test(name)
-				attributeDirectiveName: "attribute",
-				cloakDirectiveName: "cloak",
-				forDirectiveName: "for",
-				htmlDirectiveName: "html",
-				ifDirectiveName: "if",
-				ignoreDirectiveName: "ignore",
-				indicatorDirectiveName: "indicator",
-				initializedDirectiveName: "initialized",
-				onDirectiveName: "on",
-				referenceDirectiveName: "reference",
-				selectDirectiveName: "select",
-				selectFromElementDirectiveName: "select",
-				showDirectiveName: "show",
-				stateDirectiveName: "state",
-				syncDirectiveName: "sync",
-				targetDirectiveName: "target",
-				textDirectiveName: "text",
-				transitionDirectiveName: "transition",
-				watchDirectiveName: "watch",
+					// Directive names must pass regex: /^[_\-$a-z]{1}[_\-$a-z0-9]{0,}$/i.test(name)
+					attributeDirectiveName: "attribute",
+					cloakDirectiveName: "cloak",
+					forDirectiveName: "for",
+					htmlDirectiveName: "html",
+					ifDirectiveName: "if",
+					ignoreDirectiveName: "ignore",
+					indicatorDirectiveName: "indicator",
+					initializedDirectiveName: "initialized",
+					onDirectiveName: "on",
+					referenceDirectiveName: "reference",
+					selectDirectiveName: "select",
+					selectFromElementDirectiveName: "select",
+					showDirectiveName: "show",
+					stateDirectiveName: "state",
+					syncDirectiveName: "sync",
+					targetDirectiveName: "target",
+					textDirectiveName: "text",
+					transitionDirectiveName: "transition",
+					watchDirectiveName: "watch",
 
-				// Header names must pass regex: /^[_\-$a-z]{1}[_\-$a-z0-9]{0,}$/i.test(name)
-				redirectHeaderName: "redirect",
-				requestHeaderName: "request",
-				titleHeaderName: "title",
-			},
-			options,
-		));
+					// Header names must pass regex: /^[_\-$a-z]{1}[_\-$a-z0-9]{0,}$/i.test(name)
+					redirectHeaderName: "redirect",
+					requestHeaderName: "request",
+					titleHeaderName: "title",
+				},
+				options,
+			));
 		// If root is a string assume it is a selector.
 		if (typeof root === "string") {
 			root = options.root = document.querySelector(root);
@@ -278,6 +279,7 @@ export default class Doars extends EventDispatcher {
 		// Create private variables.
 		let isEnabled = false,
 			isUpdating = false,
+			updatePromise = null,
 			mutations,
 			observer,
 			triggers;
@@ -325,6 +327,9 @@ export default class Doars extends EventDispatcher {
 			createWatchDirective(options),
 		];
 		let directivesNames, directivesObject, directivesRegexp;
+
+		const componentName = `${prefix}-${stateDirectiveName}`,
+			ignoreName = `${prefix}-${ignoreDirectiveName}`;
 
 		// Get the expression processor.
 		const processorType = typeof processor;
@@ -425,11 +430,7 @@ export default class Doars extends EventDispatcher {
 				subtree: true,
 			});
 
-			const { stateDirectiveName, ignoreDirectiveName } = this.getOptions();
-
 			// Scan for components.
-			const componentName = `${prefix}-${stateDirectiveName}`;
-			const ignoreName = `${prefix}-${ignoreDirectiveName}`;
 			const componentElements = [
 				...root.querySelectorAll(`[${componentName}]`),
 			];
@@ -446,7 +447,6 @@ export default class Doars extends EventDispatcher {
 				...componentElements,
 			);
 
-			// Dispatch events.
 			this.dispatchEvent("enabled", [this]);
 			this.dispatchEvent("updated", [this]);
 
@@ -513,7 +513,6 @@ export default class Doars extends EventDispatcher {
 
 				// Create component.
 				const component = new Component(this, element);
-				// Add to list.
 				components.push(component);
 
 				// Add to results.
@@ -828,7 +827,7 @@ export default class Doars extends EventDispatcher {
 		 * Update directives based on triggers. *Can only be called when enabled.*
 		 * @param {Array<Trigger>} _triggers List of triggers to update with.
 		 */
-		this.update = (_triggers) => {
+		this.update = async (_triggers) => {
 			if (!isEnabled) {
 				// Exit early since it needs to be enabled first.
 				return;
@@ -855,6 +854,9 @@ export default class Doars extends EventDispatcher {
 
 			// Don't update while another update is going on.
 			if (isUpdating) {
+				if (updatePromise) {
+					await updatePromise;
+				}
 				return;
 			}
 
@@ -865,6 +867,9 @@ export default class Doars extends EventDispatcher {
 
 			// Set as updating.
 			isUpdating = true;
+			// Wait until later in the loop.
+			updatePromise = Promise.resolve();
+			await updatePromise;
 
 			// Move update triggers to local scope only.
 			_triggers = Object.freeze(triggers);
@@ -880,20 +885,20 @@ export default class Doars extends EventDispatcher {
 
 			// Set as NOT updating.
 			isUpdating = false;
+			updatePromise = null;
 
 			// If there are triggers again then update again.
 			if (Object.getOwnPropertySymbols(triggers).length > 0) {
 				console.warn(
 					"Doars: during an update another update has been triggered. This should not happen unless an expression in one of the directives is causing a infinite loop by mutating the state.",
 				);
-				// Use an animation frame to delay the update to prevent freezing and hope it resolves itself.
-				Promise.resolve().then(this.update);
+				await this.update();
 				return;
 			}
 
 			// If there are any mutation to handle then handle them.
 			if (mutations.length > 0) {
-				handleMutation();
+				await handleMutation();
 				return;
 			}
 
@@ -904,12 +909,17 @@ export default class Doars extends EventDispatcher {
 		 * Handle document mutations by update internal data and executing directives.
 		 * @param {Array<MutationRecord>} newMutations List of mutations.
 		 */
-		const handleMutation = (newMutations) => {
+		const handleMutation = async (newMutations) => {
 			// Add mutations to existing list.
-			mutations.push(...newMutations);
+			if (newMutations) {
+				mutations.push(...newMutations);
+			}
 
 			// Don't handle mutations while an update is going on.
 			if (isUpdating) {
+				if (updatePromise) {
+					await updatePromise;
+				}
 				return;
 			}
 
@@ -924,12 +934,6 @@ export default class Doars extends EventDispatcher {
 			// Get mutations to handle.
 			newMutations = [...mutations];
 			mutations = [];
-
-			const { stateDirectiveName, ignoreDirectiveName } = this.getOptions();
-
-			// Construct component name.
-			const componentName = `${prefix}-${stateDirectiveName}`;
-			const ignoreName = `${prefix}-${ignoreDirectiveName}`;
 
 			// Store new attribute and elements that define new components.
 			const componentsToAdd = [];
@@ -1125,13 +1129,13 @@ export default class Doars extends EventDispatcher {
 
 			// If there are any mutation to handle then handle them.
 			if (mutations.length > 0) {
-				handleMutation();
+				await handleMutation();
 				return;
 			}
 
 			// If there are any triggers then trigger an update.
 			if (Object.getOwnPropertySymbols(triggers).length > 0) {
-				this.update();
+				await this.update();
 			}
 		};
 	}

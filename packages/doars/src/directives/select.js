@@ -41,7 +41,7 @@ export default ({ selectDirectiveName }) => ({
 			return;
 		}
 
-		const set = (data) => {
+		const setSelect = (data) => {
 			// Iterate over the select options.
 			if (element.tagName === TAG_SELECT) {
 				for (const option of Array.from(element.options)) {
@@ -104,10 +104,10 @@ export default ({ selectDirectiveName }) => ({
 					return;
 				}
 
-				set(resultResolved);
+				setSelect(resultResolved);
 			});
 		} else {
-			set(result);
+			setSelect(result);
 		}
 	},
 });

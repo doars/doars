@@ -38,7 +38,7 @@ export default ({ allowInlineScript, ifDirectiveName }) => ({
 			return;
 		}
 
-		const set = (result) => {
+		const setIf = (result) => {
 			// Get stored data.
 			const data = attribute.getData();
 
@@ -118,10 +118,10 @@ export default ({ allowInlineScript, ifDirectiveName }) => ({
 					return;
 				}
 
-				set(result);
+				setIf(result);
 			});
 		} else {
-			set(result);
+			setIf(result);
 		}
 	},
 

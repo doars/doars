@@ -480,9 +480,11 @@
   class Component {
     constructor(library, element) {
       const id = Symbol("ID_COMPONENT");
-      const { prefix, stateDirectiveName } = library.getOptions();
+      const { prefix, stateDirectiveName, ignoreDirectiveName } = library.getOptions();
       const processExpression = library.getProcessor();
-      let attributes = [], hasUpdated = false, isInitialized = false, data, proxy, state;
+      const componentName = `${prefix}-${stateDirectiveName}`;
+      const ignoreName = `${prefix}-${ignoreDirectiveName}`;
+      let attributes = [], isInitialized = false, data, proxy, state;
       if (!element.attributes[`${prefix}-${stateDirectiveName}`]) {
         console.error("Doars: element given to component does not contain a state attribute!");
         return;
@@ -540,8 +542,8 @@
         }
         isInitialized = true;
         const { stateDirectiveName: stateDirectiveName2 } = this.getLibrary().getOptions();
-        const componentName = `${prefix}-${stateDirectiveName2}`;
-        const value = element.attributes[componentName].value;
+        const componentName2 = `${prefix}-${stateDirectiveName2}`;
+        const value = element.attributes[componentName2].value;
         data = value ? processExpression(this, new Attribute(this, element, null, value), value) : {};
         if (data === null) {
           data = {};
@@ -552,6 +554,15 @@
         proxy = new ProxyDispatcher;
         state = proxy.add(data);
         this.scanAttributes(element);
+        if (attributes.length > 0) {
+          this.updateAttributes(attributes);
+        } else {
+          dispatchEvent("updated", {
+            attributes,
+            element,
+            id
+          });
+        }
       };
       this.destroy = () => {
         if (!isInitialized) {
@@ -642,9 +653,6 @@
         attribute.destroy();
       };
       this.scanAttributes = (element2) => {
-        const { stateDirectiveName: stateDirectiveName2, ignoreDirectiveName } = this.getLibrary().getOptions();
-        const componentName = `${prefix}-${stateDirectiveName2}`;
-        const ignoreName = `${prefix}-${ignoreDirectiveName}`;
         const newAttributes = [];
         const iterator = walk(element2, (element3) => !element3.hasAttribute(componentName) && !element3.hasAttribute(ignoreName));
         do {
@@ -670,20 +678,11 @@
       };
       this.updateAttributes = (attributes2) => {
         if (!isInitialized || attributes2.length <= 0) {
-          if (!hasUpdated) {
-            hasUpdated = true;
-            dispatchEvent("updated", {
-              attributes: attributes2,
-              element,
-              id
-            });
-          }
           return;
         }
         for (const attribute of attributes2) {
           this.updateAttribute(attribute);
         }
-        hasUpdated = true;
         dispatchEvent("updated", {
           attributes: attributes2,
           element,
@@ -704,8 +703,7 @@
             }
           }
         }
-        if (!hasUpdated || updatedAttributes.length > 0) {
-          hasUpdated = true;
+        if (updatedAttributes.length > 0) {
           dispatchEvent("updated", {
             attributes: updatedAttributes,
             element,
@@ -1726,7 +1724,7 @@
           triggers[id] = ["$for"];
         }
       };
-      const set = (iterable) => {
+      const setFor = (iterable) => {
         const data2 = attribute.getData();
         const elements = data2.elements ? data2.elements : [];
         const iterableType = typeof iterable;
@@ -1792,10 +1790,10 @@
           if (attribute.getData().result !== result) {
             return;
           }
-          set(resultResolved);
+          setFor(resultResolved);
         });
       } else {
-        set(result);
+        setFor(result);
       }
     },
     destroy: (component, attribute) => {
@@ -1985,7 +1983,7 @@
       const directive = attribute.getDirective();
       const element = attribute.getElement();
       const modifiers = attribute.getModifiers();
-      const set = (html) => {
+      const setHtml = (html) => {
         if (modifiers.decode) {
           html = decode(html);
         }
@@ -2038,10 +2036,10 @@
           if (attribute.getData() !== result) {
             return;
           }
-          set(resultResolved);
+          setHtml(resultResolved);
         });
       } else {
-        set(result);
+        setHtml(result);
       }
     }
   });
@@ -2062,7 +2060,7 @@
         console.warn(`Doars: "${directive}" must have one child.`);
         return;
       }
-      const set = (result2) => {
+      const setIf = (result2) => {
         const data2 = attribute.getData();
         let element = data2.element;
         let transition2 = data2.transition;
@@ -2105,10 +2103,10 @@
           if (attribute.getData().result !== result2) {
             return;
           }
-          set(result2);
+          setIf(result2);
         });
       } else {
-        set(result);
+        setIf(result);
       }
     },
     destroy: (component, attribute, { transitionOut: transitionOut2 }) => {
@@ -2534,7 +2532,7 @@
         console.warn('Doars: "' + directive + '" directive must be placed on a `select` tag or `input` of type checkbox or radio.');
         return;
       }
-      const set = (data) => {
+      const setSelect = (data) => {
         if (element.tagName === TAG_SELECT) {
           for (const option of Array.from(element.options)) {
             const select = Array.isArray(data) ? data.includes(option.value) : data === option.value;
@@ -2574,10 +2572,10 @@
           if (attribute.getData() !== result) {
             return;
           }
-          set(resultResolved);
+          setSelect(resultResolved);
         });
       } else {
-        set(result);
+        setSelect(result);
       }
     }
   });
@@ -2588,7 +2586,7 @@
     update: (component, attribute, processExpression) => {
       const libraryOptions = component.getLibrary().getOptions();
       const element = attribute.getElement();
-      const set = () => {
+      const setShow = () => {
         const data2 = attribute.getData();
         if (data2.transition) {
           data2.transition();
@@ -2616,13 +2614,13 @@
           if (attribute.getData().result !== result) {
             return;
           }
-          set(resultResolved);
+          setShow(resultResolved);
         });
       } else if (!data || data.result !== result) {
         attribute.setData(Object.assign({}, data, {
           result
         }));
-        set();
+        setShow();
       }
     }
   });
@@ -2787,17 +2785,17 @@
     update: (component, attribute, processExpression) => {
       const element = attribute.getElement();
       const modifiers = attribute.getModifiers();
-      const set = (text) => {
+      const setText = (text) => {
         const textType = typeof text;
         if (textType !== "string") {
           text = String(text);
         }
-        if (modifiers.content) {
-          if (element.textContent !== text) {
-            element.textContent = text;
+        if (modifiers.inner) {
+          if (element.innerText !== text) {
+            element.innerText = text;
           }
-        } else if (element.innerText !== text) {
-          element.innerText = text;
+        } else if (element.textContent !== text) {
+          element.textContent = text;
         }
       };
       const result = processExpression(component, attribute, attribute.getValue());
@@ -2807,10 +2805,10 @@
           if (attribute.getData() !== result) {
             return;
           }
-          set(resultResolved);
+          setText(resultResolved);
         });
       } else {
-        set(result);
+        setText(result);
       }
     }
   });
@@ -2825,7 +2823,7 @@
   class Doars extends EventDispatcher {
     constructor(options) {
       super();
-      let { prefix, processor, root } = options = Object.assign({
+      let { prefix, processor, root, ignoreDirectiveName, stateDirectiveName } = options = Object.assign({
         prefix: "d",
         processor: "execute",
         root: document.body,
@@ -2897,7 +2895,7 @@
         return;
       }
       const id = Symbol("ID_DOARS");
-      let isEnabled = false, isUpdating = false, mutations, observer, triggers;
+      let isEnabled = false, isUpdating = false, updatePromise = null, mutations, observer, triggers;
       const components = [];
       const contextsBase = {}, contexts = [
         children_default(options),
@@ -2932,6 +2930,7 @@
         watch_default2(options)
       ];
       let directivesNames, directivesObject, directivesRegexp;
+      const componentName = `${prefix}-${stateDirectiveName}`, ignoreName = `${prefix}-${ignoreDirectiveName}`;
       const processorType = typeof processor;
       let processExpression;
       if (processorType === "function") {
@@ -2975,9 +2974,6 @@
           childList: true,
           subtree: true
         });
-        const { stateDirectiveName, ignoreDirectiveName } = this.getOptions();
-        const componentName = `${prefix}-${stateDirectiveName}`;
-        const ignoreName = `${prefix}-${ignoreDirectiveName}`;
         const componentElements = [
           ...root.querySelectorAll(`[${componentName}]`)
         ];
@@ -3171,7 +3167,7 @@
       this.getProcessor = () => {
         return processExpression;
       };
-      this.update = (_triggers) => {
+      this.update = async (_triggers) => {
         if (!isEnabled) {
           return;
         }
@@ -3188,12 +3184,17 @@
           }
         }
         if (isUpdating) {
+          if (updatePromise) {
+            await updatePromise;
+          }
           return;
         }
         if (Object.getOwnPropertySymbols(triggers).length === 0) {
           return;
         }
         isUpdating = true;
+        updatePromise = Promise.resolve();
+        await updatePromise;
         _triggers = Object.freeze(triggers);
         triggers = {};
         this.dispatchEvent("updating", [this, _triggers]);
@@ -3201,20 +3202,26 @@
           component.update(_triggers);
         }
         isUpdating = false;
+        updatePromise = null;
         if (Object.getOwnPropertySymbols(triggers).length > 0) {
           console.warn("Doars: during an update another update has been triggered. This should not happen unless an expression in one of the directives is causing a infinite loop by mutating the state.");
-          Promise.resolve().then(this.update);
+          await this.update();
           return;
         }
         if (mutations.length > 0) {
-          handleMutation();
+          await handleMutation();
           return;
         }
         this.dispatchEvent("updated", [this, _triggers]);
       };
-      const handleMutation = (newMutations) => {
-        mutations.push(...newMutations);
+      const handleMutation = async (newMutations) => {
+        if (newMutations) {
+          mutations.push(...newMutations);
+        }
         if (isUpdating) {
+          if (updatePromise) {
+            await updatePromise;
+          }
           return;
         }
         if (mutations.length === 0) {
@@ -3223,9 +3230,6 @@
         isUpdating = true;
         newMutations = [...mutations];
         mutations = [];
-        const { stateDirectiveName, ignoreDirectiveName } = this.getOptions();
-        const componentName = `${prefix}-${stateDirectiveName}`;
-        const ignoreName = `${prefix}-${ignoreDirectiveName}`;
         const componentsToAdd = [];
         const componentsToRemove = [];
         const remove = (element) => {
@@ -3354,11 +3358,11 @@
         }
         isUpdating = false;
         if (mutations.length > 0) {
-          handleMutation();
+          await handleMutation();
           return;
         }
         if (Object.getOwnPropertySymbols(triggers).length > 0) {
-          this.update();
+          await this.update();
         }
       };
     }
@@ -3402,4 +3406,4 @@ ${error.name}: ${error.message}`);
   window.Doars = DoarsCall_default;
 })();
 
-//# debugId=01D1788080E8133764756E2164756E21
+//# debugId=E802BD63F0BC67D264756E2164756E21

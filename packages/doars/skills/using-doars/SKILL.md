@@ -152,12 +152,12 @@ Examples:
 
 | Modifier | Type | Default | Description |
 |----------|------|---------|-------------|
-| `content` | `boolean` | `false` | Use `textContent` instead of `innerText` |
+| `inner` | `boolean` | `false` | Use `innerText` instead of `textContent` |
 
 Examples:
 ```html
-<div d-text="message"></div>          <!-- innerText -->
-<div d-text.content="message"></div>  <!-- textContent -->
+<div d-text="message"></div>        <!-- textContent -->
+<div d-text.inner="message"></div>  <!-- innerText -->
 ```
 
 ### d-transition

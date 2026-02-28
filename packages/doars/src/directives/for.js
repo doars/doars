@@ -194,7 +194,7 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 			}
 		};
 
-		const set = (iterable) => {
+		const setFor = (iterable) => {
 			// Get stored data.
 			const data = attribute.getData();
 
@@ -362,10 +362,10 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 					return;
 				}
 
-				set(resultResolved);
+				setFor(resultResolved);
 			});
 		} else {
-			set(result);
+			setFor(result);
 		}
 	},
 

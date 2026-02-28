@@ -23,7 +23,7 @@ export default ({ allowInlineScript, htmlDirectiveName }) => ({
 		const element = attribute.getElement();
 		const modifiers = attribute.getModifiers();
 
-		const set = (html) => {
+		const setHtml = (html) => {
 			// Decode string.
 			if (modifiers.decode) {
 				html = decode(html);
@@ -101,10 +101,10 @@ export default ({ allowInlineScript, htmlDirectiveName }) => ({
 					return;
 				}
 
-				set(resultResolved);
+				setHtml(resultResolved);
 			});
 		} else {
-			set(result);
+			setHtml(result);
 		}
 	},
 });

@@ -18,7 +18,7 @@ export default ({ textDirectiveName }) => ({
 		const element = attribute.getElement();
 		const modifiers = attribute.getModifiers();
 
-		const set = (text) => {
+		const setText = (text) => {
 			// Make sure it is text.
 			const textType = typeof text;
 			if (textType !== "string") {
@@ -26,12 +26,12 @@ export default ({ textDirectiveName }) => ({
 			}
 
 			// Assign text.
-			if (modifiers.content) {
-				if (element.textContent !== text) {
-					element.textContent = text;
+			if (modifiers.inner) {
+				if (element.innerText !== text) {
+					element.innerText = text;
 				}
-			} else if (element.innerText !== text) {
-				element.innerText = text;
+			} else if (element.textContent !== text) {
+				element.textContent = text;
 			}
 		};
 
@@ -53,10 +53,10 @@ export default ({ textDirectiveName }) => ({
 					return;
 				}
 
-				set(resultResolved);
+				setText(resultResolved);
 			});
 		} else {
-			set(result);
+			setText(result);
 		}
 	},
 });

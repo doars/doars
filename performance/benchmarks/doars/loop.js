@@ -33,9 +33,15 @@ window.benchmark = {
       </ul>
 		`;
 
-		doars.enable();
+		await doars.enable();
 
 		buttons = Array.from(rootNode.querySelectorAll("button"));
+
+		// if (buttons.length) {
+		// 	console.log(buttons.length);
+		// 	console.log(buttons[1].parentNode.outerHTML);
+		// 	console.log(buttons[buttons.length - 1].parentNode.outerHTML);
+		// }
 	},
 
 	run: async () => {
@@ -44,6 +50,11 @@ window.benchmark = {
 			buttons[i].dispatchEvent(event);
 		}
 		await doars.update();
+
+		// if (buttons.length) {
+		// 	console.log(buttons[1].parentNode.outerHTML);
+		// 	console.log(buttons[buttons.length - 1].parentNode.outerHTML);
+		// }
 	},
 
 	cleanup: async ({ rootNode }) => {

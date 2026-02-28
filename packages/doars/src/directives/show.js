@@ -23,7 +23,7 @@ export default ({ showDirectiveName }) => ({
 		const libraryOptions = component.getLibrary().getOptions();
 		const element = attribute.getElement();
 
-		const set = () => {
+		const setShow = () => {
 			// Get stored data.
 			const data = attribute.getData();
 
@@ -76,7 +76,7 @@ export default ({ showDirectiveName }) => ({
 					return;
 				}
 
-				set(resultResolved);
+				setShow(resultResolved);
 			});
 		} else if (!data || data.result !== result) {
 			// Store results.
@@ -86,7 +86,7 @@ export default ({ showDirectiveName }) => ({
 				}),
 			);
 
-			set();
+			setShow();
 		}
 	},
 });
