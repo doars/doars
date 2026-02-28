@@ -876,7 +876,7 @@
       const libraryOptions = library.getOptions();
       const element = attribute.getElement();
       const directive = attribute.getDirective();
-      const modifiers = attribute.getModifiers();
+      const modifiers = Object.assign({}, attribute.getModifiers());
       const value = attribute.getValue();
       const isForm = element.tagName === "FORM";
       const isButton = element.tagName === "BUTTON";
@@ -1295,4 +1295,4 @@
   window.DoarsFetch = DoarsFetch_default;
 })();
 
-//# debugId=813A8EFB8178F4D364756E2164756E21
+//# debugId=597E542316C808B764756E2164756E21

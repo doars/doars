@@ -686,7 +686,7 @@
       const libraryOptions = library.getOptions();
       const element = attribute.getElement();
       const directive = attribute.getDirective();
-      const modifiers = attribute.getModifiers();
+      const modifiers = Object.assign({}, attribute.getModifiers());
       const value = attribute.getValue();
       const isForm = element.tagName === "FORM";
       const isButton = element.tagName === "BUTTON";
@@ -1061,4 +1061,4 @@
   window.DoarsIPC = DoarsIPC_default;
 })();
 
-//# debugId=F048F1C84C44E52E64756E2164756E21
+//# debugId=2E744C93EF3E8BCE64756E2164756E21

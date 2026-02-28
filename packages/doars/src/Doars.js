@@ -370,7 +370,7 @@ export default class Doars extends EventDispatcher {
 		 * @returns {DoarsOptions} Current options.
 		 */
 		this.getOptions = () => {
-			return Object.assign({}, options);
+			return options;
 		};
 
 		/* State */
@@ -411,6 +411,7 @@ export default class Doars extends EventDispatcher {
 			for (const directive of directives) {
 				directivesObject[directive.name] = directive;
 			}
+			directivesObject = Object.freeze(directivesObject);
 
 			// Dynamically create expression for matching any attribute names to known directive keys.
 			directivesRegexp = new RegExp(
@@ -726,7 +727,7 @@ export default class Doars extends EventDispatcher {
 		 * Get object of directives with the directive name as key.
 		 * @returns {DirectiveMap} Object of directives.
 		 */
-		this.getDirectivesObject = () => Object.assign({}, directivesObject);
+		this.getDirectivesObject = () => directivesObject;
 
 		/**
 		 * Check whether a name matches that of a directive.

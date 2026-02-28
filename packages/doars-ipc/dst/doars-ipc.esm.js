@@ -685,7 +685,7 @@ var ipc_default2 = ({
     const libraryOptions = library.getOptions();
     const element = attribute.getElement();
     const directive = attribute.getDirective();
-    const modifiers = attribute.getModifiers();
+    const modifiers = Object.assign({}, attribute.getModifiers());
     const value = attribute.getValue();
     const isForm = element.tagName === "FORM";
     const isButton = element.tagName === "BUTTON";
@@ -1059,4 +1059,4 @@ export {
   DoarsIPC_default as default
 };
 
-//# debugId=F89243FCD32BB62A64756E2164756E21
+//# debugId=F8A93C0B09DFE1C164756E2164756E21

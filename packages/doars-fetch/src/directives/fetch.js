@@ -79,7 +79,7 @@ export default (
 		// Deconstruct attribute.
 		const element = attribute.getElement();
 		const directive = attribute.getDirective();
-		const modifiers = attribute.getModifiers();
+		const modifiers = Object.assign({}, attribute.getModifiers());
 		const value = attribute.getValue();
 
 		// Handle forms differently since the form values need to be used.

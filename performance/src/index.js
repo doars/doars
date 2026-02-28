@@ -1,11 +1,11 @@
+import fs from "node:fs";
+import fsPromises from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
+import { gzip } from "node:zlib";
 import { sync as brotliSizeSync } from "brotli-size";
-import fs from "fs";
-import fsPromises from "fs/promises";
-import path from "path";
 import { chromium } from "playwright";
-import { fileURLToPath } from "url";
-import { promisify } from "util";
-import { gzip } from "zlib";
 
 const gzipAsync = promisify(gzip);
 
@@ -18,15 +18,15 @@ const DIRECTORY_BENCHMARK = "benchmarks";
 const DIRECTORY_LIBRARY = "dst";
 const DIRECTORY_PROFILE = "profiles";
 
-const fmtLabel = (value, prefix = "") => (prefix + value).padEnd(14, " ") + " ";
+const fmtLabel = (value, prefix = "") => `${(prefix + value).padEnd(14, " ")} `;
 const fmtKB = (bytes, prefix = "") =>
-	(prefix + (bytes / 1024).toFixed(2)).padStart(8, " ") + "KB";
+	`${(prefix + (bytes / 1024).toFixed(2)).padStart(8, " ")}KB`;
 const fmtMB = (bytes, prefix = "") =>
-	(prefix + (bytes / 1024 / 1024).toFixed(2)).padStart(8, " ") + "MB";
+	`${(prefix + (bytes / 1024 / 1024).toFixed(2)).padStart(8, " ")}MB`;
 const fmtMs = (time, prefix = "") =>
-	(prefix + time.toFixed(2)).padStart(8, " ") + "ms";
+	`${(prefix + time.toFixed(2)).padStart(8, " ")}ms`;
 const fmtPercent = (value, prefix = "") =>
-	(prefix + value.toFixed(2)).padStart(8, " ") + "%";
+	`${(prefix + value.toFixed(2)).padStart(8, " ")}%`;
 
 const fileDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectDirectory = path.join(fileDirectory, "..");
@@ -52,10 +52,12 @@ args.forEach((arg) => {
 	} else if (arg.startsWith(ARGUMENT_COMPLEXITY)) {
 		options.complexity = Number.parseInt(
 			arg.substring(ARGUMENT_COMPLEXITY.length),
+			10,
 		);
 	} else if (arg.startsWith(ARGUMENT_ITERATIONS)) {
 		options.iterations = Number.parseInt(
 			arg.substring(ARGUMENT_ITERATIONS.length),
+			10,
 		);
 	} else if (arg === "--profile") {
 		// Set the flag to true if the argument is exactly the flag.
@@ -101,7 +103,7 @@ async function runBenchmark(
 	});
 	await page.addScriptTag({
 		// '(function(){' + helpersCode + '}())'
-		content: "(function(){" + benchmarkCode + "}())",
+		content: `(function(){${benchmarkCode}}())`,
 	});
 
 	page.on("console", (message) => {
@@ -124,7 +126,7 @@ async function runBenchmark(
 
 	const callBenchmark = async (functionName) => {
 		const traceFilePath = profilePath
-			? profilePath + "-" + functionName + ".json"
+			? `${profilePath}-${functionName}.json`
 			: null;
 		if (traceFilePath) {
 			const directoryPath = path.dirname(profilePath);
@@ -140,8 +142,6 @@ async function runBenchmark(
 			}
 		}
 
-		await client.send("HeapProfiler.collectGarbage");
-
 		let tracingPromise;
 		const traceData = [];
 		const onTraceCollected = (params) => {
@@ -156,12 +156,18 @@ async function runBenchmark(
 			fs.writeFileSync(traceFilePath, trace);
 			tracingCompleteResolve();
 		};
+
 		if (traceFilePath) {
 			tracingPromise = new Promise((resolve) => {
 				tracingCompleteResolve = resolve;
 			});
 			client.on("Tracing.dataCollected", onTraceCollected);
 			client.on("Tracing.tracingComplete", onTraceCompleted);
+		}
+
+		await client.send("HeapProfiler.collectGarbage");
+
+		if (traceFilePath) {
 			await client.send("Tracing.start", {
 				categories: [
 					"-*",
@@ -184,7 +190,7 @@ async function runBenchmark(
 				}
 			} catch (error) {
 				console.warn(
-					"Benchmark failed because of " + error.name + ": " + error.message,
+					`Benchmark failed because of ${error.name}: ${error.message}`,
 				);
 			}
 
@@ -229,9 +235,10 @@ async function runBenchmarks() {
 		headless: true,
 		args: [
 			"--disable-background-timer-throttling",
+			"--disable-features=V8IdleTasks",
 			"--enable-benchmarking",
 			"--enable-precise-memory-info",
-			"--js-flags=--expose-gc",
+			"--js-flags=--expose-gc --max-old-space-size=16384",
 			"--no-cpu-throttling",
 		],
 	});
@@ -271,7 +278,7 @@ async function runBenchmarks() {
 		const libraryPath = path.join(
 			projectDirectory,
 			DIRECTORY_LIBRARY,
-			libraryName + (options.minified ? ".min" : "") + ".js",
+			`${libraryName + (options.minified ? ".min" : "")}.js`,
 		);
 		let libraryCode,
 			librarySize = 0,
@@ -295,7 +302,7 @@ async function runBenchmarks() {
 			}
 
 			// Append inline sourcemap.
-			const sourceMapPath = libraryPath + ".map";
+			const sourceMapPath = `${libraryPath}.map`;
 			if (fs.existsSync(sourceMapPath)) {
 				const sourceMapContent = await fsPromises.readFile(
 					sourceMapPath,
@@ -303,13 +310,11 @@ async function runBenchmarks() {
 				);
 				const base64SourceMap =
 					Buffer.from(sourceMapContent).toString("base64");
-				libraryCode +=
-					"\n//# sourceMappingURL=data:application/json;charset=utf-8;base64," +
-					base64SourceMap;
+				libraryCode += `\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,${base64SourceMap}`;
 			}
 		}
 
-		console.log("\n" + libraryName);
+		console.log(`\n${libraryName}`);
 		if (options.minified && options.sizes) {
 			console.log(
 				fmtLabel("Minified") +
@@ -332,7 +337,7 @@ async function runBenchmarks() {
 				const benchmarkPath = path.join(benchmarksDirectory, benchmarkFilePath);
 				const benchmarkName = path.basename(benchmarkFilePath, ".js");
 				if (benchmarkName.startsWith(".") || benchmarkName.startsWith("_")) {
-					console.log("- " + benchmarkName.substring(1) + ": skipping");
+					console.log(`- ${benchmarkName.substring(1)}: skipping`);
 					continue;
 				}
 				if (options.benchmark && options.benchmark !== benchmarkName) {
@@ -344,7 +349,7 @@ async function runBenchmarks() {
 					? path.join(
 							projectDirectory,
 							DIRECTORY_PROFILE,
-							libraryName + "-" + benchmarkName,
+							`${libraryName}-${benchmarkName}`,
 						)
 					: false;
 
@@ -362,7 +367,7 @@ async function runBenchmarks() {
 					);
 				}
 
-				let resultsMessage = "- " + benchmarkName;
+				let resultsMessage = `- ${benchmarkName}`;
 
 				if (results.length > 0 && results[0].setup) {
 					const setupMemory = calculateStats(

@@ -79,7 +79,7 @@ export default ({ onDirectiveName }) => ({
 		}
 
 		// Deconstruct attribute.
-		const modifiers = attribute.getModifiers();
+		const modifiers = Object.assign({}, attribute.getModifiers());
 
 		// Process modifiers.
 

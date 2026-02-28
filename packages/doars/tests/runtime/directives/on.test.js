@@ -49,7 +49,7 @@ describe("On Directive", () => {
 	});
 
 	test("on click once directive should fire only once", async () => {
-		const captured = { count: 0 };
+		let captured = 0;
 
 		container.innerHTML = `
       <div d-state="{}">
@@ -64,7 +64,7 @@ describe("On Directive", () => {
 		});
 
 		doars.setSimpleContext("increment", () => {
-			captured.count++;
+			captured++;
 		});
 
 		doars.enable();
@@ -78,7 +78,7 @@ describe("On Directive", () => {
 		button.dispatchEvent(new window.Event("click", { bubbles: true }));
 		await new Promise((resolve) => setTimeout(resolve, 1));
 
-		expect(captured.count).toBe(1);
+		expect(captured).toBe(1);
 	});
 
 	test("on click outside directive handles outside clicks", async () => {
@@ -145,7 +145,7 @@ describe("On Directive", () => {
 	});
 
 	test("on keydown buffer directive should buffer events (default: 5)", async () => {
-		const captured = { count: 0 };
+		let captured = 0;
 
 		container.innerHTML = `
       <div d-state="{}">
@@ -159,7 +159,7 @@ describe("On Directive", () => {
 
 		// Set simple context for capturing.
 		doars.setSimpleContext("capture", () => {
-			captured.count++;
+			captured++;
 		});
 
 		doars.enable();
@@ -184,7 +184,7 @@ describe("On Directive", () => {
 
 		await new Promise((resolve) => setTimeout(resolve, 1));
 
-		expect(captured.count).toBe(0);
+		expect(captured).toBe(0);
 
 		input.dispatchEvent(
 			new window.KeyboardEvent("keydown", { key: "e", bubbles: true }),
@@ -192,11 +192,11 @@ describe("On Directive", () => {
 
 		await new Promise((resolve) => setTimeout(resolve, 1));
 
-		expect(captured.count).toBe(1);
+		expect(captured).toBe(1);
 	});
 
 	test("on keydown debounce directive should debounce events (default: 500ms)", async () => {
-		const captured = { count: 0 };
+		let captured = 0;
 
 		container.innerHTML = `
       <div d-state="{}">
@@ -210,7 +210,7 @@ describe("On Directive", () => {
 
 		// Set simple context for capturing.
 		doars.setSimpleContext("capture", () => {
-			captured.count++;
+			captured++;
 		});
 
 		doars.enable();
@@ -226,7 +226,7 @@ describe("On Directive", () => {
 
 		await new Promise((resolve) => setTimeout(resolve, 300));
 
-		expect(captured.count).toBe(0);
+		expect(captured).toBe(0);
 
 		input.dispatchEvent(
 			new window.KeyboardEvent("keydown", { key: "b", bubbles: true }),
@@ -234,11 +234,11 @@ describe("On Directive", () => {
 
 		await new Promise((resolve) => setTimeout(resolve, 600));
 
-		expect(captured.count).toBe(1);
+		expect(captured).toBe(1);
 	});
 
 	test("on keydown debounce directive should debounce events (custom: 10ms)", async () => {
-		const captured = { count: 0 };
+		let captured = 0;
 
 		container.innerHTML = `
       <div d-state="{}">
@@ -252,7 +252,7 @@ describe("On Directive", () => {
 
 		// Set simple context for capturing.
 		doars.setSimpleContext("capture", () => {
-			captured.count++;
+			captured++;
 		});
 
 		doars.enable();
@@ -268,7 +268,7 @@ describe("On Directive", () => {
 
 		await new Promise((resolve) => setTimeout(resolve, 5));
 
-		expect(captured.count).toBe(0);
+		expect(captured).toBe(0);
 
 		input.dispatchEvent(
 			new window.KeyboardEvent("keydown", { key: "b", bubbles: true }),
@@ -276,11 +276,11 @@ describe("On Directive", () => {
 
 		await new Promise((resolve) => setTimeout(resolve, 20));
 
-		expect(captured.count).toBe(1);
+		expect(captured).toBe(1);
 	});
 
 	test("on keydown throttle directive should throttle events (default: 500ms)", async () => {
-		const captured = { count: 0 };
+		let captured = 0;
 
 		container.innerHTML = `
       <div d-state="{}">
@@ -293,7 +293,7 @@ describe("On Directive", () => {
 		});
 		// Set simple context for capturing.
 		doars.setSimpleContext("capture", () => {
-			captured.count++;
+			captured++;
 		});
 		doars.enable();
 
@@ -308,7 +308,7 @@ describe("On Directive", () => {
 
 		await new Promise((resolve) => setTimeout(resolve, 300));
 
-		expect(captured.count).toBe(1);
+		expect(captured).toBe(1);
 
 		input.dispatchEvent(
 			new window.KeyboardEvent("keydown", { key: "b", bubbles: true }),
@@ -316,6 +316,6 @@ describe("On Directive", () => {
 
 		await new Promise((resolve) => setTimeout(resolve, 300));
 
-		expect(captured.count).toBe(1);
+		expect(captured).toBe(1);
 	});
 });

@@ -367,7 +367,7 @@ class Attribute extends EventDispatcher {
       }
       element[ATTRIBUTES].push(this);
     }
-    let accessedItems = {}, data = null, directive, key, keyRaw, modifiersRaw, modifiers;
+    let accessedItems = {}, accessedItemIds = new Set, data = null, directive, key, keyRaw, modifiersRaw, modifiers;
     if (name) {
       const [_directive, _keyRaw, _key, _modifiers] = parseAttributeName(component.getLibrary().getOptions().prefix, name);
       directive = _directive;
@@ -375,7 +375,7 @@ class Attribute extends EventDispatcher {
       keyRaw = _keyRaw;
       modifiersRaw = _modifiers;
       if (_modifiers) {
-        modifiers = parseAttributeModifiers(_modifiers);
+        modifiers = Object.freeze(parseAttributeModifiers(_modifiers));
       }
     }
     this.getComponent = () => {
@@ -397,7 +397,7 @@ class Attribute extends EventDispatcher {
       return keyRaw;
     };
     this.getModifiers = () => {
-      return Object.assign({}, modifiers);
+      return modifiers;
     };
     this.getModifiersRaw = () => {
       return modifiersRaw;
@@ -435,24 +435,28 @@ class Attribute extends EventDispatcher {
       this.removeAllEventListeners();
     };
     this.accessed = (id2, path) => {
-      if (!accessedItems[id2]) {
-        accessedItems[id2] = [];
-      } else if (accessedItems[id2].includes(path)) {
-        return;
+      if (accessedItemIds.has(id2)) {
+        if (accessedItems[id2].has(path)) {
+          return;
+        }
+      } else {
+        accessedItems[id2] = new Set;
+        accessedItemIds.add(id2);
       }
-      accessedItems[id2].push(path);
+      accessedItems[id2].add(path);
       this.dispatchEvent("accessed", [this, id2, path]);
     };
     this.clearAccessed = () => {
       accessedItems = {};
+      accessedItemIds.clear();
     };
     this.hasAccessed = (id2, paths) => {
-      if (!(id2 in accessedItems)) {
+      if (!accessedItemIds.has(id2)) {
         return false;
       }
       const accessedAtId = accessedItems[id2];
       for (const path of paths) {
-        if (accessedAtId.includes(path)) {
+        if (accessedAtId.has(path)) {
           return true;
         }
       }
@@ -553,22 +557,13 @@ class Component {
       proxy = new ProxyDispatcher;
       state = proxy.add(data);
       this.scanAttributes(element);
-      if (attributes.length > 0) {
-        this.updateAttributes(attributes);
-      } else {
-        dispatchEvent("updated", {
-          attributes,
-          element,
-          id
-        });
-      }
     };
     this.destroy = () => {
       if (!isInitialized) {
         return;
       }
       if (attributes.length > 0) {
-        const directives = library.getDirectivesObject();
+        const directives = Object.assign({}, library.getDirectivesObject());
         for (const key in directives) {
           if (!directives[key].destroy) {
             directives[key] = undefined;
@@ -676,7 +671,15 @@ class Component {
       }
     };
     this.updateAttributes = (attributes2) => {
-      if (!isInitialized || attributes2.length <= 0) {
+      if (!isInitialized) {
+        return;
+      }
+      if (attributes2.length <= 0) {
+        dispatchEvent("updated", {
+          attributes: attributes2,
+          element,
+          id
+        });
         return;
       }
       for (const attribute of attributes2) {
@@ -1420,17 +1423,17 @@ var setAttribute = (element, key, data) => {
     if (Array.isArray(data)) {
       data = data.join(" ");
     } else if (typeof data === "object") {
-      data = Object.entries(data).filter(([_key, value]) => value).map(([key2]) => key2).join(" ");
+      data = Object.entries(data).filter(([_, value]) => value).map(([key2]) => key2).join(" ");
     }
   }
   if (key === "style") {
     if (Array.isArray(data)) {
       data = data.join(" ");
     } else if (typeof data === "object") {
-      data = Object.entries(data).map(([key2, value]) => `${key2}:${value}`).join(";");
+      data = Object.entries(data).filter(([_, value]) => value).map(([key2, value]) => `${key2}:${value}`).join(";");
     }
   }
-  if (data === false || data === null || data === undefined) {
+  if (data === false || data === null || data === undefined || data === "") {
     element.removeAttribute(key);
   } else {
     element.setAttribute(key, data);
@@ -2206,7 +2209,7 @@ var on_default = ({ onDirectiveName }) => ({
       }
       delete attribute[ON];
     }
-    const modifiers = attribute.getModifiers();
+    const modifiers = Object.assign({}, attribute.getModifiers());
     const listenerOptions = {};
     if (modifiers.capture) {
       listenerOptions.capture = true;
@@ -2947,7 +2950,7 @@ class Doars extends EventDispatcher {
       return id;
     };
     this.getOptions = () => {
-      return Object.assign({}, options);
+      return options;
     };
     this.getEnabled = () => {
       return isEnabled;
@@ -2966,6 +2969,7 @@ class Doars extends EventDispatcher {
       for (const directive of directives) {
         directivesObject[directive.name] = directive;
       }
+      directivesObject = Object.freeze(directivesObject);
       directivesRegexp = new RegExp("^" + prefix + "-(" + directivesNames.join("|") + ")(?:[$-_.a-z0-9]{0,})?$", "i");
       observer = new MutationObserver(handleMutation.bind(this));
       observer.observe(root, {
@@ -3116,7 +3120,7 @@ class Doars extends EventDispatcher {
     };
     this.getDirectives = () => [...directives];
     this.getDirectivesNames = () => [...directivesNames];
-    this.getDirectivesObject = () => Object.assign({}, directivesObject);
+    this.getDirectivesObject = () => directivesObject;
     this.isDirectiveName = (attributeName) => directivesRegexp.test(attributeName);
     this.addDirectives = (index, ..._directives) => {
       if (isEnabled) {
@@ -3370,9 +3374,6 @@ class Doars extends EventDispatcher {
 // src/utilities/Call.js
 var PATH_VALIDATOR = /^[a-z$_]+[0-9a-z$_]*(?:\.[a-z$_]+[0-9a-z$_]*)*$/is;
 var call = (component, attribute, expression, extra = null, options = null) => {
-  options = Object.assign({
-    return: true
-  }, options);
   const { contexts, destroy: destroy3 } = createAutoContexts(component, attribute, extra);
   expression = expression.trim();
   let result;
@@ -3392,7 +3393,7 @@ ${error.name}: ${error.message}`);
     }
   }
   destroy3();
-  if (options.return) {
+  if (!options || options?.return) {
     return result;
   }
 };
@@ -3404,4 +3405,4 @@ export {
   DoarsCall_default as default
 };
 
-//# debugId=8F20B25F1D6657D364756E2164756E21
+//# debugId=1ED837F96993D69264756E2164756E21

@@ -125,12 +125,10 @@ describe("Attribute Directive", () => {
 		expect(span.style.backgroundColor).toBe("");
 	});
 
-	test("attribute directive should set class attributes", async () => {
+	test("attribute directive should set class attributes by string", async () => {
 		container.innerHTML = `
        <div d-state="{}">
          <span d-attribute:class="'a b'"></span>
-         <span class="a" d-attribute:class="[ 'a', 'b' ]"></span>
-         <span class="c" d-attribute:class="{ a: true, b: true, c: false }"></span>
        </div>
      `;
 
@@ -141,11 +139,44 @@ describe("Attribute Directive", () => {
 
 		await new Promise((resolve) => setTimeout(resolve, 1));
 
-		// Assert classes.
-		const spans = container.querySelectorAll("span");
-		expect(spans[0].className).toBe("a b");
-		expect(spans[1].className).toBe("a b");
-		expect(spans[2].className).toBe("a b");
+		const span = container.querySelector("span");
+		expect(span.className).toBe("a b");
+	});
+
+	test("attribute directive should set class attributes by array", async () => {
+		container.innerHTML = `
+       <div d-state="{}">
+         <span d-attribute:class="[ 'a', 'b', ]"></span>
+       </div>
+     `;
+
+		doars = new Doars({
+			root: container,
+		});
+		doars.enable();
+
+		await new Promise((resolve) => setTimeout(resolve, 1));
+
+		const span = container.querySelector("span");
+		expect(span.className).toBe("a b");
+	});
+
+	test("attribute directive should set class attributes by object", async () => {
+		container.innerHTML = `
+       <div d-state="{}">
+         <span d-attribute:class="{ a: true, b: true, c: false, }"></span>
+       </div>
+     `;
+
+		doars = new Doars({
+			root: container,
+		});
+		doars.enable();
+
+		await new Promise((resolve) => setTimeout(resolve, 1));
+
+		const span = container.querySelector("span");
+		expect(span.className).toBe("a b");
 	});
 
 	test("attribute directive should set checked on checkboxes", async () => {

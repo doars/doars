@@ -35,7 +35,7 @@ export default ({ intersectDirectiveName }, intersectionDispatcher) => ({
 		}
 
 		// Deconstruct attribute.
-		const modifiers = attribute.getModifiers();
+		const modifiers = Object.assign({}, attribute.getModifiers());
 
 		// Process execution modifiers.
 		let executionModifier = EXECUTION_MODIFIERS.NONE;

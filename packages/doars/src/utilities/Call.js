@@ -24,14 +24,6 @@ export const call = (
 	extra = null,
 	options = null,
 ) => {
-	// Override default with given options.
-	options = Object.assign(
-		{
-			return: true,
-		},
-		options,
-	);
-
 	// Create contexts.
 	const { contexts, destroy } = createAutoContexts(component, attribute, extra);
 
@@ -63,7 +55,7 @@ export const call = (
 	// Cleanup contexts.
 	destroy();
 
-	if (options.return) {
+	if (!options || options?.return) {
 		return result;
 	}
 };

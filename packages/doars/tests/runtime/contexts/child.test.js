@@ -43,7 +43,7 @@ describe("Child Context", () => {
 	});
 
 	test("child context should access specific child component", async () => {
-		const captured = {};
+		let captured = null;
 
 		container.innerHTML = `
       <div d-state="{}" d-initialized="setMessage($children[0].$state.message)">
@@ -56,13 +56,14 @@ describe("Child Context", () => {
 		});
 
 		doars.setSimpleContext("setMessage", (message) => {
-			captured.message = message;
+			captured = message;
 		});
 
 		doars.enable();
 
 		await new Promise((resolve) => setTimeout(resolve, 1));
 
-		expect(captured.message).toBe("General Kenobi");
+		console.log(captured);
+		expect(captured).toBe("General Kenobi");
 	});
 });

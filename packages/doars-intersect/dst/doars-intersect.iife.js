@@ -60,7 +60,7 @@
         }
         delete attribute[INTERSECT];
       }
-      const modifiers = attribute.getModifiers();
+      const modifiers = Object.assign({}, attribute.getModifiers());
       let executionModifier = EXECUTION_MODIFIERS.NONE;
       if (modifiers.buffer) {
         executionModifier = EXECUTION_MODIFIERS.BUFFER;
@@ -189,4 +189,4 @@
   window.DoarsIntersect = DoarsIntersect_default;
 })();
 
-//# debugId=8397A48E514E78CE64756E2164756E21
+//# debugId=8D60995A2B49541464756E2164756E21

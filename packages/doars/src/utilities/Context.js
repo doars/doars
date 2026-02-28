@@ -27,6 +27,8 @@ import RevocableProxy from "@doars/common/src/polyfills/RevocableProxy.js";
  * @returns {CreatedContexts} Expressions contexts and destroy functions.
  */
 export const createContexts = (component, attribute, update, extra = null) => {
+	// TODO: Reduce memory footprint of contexts generation. Make it a proxy and only initially setup deconstructed contexts, then create the rest on request using a proxy.
+
 	// Get library.
 	const library = component.getLibrary();
 
@@ -40,7 +42,7 @@ export const createContexts = (component, attribute, update, extra = null) => {
 	const destroyFunctions = [];
 	/** @type {Array<string>} */
 	const irrevocableContexts = [];
-	// TODO: Remove context with duplicate names.
+	// TODO: Filter out context with duplicate names.
 	for (const creatableContext of creatableContexts) {
 		if (!creatableContext || !creatableContext.name) {
 			continue;
@@ -109,6 +111,8 @@ export const createContextsProxy = (
 	update,
 	extra = null,
 ) => {
+	// TODO: After changing the createContexts to be lazy as well can more of that be reused in here as well?
+
 	// Store context after first call.
 	let data = null;
 	// Create context proxy.
@@ -118,6 +122,7 @@ export const createContextsProxy = (
 			get: (_target, property) => {
 				// Create context.
 				if (!data) {
+					// TODO: Prevent $store from being set up.
 					data = createContexts(component, attribute, update, extra);
 				}
 

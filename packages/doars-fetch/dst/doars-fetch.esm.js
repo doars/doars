@@ -875,7 +875,7 @@ var fetch_default2 = ({
     const libraryOptions = library.getOptions();
     const element = attribute.getElement();
     const directive = attribute.getDirective();
-    const modifiers = attribute.getModifiers();
+    const modifiers = Object.assign({}, attribute.getModifiers());
     const value = attribute.getValue();
     const isForm = element.tagName === "FORM";
     const isButton = element.tagName === "BUTTON";
@@ -1293,4 +1293,4 @@ export {
   DoarsFetch_default as default
 };
 
-//# debugId=808F0379AF62768364756E2164756E21
+//# debugId=7142B06967AF899464756E2164756E21

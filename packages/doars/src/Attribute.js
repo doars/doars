@@ -40,6 +40,7 @@ export default class Attribute extends EventDispatcher {
 
 		// Create private variables.
 		let accessedItems = {},
+			accessedItemIds = new Set(),
 			data = null,
 			directive,
 			key,
@@ -61,7 +62,7 @@ export default class Attribute extends EventDispatcher {
 
 			// Parse and store modifiers.
 			if (_modifiers) {
-				modifiers = parseAttributeModifiers(_modifiers);
+				modifiers = Object.freeze(parseAttributeModifiers(_modifiers));
 			}
 		}
 
@@ -118,7 +119,7 @@ export default class Attribute extends EventDispatcher {
 		 * @returns {object} Modifiers object.
 		 */
 		this.getModifiers = () => {
-			return Object.assign({}, modifiers);
+			return modifiers;
 		};
 
 		/**
@@ -217,13 +218,16 @@ export default class Attribute extends EventDispatcher {
 		 */
 		this.accessed = (id, path) => {
 			// TODO: Keep the ids in a shadow set for quicker lookups, and convert paths for each id to a set as well.
-			if (!accessedItems[id]) {
-				accessedItems[id] = [];
-			} else if (accessedItems[id].includes(path)) {
-				return;
+			if (accessedItemIds.has(id)) {
+				if (accessedItems[id].has(path)) {
+					return;
+				}
+			} else {
+				accessedItems[id] = new Set();
+				accessedItemIds.add(id);
 			}
 
-			accessedItems[id].push(path);
+			accessedItems[id].add(path);
 
 			// Dispatch accessed event.
 			this.dispatchEvent("accessed", [this, id, path]);
@@ -234,6 +238,7 @@ export default class Attribute extends EventDispatcher {
 		 */
 		this.clearAccessed = () => {
 			accessedItems = {};
+			accessedItemIds.clear();
 		};
 
 		/**
@@ -243,13 +248,13 @@ export default class Attribute extends EventDispatcher {
 		 * @returns {boolean} Whether any item's path was accessed.
 		 */
 		this.hasAccessed = (id, paths) => {
-			if (!(id in accessedItems)) {
+			if (!accessedItemIds.has(id)) {
 				return false;
 			}
 			const accessedAtId = accessedItems[id];
 
 			for (const path of paths) {
-				if (accessedAtId.includes(path)) {
+				if (accessedAtId.has(path)) {
 					return true;
 				}
 			}

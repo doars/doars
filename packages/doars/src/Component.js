@@ -199,15 +199,6 @@ export default class Component {
 
 			// Scan for attributes.
 			this.scanAttributes(element);
-			if (attributes.length > 0) {
-				this.updateAttributes(attributes);
-			} else {
-				dispatchEvent("updated", {
-					attributes,
-					element,
-					id,
-				});
-			}
 		};
 
 		/**
@@ -220,7 +211,7 @@ export default class Component {
 
 			if (attributes.length > 0) {
 				// Filter out directives without a destroy function.
-				const directives = library.getDirectivesObject();
+				const directives = Object.assign({}, library.getDirectivesObject());
 				for (const key in directives) {
 					if (!directives[key].destroy) {
 						directives[key] = undefined;
@@ -432,7 +423,15 @@ export default class Component {
 		 * @param {Array<Attribute>} attributes Attributes to update.
 		 */
 		this.updateAttributes = (attributes) => {
-			if (!isInitialized || attributes.length <= 0) {
+			if (!isInitialized) {
+				return;
+			}
+			if (attributes.length <= 0) {
+				dispatchEvent("updated", {
+					attributes,
+					element,
+					id,
+				});
 				return;
 			}
 

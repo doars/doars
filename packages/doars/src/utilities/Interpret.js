@@ -22,14 +22,6 @@ export const interpret = (
 	extra = null,
 	options = null,
 ) => {
-	// Override default with given options.
-	options = Object.assign(
-		{
-			return: true,
-		},
-		options,
-	);
-
 	// Create contexts.
 	const { contexts, destroy } = createAutoContexts(component, attribute, extra);
 
@@ -37,7 +29,11 @@ export const interpret = (
 	let result;
 	try {
 		const expressionParsed = parse(expression);
-		if (options.return && expressionParsed && expressionParsed.length > 1) {
+		if (
+			(!options || options?.return) &&
+			expressionParsed &&
+			expressionParsed.length > 1
+		) {
 			throw new Error(
 				'Unable to return a single value from a compound expression of: "' +
 					expression +
@@ -58,7 +54,7 @@ export const interpret = (
 	destroy();
 
 	// Unwrap results.
-	if (options.return && result) {
+	if ((!options || options?.return) && result) {
 		result = result[0];
 		return result;
 	}

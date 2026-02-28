@@ -55,7 +55,6 @@ export default ({ attributeDirectiveName }) => ({
 							'" directive of invalid type.',
 					);
 				}
-
 				return;
 			}
 

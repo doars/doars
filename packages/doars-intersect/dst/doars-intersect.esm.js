@@ -59,7 +59,7 @@ var intersect_default = ({ intersectDirectiveName }, intersectionDispatcher) => 
       }
       delete attribute[INTERSECT];
     }
-    const modifiers = attribute.getModifiers();
+    const modifiers = Object.assign({}, attribute.getModifiers());
     let executionModifier = EXECUTION_MODIFIERS.NONE;
     if (modifiers.buffer) {
       executionModifier = EXECUTION_MODIFIERS.BUFFER;
@@ -187,4 +187,4 @@ export {
   DoarsIntersect_default as default
 };
 
-//# debugId=66A36585E92BB6C064756E2164756E21
+//# debugId=6C8E9FD3C858886564756E2164756E21

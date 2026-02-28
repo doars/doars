@@ -22,14 +22,6 @@ export const execute = (
 	extra = null,
 	options = null,
 ) => {
-	// Override default with given options.
-	options = Object.assign(
-		{
-			return: true,
-		},
-		options,
-	);
-
 	// Collect update triggers.
 	const triggers = [];
 	const update = (id, context) => {
@@ -52,7 +44,7 @@ export const execute = (
 	try {
 		result = new Function(
 			...Object.keys(contexts),
-			(options.return ? "return " : "") + expression,
+			(!options || options?.return ? "return " : "") + expression,
 		)(...Object.values(contexts));
 	} catch (error) {
 		console.error(
