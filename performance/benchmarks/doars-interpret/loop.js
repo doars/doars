@@ -28,7 +28,7 @@ window.benchmark = {
         <template d-for="todo in todos">
           <li d-attribute:class="todo.completed ? 'completed' : ''">
             <span d-text="todo.text + ' (' + (todo.completed ? 'completed' : 'pending') + ')'"></span>
-            <button d-on:click.capture="todo.completed = !todo.completed"></button>
+            <button type="button" d-on:click.capture="todo.completed = !todo.completed">Toggle</button>
           </li>
         </template>
       </ul>

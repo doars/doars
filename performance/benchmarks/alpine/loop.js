@@ -22,7 +22,7 @@ window.benchmark = {
         <template x-for="todo in todos" :key="todo.id">
           <li :class="todo.completed ? 'completed' : ''">
             <span x-text="todo.text + ' (' + (todo.completed ? 'completed' : 'pending') + ')'"></span>
-            <button @click="todo.completed = !todo.completed"></button>
+            <button type="button" @click="todo.completed = !todo.completed">Toggle</button>
           </li>
         </template>
       </ul>
