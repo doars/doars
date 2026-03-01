@@ -718,74 +718,122 @@
   }
 
   // src/utilities/Context.js
+  var CONTEXT_REFLECTION_TRAPS = [
+    "get",
+    "getOwnPropertyDescriptor",
+    "getPrototypeOf"
+  ];
   var createContexts = (component, attribute, update, extra = null) => {
     const library = component.getLibrary();
+    const creatableContexts = library.getContextsByName();
+    const hasExtra = extra && typeof extra === "object";
+    const irrevocable = [];
+    const createableContextNames = [];
+    const contextsKeysCache = [];
+    for (const contextName in creatableContexts) {
+      createableContextNames.push(contextName);
+      contextsKeysCache.push(contextName);
+      const creatableContext = creatableContexts[contextName];
+      if (creatableContext.revocable === false) {
+        irrevocable.push(contextName);
+      }
+    }
     const contexts = library.getSimpleContexts();
-    const creatableContexts = library.getContexts();
-    const destroyFunctions = [];
-    const irrevocableContexts = [];
-    for (const creatableContext of creatableContexts) {
-      if (!creatableContext || !creatableContext.name) {
-        continue;
+    for (const key of Object.keys(contexts)) {
+      if (contextsKeysCache.indexOf(key) < 0) {
+        contextsKeysCache.push(key);
       }
-      const result = creatableContext.create(component, attribute, update);
-      if (!result || !result.value) {
-        continue;
-      }
-      if (result.destroy && typeof result.destroy === "function") {
-        destroyFunctions.push(result.destroy);
-      }
-      if (creatableContext.deconstruct && typeof result.value === "object") {
-        for (const key in result.value) {
-          if (Object.hasOwn(result.value, key)) {
-            contexts[key] = result.value[key];
-          }
+    }
+    if (hasExtra) {
+      for (const key of Object.keys(extra)) {
+        if (contextsKeysCache.indexOf(key) < 0) {
+          contextsKeysCache.push(key);
         }
       }
-      if (creatableContext.revocable === false) {
-        irrevocableContexts.push(creatableContext.name);
-      }
-      contexts[creatableContext.name] = result.value;
     }
-    if (typeof extra === "object") {
-      for (const name in extra) {
-        contexts[name] = extra[name];
-      }
-    }
-    return {
-      contexts,
-      irrevocableContexts,
-      destroy: () => {
-        for (let index = destroyFunctions.length - 1;index >= 0; index--) {
-          destroyFunctions[index]();
+    const destroyCallbacks = [];
+    const addContext = (target, creatableContext) => {
+      const result = creatableContext.create(component, attribute, update);
+      if (result) {
+        if (result.destroy && typeof result.destroy === "function") {
+          destroyCallbacks.push(result.destroy);
+        }
+        if (result.value) {
+          target[creatableContext.name] = result.value;
+          return result.value;
         }
       }
     };
-  };
-  var createContextsProxy = (component, attribute, update, extra = null) => {
-    let data = null;
-    const revocable = RevocableProxy_default({}, {
-      get: (_target, property) => {
-        if (!data) {
-          data = createContexts(component, attribute, update, extra);
-        }
-        if (property in data.contexts) {
-          attribute.accessed(component.getId(), property);
-          return data.contexts[property];
-        }
-        if (data.contexts.$state) {
-          if (property in data.contexts.$state) {
-            attribute.accessed(component.getId(), "$state");
-            return data.contexts.$state[property];
+    let addedDeconstructed = false;
+    const addDeconstruted = (target) => {
+      addedDeconstructed = true;
+      for (const contextName in creatableContexts) {
+        const creatableContext = creatableContexts[contextName];
+        if (creatableContext.deconstruct) {
+          const resultValue = addContext(target, creatableContext);
+          if (resultValue) {
+            for (const key in resultValue) {
+              if (contextsKeysCache.indexOf(key) < 0) {
+                contextsKeysCache.push(key);
+              }
+              target[key] = resultValue[key];
+            }
           }
         }
       }
+    };
+    const reflect = (functionName, ...parameters) => {
+      const [target, key, ...otherParameters] = parameters;
+      if (key in contexts) {
+        attribute.accessed(component.getId(), key);
+        return Reflect[functionName](target, key, ...otherParameters);
+      }
+      if (hasExtra && key in extra) {
+        attribute.accessed(component.getId(), key);
+        return Reflect[functionName](extra, key, ...otherParameters);
+      }
+      if (!addedDeconstructed) {
+        addDeconstruted(target);
+        if (key in contexts) {
+          attribute.accessed(component.getId(), key);
+          return Reflect[functionName](target, key, ...otherParameters);
+        }
+      }
+      if (createableContextNames.indexOf(key) >= 0) {
+        addContext(target, creatableContexts[key]);
+        if (key in contexts) {
+          attribute.accessed(component.getId(), key);
+          return Reflect[functionName](target, key, ...otherParameters);
+        }
+      }
+    };
+    const handler = {
+      has: (target, key) => {
+        if (!addedDeconstructed) {
+          addDeconstruted(target);
+        }
+        return contextsKeysCache.indexOf(key) >= 0;
+      },
+      ownKeys: (target) => {
+        if (!addedDeconstructed) {
+          addDeconstruted(target);
+        }
+        return contextsKeysCache;
+      }
+    };
+    for (const trap of CONTEXT_REFLECTION_TRAPS) {
+      handler[trap] = (...parameters) => {
+        return reflect(trap, ...parameters);
+      };
+    }
+    const revocable = RevocableProxy_default(contexts, handler, {
+      irrevocable
     });
     return {
       contexts: revocable.proxy,
       destroy: () => {
-        if (data?.destroy) {
-          data.destroy(component, attribute);
+        for (let index = destroyCallbacks.length - 1;index >= 0; index--) {
+          destroyCallbacks[index]();
         }
         revocable.revoke();
       }
@@ -799,14 +847,10 @@
         path: context
       });
     };
-    const { contexts, destroy, irrevocableContexts } = createContexts(component, attribute, update, extra);
-    const contextProxy = RevocableProxy_default(contexts, {}, {
-      irrevocable: irrevocableContexts
-    });
+    const { contexts, destroy } = createContexts(component, attribute, update, extra);
     return {
-      contexts: contextProxy.proxy,
+      contexts,
       destroy: () => {
-        contextProxy.revoke();
         destroy();
         if (triggers.length > 0) {
           component.getLibrary().update(triggers);
@@ -823,7 +867,7 @@
       const revocable = RevocableProxy_default(component.getChildren(), {
         get: (target, key, receiver) => {
           if (!childrenContexts) {
-            childrenContexts = target.map((child2) => createContextsProxy(child2, attribute, update));
+            childrenContexts = target.map((child2) => createContexts(child2, attribute, update));
             attribute.accessed(component.getId(), "children");
           }
           if (isNaN(key)) {
@@ -963,7 +1007,7 @@
           value: null
         };
       }
-      const { contexts, destroy } = createContextsProxy(siblings[index + 1], attribute, update);
+      const { contexts, destroy } = createContexts(siblings[index + 1], attribute, update);
       return {
         value: contexts,
         destroy
@@ -1020,7 +1064,7 @@
           value: null
         };
       }
-      const { contexts, destroy } = createContextsProxy(parent, attribute, update);
+      const { contexts, destroy } = createContexts(parent, attribute, update);
       return {
         value: contexts,
         destroy
@@ -1045,7 +1089,7 @@
           value: null
         };
       }
-      const { contexts, destroy } = createContextsProxy(siblings[index - 1], attribute, update);
+      const { contexts, destroy } = createContexts(siblings[index - 1], attribute, update);
       return {
         value: contexts,
         destroy
@@ -1102,7 +1146,7 @@
       const revocable = RevocableProxy_default(parent.getChildren().filter((sibling) => sibling !== component), {
         get: (target, key, receiver) => {
           if (!siblingsContexts) {
-            siblingsContexts = target.map((child) => createContextsProxy(child, attribute, update));
+            siblingsContexts = target.map((child) => createContexts(child, attribute, update));
             attribute.accessed(component.getId(), "siblings");
           }
           if (isNaN(key)) {
@@ -2901,8 +2945,7 @@
       }
       const id = Symbol("ID_DOARS");
       let isEnabled = false, isUpdating = false, updatePromise = null, mutations, observer, triggers;
-      const components = [];
-      const contextsBase = {}, contexts = [
+      const components = [], contextsBase = {}, contexts = [
         children_default(options),
         component_default(options),
         element_default(options),
@@ -2919,6 +2962,7 @@
         state_default(options),
         for_default(options)
       ];
+      let contextsByName;
       const directives = [
         reference_default(options),
         attribute_default(options),
@@ -2967,11 +3011,18 @@
         triggers = {};
         this.dispatchEvent("enabling", [this]);
         isEnabled = true;
-        directivesNames = directives.map((directive) => directive.name);
+        contextsByName = {};
+        for (const context of contexts) {
+          contextsByName[context.name] = context;
+        }
+        contextsByName = Object.freeze(contextsByName);
+        directivesNames = [];
         directivesObject = {};
         for (const directive of directives) {
+          directivesNames.push(directive.name);
           directivesObject[directive.name] = directive;
         }
+        directivesNames = Object.freeze(directivesNames);
         directivesObject = Object.freeze(directivesObject);
         directivesRegexp = new RegExp("^" + prefix + "-(" + directivesNames.join("|") + ")(?:[$-_.a-z0-9]{0,})?$", "i");
         observer = new MutationObserver(handleMutation.bind(this));
@@ -3007,6 +3058,7 @@
         directivesNames = [];
         directivesObject = {};
         directivesRegexp = null;
+        contextsByName = {};
         isEnabled = false;
         this.dispatchEvent("disabled", [this], { reverse: true });
         return this;
@@ -3078,6 +3130,7 @@
         return result;
       };
       this.getContexts = () => [...contexts];
+      this.getContextsByName = () => contextsByName;
       this.addContexts = (index, ..._contexts) => {
         if (isEnabled) {
           console.warn("Doars: Unable to add contexts after being enabled!");
@@ -3122,7 +3175,7 @@
         return results;
       };
       this.getDirectives = () => [...directives];
-      this.getDirectivesNames = () => [...directivesNames];
+      this.getDirectivesNames = () => directivesNames;
       this.getDirectivesObject = () => directivesObject;
       this.isDirectiveName = (attributeName) => directivesRegexp.test(attributeName);
       this.addDirectives = (index, ..._directives) => {
@@ -3145,7 +3198,6 @@
           results.push(directive);
         }
         if (results.length > 0) {
-          directivesNames = directivesObject = directivesRegexp = null;
           this.dispatchEvent("directives-added", [this, results]);
         }
         return results;
@@ -3165,7 +3217,6 @@
           results.push(directive);
         }
         if (results.length > 0) {
-          directivesNames = directivesObject = directivesRegexp = null;
           this.dispatchEvent("directives-removed", [this, results]);
         }
         return results;
@@ -3398,4 +3449,4 @@ ${error.name}: ${error.message}`);
   window.Doars = DoarsExecute_default;
 })();
 
-//# debugId=FEC6B891EF50E19F64756E2164756E21
+//# debugId=43BBE02AD1B8238364756E2164756E21

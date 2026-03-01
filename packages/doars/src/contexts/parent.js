@@ -1,4 +1,4 @@
-import { createContextsProxy } from "../utilities/Context.js";
+import { createContexts } from "../utilities/Context.js";
 
 /**
  * @typedef {import('../Context.js').Context} Context
@@ -23,11 +23,7 @@ export default ({ parentContextName }) => ({
 		}
 
 		// Create contexts proxy for parent.
-		const { contexts, destroy } = createContextsProxy(
-			parent,
-			attribute,
-			update,
-		);
+		const { contexts, destroy } = createContexts(parent, attribute, update);
 
 		return {
 			value: contexts,

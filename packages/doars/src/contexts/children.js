@@ -1,5 +1,5 @@
 import RevocableProxy from "@doars/common/src/polyfills/RevocableProxy.js";
-import { createContextsProxy } from "../utilities/Context.js";
+import { createContexts } from "../utilities/Context.js";
 
 /**
  * @typedef {import('../Context.js').Context} Context
@@ -22,7 +22,7 @@ export default ({ childrenContextName }) => ({
 				if (!childrenContexts) {
 					// Create list of child contexts.
 					childrenContexts = target.map((child) =>
-						createContextsProxy(child, attribute, update),
+						createContexts(child, attribute, update),
 					);
 
 					// Set children of this component as accessed.

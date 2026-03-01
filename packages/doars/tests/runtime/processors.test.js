@@ -44,7 +44,7 @@ describe("Processors", () => {
 		expect(captured).toBe(true);
 	});
 
-	test("execute processor executes JavaScript code", async () => {
+	test("execute processor executes expressions with simple contexts", async () => {
 		let captured = false;
 
 		container.innerHTML = `
@@ -65,6 +65,29 @@ describe("Processors", () => {
 		await new Promise((resolve) => setTimeout(resolve, 1));
 
 		expect(captured).toBe(true);
+	});
+
+	test("execute processor executes expressions with deconstructed state", async () => {
+		let captured = "Hello there!";
+
+		container.innerHTML = `
+      <div d-state="{ message: 'General Kenobi.' }" d-initialized="capture(message)"></div>
+    `;
+
+		// Create Doars with interpret processor.
+		doars = new DoarsExecute({
+			root: container,
+		});
+
+		doars.setSimpleContext("capture", (message) => {
+			captured = message;
+		});
+
+		doars.enable();
+
+		await new Promise((resolve) => setTimeout(resolve, 1));
+
+		expect(captured).toBe("General Kenobi.");
 	});
 
 	test("interpret processor interprets expressions with simple contexts", async () => {

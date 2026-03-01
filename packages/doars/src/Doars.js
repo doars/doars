@@ -285,8 +285,10 @@ export default class Doars extends EventDispatcher {
 			triggers;
 
 		/** @type {Array<Component>} */
-		const components = [];
-		const contextsBase = {},
+		const components = [],
+			/** @type {{[key:string]Context}} */
+			contextsBase = {},
+			/** @type {Array<Context>} */
 			contexts = [
 				createChildrenContext(options),
 				createComponentContext(options),
@@ -306,6 +308,8 @@ export default class Doars extends EventDispatcher {
 				createStateContext(options), // FIXME: Needs to be created on enable and the proxies within destroyed on disable.
 				createForContext(options), // FIXME: Needs to be created on enable and the proxies within destroyed on disable.
 			];
+		/** @type {[key:string]:Context} */
+		let contextsByName;
 		const directives = [
 			// Must happen first as other directives can rely on it.
 			createReferenceDirective(options),
@@ -403,14 +407,19 @@ export default class Doars extends EventDispatcher {
 			// Mark as enabled.
 			isEnabled = true;
 
-			// Create list of directive names.
-			directivesNames = directives.map((directive) => directive.name);
+			contextsByName = {};
+			for (const context of contexts) {
+				contextsByName[context.name] = context;
+			}
+			contextsByName = Object.freeze(contextsByName);
 
-			// Create directives object.
+			directivesNames = [];
 			directivesObject = {};
 			for (const directive of directives) {
+				directivesNames.push(directive.name);
 				directivesObject[directive.name] = directive;
 			}
+			directivesNames = Object.freeze(directivesNames);
 			directivesObject = Object.freeze(directivesObject);
 
 			// Dynamically create expression for matching any attribute names to known directive keys.
@@ -478,10 +487,11 @@ export default class Doars extends EventDispatcher {
 			// Remove components.
 			removeComponents(...components);
 
-			// Reset directives helper.
 			directivesNames = [];
 			directivesObject = {};
 			directivesRegexp = null;
+
+			contextsByName = {};
 
 			// Mark as disabled.
 			isEnabled = false;
@@ -627,10 +637,16 @@ export default class Doars extends EventDispatcher {
 		/* Contexts */
 
 		/**
-		 * Get list contexts.
+		 * Get list creatable contexts.
 		 * @returns {Array<Context>} List of contexts.
 		 */
 		this.getContexts = () => [...contexts];
+
+		/**
+		 * Get creatable contexts object with contexts added by name. Only defined when the library is enabled. Use getContexts() for the full list at any given time.
+		 * @returns {{[key:string]:Context}} Createable contexts object.
+		 */
+		this.getContextsByName = () => contextsByName;
 
 		/**
 		 * Add contexts at the index. *Can only be called when NOT enabled.*
@@ -718,19 +734,19 @@ export default class Doars extends EventDispatcher {
 		this.getDirectives = () => [...directives];
 
 		/**
-		 * Get list of directive names.
+		 * Get list of directive names. Only defined when the library is enabled. Use getDirectives() for the full list at any given time.
 		 * @returns {Array<string>} List of directive names.
 		 */
-		this.getDirectivesNames = () => [...directivesNames];
+		this.getDirectivesNames = () => directivesNames;
 
 		/**
-		 * Get object of directives with the directive name as key.
+		 * Get object of directives with the directive name as key. Only defined when the library is enabled.
 		 * @returns {DirectiveMap} Object of directives.
 		 */
 		this.getDirectivesObject = () => directivesObject;
 
 		/**
-		 * Check whether a name matches that of a directive.
+		 * Check whether a name matches that of a directive. Only defined when the library is enabled.
 		 * @param {string} attributeName Name of the attribute to match.
 		 * @returns {boolean} Whether the name matches that of a directive.
 		 */
@@ -773,10 +789,6 @@ export default class Doars extends EventDispatcher {
 			}
 
 			if (results.length > 0) {
-				// Reset directives helpers.
-				directivesNames = directivesObject = directivesRegexp = null;
-
-				// Dispatch event.
 				this.dispatchEvent("directives-added", [this, results]);
 			}
 
@@ -810,10 +822,6 @@ export default class Doars extends EventDispatcher {
 			}
 
 			if (results.length > 0) {
-				// Reset directives helpers.
-				directivesNames = directivesObject = directivesRegexp = null;
-
-				// Dispatch event.
 				this.dispatchEvent("directives-removed", [this, results]);
 			}
 

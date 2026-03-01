@@ -125,10 +125,7 @@ async function runBenchmark(
 	);
 
 	const callBenchmark = async (functionName) => {
-		const traceFilePath = profilePath
-			? `${profilePath}-${functionName}.json`
-			: null;
-		if (traceFilePath) {
+		if (profilePath) {
 			const directoryPath = path.dirname(profilePath);
 			if (directoryPath) {
 				if (!fs.existsSync(directoryPath)) {
@@ -137,27 +134,72 @@ async function runBenchmark(
 					});
 				}
 			}
-			if (fs.existsSync(traceFilePath)) {
-				fs.unlinkSync(traceFilePath);
-			}
+		}
+		const snapshotFilePath = profilePath
+			? `${profilePath}-${functionName}.heapsnapshot`
+			: null;
+		if (snapshotFilePath && fs.existsSync(snapshotFilePath)) {
+			fs.unlinkSync(snapshotFilePath);
+		}
+
+		let snapshotPromise;
+		if (snapshotFilePath) {
+			let snapshotCompleteResolve;
+			const snapshotStream = fs.createWriteStream(snapshotFilePath);
+			const onSnapshotCollected = ({ chunk }) => {
+				snapshotStream.write(chunk);
+			};
+			const onSnapshotCompleted = async (event) => {
+				if (event.finished) {
+					await new Promise((resolve) => {
+						setTimeout(resolve, 500);
+					});
+
+					snapshotStream.end(() => {
+						snapshotCompleteResolve();
+						client.off(
+							"HeapProfiler.addHeapSnapshotChunk",
+							onSnapshotCollected,
+						);
+						client.off(
+							"HeapProfiler.reportHeapSnapshotProgress",
+							onSnapshotCompleted,
+						);
+					});
+				}
+			};
+			snapshotPromise = new Promise((resolve) => {
+				snapshotCompleteResolve = resolve;
+			});
+			client.on("HeapProfiler.addHeapSnapshotChunk", onSnapshotCollected);
+			client.on("HeapProfiler.reportHeapSnapshotProgress", onSnapshotCompleted);
+		}
+
+		const traceFilePath = profilePath
+			? `${profilePath}-${functionName}.json`
+			: null;
+		if (traceFilePath && fs.existsSync(traceFilePath)) {
+			fs.unlinkSync(traceFilePath);
 		}
 
 		let tracingPromise;
-		const traceData = [];
-		const onTraceCollected = (params) => {
-			traceData.push(...params.value);
-		};
-		let tracingCompleteResolve;
-		const onTraceCompleted = () => {
-			const trace =
-				'{"traceEvents": [' +
-				traceData.map((event) => JSON.stringify(event)).join(",") +
-				"]}";
-			fs.writeFileSync(traceFilePath, trace);
-			tracingCompleteResolve();
-		};
-
 		if (traceFilePath) {
+			let tracingCompleteResolve;
+			const traceData = [];
+			const onTraceCollected = (params) => {
+				traceData.push(...params.value);
+			};
+			const onTraceCompleted = async () => {
+				const trace =
+					'{"traceEvents": [' +
+					traceData.map((event) => JSON.stringify(event)).join(",") +
+					"]}";
+				await fsPromises.writeFile(traceFilePath, trace);
+				tracingCompleteResolve();
+
+				client.off("Tracing.dataCollected", onTraceCollected);
+				client.off("Tracing.tracingComplete", onTraceCompleted);
+			};
 			tracingPromise = new Promise((resolve) => {
 				tracingCompleteResolve = resolve;
 			});
@@ -180,33 +222,39 @@ async function runBenchmark(
 			});
 		}
 
-		const runner = async ({ context, functionName }) => {
-			const startMemory = performance.memory?.usedJSHeapSize || 0;
-			const startTime = performance.now();
+		const result = await page.evaluate(
+			async ({ context, functionName }) => {
+				const startMemory = performance.memory?.usedJSHeapSize || 0;
+				const startTime = performance.now();
 
-			try {
-				if (context.window.benchmark[functionName]) {
-					await context.window.benchmark[functionName](context);
+				try {
+					if (context.window.benchmark[functionName]) {
+						await context.window.benchmark[functionName](context);
+					}
+				} catch (error) {
+					console.warn(
+						`Benchmark failed because of ${error.name}: ${error.message}`,
+					);
 				}
-			} catch (error) {
-				console.warn(
-					`Benchmark failed because of ${error.name}: ${error.message}`,
-				);
-			}
 
-			return {
-				time: performance.now() - startTime,
-				memory: (performance.memory?.usedJSHeapSize || 0) - startMemory,
-			};
-		};
-		const result = await page.evaluate(runner, { context, functionName });
+				return {
+					time: performance.now() - startTime,
+					memory: (performance.memory?.usedJSHeapSize || 0) - startMemory,
+				};
+			},
+			{ context, functionName },
+		);
 
+		if (snapshotFilePath) {
+			await client.send("HeapProfiler.takeHeapSnapshot", {
+				reportProgress: true,
+			});
+		}
 		if (traceFilePath) {
 			await client.send("Tracing.end");
-			await tracingPromise;
-			client.off("Tracing.dataCollected", onTraceCollected);
-			client.off("Tracing.tracingComplete", onTraceCompleted);
 		}
+
+		await Promise.all([snapshotPromise, tracingPromise]);
 
 		return result;
 	};
@@ -430,7 +478,7 @@ async function runBenchmarks() {
 				if (profilePath) {
 					resultsMessage +=
 						"\n" +
-						fmtLabel("Profile graph at") +
+						fmtLabel("Profile graph and heap snapshot at") +
 						profilePath.substring(projectDirectory.length + 1);
 				}
 

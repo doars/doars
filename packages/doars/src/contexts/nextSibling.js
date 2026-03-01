@@ -1,4 +1,4 @@
-import { createContextsProxy } from "../utilities/Context.js";
+import { createContexts } from "../utilities/Context.js";
 
 /**
  * @typedef {import('../Context.js').Context} Context
@@ -29,7 +29,7 @@ export default ({ nextSiblingContextName }) => ({
 		}
 
 		// Create contexts proxy for sibling.
-		const { contexts, destroy } = createContextsProxy(
+		const { contexts, destroy } = createContexts(
 			siblings[index + 1],
 			attribute,
 			update,

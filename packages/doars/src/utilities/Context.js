@@ -18,6 +18,12 @@ import RevocableProxy from "@doars/common/src/polyfills/RevocableProxy.js";
  * @property {Array<string>} deconstructed List of context names to deconstruct.
  */
 
+const CONTEXT_REFLECTION_TRAPS = [
+	"get",
+	"getOwnPropertyDescriptor",
+	"getPrototypeOf",
+];
+
 /**
  * Create component's contexts for an attributes expression.
  * @param {Component} component Instance of the component.
@@ -27,137 +33,138 @@ import RevocableProxy from "@doars/common/src/polyfills/RevocableProxy.js";
  * @returns {CreatedContexts} Expressions contexts and destroy functions.
  */
 export const createContexts = (component, attribute, update, extra = null) => {
-	// TODO: Reduce memory footprint of contexts generation. Make it a proxy and only initially setup deconstructed contexts, then create the rest on request using a proxy.
-
 	const library = component.getLibrary();
 
-	const contexts = library.getSimpleContexts();
+	const creatableContexts = library.getContextsByName();
+	const hasExtra = extra && typeof extra === "object";
 
-	// Iterate over all contexts.
-	const creatableContexts = library.getContexts();
-	// Store destroy functions.
-	/** @type {Array<DestroyFunction>} */
-	const destroyFunctions = [];
 	/** @type {Array<string>} */
-	const irrevocableContexts = [];
-	// TODO: Filter out context with duplicate names.
-	for (const creatableContext of creatableContexts) {
-		if (!creatableContext || !creatableContext.name) {
-			continue;
-		}
+	const irrevocable = [];
+	const createableContextNames = [];
+	const contextsKeysCache = [];
+	for (const contextName in creatableContexts) {
+		createableContextNames.push(contextName);
+		contextsKeysCache.push(contextName);
 
-		// Get context result.
-		const result = creatableContext.create(component, attribute, update);
-		if (!result || !result.value) {
-			continue;
-		}
-
-		// Store destroy functions.
-		if (result.destroy && typeof result.destroy === "function") {
-			destroyFunctions.push(result.destroy);
-		}
-
-		// Deconstruct options if marked as such.
-		if (creatableContext.deconstruct && typeof result.value === "object") {
-			for (const key in result.value) {
-				if (Object.hasOwn(result.value, key)) {
-					contexts[key] = result.value[key];
-				}
-			}
-		}
-
-		// If revocable is explicitly marked as no, then ensure it remains available.
+		const creatableContext = creatableContexts[contextName];
 		if (creatableContext.revocable === false) {
-			irrevocableContexts.push(creatableContext.name);
-		}
-
-		// Store result value in context results.
-		contexts[creatableContext.name] = result.value;
-	}
-
-	// Add extra items to context.
-	if (typeof extra === "object") {
-		for (const name in extra) {
-			contexts[name] = extra[name];
+			irrevocable.push(contextName);
 		}
 	}
-
-	return {
-		contexts,
-		irrevocableContexts,
-
-		destroy: () => {
-			// Call all destroy functions.
-			for (let index = destroyFunctions.length - 1; index >= 0; index--) {
-				destroyFunctions[index]();
+	const contexts = library.getSimpleContexts();
+	for (const key of Object.keys(contexts)) {
+		if (contextsKeysCache.indexOf(key) < 0) {
+			contextsKeysCache.push(key);
+		}
+	}
+	if (hasExtra) {
+		for (const key of Object.keys(extra)) {
+			if (contextsKeysCache.indexOf(key) < 0) {
+				contextsKeysCache.push(key);
 			}
-		},
+		}
+	}
+
+	/** @type {Array<DestroyFunction>} */
+	const destroyCallbacks = [];
+	const addContext = (target, creatableContext) => {
+		const result = creatableContext.create(component, attribute, update);
+		if (result) {
+			if (result.destroy && typeof result.destroy === "function") {
+				destroyCallbacks.push(result.destroy);
+			}
+
+			if (result.value) {
+				target[creatableContext.name] = result.value;
+				return result.value;
+			}
+		}
 	};
-};
 
-/**
- * Create component's contexts only after the context gets used.
- * @param {Component} component Instance of the component.
- * @param {Attribute} attribute Instance of the attribute.
- * @param {UpdateFunction} update Called when update needs to be invoked.
- * @param {object|undefined} extra Optional extra context items.
- * @returns {Proxy} Expressions contexts' proxy.
- */
-export const createContextsProxy = (
-	component,
-	attribute,
-	update,
-	extra = null,
-) => {
-	// TODO: After changing the createContexts to be lazy as well can more of that be reused in here as well?
+	let addedDeconstructed = false;
+	const addDeconstruted = (target) => {
+		addedDeconstructed = true;
 
-	// Store context after first call.
-	let data = null;
-	// Create context proxy.
-	const revocable = RevocableProxy(
-		{},
-		{
-			get: (_target, property) => {
-				// Create context.
-				if (!data) {
-					// TODO: Prevent $store from being set up.
-					data = createContexts(component, attribute, update, extra);
-				}
-
-				// Check if name exists in context.
-				if (property in data.contexts) {
-					// Call accessed callback if element or state is accessed.
-					attribute.accessed(component.getId(), property);
-
-					// Return value.
-					return data.contexts[property];
-				}
-
-				// Try and get value from state.
-				if (data.contexts.$state) {
-					if (property in data.contexts.$state) {
-						// Call accessed callback if element or state is accessed.
-						attribute.accessed(component.getId(), "$state");
-
-						// Return value.
-						return data.contexts.$state[property];
+		for (const contextName in creatableContexts) {
+			const creatableContext = creatableContexts[contextName];
+			if (creatableContext.deconstruct) {
+				const resultValue = addContext(target, creatableContext);
+				if (resultValue) {
+					for (const key in resultValue) {
+						if (contextsKeysCache.indexOf(key) < 0) {
+							contextsKeysCache.push(key);
+						}
+						target[key] = resultValue[key];
 					}
 				}
-			},
-		},
-	);
+			}
+		}
+	};
 
-	// Return context.
+	const reflect = (functionName, ...parameters) => {
+		const [target, key, ...otherParameters] = parameters;
+
+		// First check if the key already exists on the contexts.
+		if (key in contexts) {
+			attribute.accessed(component.getId(), key);
+			return Reflect[functionName](target, key, ...otherParameters);
+		}
+		if (hasExtra && key in extra) {
+			attribute.accessed(component.getId(), key);
+			return Reflect[functionName](extra, key, ...otherParameters);
+		}
+
+		// Try to add deconstructable contexts in case it exists inside one of those, like the $state.
+		if (!addedDeconstructed) {
+			addDeconstruted(target);
+
+			if (key in contexts) {
+				attribute.accessed(component.getId(), key);
+				return Reflect[functionName](target, key, ...otherParameters);
+			}
+		}
+
+		// Try to add a missing context by the name of the key.
+		if (createableContextNames.indexOf(key) >= 0) {
+			addContext(target, creatableContexts[key]);
+
+			if (key in contexts) {
+				attribute.accessed(component.getId(), key);
+				return Reflect[functionName](target, key, ...otherParameters);
+			}
+		}
+	};
+
+	const handler = {
+		has: (target, key) => {
+			if (!addedDeconstructed) {
+				addDeconstruted(target);
+			}
+			return contextsKeysCache.indexOf(key) >= 0;
+		},
+		ownKeys: (target) => {
+			if (!addedDeconstructed) {
+				addDeconstruted(target);
+			}
+			return contextsKeysCache;
+		},
+	};
+	for (const trap of CONTEXT_REFLECTION_TRAPS) {
+		handler[trap] = (...parameters) => {
+			return reflect(trap, ...parameters);
+		};
+	}
+
+	const revocable = RevocableProxy(contexts, handler, {
+		irrevocable,
+	});
+
 	return {
 		contexts: revocable.proxy,
-
 		destroy: () => {
-			// Call destroy on created context.
-			if (data?.destroy) {
-				data.destroy(component, attribute);
+			for (let index = destroyCallbacks.length - 1; index >= 0; index--) {
+				destroyCallbacks[index]();
 			}
-
-			// Revoke proxy.
 			revocable.revoke();
 		},
 	};
@@ -179,29 +186,16 @@ export const createAutoContexts = (component, attribute, extra = null) => {
 		});
 	};
 
-	// Create function context.
-	const { contexts, destroy, irrevocableContexts } = createContexts(
+	const { contexts, destroy } = createContexts(
 		component,
 		attribute,
 		update,
 		extra,
 	);
 
-	const contextProxy = RevocableProxy(
-		contexts,
-		{},
-		{
-			irrevocable: irrevocableContexts,
-		},
-	);
-
 	return {
-		contexts: contextProxy.proxy,
-
+		contexts,
 		destroy: () => {
-			contextProxy.revoke();
-
-			// Invoke destroy.
 			destroy();
 
 			// Dispatch update triggers.
@@ -213,7 +207,6 @@ export const createAutoContexts = (component, attribute, extra = null) => {
 };
 
 export default {
-	createAutoContexts,
 	createContexts,
-	createContextsProxy,
+	createAutoContexts,
 };
