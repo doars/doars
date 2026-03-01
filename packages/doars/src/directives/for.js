@@ -28,7 +28,9 @@ const createVariables = (names, ...values) => {
 		if (i >= names.length) {
 			break;
 		}
-		variables[names[i]] = values[i];
+		if (names[i] !== undefined) {
+			variables[names[i]] = values[i];
+		}
 	}
 	return variables;
 };

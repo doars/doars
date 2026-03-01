@@ -543,7 +543,7 @@ export default class Doars extends EventDispatcher {
 
 			// Update all attributes on new components.
 			for (const component of results) {
-				component.updateAttributes(component.getAttributes());
+				component.updateAllAttributes();
 			}
 
 			return results;
@@ -861,16 +861,16 @@ export default class Doars extends EventDispatcher {
 				}
 			}
 
+			// Check if there is something to update.
+			if (Object.getOwnPropertySymbols(triggers).length === 0) {
+				return;
+			}
+
 			// Don't update while another update is going on.
 			if (isUpdating) {
 				if (updatePromise) {
 					await updatePromise;
 				}
-				return;
-			}
-
-			// Check if there is something to update.
-			if (Object.getOwnPropertySymbols(triggers).length === 0) {
 				return;
 			}
 

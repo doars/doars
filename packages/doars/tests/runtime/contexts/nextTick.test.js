@@ -34,7 +34,9 @@ describe("NextTick Context", () => {
 
 		doars.enable();
 
-		await new Promise((resolve) => setTimeout(resolve, 1));
+		expect(captured).toBe(false);
+
+		await new Promise((resolve) => setTimeout(resolve, 100));
 
 		expect(captured).toBe(true);
 	});

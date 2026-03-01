@@ -1212,22 +1212,6 @@ The following events are dispatched by the library and can be listened to by cal
 - `getState` Get the component's state.
   - `@returns {Proxy}` State.
 
-#### Component events
-
-The following events are dispatched by the component and can be listened to by calling the `addEventListener(/* name, callback, options */)` function on the component's root element.
-
-- `d-destroyed` When this instance is destroyed.
-  - `@param {CustomEvent} event` Event data.
-    - `{object} detail` Event details.
-      - `{HTMLElement} element` Component's root element.
-      - `{Symbol} id` Component's unique identifier.
-- `d-updated` When one or more attributes on the component have been updated.
-  - `@param {CustomEvent} event` Event data.
-    - `{object} detail` Event details.
-      - `{HTMLElement} element` Component's root element.
-      - `{Symbol} id` Component's unique identifier.
-      - `{Array<Attribute>} updatedAttributes` List of updated attributes.
-
 ### Attribute
 
 Extends the [`EventDispatcher`](#eventdispatcher).
@@ -1270,10 +1254,6 @@ The following events are dispatched by an `Attribute` and can be listened to by 
   - `@param {Attribute} attribute` The attribute instance.
 - `destroyed` When the instance is destroyed.
   - `@param {Attribute} attribute` The attribute instance.
-- `accessed` When a new item is marked as accessed.
-  - `@param {Attribute} attribute` The attribute instance.
-  - `@param {Symbol} id` The accessed's unique identifier.
-  - `@param {string} path` The accessed's context path.
 
 ## Writing contexts
 

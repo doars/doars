@@ -21,7 +21,7 @@ describe("InContext Context", () => {
 		container = null;
 	});
 
-	test("Context should expire and throw error when accessed", async () => {
+	test("inContext should expire and throw error when accessed", async () => {
 		let captured = "Hello there!";
 
 		container.innerHTML = `
@@ -33,7 +33,6 @@ describe("InContext Context", () => {
 			processor: "interpret",
 		});
 
-		doars.setSimpleContext("console", console);
 		doars.setSimpleContext("capture", (message) => {
 			captured = message;
 		});

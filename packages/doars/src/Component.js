@@ -75,20 +75,6 @@ export default class Component {
 		}
 
 		/**
-		 * Dispatch an event from this component.
-		 * @param {string} name Name of the event.
-		 * @param {any} detail Event details.
-		 */
-		const dispatchEvent = (name, detail) => {
-			element.dispatchEvent(
-				new CustomEvent(`${prefix}-${name}`, {
-					detail,
-					bubbles: true,
-				}),
-			);
-		};
-
-		/**
 		 * Get the attributes in this component.
 		 * @returns {Array<Attribute>} List of attributes.
 		 */
@@ -171,10 +157,7 @@ export default class Component {
 			// Set as enabled.
 			isInitialized = true;
 
-			const { stateDirectiveName } = this.getLibrary().getOptions();
-
 			// Get component's state attribute.
-			const componentName = `${prefix}-${stateDirectiveName}`;
 			const value = element.attributes[componentName].value;
 
 			// Process expression for generating the state using a mock attribute.
@@ -290,12 +273,6 @@ export default class Component {
 			state = null;
 			proxy = null;
 			data = null;
-
-			// Dispatch event.
-			dispatchEvent("destroyed", {
-				element,
-				id,
-			});
 		};
 
 		/**
@@ -426,25 +403,25 @@ export default class Component {
 			if (!isInitialized) {
 				return;
 			}
-			if (attributes.length <= 0) {
-				dispatchEvent("updated", {
-					attributes,
-					element,
-					id,
-				});
+
+			if (attributes.length > 0) {
+				for (const attribute of attributes) {
+					this.updateAttribute(attribute);
+				}
+			}
+		};
+
+		/**
+		 * Update all attributes of the component.
+		 */
+		this.updateAllAttributes = () => {
+			if (!isInitialized) {
 				return;
 			}
 
 			for (const attribute of attributes) {
 				this.updateAttribute(attribute);
 			}
-
-			// Dispatch updated event.
-			dispatchEvent("updated", {
-				attributes,
-				element,
-				id,
-			});
 		};
 
 		/**
@@ -468,15 +445,6 @@ export default class Component {
 						updatedAttributes.push(attribute);
 					}
 				}
-			}
-
-			// Dispatch updated event.
-			if (updatedAttributes.length > 0) {
-				dispatchEvent("updated", {
-					attributes: updatedAttributes,
-					element,
-					id,
-				});
 			}
 		};
 	}

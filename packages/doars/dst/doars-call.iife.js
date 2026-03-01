@@ -445,7 +445,6 @@
           accessedItemIds.add(id2);
         }
         accessedItems[id2].add(path);
-        this.dispatchEvent("accessed", [this, id2, path]);
       };
       this.clearAccessed = () => {
         accessedItems = {};
@@ -507,12 +506,6 @@
           ]);
         }
       }
-      const dispatchEvent = (name, detail) => {
-        element.dispatchEvent(new CustomEvent(`${prefix}-${name}`, {
-          detail,
-          bubbles: true
-        }));
-      };
       this.getAttributes = () => {
         return attributes;
       };
@@ -545,9 +538,7 @@
           return;
         }
         isInitialized = true;
-        const { stateDirectiveName: stateDirectiveName2 } = this.getLibrary().getOptions();
-        const componentName2 = `${prefix}-${stateDirectiveName2}`;
-        const value = element.attributes[componentName2].value;
+        const value = element.attributes[componentName].value;
         data = value ? processExpression(this, new Attribute(this, element, null, value), value) : {};
         if (data === null) {
           data = {};
@@ -615,10 +606,6 @@
         state = null;
         proxy = null;
         data = null;
-        dispatchEvent("destroyed", {
-          element,
-          id
-        });
       };
       this.addAttribute = (element2, name, value) => {
         const directivesKeys = library.getDirectivesNames();
@@ -675,22 +662,19 @@
         if (!isInitialized) {
           return;
         }
-        if (attributes2.length <= 0) {
-          dispatchEvent("updated", {
-            attributes: attributes2,
-            element,
-            id
-          });
+        if (attributes2.length > 0) {
+          for (const attribute of attributes2) {
+            this.updateAttribute(attribute);
+          }
+        }
+      };
+      this.updateAllAttributes = () => {
+        if (!isInitialized) {
           return;
         }
-        for (const attribute of attributes2) {
+        for (const attribute of attributes) {
           this.updateAttribute(attribute);
         }
-        dispatchEvent("updated", {
-          attributes: attributes2,
-          element,
-          id
-        });
       };
       this.update = (triggers) => {
         if (!isInitialized) {
@@ -705,13 +689,6 @@
               updatedAttributes.push(attribute);
             }
           }
-        }
-        if (updatedAttributes.length > 0) {
-          dispatchEvent("updated", {
-            attributes: updatedAttributes,
-            element,
-            id
-          });
         }
       };
     }
@@ -1693,7 +1670,9 @@
       if (i >= names.length) {
         break;
       }
-      variables[names[i]] = values[i];
+      if (names[i] !== undefined) {
+        variables[names[i]] = values[i];
+      }
     }
     return variables;
   };
@@ -2169,37 +2148,34 @@
   });
 
   // src/directives/initialized.js
+  var EVENT_NAME = "updated";
   var INITIALIZED = Symbol("INITIALIZED");
   var destroy = (component, attribute) => {
     if (!attribute[INITIALIZED]) {
       return;
     }
-    const element = component.getElement();
-    const name = `${component.getLibrary().getOptions().prefix}-updated`;
-    element.removeEventListener(name, attribute[INITIALIZED].handler);
+    const library = component.getLibrary();
+    const name = "updated";
+    library.removeEventListener(name, attribute[INITIALIZED].handler);
     delete attribute[INITIALIZED];
   };
   var initialized_default = ({ initializedDirectiveName }) => ({
     name: initializedDirectiveName,
     update: (component, attribute, processExpression) => {
-      const element = component.getElement();
+      const library = component.getLibrary();
       const value = attribute.getValue();
-      const name = `${component.getLibrary().getOptions().prefix}-updated`;
       if (attribute[INITIALIZED]) {
         if (attribute[INITIALIZED].value === value) {
           return;
         }
-        element.removeEventListener(name, attribute[INITIALIZED].handler);
+        library.removeEventListener(EVENT_NAME, attribute[INITIALIZED].handler);
         delete attribute[INITIALIZED];
       }
-      const handler = ({ detail }) => {
-        if (detail.element !== element) {
-          return;
-        }
+      const handler = () => {
         processExpression(component, attribute.clone(), value, {}, { return: false });
         destroy(component, attribute);
       };
-      element.addEventListener(name, handler, {
+      library.addEventListener(EVENT_NAME, handler, {
         once: true
       });
       attribute[INITIALIZED] = {
@@ -3085,7 +3061,7 @@
           component.initialize();
         }
         for (const component of results) {
-          component.updateAttributes(component.getAttributes());
+          component.updateAllAttributes();
         }
         return results;
       };
@@ -3240,13 +3216,13 @@
             }
           }
         }
+        if (Object.getOwnPropertySymbols(triggers).length === 0) {
+          return;
+        }
         if (isUpdating) {
           if (updatePromise) {
             await updatePromise;
           }
-          return;
-        }
-        if (Object.getOwnPropertySymbols(triggers).length === 0) {
           return;
         }
         isUpdating = true;
@@ -3459,4 +3435,4 @@ ${error.name}: ${error.message}`);
   window.Doars = DoarsCall_default;
 })();
 
-//# debugId=3C4F526766B3EECB64756E2164756E21
+//# debugId=6D8A64F6D8EBB3E164756E2164756E21

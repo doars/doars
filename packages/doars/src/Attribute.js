@@ -227,9 +227,6 @@ export default class Attribute extends EventDispatcher {
 			}
 
 			accessedItems[id].add(path);
-
-			// Dispatch accessed event.
-			this.dispatchEvent("accessed", [this, id, path]);
 		};
 
 		/**

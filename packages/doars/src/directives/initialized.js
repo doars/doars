@@ -1,4 +1,4 @@
-// Symbols.
+const EVENT_NAME = "updated";
 const INITIALIZED = Symbol("INITIALIZED");
 
 /**
@@ -20,14 +20,11 @@ const destroy = (component, attribute) => {
 		return;
 	}
 
-	// Deconstruct component.
-	const element = component.getElement();
-
-	// Create event name.
-	const name = `${component.getLibrary().getOptions().prefix}-updated`;
+	const library = component.getLibrary();
+	const name = "updated";
 
 	// Remove existing listener and delete directive data.
-	element.removeEventListener(name, attribute[INITIALIZED].handler);
+	library.removeEventListener(name, attribute[INITIALIZED].handler);
 	delete attribute[INITIALIZED];
 };
 
@@ -40,14 +37,8 @@ export default ({ initializedDirectiveName }) => ({
 	name: initializedDirectiveName,
 
 	update: (component, attribute, processExpression) => {
-		// Deconstruct component.
-		const element = component.getElement();
-
-		// Deconstruct attribute.
+		const library = component.getLibrary();
 		const value = attribute.getValue();
-
-		// Create event name.
-		const name = `${component.getLibrary().getOptions().prefix}-updated`;
 
 		// Check if existing listener exists.
 		if (attribute[INITIALIZED]) {
@@ -57,16 +48,11 @@ export default ({ initializedDirectiveName }) => ({
 			}
 
 			// Remove existing listener so we don' listen twice.
-			element.removeEventListener(name, attribute[INITIALIZED].handler);
+			library.removeEventListener(EVENT_NAME, attribute[INITIALIZED].handler);
 			delete attribute[INITIALIZED];
 		}
 
-		const handler = ({ detail }) => {
-			// Only execute on self.
-			if (detail.element !== element) {
-				return;
-			}
-
+		const handler = () => {
 			// Execute value using a copy of the attribute since this attribute does not need to update based on what it accesses.
 			processExpression(
 				component,
@@ -81,7 +67,7 @@ export default ({ initializedDirectiveName }) => ({
 		};
 
 		// Add listener to component.
-		element.addEventListener(name, handler, {
+		library.addEventListener(EVENT_NAME, handler, {
 			once: true,
 		});
 
