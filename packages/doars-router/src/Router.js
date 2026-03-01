@@ -60,9 +60,8 @@ export default class Router extends EventDispatcher {
 			// Update page history if the option is set.
 			if (options.updateHistory) {
 				// Construct url.
-				const _url = url.includes(options.basePath)
-					? url
-					: options.basePath + url;
+				const _url =
+					url.indexOf(options.basePath) >= 0 ? url : options.basePath + url;
 				// Check if url is not current url.
 				if (_url !== window.location.pathname) {
 					// Add path to history.

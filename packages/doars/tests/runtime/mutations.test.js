@@ -26,6 +26,7 @@ describe("Mutations", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 
@@ -51,6 +52,7 @@ describe("Mutations", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 
@@ -80,6 +82,7 @@ describe("Mutations", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 
@@ -108,6 +111,7 @@ describe("Mutations", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 
@@ -131,6 +135,7 @@ describe("Mutations", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 

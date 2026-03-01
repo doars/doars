@@ -1,9 +1,9 @@
-
 # CHANGELOG.md
 
-## 3.1.0
+# 4.0.0
 
-- Remove revocable proxy polyfill.
+- Bug fixes.
+- Performance improvements.
 
 ## 3.0.1
 

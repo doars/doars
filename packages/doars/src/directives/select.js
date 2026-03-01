@@ -47,7 +47,7 @@ export default ({ selectDirectiveName }) => ({
 				for (const option of Array.from(element.options)) {
 					// Update option if the selected value has changed.
 					const select = Array.isArray(data)
-						? data.includes(option.value)
+						? data.indexOf(option.value) >= 0
 						: data === option.value;
 					if (option.selected !== select) {
 						// Update option's status.
@@ -63,7 +63,7 @@ export default ({ selectDirectiveName }) => ({
 				}
 			} else if (type === TYPE_CHECKBOX) {
 				// Update option if the checked value has changed.
-				const checked = data.includes(element.value);
+				const checked = data.indexOf(element.value) >= 0;
 				if (element.checked !== checked) {
 					// Update checked attribute.
 					if (checked) {

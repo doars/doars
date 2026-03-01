@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import Doars from "../../../src/DoarsExecute.js";
+import Doars from "../../../src/DoarsInterpret.js";
 import "../test-setup.js";
 
 describe("Child Context", () => {
@@ -29,6 +29,7 @@ describe("Child Context", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 
 		doars.setSimpleContext("setCount", (_count) => {
@@ -53,6 +54,7 @@ describe("Child Context", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 
 		doars.setSimpleContext("setMessage", (message) => {

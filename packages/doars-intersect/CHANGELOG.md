@@ -1,8 +1,9 @@
 # CHANGELOG.md
 
-## 3.2.0
+## 4.0.0
 
-- Fix bugs.
+- Bug fixes.
+- Performance improvements.
 
 ## 3.1.0
 

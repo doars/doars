@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import Doars from "../../../src/DoarsExecute.js";
+import Doars from "../../../src/DoarsInterpret.js";
 import "../test-setup.js";
 
 describe("References Context", () => {
@@ -27,7 +27,11 @@ describe("References Context", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
+
+		doars.setSimpleContext("Object", Object);
+
 		doars.enable();
 
 		await new Promise((resolve) => setTimeout(resolve, 1));

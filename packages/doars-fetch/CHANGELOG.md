@@ -1,10 +1,11 @@
 # CHANGELOG.md
 
-## 3.2.0
+## 4.0.0
 
 - Updated `@doars/common` dependency.
 - Added auto parse and custom parsers options.
-- Fix bugs.
+- Bug fixes.
+- Performance improvements.
 
 ## 3.1.2
 

@@ -1,5 +1,3 @@
-// Import symbols.
-
 // Import utilities.
 import { isPromise } from "@doars/common/src/utilities/Promise.js";
 import { readdScripts } from "@doars/common/src/utilities/Script.js";
@@ -343,15 +341,7 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 			result = Number(expression.iterable);
 		} else {
 			// Get iterable data, and this will automatically mark the data as being accessed by this component.
-			result = processExpression(
-				component,
-				attribute,
-				expression.iterable,
-				{},
-				{
-					return: true,
-				},
-			);
+			result = processExpression(component, attribute, expression.iterable);
 		}
 
 		// Get stored data.

@@ -672,7 +672,7 @@ export default class Doars extends EventDispatcher {
 				const context = _contexts[i];
 
 				// Skip if already in list.
-				if (contexts.includes(context)) {
+				if (contexts.indexOf(context) >= 0) {
 					continue;
 				}
 
@@ -777,7 +777,7 @@ export default class Doars extends EventDispatcher {
 				const directive = _directives[i];
 
 				// Skip if already in list.
-				if (directives.includes(directive)) {
+				if (directives.indexOf(directive) >= 0) {
 					continue;
 				}
 
@@ -844,33 +844,37 @@ export default class Doars extends EventDispatcher {
 
 			if (_triggers) {
 				// Add new triggers to existing triggers.
-				for (const trigger of _triggers) {
-					// Deconstruct new trigger.
-					const { id, path } = trigger;
-
-					// Create list at id if not already there.
-					if (!(id in triggers)) {
-						triggers[id] = [path];
-						continue;
+				if (Array.isArray(_triggers)) {
+					for (const trigger of _triggers) {
+						const { id, path } = trigger;
+						// Create list at id if not already there.
+						if (!Object.hasOwn(triggers, id)) {
+							triggers[id] = [path];
+						} else if (triggers[id].indexOf(path) < 0) {
+							// Add path to list at id.
+							triggers[id].push(path);
+						}
 					}
-
-					// Add path to list at id.
-					if (!triggers[id].includes(path)) {
+				} else {
+					const { id, path } = _triggers;
+					// Create list at id if not already there.
+					if (!Object.hasOwn(triggers, id)) {
+						triggers[id] = [path];
+					} else if (triggers[id].indexOf(path) < 0) {
+						// Add path to list at id.
 						triggers[id].push(path);
 					}
 				}
 			}
 
-			// Check if there is something to update.
-			if (Object.getOwnPropertySymbols(triggers).length === 0) {
+			// Don't update while another update is going on.
+			if (isUpdating) {
+				await updatePromise;
 				return;
 			}
 
-			// Don't update while another update is going on.
-			if (isUpdating) {
-				if (updatePromise) {
-					await updatePromise;
-				}
+			// Check if there is something to update.
+			if (Object.getOwnPropertySymbols(triggers).length === 0) {
 				return;
 			}
 
@@ -898,7 +902,10 @@ export default class Doars extends EventDispatcher {
 
 			// If there are triggers again then update again.
 			if (Object.getOwnPropertySymbols(triggers).length > 0) {
-				// console.warn("Doars: during an update another update has been triggered. This should not happen unless an expression in one of the directives is causing a infinite loop by mutating the state.");
+				console.warn(
+					"Doars: during an update another update has been triggered. This should not happen unless an expression in one of the directives is causing a infinite loop by mutating the state.",
+				);
+
 				await this.update();
 				return;
 			}
@@ -924,10 +931,7 @@ export default class Doars extends EventDispatcher {
 
 			// Don't handle mutations while an update is going on.
 			if (isUpdating) {
-				if (updatePromise) {
-					await updatePromise;
-				}
-				return;
+				return updatePromise;
 			}
 
 			// Check if there are any mutations to handle.
@@ -937,9 +941,12 @@ export default class Doars extends EventDispatcher {
 
 			// Set as updating.
 			isUpdating = true;
+			// Wait until later in the loop.
+			updatePromise = Promise.resolve();
+			await updatePromise;
 
 			// Get mutations to handle.
-			newMutations = [...mutations];
+			newMutations = mutations;
 			mutations = [];
 
 			// Store new attribute and elements that define new components.
@@ -1133,9 +1140,14 @@ export default class Doars extends EventDispatcher {
 
 			// Set as NOT updating.
 			isUpdating = false;
+			updatePromise = null;
 
 			// If there are any mutation to handle then handle them.
 			if (mutations.length > 0) {
+				console.warn(
+					"Doars: during a mutation another mutation has been triggered. This should not happen unless an expression in one of the directives is causing a infinite loop by mutating the document.",
+				);
+
 				await handleMutation();
 				return;
 			}

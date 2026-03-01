@@ -13,7 +13,7 @@ import { createContexts } from "../utilities/Context.js";
 export default ({ parentContextName }) => ({
 	name: parentContextName,
 
-	create: (component, attribute, update) => {
+	create: (component, attribute, _update, options) => {
 		// Deconstruct component.
 		const parent = component.getParent();
 		if (!parent) {
@@ -23,7 +23,12 @@ export default ({ parentContextName }) => ({
 		}
 
 		// Create contexts proxy for parent.
-		const { contexts, destroy } = createContexts(parent, attribute, update);
+		const { contexts, destroy } = createContexts(
+			parent,
+			attribute,
+			null,
+			options,
+		);
 
 		return {
 			value: contexts,

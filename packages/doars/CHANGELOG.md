@@ -1,8 +1,12 @@
 # CHANGELOG.md
 
-## 3.2.0
+## 4.0.0
 
-- Remove revocable proxy polyfill.
+- Remove transition events.
+- Remove component events.
+- Bug fixes.
+- Performance improvements.
+- Made `textContent` the default property to assign to instead of `innerText` for the `text` directive.
 
 ## 3.1.1
 

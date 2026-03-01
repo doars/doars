@@ -13,7 +13,7 @@ import { createContexts } from "../utilities/Context.js";
 export default ({ nextSiblingContextName }) => ({
 	name: nextSiblingContextName,
 
-	create: (component, attribute, update) => {
+	create: (component, attribute, _update, options) => {
 		const parent = component.getParent();
 		if (!parent) {
 			return {
@@ -32,7 +32,8 @@ export default ({ nextSiblingContextName }) => ({
 		const { contexts, destroy } = createContexts(
 			siblings[index + 1],
 			attribute,
-			update,
+			null,
+			options,
 		);
 
 		return {

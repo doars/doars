@@ -256,14 +256,5 @@ export default class Attribute extends EventDispatcher {
 			}
 			return false;
 		};
-
-		/**
-		 * Creates a clone of the attribute without copying over the id and accessed values.
-		 * @returns {Attribute} Cloned attribute.
-		 */
-		this.clone = () => {
-			// Create new attribute as clone.
-			return new Attribute(component, element, name, value, true);
-		};
 	}
 }

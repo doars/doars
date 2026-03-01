@@ -1,5 +1,5 @@
 import ProxyDispatcher from "@doars/common/src/events/ProxyDispatcher.js";
-import createStateContext from "@doars/common/src/factories/createStateContext.js";
+import createState from "@doars/common/src/factories/createState.js";
 
 import { getAll } from "../utilities/sessionStorage.js";
 
@@ -25,12 +25,18 @@ export default ({
 		}
 		sessionStorage.setItem(path[0], target[path[0]]);
 	});
+	const state = proxy.add(getAll());
 
-	return createStateContext(
-		sessionStorageContextName,
-		Symbol("ID_LOCAL_STORAGE"),
-		proxy.add(getAll()),
-		proxy,
-		!!sessionStorageContextDeconstruct,
-	);
+	return {
+		deconstruct: !!sessionStorageContextDeconstruct,
+
+		name: sessionStorageContextName,
+
+		create: createState(
+			sessionStorageContextName,
+			Symbol("ID_LOCAL_STORAGE"),
+			state,
+			proxy,
+		),
+	};
 };

@@ -61,16 +61,14 @@ export default class Component {
 		let parent = closestComponent(element);
 		if (parent) {
 			// Add to list of children in parent.
-			if (!parent.getChildren().includes(this)) {
+			if (parent.getChildren().indexOf(this) < 0) {
 				parent.getChildren().push(this);
 
 				// Trigger children update.
-				library.update([
-					{
-						id: parent.getId(),
-						path: "children",
-					},
-				]);
+				library.update({
+					id: parent.getId(),
+					path: "children",
+				});
 			}
 		}
 
@@ -216,9 +214,6 @@ export default class Component {
 			// Reset variables.
 			attributes = [];
 
-			// Store update triggers.
-			const triggers = [];
-
 			// Set children as children of parent.
 			if (children.length > 0) {
 				for (const child of children) {
@@ -226,14 +221,14 @@ export default class Component {
 					child.setParent(parent);
 
 					// Add parent update trigger.
-					triggers.push({
+					library.update({
 						id: child.getId(),
 						path: "parent",
 					});
 				}
 
 				// Add children update trigger.
-				triggers.push({
+				library.update({
 					id,
 					path: "children",
 				});
@@ -244,22 +239,17 @@ export default class Component {
 					parent.getChildren().push(...children);
 
 					// Add children update trigger.
-					triggers.push({
+					library.update({
 						id: parent.getId(),
 						path: "children",
 					});
 				}
 
 				// Add parent update trigger.
-				triggers.push({
+				library.update({
 					id,
 					path: "parent",
 				});
-			}
-
-			// Dispatch triggers.
-			if (triggers.length > 0) {
-				library.update(triggers);
 			}
 
 			// Remove reference from element.
@@ -283,27 +273,9 @@ export default class Component {
 		 * @returns {Attribute} New attribute.
 		 */
 		this.addAttribute = (element, name, value) => {
-			// Get directive keys from library.
-			const directivesKeys = library.getDirectivesNames();
-
 			// Create and add attribute.
 			const attribute = new Attribute(this, element, name, value);
-
-			// Get index to add attribute at.
-			let index = attribute.length;
-			const directiveIndex = directivesKeys.indexOf(attribute.getDirective());
-			for (let i = attributes.length - 1; i >= 0; i--) {
-				// If the other attribute is further down the keys list than add it after that item.
-				if (
-					directivesKeys.indexOf(attributes[i].getDirective()) <= directiveIndex
-				) {
-					index = i + 1;
-					break;
-				}
-			}
-
-			// Add to list of attributes.
-			attributes.splice(index, 0, attribute);
+			attributes.push(attribute);
 
 			// Return new attribute.
 			return attribute;

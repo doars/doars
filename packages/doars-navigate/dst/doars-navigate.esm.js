@@ -388,27 +388,29 @@ var transition = (type, libraryOptions, element, callback = null) => {
     return;
   }
   const transitionDirectiveName = libraryOptions.prefix + TRANSITION_NAME + type;
-  const dispatchEvent = (phase) => {
-    element.dispatchEvent(new CustomEvent(`transition-${phase}`));
-    element.dispatchEvent(new CustomEvent(`transition-${type}-${phase}`));
-  };
-  let name, value, timeout, requestFrame;
-  let isDone = false;
   const selectors = {};
-  name = transitionDirectiveName;
-  value = element.getAttribute(name);
+  const value = element.getAttribute(transitionDirectiveName);
   if (value) {
     selectors.during = parseSelector(value);
     addAttributes(element, selectors.during);
   }
-  name = `${transitionDirectiveName}.from`;
-  value = element.getAttribute(name);
-  if (value) {
-    selectors.from = parseSelector(value);
+  const valueFrom = element.getAttribute(`${transitionDirectiveName}.from`);
+  if (valueFrom) {
+    selectors.from = parseSelector(valueFrom);
     addAttributes(element, selectors.from);
   }
-  dispatchEvent("start");
-  requestFrame = requestAnimationFrame(() => {
+  const valueTo = element.getAttribute(`${transitionDirectiveName}.to`);
+  if (valueTo) {
+    selectors.to = parseSelector(valueTo);
+  }
+  if (!value && !valueFrom && !valueTo) {
+    if (callback) {
+      callback();
+    }
+    return;
+  }
+  let isDone = false, timeout;
+  let requestFrame = requestAnimationFrame(() => {
     requestFrame = null;
     if (isDone) {
       return;
@@ -417,13 +419,9 @@ var transition = (type, libraryOptions, element, callback = null) => {
       removeAttributes(element, selectors.from);
       selectors.from = undefined;
     }
-    name = `${transitionDirectiveName}.to`;
-    value = element.getAttribute(name);
-    if (value) {
-      selectors.to = parseSelector(value);
+    if (valueTo) {
       addAttributes(element, selectors.to);
     } else if (!selectors.during) {
-      dispatchEvent("end");
       if (callback) {
         callback();
       }
@@ -431,6 +429,7 @@ var transition = (type, libraryOptions, element, callback = null) => {
       return;
     }
     const styles = getComputedStyle(element);
+    const delay = Number(styles.transitionDelay.replace(/,.*/, "").replace("s", "")) * 1000;
     let duration = Number(styles.transitionDuration.replace(/,.*/, "").replace("s", "")) * 1000;
     if (duration === 0) {
       duration = Number(styles.animationDuration.replace("s", "")) * 1000;
@@ -448,12 +447,11 @@ var transition = (type, libraryOptions, element, callback = null) => {
         removeAttributes(element, selectors.to);
         selectors.to = undefined;
       }
-      dispatchEvent("end");
       if (callback) {
         callback();
       }
       isDone = true;
-    }, duration);
+    }, delay + duration);
   });
   return () => {
     if (!isDone) {
@@ -478,7 +476,6 @@ var transition = (type, libraryOptions, element, callback = null) => {
       clearTimeout(timeout);
       timeout = null;
     }
-    dispatchEvent("end");
     if (callback) {
       callback();
     }
@@ -1030,4 +1027,4 @@ export {
   DoarsNavigate_default as default
 };
 
-//# debugId=6A1E5582C5D5082564756E2164756E21
+//# debugId=69888956B5F6014A64756E2164756E21

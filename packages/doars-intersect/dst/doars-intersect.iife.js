@@ -97,7 +97,10 @@
           return;
         }
         const execute = () => {
-          processExpression(component, attribute.clone(), value, { $event: event }, { return: false });
+          processExpression(component, attribute, value, { $event: event }, {
+            access: false,
+            return: false
+          });
           attribute[INTERSECT].buffer = [];
         };
         attribute[INTERSECT].buffer.push(event);
@@ -189,4 +192,4 @@
   window.DoarsIntersect = DoarsIntersect_default;
 })();
 
-//# debugId=8D60995A2B49541464756E2164756E21
+//# debugId=927A6B5BD8DB396564756E2164756E21

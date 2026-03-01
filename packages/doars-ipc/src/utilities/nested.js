@@ -10,7 +10,7 @@ export const deleteNestedProperty = (obj, path) => {
 
 	for (let i = 0; i < parts.length - 1; i++) {
 		const part = parts[i];
-		if (!(part in current)) {
+		if (!Object.hasOwn(current, part)) {
 			return;
 		}
 		current = current[part];
@@ -30,7 +30,11 @@ export const getNestedProperty = (obj, path) => {
 	let current = obj;
 
 	for (const part of parts) {
-		if (current === null || current === undefined || !(part in current)) {
+		if (
+			current === null ||
+			current === undefined ||
+			!Object.hasOwn(current, part)
+		) {
 			return undefined;
 		}
 		current = current[part];
@@ -53,7 +57,7 @@ export const setNestedProperty = (obj, path, value) => {
 
 	for (let i = 0; i < parts.length - 1; i++) {
 		const part = parts[i];
-		if (!(part in current) || typeof current[part] !== "object") {
+		if (!Object.hasOwn(current, part) || typeof current[part] !== "object") {
 			current[part] = {};
 		}
 		current = current[part];

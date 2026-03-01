@@ -1,5 +1,5 @@
 import ProxyDispatcher from "@doars/common/src/events/ProxyDispatcher.js";
-import createStateContext from "@doars/common/src/factories/createStateContext.js";
+import createState from "@doars/common/src/factories/createState.js";
 
 import { getAll, set } from "../utilities/cookies.js";
 
@@ -16,12 +16,13 @@ export default ({ cookiesContextDeconstruct, cookiesContextName }) => {
 	};
 	proxy.addEventListener("delete", onMutate);
 	proxy.addEventListener("set", onMutate);
+	const state = proxy.add(getAll());
 
-	return createStateContext(
-		cookiesContextName,
-		Symbol("ID_COOKIES"),
-		proxy.add(getAll()),
-		proxy,
-		!!cookiesContextDeconstruct,
-	);
+	return {
+		deconstruct: !!cookiesContextDeconstruct,
+
+		name: cookiesContextName,
+
+		create: createState(cookiesContextName, Symbol("ID_COOKIES"), state, proxy),
+	};
 };

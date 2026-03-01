@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import Doars from "../../../src/DoarsExecute.js";
+import Doars from "../../../src/DoarsInterpret.js";
 import "../test-setup.js";
 
 describe("Text Directive", () => {
@@ -29,6 +29,7 @@ describe("Text Directive", () => {
 		// Create a Doars instance.
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 
 		doars.enable();
@@ -44,6 +45,7 @@ describe("Text Directive", () => {
 	test("text directive should handle promises", async () => {
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 
 		// Set simple context for promise.

@@ -21,14 +21,14 @@
       </ul>
     </div>
 
-    <script src="../../../dst/doars-interpret.iife.js"></script>
+    <script src="../../dst/doars.js"></script>
     <script>
       document.addEventListener('DOMContentLoaded', () => {
         const startButton = document.querySelector('[data-purpose="start"]')
         const results = document.querySelector('[data-purpose="results"]')
         const rootNode = document.querySelector('[d-state]')
 
-        const complexity = 20
+        const complexity = 1e3
 
         const todos = [];
         for (let i = 0; i < complexity; i++) {
@@ -59,9 +59,7 @@
 
         let doars
         const setup = async () => {
-          doars = new window.Doars({
-            processor: 'interpret',
-          })
+          doars = new window.Doars()
           await doars.enable()
         }
 

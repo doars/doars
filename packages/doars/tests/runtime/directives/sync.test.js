@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import Doars from "../../../src/DoarsExecute.js";
+import Doars from "../../../src/DoarsInterpret.js";
 import "../test-setup.js";
 
 describe("Sync Directive", () => {
@@ -27,6 +27,7 @@ describe("Sync Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 
@@ -59,6 +60,7 @@ describe("Sync Directive", () => {
 		// Create and enable Doars with initial store.
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 			storeContextInitial: {
 				message: "Before",
 			},
@@ -93,6 +95,7 @@ describe("Sync Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 
@@ -125,6 +128,7 @@ describe("Sync Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 

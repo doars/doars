@@ -90,10 +90,13 @@ export default ({ intersectDirectiveName }, intersectionDispatcher) => ({
 				// Execute value using a copy of the attribute since this attribute should not update based on what contexts will be accessed.
 				processExpression(
 					component,
-					attribute.clone(),
+					attribute,
 					value,
 					{ $event: event },
-					{ return: false },
+					{
+						access: false,
+						return: false,
+					},
 				);
 
 				// Reset the buffer.

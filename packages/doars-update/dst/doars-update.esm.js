@@ -5,14 +5,20 @@ var update_default = ({ updateContextName }, updater) => {
   const time = updater.getTime();
   return {
     name: updateContextName,
-    create: (_component, attribute) => {
-      const onGet = (_target, path) => attribute.accessed(id, path.join("."));
-      proxy.addEventListener("get", onGet);
+    create: (_component, attribute, _update, options) => {
+      let destroy = null;
+      if (!options || options.accessed) {
+        const onGet = (_target, path) => {
+          attribute.accessed(id, path.join("."));
+        };
+        proxy.addEventListener("get", onGet);
+        destroy = () => {
+          proxy.removeEventListener("get", onGet);
+        };
+      }
       return {
         value: time,
-        destroy: () => {
-          proxy.removeEventListener("get", onGet);
-        }
+        destroy
       };
     }
   };
@@ -68,7 +74,8 @@ var update_default2 = ({ defaultOrder, updateDirectiveName }) => {
     directive,
     () => {
       for (const item of items) {
-        directive._execute(item.component, item.attribute.clone(), item.attribute.getValue(), {}, {
+        directive._execute(item.component, item.attribute, item.attribute.getValue(), null, {
+          access: false,
           return: false
         });
       }
@@ -394,4 +401,4 @@ export {
   DoarsUpdate_default as default
 };
 
-//# debugId=1C6F8DD7C45C49C064756E2164756E21
+//# debugId=CA75555D9B066CB864756E2164756E21

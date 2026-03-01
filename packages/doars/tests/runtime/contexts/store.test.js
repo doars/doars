@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import Doars from "../../../src/DoarsExecute.js";
+import Doars from "../../../src/DoarsInterpret.js";
 import "../test-setup.js";
 
 describe("Store Context", () => {
@@ -28,6 +28,7 @@ describe("Store Context", () => {
 		// Create and enable Doars with initial store.
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 			storeContextInitial: {
 				message: "Before",
 			},
@@ -51,6 +52,7 @@ describe("Store Context", () => {
 		// Create Doars with store.
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 			storeContextInitial: {
 				message: "value",
 			},

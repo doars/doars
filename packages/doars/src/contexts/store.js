@@ -1,5 +1,5 @@
 import ProxyDispatcher from "@doars/common/src/events/ProxyDispatcher.js";
-import createStateContext from "@doars/common/src/factories/createStateContext.js";
+import createState from "@doars/common/src/factories/createState.js";
 import { deepAssign } from "@doars/common/src/utilities/Object.js";
 
 /**
@@ -22,11 +22,11 @@ export default ({
 	const proxy = new ProxyDispatcher();
 	const state = proxy.add(data);
 
-	return createStateContext(
-		storeContextName,
-		Symbol("ID_STORE"),
-		state,
-		proxy,
-		storeContextDeconstruct,
-	);
+	return {
+		deconstruct: !!storeContextDeconstruct,
+
+		name: storeContextName,
+
+		create: createState(storeContextName, Symbol("ID_STORE"), state, proxy),
+	};
 };

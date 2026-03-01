@@ -28,6 +28,7 @@ describe("Function State Simple Context", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 
 		doars.setSimpleContext("hello", () => {
@@ -55,6 +56,7 @@ describe("Function State Simple Context", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 
 		doars.setSimpleContext("createState", () => {

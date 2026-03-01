@@ -13,7 +13,7 @@ import { createContexts } from "../utilities/Context.js";
 export default ({ nextTickContextName }) => ({
 	name: nextTickContextName,
 
-	create: (component, attribute, update) => {
+	create: (component, attribute, _update, options) => {
 		// Keep track of callbacks.
 		let callbacks;
 
@@ -41,8 +41,8 @@ export default ({ nextTickContextName }) => ({
 				const { contexts, destroy } = createContexts(
 					component,
 					attribute,
-					update,
-					{},
+					null,
+					options,
 				);
 
 				// Invoke all callbacks.
@@ -58,14 +58,16 @@ export default ({ nextTickContextName }) => ({
 			const stopListening = () => {
 				// Stop listening for updated event.
 				library.removeEventListener("updated", handleUpdate);
+				cancelAnimationFrame(handleUpdate);
 
 				// Remove self from listening.
 				attribute.removeEventListener("changed", stopListening);
 				attribute.removeEventListener("destroyed", stopListening);
 			};
 
-			// Listen to the libraries updated event.
+			// Listen to the libraries updated event, or animation update whichever comes first.
 			library.addEventListener("updated", handleUpdate);
+			requestAnimationFrame(handleUpdate);
 
 			// Stop listening if the attribute changes since this directive will be run again.
 			attribute.addEventListener("changed", stopListening);

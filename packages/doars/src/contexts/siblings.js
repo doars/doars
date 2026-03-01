@@ -14,7 +14,7 @@ import { createContexts } from "../utilities/Context.js";
 export default ({ siblingsContextName }) => ({
 	name: siblingsContextName,
 
-	create: (component, attribute, update) => {
+	create: (component, attribute, _update, options) => {
 		const parent = component.getParent();
 		if (!parent) {
 			return {
@@ -30,11 +30,13 @@ export default ({ siblingsContextName }) => ({
 					if (!siblingsContexts) {
 						// Create list of child contexts.
 						siblingsContexts = target.map((child) =>
-							createContexts(child, attribute, update),
+							createContexts(child, attribute, null, options),
 						);
 
-						// Set children of this component as accessed.
-						attribute.accessed(component.getId(), "siblings");
+						if (!options || options.accessed) {
+							// Set children of this component as accessed.
+							attribute.accessed(component.getId(), "siblings");
+						}
 					}
 
 					// If not a number then do a normal access.

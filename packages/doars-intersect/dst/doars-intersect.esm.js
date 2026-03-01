@@ -96,7 +96,10 @@ var intersect_default = ({ intersectDirectiveName }, intersectionDispatcher) => 
         return;
       }
       const execute = () => {
-        processExpression(component, attribute.clone(), value, { $event: event }, { return: false });
+        processExpression(component, attribute, value, { $event: event }, {
+          access: false,
+          return: false
+        });
         attribute[INTERSECT].buffer = [];
       };
       attribute[INTERSECT].buffer.push(event);
@@ -187,4 +190,4 @@ export {
   DoarsIntersect_default as default
 };
 
-//# debugId=6C8E9FD3C858886564756E2164756E21
+//# debugId=9CD1D2C0887126F364756E2164756E21

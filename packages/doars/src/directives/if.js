@@ -49,7 +49,7 @@ export default ({ allowInlineScript, ifDirectiveName }) => ({
 			if (!result) {
 				// If the element exists then transition out and remove the element.
 				if (element) {
-					// FIX: Will this not re-animate the element out, or break because the element does not exist since removing the transition. Perhaps track whether it is a transition in or transition out.
+					// FIXME: Will this not re-animate the element out, or break because the element does not exist since removing the transition. Perhaps track whether it is a transition in or transition out.
 
 					// Cancel previous transition.
 					if (transition) {

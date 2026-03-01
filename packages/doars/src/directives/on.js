@@ -206,13 +206,16 @@ export default ({ onDirectiveName }) => ({
 				// Execute value using a copy of the attribute since this attribute should not update based on what contexts will be accessed.
 				processExpression(
 					component,
-					attribute.clone(),
+					attribute,
 					value,
 					{
 						$event: event,
 						$events: attribute[ON].buffer,
 					},
-					{ return: false },
+					{
+						access: false,
+						return: false,
+					},
 				);
 
 				// Reset the buffer.
@@ -247,7 +250,7 @@ export default ({ onDirectiveName }) => ({
 				// Execute the event when let go after the given time has exceeded.
 				case EXECUTION_MODIFIERS.HELD: {
 					// Check if cancelable.
-					if (!(eventName in CANCEL_EVENTS)) {
+					if (!Object.hasOwn(CANCEL_EVENTS, eventName)) {
 						console.warn(
 							'Doars: "' +
 								directive +
@@ -323,7 +326,7 @@ export default ({ onDirectiveName }) => ({
 				// Execute event when keys have been held down for the given time.
 				case EXECUTION_MODIFIERS.HOLD: {
 					// Check if cancelable.
-					if (!(eventName in CANCEL_EVENTS)) {
+					if (!Object.hasOwn(CANCEL_EVENTS, eventName)) {
 						console.warn(
 							'Doars: "' +
 								directive +

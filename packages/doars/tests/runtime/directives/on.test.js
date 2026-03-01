@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import Doars from "../../../src/DoarsExecute.js";
+import Doars from "../../../src/DoarsInterpret.js";
 import "../test-setup.js";
 
 describe("On Directive", () => {
@@ -30,6 +30,7 @@ describe("On Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 
 		doars.setSimpleContext("setClicked", () => {
@@ -61,6 +62,7 @@ describe("On Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 
 		doars.setSimpleContext("increment", () => {
@@ -94,6 +96,7 @@ describe("On Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 
 		doars.setSimpleContext("setClicked", () => {
@@ -123,6 +126,7 @@ describe("On Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 
 		doars.setSimpleContext("setKey", (key) => {
@@ -155,6 +159,7 @@ describe("On Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 
 		// Set simple context for capturing.
@@ -206,6 +211,7 @@ describe("On Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 
 		// Set simple context for capturing.
@@ -248,6 +254,7 @@ describe("On Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 
 		// Set simple context for capturing.
@@ -290,6 +297,7 @@ describe("On Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		// Set simple context for capturing.
 		doars.setSimpleContext("capture", () => {

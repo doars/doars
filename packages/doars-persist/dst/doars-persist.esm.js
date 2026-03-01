@@ -189,32 +189,27 @@ class ProxyDispatcher extends EventDispatcher {
 
 // ../common/src/factories/createState.js
 var createState_default = (name, id, state, proxy) => {
-  return (_component, attribute, update) => {
+  return (_component, attribute, update, options) => {
     const onDelete = (_target, path) => update(id, `${name}.${path.join(".")}`);
-    const onGet = (_target, path) => attribute.accessed(id, `${name}.${path.join(".")}`);
+    const onGet = (_target, path) => {
+      if (!options || options.accessed) {
+        attribute.accessed(id, `${name}.${path.join(".")}`);
+      }
+    };
     const onSet = (_target, path) => update(id, `${name}.${path.join(".")}`);
     proxy.addEventListener("delete", onDelete);
     proxy.addEventListener("get", onGet);
     proxy.addEventListener("set", onSet);
-    const revocable = RevocableProxy_default(state, {});
     return {
-      value: revocable.proxy,
+      value: state,
       destroy: () => {
         proxy.removeEventListener("delete", onDelete);
         proxy.removeEventListener("get", onGet);
         proxy.removeEventListener("set", onSet);
-        revocable.revoke();
       }
     };
   };
 };
-
-// ../common/src/factories/createStateContext.js
-var createStateContext_default = (name, id, state, proxy, deconstruct) => ({
-  deconstruct,
-  name,
-  create: createState_default(name, id, state, proxy)
-});
 
 // src/utilities/cookies.js
 var _cache = null;
@@ -258,7 +253,12 @@ var cookies_default = ({ cookiesContextDeconstruct, cookiesContextName }) => {
   };
   proxy.addEventListener("delete", onMutate);
   proxy.addEventListener("set", onMutate);
-  return createStateContext_default(cookiesContextName, Symbol("ID_COOKIES"), proxy.add(getAll()), proxy, !!cookiesContextDeconstruct);
+  const state = proxy.add(getAll());
+  return {
+    deconstruct: !!cookiesContextDeconstruct,
+    name: cookiesContextName,
+    create: createState_default(cookiesContextName, Symbol("ID_COOKIES"), state, proxy)
+  };
 };
 
 // src/utilities/localStorage.js
@@ -289,7 +289,12 @@ var localStorage_default = ({
     }
     localStorage.setItem(path[0], target[path[0]]);
   });
-  return createStateContext_default(localStorageContextName, Symbol("ID_LOCAL_STORAGE"), proxy.add(getAll2()), proxy, !!localStorageContextDeconstruct);
+  const state = proxy.add(getAll2());
+  return {
+    deconstruct: !!localStorageContextDeconstruct,
+    name: localStorageContextName,
+    create: createState_default(localStorageContextName, Symbol("ID_LOCAL_STORAGE"), state, proxy)
+  };
 };
 
 // src/utilities/sessionStorage.js
@@ -320,7 +325,12 @@ var sessionStorage_default = ({
     }
     sessionStorage.setItem(path[0], target[path[0]]);
   });
-  return createStateContext_default(sessionStorageContextName, Symbol("ID_LOCAL_STORAGE"), proxy.add(getAll3()), proxy, !!sessionStorageContextDeconstruct);
+  const state = proxy.add(getAll3());
+  return {
+    deconstruct: !!sessionStorageContextDeconstruct,
+    name: sessionStorageContextName,
+    create: createState_default(sessionStorageContextName, Symbol("ID_LOCAL_STORAGE"), state, proxy)
+  };
 };
 
 // src/DoarsPersist.js
@@ -376,4 +386,4 @@ export {
   DoarsPersist_default as default
 };
 
-//# debugId=23A736705BC5563564756E2164756E21
+//# debugId=F8603B3AC360DB5464756E2164756E21

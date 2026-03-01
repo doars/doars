@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import Doars from "../../../src/DoarsExecute.js";
+import Doars from "../../../src/DoarsInterpret.js";
 import "../test-setup.js";
 
 describe("Select Directive", () => {
@@ -30,6 +30,7 @@ describe("Select Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 
@@ -76,6 +77,7 @@ describe("Select Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 
@@ -89,6 +91,7 @@ describe("Select Directive", () => {
 	test("select directive should handle promises", async () => {
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 
 		// Set simple context for promise.
@@ -127,6 +130,7 @@ describe("Select Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 

@@ -32,6 +32,7 @@ describe("Options", () => {
 		// Create Doars with root selector.
 		doars = new Doars({
 			root: `#${identifier}`,
+			processor: "interpret",
 		});
 		doars.enable();
 
@@ -56,6 +57,7 @@ describe("Options", () => {
 		// Create Doars with root selector.
 		doars = new Doars({
 			root: container.querySelector("div:nth-child(2)"),
+			processor: "interpret",
 		});
 		doars.enable();
 
@@ -83,6 +85,7 @@ describe("Options", () => {
 		doars = new Doars({
 			root: container,
 			prefix: "x",
+			processor: "interpret",
 		});
 		doars.enable();
 

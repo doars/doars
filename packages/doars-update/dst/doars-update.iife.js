@@ -6,14 +6,20 @@
     const time = updater.getTime();
     return {
       name: updateContextName,
-      create: (_component, attribute) => {
-        const onGet = (_target, path) => attribute.accessed(id, path.join("."));
-        proxy.addEventListener("get", onGet);
+      create: (_component, attribute, _update, options) => {
+        let destroy = null;
+        if (!options || options.accessed) {
+          const onGet = (_target, path) => {
+            attribute.accessed(id, path.join("."));
+          };
+          proxy.addEventListener("get", onGet);
+          destroy = () => {
+            proxy.removeEventListener("get", onGet);
+          };
+        }
         return {
           value: time,
-          destroy: () => {
-            proxy.removeEventListener("get", onGet);
-          }
+          destroy
         };
       }
     };
@@ -69,7 +75,8 @@
       directive,
       () => {
         for (const item of items) {
-          directive._execute(item.component, item.attribute.clone(), item.attribute.getValue(), {}, {
+          directive._execute(item.component, item.attribute, item.attribute.getValue(), null, {
+            access: false,
             return: false
           });
         }
@@ -396,4 +403,4 @@
   window.DoarsUpdate = DoarsUpdate_default;
 })();
 
-//# debugId=5879C3E008E88CD864756E2164756E21
+//# debugId=0B9F29F2B63FCFED64756E2164756E21

@@ -100,6 +100,7 @@ describe("Processors", () => {
 		// Create Doars with interpret processor.
 		doars = new DoarsInterpret({
 			root: container,
+			processor: "interpret",
 		});
 
 		doars.setSimpleContext("capture", () => {
@@ -123,6 +124,7 @@ describe("Processors", () => {
 		// Create Doars with interpret processor.
 		doars = new DoarsInterpret({
 			root: container,
+			processor: "interpret",
 		});
 
 		doars.setSimpleContext("capture", (message) => {

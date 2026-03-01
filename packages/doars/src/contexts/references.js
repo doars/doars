@@ -15,7 +15,7 @@ import { REFERENCES, REFERENCES_CACHE } from "../symbols.js";
 export default ({ referencesContextName }) => ({
 	name: referencesContextName,
 
-	create: (component, attribute) => {
+	create: (component, attribute, _update, options) => {
 		// Exit early if no references exist.
 		if (!component[REFERENCES]) {
 			return {
@@ -42,8 +42,10 @@ export default ({ referencesContextName }) => ({
 		// Create revocable proxy.
 		const revocable = RevocableProxy(cache, {
 			get: (target, propertyKey, receiver) => {
-				// Mark references as accessed.
-				attribute.accessed(component.getId(), `$references.${propertyKey}`);
+				if (!options || options.accessed) {
+					// Mark references as accessed.
+					attribute.accessed(component.getId(), `$references.${propertyKey}`);
+				}
 
 				// Return reference.
 				return Reflect.get(target, propertyKey, receiver);

@@ -17,7 +17,7 @@ export default ({ forContextDeconstruct, forContextName }) => ({
 
 	name: forContextName,
 
-	create: (component, attribute) => {
+	create: (component, attribute, _update, options) => {
 		// Exit early in parent contexts.
 		if (component !== attribute.getComponent()) {
 			return;
@@ -53,9 +53,11 @@ export default ({ forContextDeconstruct, forContextName }) => ({
 		const revocable = RevocableProxy(target, {
 			get: (_target, key) => {
 				for (const item of items) {
-					if (key in item.variables) {
-						// Mark as accessed for data.
-						attribute.accessed(item.id, "$for");
+					if (Object.hasOwn(item.variables, key)) {
+						if (!options || options.accessed) {
+							// Mark as accessed for data.
+							attribute.accessed(item.id, "$for");
+						}
 
 						// Return value at key.
 						return item.variables[key];

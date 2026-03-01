@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import Doars from "../../../src/DoarsExecute.js";
+import Doars from "../../../src/DoarsInterpret.js";
 import "../test-setup.js";
 
 describe("For Directive", () => {
@@ -28,6 +28,7 @@ describe("For Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 
@@ -52,6 +53,7 @@ describe("For Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 
@@ -76,6 +78,7 @@ describe("For Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 
@@ -92,6 +95,7 @@ describe("For Directive", () => {
 	test("for directive should iterate over promise number", async () => {
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 
 		// Set simple context for promise.
@@ -131,6 +135,7 @@ describe("For Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 
@@ -155,6 +160,7 @@ describe("For Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 
@@ -179,6 +185,7 @@ describe("For Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 
@@ -203,6 +210,7 @@ describe("For Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 
@@ -227,6 +235,7 @@ describe("For Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 

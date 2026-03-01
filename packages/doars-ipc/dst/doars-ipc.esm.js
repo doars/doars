@@ -40,7 +40,7 @@ var deleteNestedProperty = (obj, path) => {
   let current = obj;
   for (let i = 0;i < parts.length - 1; i++) {
     const part = parts[i];
-    if (!(part in current)) {
+    if (!Object.hasOwn(current, part)) {
       return;
     }
     current = current[part];
@@ -51,7 +51,7 @@ var getNestedProperty = (obj, path) => {
   const parts = path.split(".");
   let current = obj;
   for (const part of parts) {
-    if (current === null || current === undefined || !(part in current)) {
+    if (current === null || current === undefined || !Object.hasOwn(current, part)) {
       return;
     }
     current = current[part];
@@ -63,7 +63,7 @@ var setNestedProperty = (obj, path, value) => {
   let current = obj;
   for (let i = 0;i < parts.length - 1; i++) {
     const part = parts[i];
-    if (!(part in current) || typeof current[part] !== "object") {
+    if (!Object.hasOwn(current, part) || typeof current[part] !== "object") {
       current[part] = {};
     }
     current = current[part];
@@ -76,16 +76,16 @@ var ipc_default = ({ ipcContextName, ipcPath }, ipcInstance) => ({
   name: ipcContextName,
   create: () => ({
     value: new Proxy(ipcInstance, {
-      get: (target, prop) => {
-        if (prop in target) {
-          return target[prop];
+      get: (target, key) => {
+        if (Object.hasOwn(target, key)) {
+          return target[key];
         }
-        return (...args) => {
+        return (...parameters) => {
           const handler = getNestedProperty(window, ipcPath);
           if (!handler) {
             throw new Error(`IPC handler not found at window.${ipcPath}`);
           }
-          return handler.call(prop, ...args);
+          return handler.call(key, ...parameters);
         };
       }
     })
@@ -318,27 +318,29 @@ var transition = (type, libraryOptions, element, callback = null) => {
     return;
   }
   const transitionDirectiveName = libraryOptions.prefix + TRANSITION_NAME + type;
-  const dispatchEvent = (phase) => {
-    element.dispatchEvent(new CustomEvent(`transition-${phase}`));
-    element.dispatchEvent(new CustomEvent(`transition-${type}-${phase}`));
-  };
-  let name, value, timeout, requestFrame;
-  let isDone = false;
   const selectors = {};
-  name = transitionDirectiveName;
-  value = element.getAttribute(name);
+  const value = element.getAttribute(transitionDirectiveName);
   if (value) {
     selectors.during = parseSelector(value);
     addAttributes(element, selectors.during);
   }
-  name = `${transitionDirectiveName}.from`;
-  value = element.getAttribute(name);
-  if (value) {
-    selectors.from = parseSelector(value);
+  const valueFrom = element.getAttribute(`${transitionDirectiveName}.from`);
+  if (valueFrom) {
+    selectors.from = parseSelector(valueFrom);
     addAttributes(element, selectors.from);
   }
-  dispatchEvent("start");
-  requestFrame = requestAnimationFrame(() => {
+  const valueTo = element.getAttribute(`${transitionDirectiveName}.to`);
+  if (valueTo) {
+    selectors.to = parseSelector(valueTo);
+  }
+  if (!value && !valueFrom && !valueTo) {
+    if (callback) {
+      callback();
+    }
+    return;
+  }
+  let isDone = false, timeout;
+  let requestFrame = requestAnimationFrame(() => {
     requestFrame = null;
     if (isDone) {
       return;
@@ -347,13 +349,9 @@ var transition = (type, libraryOptions, element, callback = null) => {
       removeAttributes(element, selectors.from);
       selectors.from = undefined;
     }
-    name = `${transitionDirectiveName}.to`;
-    value = element.getAttribute(name);
-    if (value) {
-      selectors.to = parseSelector(value);
+    if (valueTo) {
       addAttributes(element, selectors.to);
     } else if (!selectors.during) {
-      dispatchEvent("end");
       if (callback) {
         callback();
       }
@@ -361,6 +359,7 @@ var transition = (type, libraryOptions, element, callback = null) => {
       return;
     }
     const styles = getComputedStyle(element);
+    const delay = Number(styles.transitionDelay.replace(/,.*/, "").replace("s", "")) * 1000;
     let duration = Number(styles.transitionDuration.replace(/,.*/, "").replace("s", "")) * 1000;
     if (duration === 0) {
       duration = Number(styles.animationDuration.replace("s", "")) * 1000;
@@ -378,12 +377,11 @@ var transition = (type, libraryOptions, element, callback = null) => {
         removeAttributes(element, selectors.to);
         selectors.to = undefined;
       }
-      dispatchEvent("end");
       if (callback) {
         callback();
       }
       isDone = true;
-    }, duration);
+    }, delay + duration);
   });
   return () => {
     if (!isDone) {
@@ -408,7 +406,6 @@ var transition = (type, libraryOptions, element, callback = null) => {
       clearTimeout(timeout);
       timeout = null;
     }
-    dispatchEvent("end");
     if (callback) {
       callback();
     }
@@ -1059,4 +1056,4 @@ export {
   DoarsIPC_default as default
 };
 
-//# debugId=F8A93C0B09DFE1C164756E2164756E21
+//# debugId=738401750A38579464756E2164756E21

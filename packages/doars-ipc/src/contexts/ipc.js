@@ -17,18 +17,18 @@ export default ({ ipcContextName, ipcPath }, ipcInstance) => ({
 
 	create: () => ({
 		value: new Proxy(ipcInstance, {
-			get: (target, prop) => {
+			get: (target, key) => {
 				// If the property exists on the instance, return it.
-				if (prop in target) {
-					return target[prop];
+				if (Object.hasOwn(target, key)) {
+					return target[key];
 				}
 				// Otherwise, return a function that calls the method via the client handler.
-				return (...args) => {
+				return (...parameters) => {
 					const handler = getNestedProperty(window, ipcPath);
 					if (!handler) {
 						throw new Error(`IPC handler not found at window.${ipcPath}`);
 					}
-					return handler.call(prop, ...args);
+					return handler.call(key, ...parameters);
 				};
 			},
 		}),

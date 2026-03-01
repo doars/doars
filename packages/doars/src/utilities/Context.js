@@ -13,34 +13,42 @@ import RevocableProxy from "@doars/common/src/polyfills/RevocableProxy.js";
  * @type {object}
  * @property {ContextMap} contexts The contexts.
  * @property {() => never} destroy Destroy callback.
- * @property {string} before Text to place before function definition.
- * @property {string} after Text to place after function definition.
- * @property {Array<string>} deconstructed List of context names to deconstruct.
  */
 
-const CONTEXT_REFLECTION_TRAPS = [
-	"get",
-	"getOwnPropertyDescriptor",
-	"getPrototypeOf",
-];
+const PROXY_TRAPS = ["get", "getOwnPropertyDescriptor", "getPrototypeOf"];
 
 /**
  * Create component's contexts for an attributes expression.
  * @param {Component} component Instance of the component.
  * @param {Attribute} attribute Instance of the attribute.
- * @param {UpdateFunction} update Called when update needs to be invoked.
  * @param {object|null} extra Optional extra context items.
+ * @param {object|null} options Optional options to specify whether access needs to be logged to the attribute.
  * @returns {CreatedContexts} Expressions contexts and destroy functions.
  */
-export const createContexts = (component, attribute, update, extra = null) => {
+export const createContexts = (
+	component,
+	attribute,
+	extra = null,
+	options = null,
+) => {
+	const logAccess = !options || options.accessed;
+
 	const library = component.getLibrary();
+
+	const update = (id, context) =>
+		library.update({
+			id,
+			path: context,
+		});
 
 	const creatableContexts = library.getContextsByName();
 	const hasExtra = extra && typeof extra === "object";
 
 	/** @type {Array<string>} */
 	const irrevocable = [];
+	/** @type {Array<string>} */
 	const createableContextNames = [];
+	/** @type {Array<string>} */
 	const contextsKeysCache = [];
 	for (const contextName in creatableContexts) {
 		createableContextNames.push(contextName);
@@ -68,7 +76,12 @@ export const createContexts = (component, attribute, update, extra = null) => {
 	/** @type {Array<DestroyFunction>} */
 	const destroyCallbacks = [];
 	const addContext = (target, creatableContext) => {
-		const result = creatableContext.create(component, attribute, update);
+		const result = creatableContext.create(
+			component,
+			attribute,
+			update,
+			options,
+		);
 		if (result) {
 			if (result.destroy && typeof result.destroy === "function") {
 				destroyCallbacks.push(result.destroy);
@@ -105,12 +118,16 @@ export const createContexts = (component, attribute, update, extra = null) => {
 		const [target, key, ...otherParameters] = parameters;
 
 		// First check if the key already exists on the contexts.
-		if (key in contexts) {
-			attribute.accessed(component.getId(), key);
+		if (Object.hasOwn(contexts, key)) {
+			if (logAccess) {
+				attribute.accessed(component.getId(), key);
+			}
 			return Reflect[functionName](target, key, ...otherParameters);
 		}
-		if (hasExtra && key in extra) {
-			attribute.accessed(component.getId(), key);
+		if (hasExtra && Object.hasOwn(extra, key)) {
+			if (logAccess) {
+				attribute.accessed(component.getId(), key);
+			}
 			return Reflect[functionName](extra, key, ...otherParameters);
 		}
 
@@ -118,8 +135,10 @@ export const createContexts = (component, attribute, update, extra = null) => {
 		if (!addedDeconstructed) {
 			addDeconstruted(target);
 
-			if (key in contexts) {
-				attribute.accessed(component.getId(), key);
+			if (Object.hasOwn(contexts, key)) {
+				if (logAccess) {
+					attribute.accessed(component.getId(), key);
+				}
 				return Reflect[functionName](target, key, ...otherParameters);
 			}
 		}
@@ -128,8 +147,10 @@ export const createContexts = (component, attribute, update, extra = null) => {
 		if (createableContextNames.indexOf(key) >= 0) {
 			addContext(target, creatableContexts[key]);
 
-			if (key in contexts) {
-				attribute.accessed(component.getId(), key);
+			if (Object.hasOwn(contexts, key)) {
+				if (logAccess) {
+					attribute.accessed(component.getId(), key);
+				}
 				return Reflect[functionName](target, key, ...otherParameters);
 			}
 		}
@@ -149,7 +170,7 @@ export const createContexts = (component, attribute, update, extra = null) => {
 			return contextsKeysCache;
 		},
 	};
-	for (const trap of CONTEXT_REFLECTION_TRAPS) {
+	for (const trap of PROXY_TRAPS) {
 		handler[trap] = (...parameters) => {
 			return reflect(trap, ...parameters);
 		};
@@ -170,43 +191,6 @@ export const createContexts = (component, attribute, update, extra = null) => {
 	};
 };
 
-/**
- * @param {Component} component Instance of the component.
- * @param {Attribute} attribute Instance of the attribute.
- * @param {object|undefined} extra Optional extra context items.
- * @returns {Array<ContextMap|() => never>} Contexts and destroy function.
- */
-export const createAutoContexts = (component, attribute, extra = null) => {
-	// Collect update triggers.
-	const triggers = [];
-	const update = (id, context) => {
-		triggers.push({
-			id,
-			path: context,
-		});
-	};
-
-	const { contexts, destroy } = createContexts(
-		component,
-		attribute,
-		update,
-		extra,
-	);
-
-	return {
-		contexts,
-		destroy: () => {
-			destroy();
-
-			// Dispatch update triggers.
-			if (triggers.length > 0) {
-				component.getLibrary().update(triggers);
-			}
-		},
-	};
-};
-
 export default {
 	createContexts,
-	createAutoContexts,
 };

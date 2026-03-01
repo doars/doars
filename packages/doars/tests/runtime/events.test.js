@@ -24,6 +24,7 @@ describe("Events", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 
 		let eventFired = false;

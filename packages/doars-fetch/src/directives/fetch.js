@@ -176,6 +176,7 @@ export default (
 			Vary: `${libraryOptions.prefix}-${libraryOptions.requestHeaderName}`,
 		};
 
+		// TODO: Should call directives directly instead.
 		const dispatchEvent = (suffix = "", data = {}) => {
 			element.dispatchEvent(
 				new CustomEvent(`${libraryOptions.prefix}-${directive}${suffix}`, {

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import Doars from "../../../src/DoarsExecute.js";
+import Doars from "../../../src/DoarsInterpret.js";
 import "../test-setup.js";
 
 describe("State Log Context", () => {
@@ -21,15 +21,16 @@ describe("State Log Context", () => {
 		let captured = null;
 
 		container.innerHTML = `
-      <div d-state="{ message: 'value' }" d-initialized="logState($state)"></div>
+      <div d-state="{ message: 'value' }" d-initialized="capture($state)"></div>
     `;
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 
 		// Set simple context with closure.
-		doars.setSimpleContext("logState", (state) => {
+		doars.setSimpleContext("capture", (state) => {
 			captured = state.message;
 		});
 

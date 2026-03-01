@@ -1,10 +1,11 @@
 # CHANGELOG.md
 
-## 2.2.0
+## 4.0.0
 
 - Using `moveBefore` if available.
 - Added custom parsers and more build-in parsing options.
-- Remove revocable proxy polyfill.
+- Bug fixes.
+- Performance improvements.
 
 ## 2.1.2
 

@@ -13,11 +13,8 @@ export default ({ watchDirectiveName }) => ({
 
 	update: (component, attribute, processExpression) =>
 		// Execute attribute expression.
-		processExpression(
-			component,
-			attribute.clone(),
-			attribute.getValue(),
-			{},
-			{ return: false },
-		),
+		processExpression(component, attribute, attribute.getValue(), null, {
+			access: false,
+			return: false,
+		}),
 });

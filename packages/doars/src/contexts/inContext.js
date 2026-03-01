@@ -15,23 +15,14 @@ export default ({ inContextContextName }) => ({
 
 	name: inContextContextName,
 
-	create: (component, attribute) => ({
+	create: (component, attribute, _update, options) => ({
 		value: (callback) => {
-			// Collect update triggers.
-			const newTriggers = [];
-			const contextUpdate = (id, path) => {
-				newTriggers.push({
-					id,
-					path,
-				});
-			};
-
 			// Create contexts.
 			const { contexts, destroy } = createContexts(
 				component,
 				attribute,
-				contextUpdate,
-				{},
+				null,
+				options,
 			);
 
 			// Invoke callback and store its result.
@@ -39,11 +30,6 @@ export default ({ inContextContextName }) => ({
 
 			// Destroy contexts.
 			destroy();
-
-			// Dispatch update triggers.
-			if (newTriggers.length > 0) {
-				component.getLibrary().update(newTriggers);
-			}
 
 			// Return callback's result.
 			return result;

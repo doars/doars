@@ -31,39 +31,40 @@ export const transition = (type, libraryOptions, element, callback = null) => {
 	const transitionDirectiveName =
 		libraryOptions.prefix + TRANSITION_NAME + type;
 
-	// Setup dispatcher function.
-	const dispatchEvent = (phase) => {
-		element.dispatchEvent(new CustomEvent(`transition-${phase}`));
-		element.dispatchEvent(new CustomEvent(`transition-${type}-${phase}`));
-	};
-
-	// Declare variables for later.
-	let name, value, timeout, requestFrame;
-	let isDone = false;
 	const selectors = {};
 
 	// Process transition during attribute.
-	name = transitionDirectiveName;
-	value = element.getAttribute(name);
-	// Parse and apply returned selector.
+	const value = element.getAttribute(transitionDirectiveName);
 	if (value) {
 		selectors.during = parseSelector(value);
 		addAttributes(element, selectors.during);
 	}
 
 	// Process transition from attribute.
-	name = `${transitionDirectiveName}.from`;
-	value = element.getAttribute(name);
-	// Parse and apply returned selector.
-	if (value) {
-		selectors.from = parseSelector(value);
+	const valueFrom = element.getAttribute(`${transitionDirectiveName}.from`);
+	if (valueFrom) {
+		selectors.from = parseSelector(valueFrom);
 		addAttributes(element, selectors.from);
 	}
 
-	// Dispatch transition event.
-	dispatchEvent("start");
+	// Process transition to attribute.
+	const valueTo = element.getAttribute(`${transitionDirectiveName}.to`);
+	if (valueTo) {
+		selectors.to = parseSelector(valueTo);
+	}
 
-	requestFrame = requestAnimationFrame(() => {
+	if (!value && !valueFrom && !valueTo) {
+		if (callback) {
+			callback();
+		}
+		return;
+	}
+
+	// Declare variables for later.
+	let isDone = false,
+		timeout;
+
+	let requestFrame = requestAnimationFrame(() => {
 		requestFrame = null;
 
 		// If cancelled then stop immediately.
@@ -77,18 +78,11 @@ export const transition = (type, libraryOptions, element, callback = null) => {
 			selectors.from = undefined;
 		}
 
-		// Process transition to attribute.
-		name = `${transitionDirectiveName}.to`;
-		value = element.getAttribute(name);
-		// Parse and apply returned selector.
-		if (value) {
-			selectors.to = parseSelector(value);
+		if (valueTo) {
 			addAttributes(element, selectors.to);
 		} else if (!selectors.during) {
 			// Exit early if no active selectors set.
 
-			// Dispatch end event.
-			dispatchEvent("end");
 			// Invoke callback.
 			if (callback) {
 				callback();
@@ -101,6 +95,8 @@ export const transition = (type, libraryOptions, element, callback = null) => {
 		// Get computes style.
 		const styles = getComputedStyle(element);
 
+		const delay =
+			Number(styles.transitionDelay.replace(/,.*/, "").replace("s", "")) * 1000;
 		let duration =
 			Number(styles.transitionDuration.replace(/,.*/, "").replace("s", "")) *
 			1000;
@@ -128,15 +124,13 @@ export const transition = (type, libraryOptions, element, callback = null) => {
 				selectors.to = undefined;
 			}
 
-			// Dispatch end event.
-			dispatchEvent("end");
 			// Invoke callback.
 			if (callback) {
 				callback();
 			}
 			// Mark as done.
 			isDone = true;
-		}, duration);
+		}, delay + duration);
 	});
 
 	return () => {
@@ -167,8 +161,6 @@ export const transition = (type, libraryOptions, element, callback = null) => {
 			timeout = null;
 		}
 
-		// Dispatch end event.
-		dispatchEvent("end");
 		// Invoke callback.
 		if (callback) {
 			callback();

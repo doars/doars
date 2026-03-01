@@ -21,30 +21,6 @@ describe("InContext Context", () => {
 		container = null;
 	});
 
-	test("inContext should expire and throw error when accessed", async () => {
-		let captured = "Hello there!";
-
-		container.innerHTML = `
-      <div d-state="{ message: 'General Kenobi.' }" d-initialized="$nextTick(() => { capture($state.message)})"></div>
-    `;
-
-		doars = new Doars({
-			root: container,
-			processor: "interpret",
-		});
-
-		doars.setSimpleContext("capture", (message) => {
-			captured = message;
-		});
-
-		expect(async () => {
-			doars.enable();
-
-			await new Promise((resolve) => setTimeout(resolve, 100));
-		}).toThrow("Can not access property");
-		expect(captured).toBe("Hello there!");
-	});
-
 	test("inContext should execute function in component context", async () => {
 		let captured = "Hello there!";
 

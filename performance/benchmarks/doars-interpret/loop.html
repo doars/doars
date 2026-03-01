@@ -7,7 +7,8 @@
   </head>
 
   <body>
-    <button type="button" data-purpose="start">Start</button>
+    <button type="button" data-purpose="setup">Setup</button>
+    <button type="button" data-purpose="run" hidden>Run</button>
     <div data-purpose="results"></div>
 
     <div d-state="{ messages: [] }">
@@ -21,14 +22,15 @@
       </ul>
     </div>
 
-    <script src="../../../dst/doars.iife.js"></script>
+    <script src="../../dst/doars-interpret.js"></script>
     <script>
       document.addEventListener('DOMContentLoaded', () => {
-        const startButton = document.querySelector('[data-purpose="start"]')
+        const setupButton = document.querySelector('[data-purpose="setup"]')
+        const runButton = document.querySelector('[data-purpose="run"]')
         const results = document.querySelector('[data-purpose="results"]')
         const rootNode = document.querySelector('[d-state]')
 
-        const complexity = 20
+        const complexity = 1e3
 
         const todos = [];
         for (let i = 0; i < complexity; i++) {
@@ -59,7 +61,9 @@
 
         let doars
         const setup = async () => {
-          doars = new window.Doars()
+          doars = new window.Doars({
+            processor: 'interpret',
+          })
           await doars.enable()
         }
 
@@ -72,10 +76,11 @@
           await doars.update();
         }
 
-        startButton.addEventListener('click', async () => {
-          const setupResults = await benchmark(setup)
+        setupButton.addEventListener('click', async () => {
+          const setupResult = await benchmark(setup)
           buttons = Array.from(rootNode.querySelectorAll("button"));
-          const runResults = await benchmark(run)
+          setupButton.setAttribute('hidden', true)
+          runButton.removeAttribute('hidden')
 
           results.innerHTML = `
             <table>
@@ -87,17 +92,42 @@
                 </tr>
                 <tr>
                   <td>Setup</td>
-                  <td>${setupResults.time.toFixed(2)}</td>
-                  <td>${(setupResults.memory / (1024 * 1024)).toFixed(3)}mb</td>
-                </tr>
-                <tr>
-                  <td>Run</td>
-                  <td>${runResults.time.toFixed(2)}</td>
-                  <td>${(runResults.memory / (1024 * 1024)).toFixed(3)}mb</td>
+                  <td>${setupResult.time.toFixed(2)}</td>
+                  <td>${(setupResult.memory / (1024 * 1024)).toFixed(3)}mb</td>
                 </tr>
               </tbody>
             </table>
           `
+
+          const runResults = []
+          runButton.addEventListener('click', async () => {
+            runResults.push(
+              await benchmark(run)
+            )
+            results.innerHTML = `
+              <table>
+                <tbody>
+                  <tr>
+                    <td></td>
+                    <td>Time</td>
+                    <td>Memory</td>
+                  </tr>
+                  <tr>
+                    <td>Setup</td>
+                    <td>${setupResult.time.toFixed(2)}</td>
+                    <td>${(setupResult.memory / (1024 * 1024)).toFixed(3)}mb</td>
+                  </tr>
+                  ${runResults.map((runResult, index) => `
+                    <tr>
+                      <td>Run #${(index + 1).toString()}</td>
+                      <td>${runResult.time.toFixed(2)}</td>
+                      <td>${(runResult.memory / (1024 * 1024)).toFixed(3)}mb</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            `
+          })
         })
       })
     </script>

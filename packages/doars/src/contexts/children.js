@@ -14,7 +14,7 @@ import { createContexts } from "../utilities/Context.js";
 export default ({ childrenContextName }) => ({
 	name: childrenContextName,
 
-	create: (component, attribute, update) => {
+	create: (component, attribute, _update, options) => {
 		// Create contexts proxy for children.
 		let childrenContexts;
 		const revocable = RevocableProxy(component.getChildren(), {
@@ -22,11 +22,13 @@ export default ({ childrenContextName }) => ({
 				if (!childrenContexts) {
 					// Create list of child contexts.
 					childrenContexts = target.map((child) =>
-						createContexts(child, attribute, update),
+						createContexts(child, attribute, null, options),
 					);
 
 					// Set children of this component as accessed.
-					attribute.accessed(component.getId(), "children");
+					if (!options || options.accessed) {
+						attribute.accessed(component.getId(), "children");
+					}
 				}
 
 				// If not a number then do a normal access.

@@ -74,10 +74,11 @@ export default ({ defaultOrder, updateDirectiveName }) => {
 			for (const item of items) {
 				directive._execute(
 					item.component,
-					item.attribute.clone(),
+					item.attribute,
 					item.attribute.getValue(),
-					{},
+					null,
 					{
+						access: false,
 						return: false,
 					},
 				);

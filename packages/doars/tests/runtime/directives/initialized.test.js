@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import Doars from "../../../src/DoarsExecute.js";
+import Doars from "../../../src/DoarsInterpret.js";
 import "../test-setup.js";
 
 describe("Initialized Directive", () => {
@@ -26,6 +26,7 @@ describe("Initialized Directive", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 
@@ -37,25 +38,28 @@ describe("Initialized Directive", () => {
 	});
 
 	test("initialized directive should run on element init", async () => {
-		const captured = {};
+		let captured = false;
 
 		container.innerHTML = `
       <div d-state="{}">
-        <div d-initialized="captured.initialized = true"></div>
+        <div d-initialized="capture()"></div>
       </div>
     `;
 
-		// Make captured available in the expression.
-		global.captured = captured;
-
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
+
+		doars.setSimpleContext("capture", () => {
+			captured = true;
+		});
+
 		doars.enable();
 
 		await new Promise((resolve) => setTimeout(resolve, 1));
 
 		// Assert initialized.
-		expect(captured.initialized).toBe(true);
+		expect(captured).toBe(true);
 	});
 });

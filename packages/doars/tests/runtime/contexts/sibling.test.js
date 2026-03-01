@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import Doars from "../../../src/DoarsExecute.js";
+import Doars from "../../../src/DoarsInterpret.js";
 import "../test-setup.js";
 
 describe("Sibling Context", () => {
@@ -32,6 +32,7 @@ describe("Sibling Context", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 
@@ -56,6 +57,7 @@ describe("Sibling Context", () => {
 
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 		doars.enable();
 
@@ -68,6 +70,7 @@ describe("Sibling Context", () => {
 	test("siblings context should provide sibling components", async () => {
 		doars = new Doars({
 			root: container,
+			processor: "interpret",
 		});
 
 		const captured = {};

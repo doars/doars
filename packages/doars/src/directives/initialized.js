@@ -54,19 +54,15 @@ export default ({ initializedDirectiveName }) => ({
 
 		const handler = () => {
 			// Execute value using a copy of the attribute since this attribute does not need to update based on what it accesses.
-			processExpression(
-				component,
-				attribute.clone(),
-				value,
-				{},
-				{ return: false },
-			);
+			processExpression(component, attribute, value, null, {
+				access: false,
+				return: false,
+			});
 
 			// Call destroy.
 			destroy(component, attribute);
 		};
 
-		// Add listener to component.
 		library.addEventListener(EVENT_NAME, handler, {
 			once: true,
 		});

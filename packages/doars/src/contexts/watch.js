@@ -10,7 +10,7 @@ import { createContexts } from "../utilities/Context.js";
 /**
  * @callback WatchCallback
  * @param {object} context New context.
- * @returns {never}
+ * @returns {void}
  */
 
 /**
@@ -30,81 +30,66 @@ export default ({ watchContextName }) => ({
 		let callbacks = null,
 			contextIsDestroyed = false,
 			directiveIsDestroyed = false,
-			isInitialized = false,
-			processExpression = null;
+			isInitialized = false;
 
-		const initialized = () => {
-			isInitialized = true;
-			callbacks = [];
+		const componentId = component.getId();
 
-			// Get the expression processor.
-			const library = component.getLibrary();
-			processExpression = library.getProcessor();
+		const initialize = () => {
+			if (!isInitialized) {
+				isInitialized = true;
+				callbacks = [];
 
-			/**
-			 * @param {Doars} _ Doars library instance.
-			 * @param {Array<Trigger>} triggers List of triggers that will be handled.
-			 * @returns {void}
-			 */
-			const onUpdate = (_, triggers) => {
-				const ids = Object.getOwnPropertySymbols(triggers);
-				if (ids.length > 0) {
-					// Collect update triggers.
-					const newTriggers = [];
-					const contextUpdate = (id, path) => {
-						newTriggers.push({
-							id,
-							path,
-						});
-					};
+				// Get the expression processor.
+				const library = component.getLibrary();
 
-					for (const id of ids) {
-						for (const callback of callbacks) {
-							// Process path in order to compare the triggers against the accessed values.
-							if (!callback.attribute) {
-								callback.attribute = attribute.clone();
-								processExpression(component, callback.attribute, callback.path);
-							}
+				/**
+				 * @param {Doars} _ Doars library instance.
+				 * @param {Array<Trigger>} triggers List of triggers that will be handled.
+				 * @returns {void}
+				 */
+				const onUpdate = (_, triggers) => {
+					const ids = Object.getOwnPropertySymbols(triggers);
+					if (ids.length > 0) {
+						for (const id of ids) {
+							if (id === componentId) {
+								for (const callbackData of callbacks) {
+									// TODO: Get list of deconstruted contexts and see if it matches with any of them prefixed.
 
-							if (callback.attribute.hasAccessed(id, triggers[id])) {
-								// Invoke callback and provide it with a new context.
-								const { contexts, destroy } = createContexts(
-									component,
-									attribute,
-									contextUpdate,
-									{},
-								);
-								callback.callback(contexts);
-								destroy();
+									if (triggers[id].indexOf(callbackData.path) >= 0) {
+										// Invoke callback and provide it with a new context.
+										const { contexts, destroy } = createContexts(
+											component,
+											attribute,
+										);
+										callbackData.callback(contexts);
+										destroy();
+									}
+								}
 							}
 						}
 					}
+				};
 
-					// Dispatch update triggers.
-					if (newTriggers.length > 0) {
-						component.getLibrary().update(newTriggers);
+				const stopHandling = () => {
+					if (!directiveIsDestroyed) {
+						// Mark as destroyed.
+						directiveIsDestroyed = true;
+
+						// Remove any references to this context.
+						attribute.removeEventListener("changed", stopHandling);
+						attribute.removeEventListener("destroyed", stopHandling);
+						library.removeEventListener("updating", onUpdate);
 					}
-				}
-			};
+				};
 
-			const stopHandling = () => {
-				if (!directiveIsDestroyed) {
-					// Mark as destroyed.
-					directiveIsDestroyed = true;
+				// Stop handling since it will be re-ran.
+				attribute.addEventListener("changed", stopHandling);
+				// Stop handling since the attribute is destroyed.
+				attribute.addEventListener("destroyed", stopHandling);
 
-					// Remove any references to this context.
-					attribute.removeEventListener("changed", stopHandling);
-					attribute.removeEventListener("destroyed", stopHandling);
-					library.removeEventListener("updating", onUpdate);
-				}
-			};
-			// Stop handling since it will be re-ran.
-			attribute.addEventListener("changed", stopHandling);
-			// Stop handling since the attribute is destroyed.
-			attribute.addEventListener("destroyed", stopHandling);
-
-			// Start listening for changes.
-			library.addEventListener("updating", onUpdate);
+				// Start listening for changes.
+				library.addEventListener("updating", onUpdate);
+			}
 		};
 
 		return {
@@ -120,9 +105,7 @@ export default ({ watchContextName }) => ({
 					return;
 				}
 
-				if (!isInitialized) {
-					initialized();
-				}
+				initialize();
 
 				// Store path and callback.
 				callbacks.push({
@@ -131,30 +114,18 @@ export default ({ watchContextName }) => ({
 				});
 
 				// Return a function that can be called to invoke the callback immediately.
-				return () => {
-					// Collect update triggers.
-					const newTriggers = [];
-					const contextUpdate = (id, path) => {
-						newTriggers.push({
-							id,
-							path,
-						});
-					};
-
+				return async () => {
 					// Invoke callback and provide it with a new context.
 					const { contexts, destroy } = createContexts(
 						component,
-						attribute.clone(),
-						contextUpdate,
-						{},
+						attribute,
+						null,
+						{
+							access: false,
+						},
 					);
 					callback(contexts);
 					destroy();
-
-					// Dispatch update triggers.
-					if (newTriggers.length > 0) {
-						component.getLibrary().update(newTriggers);
-					}
 				};
 			},
 

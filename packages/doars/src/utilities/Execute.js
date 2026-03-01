@@ -1,5 +1,5 @@
 // Import context.
-import { createAutoContexts } from "./Context.js";
+import { createContexts } from "./Context.js";
 
 /**
  * @typedef {import('../Attribute.js').default} Attribute
@@ -12,7 +12,7 @@ import { createAutoContexts } from "./Context.js";
  * @param {Attribute} attribute Instance of the attribute.
  * @param {string} expression Expression to execute.
  * @param {object|null} extra Optional extra context items.
- * @param {object|null} options Optional options object.
+ * @param {object|null} options Optional options for the expression, for example whether a value needs to be returned, or whether access needs to be logged to the attribute.
  * @returns {any} Result of expression.
  */
 export const execute = (
@@ -22,8 +22,12 @@ export const execute = (
 	extra = null,
 	options = null,
 ) => {
-	// Create function context.
-	const { contexts, destroy } = createAutoContexts(component, attribute, extra);
+	const { contexts, destroy } = createContexts(
+		component,
+		attribute,
+		extra,
+		options,
+	);
 
 	// Try to execute code.
 	let result;
@@ -41,7 +45,6 @@ export const execute = (
 		result = null;
 	}
 
-	// Invoke destroy.
 	destroy();
 
 	if (!options || options?.return) {

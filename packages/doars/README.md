@@ -817,7 +817,7 @@ Call a function when the specified value changes. The function takes in a string
 
 ```HTML
 <!-- Keep track of the count, and log to the console whenever the count changes. -->
-<div d-state="{ count: 0 }" d-initialized="$watch('count', ({ $state }) => { console.log($state.count) })">
+<div d-state="{ count: 0 }" d-initialized="$watch('$state.count', ({ $state }) => { console.log($state.count) })">
   <!-- Increment the count whenever the button is clicked. -->
   <button type="button" d-on:click="count++">Increment</button>
 </div>

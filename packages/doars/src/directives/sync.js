@@ -1,6 +1,6 @@
 import { getDeeply, setDeeply } from "@doars/common/src/utilities/Object.js";
 import { escapeHtml } from "@doars/common/src/utilities/String.js";
-import { createAutoContexts } from "../utilities/Context.js";
+import { createContexts } from "../utilities/Context.js";
 
 /**
  * @typedef {import('../Directive.js').Directive} Directive
@@ -72,9 +72,13 @@ export default ({ syncDirectiveName }) => ({
 				case "DIV":
 					handler = () => {
 						// Update value.
-						const { contexts, destroy } = createAutoContexts(
+						const { contexts, destroy } = createContexts(
 							component,
-							attribute.clone(),
+							attribute,
+							null,
+							{
+								access: false,
+							},
 						);
 						setDeeply(contexts, valueSplit, escapeHtml(element.innerText));
 						destroy();
@@ -85,9 +89,13 @@ export default ({ syncDirectiveName }) => ({
 					handler = () => {
 						const elementValue = escapeHtml(element.value);
 						// Setup contexts.
-						const { contexts, destroy } = createAutoContexts(
+						const { contexts, destroy } = createContexts(
 							component,
-							attribute.clone(),
+							attribute,
+							null,
+							{
+								access: false,
+							},
 						);
 
 						if (element.type === "checkbox") {
@@ -99,7 +107,7 @@ export default ({ syncDirectiveName }) => ({
 								if (!dataValue) {
 									setDeeply(contexts, valueSplit, [elementValue]);
 								}
-								if (!dataValue.includes(element.value)) {
+								if (dataValue.indexOf(element.value) <= 0) {
 									dataValue.push(elementValue);
 								}
 							} else if (dataValue) {
@@ -131,9 +139,13 @@ export default ({ syncDirectiveName }) => ({
 				case "TEXTAREA":
 					handler = () => {
 						// Update value.
-						const { contexts, destroy } = createAutoContexts(
+						const { contexts, destroy } = createContexts(
 							component,
-							attribute.clone(),
+							attribute,
+							null,
+							{
+								access: false,
+							},
 						);
 						setDeeply(contexts, valueSplit, escapeHtml(element.innerText));
 						destroy();
@@ -143,9 +155,13 @@ export default ({ syncDirectiveName }) => ({
 				case "SELECT":
 					handler = () => {
 						// Create contexts.
-						const { contexts, destroy } = createAutoContexts(
+						const { contexts, destroy } = createContexts(
 							component,
-							attribute.clone(),
+							attribute,
+							null,
+							{
+								access: false,
+							},
 						);
 
 						if (element.multiple) {
@@ -178,7 +194,7 @@ export default ({ syncDirectiveName }) => ({
 			attribute[SYNC] = handler;
 		}
 
-		const dataValue = processExpression(component, attribute.clone(), value);
+		const dataValue = processExpression(component, attribute, value);
 		switch (element.tagName) {
 			case "DIV":
 			case "TEXTAREA":
@@ -192,7 +208,7 @@ export default ({ syncDirectiveName }) => ({
 			case "INPUT":
 				if (element.type === "checkbox") {
 					// Update option if the checked value has changed.
-					const checked = dataValue.includes(element.value);
+					const checked = dataValue.indexOf(element.value) >= 0;
 					if (element.checked !== checked) {
 						// Update checked value.
 						element.checked = checked;
@@ -232,7 +248,7 @@ export default ({ syncDirectiveName }) => ({
 				for (const option of Array.from(element.options)) {
 					// Update option if the selected value has changed.
 					const select = Array.isArray(dataValue)
-						? dataValue.includes(option.value)
+						? dataValue.indexOf(option.value) >= 0
 						: dataValue === option.value;
 					if (option.selected !== select) {
 						// Update option status.
