@@ -1,5 +1,12 @@
 # CHANGELOG.md
 
+## 4.0.0
+
+- Using `moveBefore` if available.
+- Added custom parsers and more build-in parsing options.
+- Bug fixes.
+- Performance improvements.
+
 ## 2.1.2
 
 - Removed fetch de-duplication because it ignored parsing instructions.

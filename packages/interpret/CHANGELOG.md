@@ -1,8 +1,14 @@
 # CHANGELOG.md
 
-## 2.0.0
+## 1.2.0
 
-- Added `esm` suffix back onto ESM builds.
+- Added arrow function support.
+- Added bitwise operator support.
+- Added optional chaining support.
+- Added regular expression support.
+- Added return keyword support.
+- Added spread support.
+- Added template support.
 
 ## 1.1.0
 

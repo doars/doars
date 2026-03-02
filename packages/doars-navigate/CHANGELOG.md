@@ -1,5 +1,10 @@
 # CHANGELOG.md
 
+## 4.0.0
+
+- Bug fixes.
+- Performance improvements.
+
 ## 3.1.1
 
 - Updated `@doars/common` dependency.

@@ -1,118 +1,4 @@
 (() => {
-  // src/directives/intersect.js
-  var INTERSECT = Symbol("INTERSECT");
-  var EXECUTION_MODIFIERS = {
-    NONE: 0,
-    BUFFER: 1,
-    DEBOUNCE: 2,
-    THROTTLE: 5,
-    DELAY: 6
-  };
-  var intersect_default = ({
-    intersectDirectiveName
-  }, intersectionDispatcher) => ({
-    name: intersectDirectiveName,
-    update: (component, attribute, processExpression) => {
-      const element = attribute.getElement();
-      const key = attribute.getKey();
-      const value = attribute.getValue();
-      if (attribute[INTERSECT]) {
-        if (attribute[INTERSECT].value === value) {
-          return;
-        }
-        intersectionDispatcher.remove(element, attribute[INTERSECT].handler);
-        if (attribute[INTERSECT].timeout) {
-          clearTimeout(attribute[INTERSECT].timeout);
-        }
-        delete attribute[INTERSECT];
-      }
-      const modifiers = attribute.getModifiers();
-      let executionModifier = EXECUTION_MODIFIERS.NONE;
-      if (modifiers.buffer) {
-        executionModifier = EXECUTION_MODIFIERS.BUFFER;
-        if (modifiers.buffer === true) {
-          modifiers.buffer = 5;
-        }
-      } else if (modifiers.debounce) {
-        executionModifier = EXECUTION_MODIFIERS.DEBOUNCE;
-        if (modifiers.debounce === true) {
-          modifiers.debounce = 500;
-        }
-      } else if (modifiers.throttle) {
-        executionModifier = EXECUTION_MODIFIERS.THROTTLE;
-        if (modifiers.throttle === true) {
-          modifiers.throttle = 500;
-        }
-      } else if (modifiers.delay) {
-        executionModifier = EXECUTION_MODIFIERS.DELAY;
-        if (modifiers.delay === true) {
-          modifiers.delay = 500;
-        }
-      }
-      const handler = (event) => {
-        const isChanged = attribute[INTERSECT].isIntersecting !== event.isIntersecting;
-        if (!isChanged) {
-          return;
-        }
-        attribute[INTERSECT].isIntersecting = event.isIntersecting;
-        if (key === "enter" && !event.isIntersecting || key === "leave" && event.isIntersecting) {
-          if (attribute[INTERSECT].timeout) {
-            clearTimeout(attribute[INTERSECT].timeout);
-            attribute[INTERSECT].timeout = null;
-          }
-          return;
-        }
-        const execute = () => {
-          processExpression(component, attribute.clone(), value, { $event: event }, { return: false });
-          attribute[INTERSECT].buffer = [];
-        };
-        attribute[INTERSECT].buffer.push(event);
-        if (executionModifier === EXECUTION_MODIFIERS.BUFFER) {
-          if (attribute[INTERSECT].buffer.length < modifiers.buffer) {
-            return;
-          }
-          execute();
-        } else if (executionModifier === EXECUTION_MODIFIERS.BUFFER) {
-          if (attribute[INTERSECT].timeout) {
-            clearTimeout(attribute[INTERSECT].timeout);
-            attribute[INTERSECT].timeout = null;
-          }
-          attribute[INTERSECT].timeout = setTimeout(execute, modifiers.debounce);
-        } else if (executionModifier === EXECUTION_MODIFIERS.THROTTLE) {
-          const now = window.performance.now();
-          if (attribute[INTERSECT].lastExecution && now - attribute[INTERSECT].lastExecution < modifiers.throttle) {
-            return;
-          }
-          execute();
-          attribute[INTERSECT].lastExecution = now;
-        } else if (EXECUTION_MODIFIERS.DELAY) {
-          attribute[INTERSECT].timeout = setTimeout(execute, modifiers.delay);
-        } else {
-          execute();
-        }
-      };
-      intersectionDispatcher.add(element, handler);
-      attribute[INTERSECT] = {
-        buffer: [],
-        handler,
-        isIntersecting: false,
-        timeout: attribute[INTERSECT] ? attribute[INTERSECT].timeout : null,
-        value
-      };
-    },
-    destroy: (component, attribute) => {
-      if (!attribute[INTERSECT]) {
-        return;
-      }
-      const element = attribute.getElement();
-      intersectionDispatcher.remove(element, attribute[INTERSECT].handler);
-      if (attribute[INTERSECT].timeout) {
-        clearTimeout(attribute[INTERSECT].timeout);
-      }
-      delete attribute[INTERSECT];
-    }
-  });
-
   // ../common/src/polyfills/IntersectionDispatcher.js
   class IntersectionDispatcher {
     constructor(options = null) {
@@ -149,6 +35,121 @@
     }
   }
 
+  // src/directives/intersect.js
+  var INTERSECT = Symbol("INTERSECT");
+  var EXECUTION_MODIFIERS = {
+    NONE: 0,
+    BUFFER: 1,
+    DEBOUNCE: 2,
+    THROTTLE: 5,
+    DELAY: 6
+  };
+  var intersect_default = ({ intersectDirectiveName }, intersectionDispatcher) => ({
+    name: intersectDirectiveName,
+    update: (component, attribute, processExpression) => {
+      const element = attribute.getElement();
+      const key = attribute.getKey();
+      const value = attribute.getValue();
+      if (attribute[INTERSECT]) {
+        if (attribute[INTERSECT].value === value) {
+          return;
+        }
+        intersectionDispatcher.remove(element, attribute[INTERSECT].handler);
+        if (attribute[INTERSECT].timeout) {
+          clearTimeout(attribute[INTERSECT].timeout);
+        }
+        delete attribute[INTERSECT];
+      }
+      const modifiers = Object.assign({}, attribute.getModifiers());
+      let executionModifier = EXECUTION_MODIFIERS.NONE;
+      if (modifiers.buffer) {
+        executionModifier = EXECUTION_MODIFIERS.BUFFER;
+        if (modifiers.buffer === true) {
+          modifiers.buffer = 5;
+        }
+      } else if (modifiers.debounce) {
+        executionModifier = EXECUTION_MODIFIERS.DEBOUNCE;
+        if (modifiers.debounce === true) {
+          modifiers.debounce = 500;
+        }
+      } else if (modifiers.throttle) {
+        executionModifier = EXECUTION_MODIFIERS.THROTTLE;
+        if (modifiers.throttle === true) {
+          modifiers.throttle = 500;
+        }
+      } else if (modifiers.delay) {
+        executionModifier = EXECUTION_MODIFIERS.DELAY;
+        if (modifiers.delay === true) {
+          modifiers.delay = 500;
+        }
+      }
+      const handler = (event) => {
+        const isChanged = attribute[INTERSECT].isIntersecting !== event.isIntersecting;
+        if (!isChanged) {
+          return;
+        }
+        attribute[INTERSECT].isIntersecting = event.isIntersecting;
+        if (key === "enter" && !event.isIntersecting || key === "leave" && event.isIntersecting) {
+          if (attribute[INTERSECT].timeout) {
+            clearTimeout(attribute[INTERSECT].timeout);
+            attribute[INTERSECT].timeout = null;
+          }
+          return;
+        }
+        const execute = () => {
+          processExpression(component, attribute, value, { $event: event }, {
+            access: false,
+            return: false
+          });
+          attribute[INTERSECT].buffer = [];
+        };
+        attribute[INTERSECT].buffer.push(event);
+        if (executionModifier === EXECUTION_MODIFIERS.BUFFER) {
+          if (attribute[INTERSECT].buffer.length < modifiers.buffer) {
+            return;
+          }
+          execute();
+        } else if (executionModifier === EXECUTION_MODIFIERS.DEBOUNCE) {
+          if (attribute[INTERSECT].timeout) {
+            clearTimeout(attribute[INTERSECT].timeout);
+            attribute[INTERSECT].timeout = null;
+          }
+          attribute[INTERSECT].timeout = setTimeout(execute, modifiers.debounce);
+        } else if (executionModifier === EXECUTION_MODIFIERS.THROTTLE) {
+          const now = window.performance.now();
+          if (attribute[INTERSECT].lastExecution && now - attribute[INTERSECT].lastExecution < modifiers.throttle) {
+            return;
+          }
+          execute();
+          attribute[INTERSECT].lastExecution = now;
+        } else if (EXECUTION_MODIFIERS.DELAY) {
+          attribute[INTERSECT].timeout = setTimeout(execute, modifiers.delay);
+        } else {
+          execute();
+        }
+      };
+      intersectionDispatcher.add(element, handler);
+      attribute[INTERSECT] = {
+        buffer: [],
+        handler,
+        isIntersecting: false,
+        timeout: attribute[INTERSECT] ? attribute[INTERSECT].timeout : null,
+        value
+      };
+    },
+    destroy: (_component, attribute) => {
+      if (!attribute[INTERSECT]) {
+        return;
+      }
+      const element = attribute.getElement();
+      intersectionDispatcher.remove(element, attribute[INTERSECT].handler);
+      if (attribute[INTERSECT].timeout) {
+        clearTimeout(attribute[INTERSECT].timeout);
+      }
+      delete attribute[INTERSECT];
+    }
+  });
+
   // src/DoarsIntersect.js
   function DoarsIntersect_default(library, options = null) {
     options = Object.assign({
@@ -159,7 +160,7 @@
     }, options);
     let isEnabled = false;
     const intersectionDispatcher = new IntersectionDispatcher({
-      root: options.intersectionRoot ? options.intersectionRoot : library.getOptions().root,
+      root: options.intersectionRoot,
       rootMargin: options.intersectionMargin,
       threshold: options.intersectionThreshold
     });
@@ -191,4 +192,4 @@
   window.DoarsIntersect = DoarsIntersect_default;
 })();
 
-//# debugId=D9EF40940F3BCE5264756E2164756E21
+//# debugId=927A6B5BD8DB396564756E2164756E21

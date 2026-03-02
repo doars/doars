@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+
+  <body>
+    <button type="button" data-purpose="start">Start</button>
+    <div data-purpose="results"></div>
+
+    <div x-data="{ messages: [] }">
+      <ul>
+        <template x-for="todo in todos" :key="todo.id">
+          <li :class="todo.completed ? 'completed' : ''">
+            <span x-text="todo.text + ' (' + (todo.completed ? 'completed' : 'pending') + ')'"></span>
+            <button type="button" @click="todo.completed = !todo.completed">Toggle</button>
+          </li>
+        </template>
+      </ul>
+    </div>
+
+    <script src="../../dst/alpine.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const startButton = document.querySelector('[data-purpose="start"]')
+        const results = document.querySelector('[data-purpose="results"]')
+        const rootNode = document.querySelector('[x-data]')
+
+        const complexity = 1e3
+
+        const todos = [];
+        for (let i = 0; i < complexity; i++) {
+          todos.push({
+            text: `todo ${i}`,
+            id: i,
+            completed: false,
+          });
+        }
+        rootNode.setAttribute(
+          "x-data",
+          JSON.stringify({
+            todos,
+          }),
+        );
+
+        const benchmark = async (method) => {
+          const startMemory = performance.memory?.usedJSHeapSize || 0;
+  				const startTime = performance.now()
+
+          await method()
+
+          return {
+            time: performance.now() - startTime,
+            memory: (performance.memory?.usedJSHeapSize || 0) - startMemory,
+          }
+        }
+
+        const setup = async () => {
+      		window.alpine.start();
+        }
+
+        let buttons
+        const run = async () => {
+          const event = new CustomEvent("click");
+          for (let i = 0; i < complexity; i++) {
+            buttons[i].dispatchEvent(event);
+          }
+      		await Promise.resolve();
+        }
+
+        startButton.addEventListener('click', async () => {
+          const setupResults = await benchmark(setup)
+          buttons = Array.from(rootNode.querySelectorAll("button"));
+          const runResults = await benchmark(run)
+
+          results.innerHTML = `
+            <table>
+              <tbody>
+                <tr>
+                  <td></td>
+                  <td>Time</td>
+                  <td>Memory</td>
+                </tr>
+                <tr>
+                  <td>Setup</td>
+                  <td>${setupResults.time.toFixed(2)}</td>
+                  <td>${(setupResults.memory / (1024 * 1024)).toFixed(3)}mb</td>
+                </tr>
+                <tr>
+                  <td>Run</td>
+                  <td>${runResults.time.toFixed(2)}</td>
+                  <td>${(runResults.memory / (1024 * 1024)).toFixed(3)}mb</td>
+                </tr>
+              </tbody>
+            </table>
+          `
+        })
+      })
+    </script>
+  </body>
+
+</html>

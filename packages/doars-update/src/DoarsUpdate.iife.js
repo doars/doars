@@ -1,3 +1,3 @@
-import DoarsUpdate from './DoarsUpdate.js'
+import DoarsUpdate from "./DoarsUpdate.js";
 
-window.DoarsUpdate = DoarsUpdate
+window.DoarsUpdate = DoarsUpdate;

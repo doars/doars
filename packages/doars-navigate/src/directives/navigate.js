@@ -6,21 +6,21 @@
  * @typedef {import('@doars/doars/src/Directive.js').DirectiveUtilities} DirectiveUtilities
  */
 
+import {
+	fromString as elementFromString,
+	select as selectFromElement,
+} from "@doars/common/src/utilities/Element.js";
 // Import utilities.
-import { fetchAndParse } from '@doars/common/src/utilities/Fetch.js'
+import { fetchAndParse } from "@doars/common/src/utilities/Fetch.js";
+import { decode } from "@doars/common/src/utilities/Html.js";
 import {
-  fromString as elementFromString,
-  select as selectFromElement,
-} from '@doars/common/src/utilities/Element'
-import { decode } from '@doars/common/src/utilities/Html.js'
-import {
-  hideIndicator,
-  showIndicator,
-} from '@doars/common/src/utilities/Indicator.js'
-import { readdScripts } from '@doars/common/src/utilities/Script.js'
-import { morphTree } from '@doars/common/src/utilities/Morph.js'
+	hideIndicator,
+	showIndicator,
+} from "@doars/common/src/utilities/Indicator.js";
+import { morphTree } from "@doars/common/src/utilities/Morph.js";
+import { readdScripts } from "@doars/common/src/utilities/Script.js";
 
-const NAVIGATE = Symbol('NAVIGATE')
+const NAVIGATE = Symbol("NAVIGATE");
 
 /**
  * @typedef DirectiveOptions
@@ -35,507 +35,460 @@ const NAVIGATE = Symbol('NAVIGATE')
  * @returns {Directive} Created submit directive.
  */
 export default ({
-  fetchOptions,
-  intersectionMargin,
-  intersectionThreshold,
-  navigateDirectiveName,
+	fetchOptions,
+	intersectionMargin,
+	intersectionThreshold,
+	navigateDirectiveName,
 }) => {
-  return {
-    name: navigateDirectiveName,
+	return {
+		name: navigateDirectiveName,
 
-    update: (
-      component,
-      attribute,
-      processExpression,
-    ) => {
-      const element = attribute.getElement()
-      if (element[NAVIGATE]) {
-        return
-      }
+		update: (component, attribute, processExpression) => {
+			const element = attribute.getElement();
+			if (element[NAVIGATE]) {
+				return;
+			}
 
-      // Destruct component.
-      const library = component.getLibrary()
-      const libraryOptions = library.getOptions()
+			// Destruct component.
+			const library = component.getLibrary();
+			const libraryOptions = library.getOptions();
 
-      // Deconstruct attribute.
-      const directive = attribute.getDirective()
-      const modifiers = attribute.getModifiers()
+			// Deconstruct attribute.
+			const directive = attribute.getDirective();
+			const modifiers = attribute.getModifiers();
 
-      // Process modifiers.
+			// Process modifiers.
 
-      // Set listener options.
-      const listenerOptions = {}
-      if (modifiers.capture) {
-        listenerOptions.capture = true
-      }
+			// Set listener options.
+			const listenerOptions = {};
+			if (modifiers.capture) {
+				listenerOptions.capture = true;
+			}
 
-      const fetchHeaders = {
-        [libraryOptions.prefix + '-' + libraryOptions.requestHeaderName]: directive,
-        Vary: libraryOptions.prefix + '-' + libraryOptions.requestHeaderName,
-      }
+			const fetchHeaders = {
+				[`${libraryOptions.prefix}-${libraryOptions.requestHeaderName}`]:
+					directive,
+				Vary: `${libraryOptions.prefix}-${libraryOptions.requestHeaderName}`,
+			};
 
-      const dispatchEvent = (
-        suffix = '',
-        data = {},
-      ) => {
-        element.dispatchEvent(
-          new CustomEvent(
-            libraryOptions.prefix + '-' + directive + suffix,
-            {
-              detail: Object.assign({
-                attribute,
-                component,
-              }, data),
-            },
-          ),
-        )
-      }
+			const dispatchEvent = (suffix = "", data = {}) => {
+				element.dispatchEvent(
+					new CustomEvent(`${libraryOptions.prefix}-${directive}${suffix}`, {
+						detail: Object.assign(
+							{
+								attribute,
+								component,
+							},
+							data,
+						),
+					}),
+				);
+			};
 
-      const loadFromUrl = (
-        url,
-      ) => {
-        attribute[NAVIGATE].url = url
-        const identifier = (new Date()).toISOString()
-        attribute[NAVIGATE].identifier = identifier
+			const loadFromUrl = (url) => {
+				attribute[NAVIGATE].url = url;
+				const identifier = new Date().toISOString();
+				attribute[NAVIGATE].identifier = identifier;
 
-        showIndicator(
-          component,
-          attribute,
-          processExpression,
-        )
+				showIndicator(component, attribute, processExpression);
 
-        // Dispatch navigation started event.
-        dispatchEvent('-started', {
-          url,
-        })
+				// Dispatch navigation started event.
+				dispatchEvent("-started", {
+					url,
+				});
 
-        fetchAndParse(
-          url,
-          Object.assign({}, fetchOptions, {
-            headers: Object.assign({}, fetchOptions.headers, fetchHeaders),
-          }),
-          'text',
-        )
-          .then(response => {
-            // Validate that this is still the active request.
-            if (
-              !attribute[NAVIGATE].identifier
-              || attribute[NAVIGATE].identifier !== identifier
-            ) {
-              return
-            }
+				fetchAndParse(
+					url,
+					Object.assign({}, fetchOptions, {
+						headers: Object.assign({}, fetchOptions.headers, fetchHeaders),
+					}),
+					"text",
+				)
+					.then((response) => {
+						// Validate that this is still the active request.
+						if (
+							!attribute[NAVIGATE].identifier ||
+							attribute[NAVIGATE].identifier !== identifier
+						) {
+							return;
+						}
 
-            // Check if request was successful.
-            if (!response) {
-              hideIndicator(
-                component,
-                attribute,
-              )
+						// Check if request was successful.
+						if (!response) {
+							hideIndicator(component, attribute);
 
-              delete attribute[NAVIGATE].url
-              delete attribute[NAVIGATE].identifier
-              return
-            }
+							delete attribute[NAVIGATE].url;
+							delete attribute[NAVIGATE].identifier;
+							return;
+						}
 
-            // Decode string.
-            let html = response.value
-            if (modifiers.decode) {
-              html = decode(html)
-            }
+						// Decode string.
+						let html = response.value;
+						if (modifiers.decode) {
+							html = decode(html);
+						}
 
-            let target = null
-            if (modifiers.document) {
-              target = document.documentElement
-            } else {
-              const attributeName = libraryOptions.prefix + '-' + directive + '-' + libraryOptions.targetDirectiveName
-              if (element.getAttribute(attributeName)) {
-                if (libraryOptions.targetDirectiveEvaluate) {
-                  target = processExpression(
-                    component,
-                    attribute,
-                    element.getAttribute(attributeName),
-                  )
-                } else {
-                  target = element.getAttribute(attributeName)
-                }
-                if (
-                  target
-                  && typeof (target) === 'string'
-                ) {
-                  target = element.querySelector(target)
-                }
-              }
-              if (!target) {
-                target = element
-              }
-            }
+						let target = null;
+						if (modifiers.document) {
+							target = document.documentElement;
+						} else {
+							const attributeName =
+								libraryOptions.prefix +
+								"-" +
+								directive +
+								"-" +
+								libraryOptions.targetDirectiveName;
+							if (element.getAttribute(attributeName)) {
+								if (libraryOptions.targetDirectiveEvaluate) {
+									target = processExpression(
+										component,
+										attribute,
+										element.getAttribute(attributeName),
+									);
+								} else {
+									target = element.getAttribute(attributeName);
+								}
+								if (target && typeof target === "string") {
+									target = element.querySelector(target);
+								}
+							}
+							if (!target) {
+								target = element;
+							}
+						}
 
-            // Update target.
-            if (modifiers.morph) {
-              if (modifiers.outer) {
-                morphTree(
-                  target,
-                  selectFromElement(
-                    elementFromString(html),
-                    component,
-                    attribute,
-                    processExpression,
-                  ),
-                )
-              } else {
-                // Ensure element only has one child.
-                if (target.children.length === 0) {
-                  target.append(document.createElement('div'))
-                } else if (target.children.length > 1) {
-                  for (let i = target.children.length - 1; i >= 1; i--) {
-                    target.children[i].remove()
-                  }
-                }
+						// Update target.
+						if (modifiers.morph) {
+							if (modifiers.outer) {
+								morphTree(
+									target,
+									selectFromElement(
+										elementFromString(html),
+										component,
+										attribute,
+										processExpression,
+									),
+								);
+							} else {
+								// Ensure element only has one child.
+								if (target.children.length === 0) {
+									target.append(document.createElement("div"));
+								} else if (target.children.length > 1) {
+									for (let i = target.children.length - 1; i >= 1; i--) {
+										target.children[i].remove();
+									}
+								}
 
-                // Morph first child to given target tree.
-                const root = morphTree(
-                  target.children[0],
-                  selectFromElement(
-                    elementFromString(html),
-                    component,
-                    attribute,
-                    processExpression,
-                  ),
-                )
-                if (!target.children[0].isSameNode(root)) {
-                  target.children[0].remove()
-                  target.append(root)
-                }
-              }
-            } else if (modifiers.outer) {
-              if (target.outerHTML !== html) {
-                target.outerHTML = selectFromElement(
-                  html,
-                  component,
-                  attribute,
-                  processExpression,
-                )
-                if (
-                  libraryOptions.allowInlineScript
-                  || modifiers.script
-                ) {
-                  readdScripts(target)
-                }
-              }
-            } else if (target.innerHTML !== html) {
-              target.innerHTML = selectFromElement(
-                html,
-                component,
-                attribute,
-                processExpression,
-              )
-              if (
-                libraryOptions.allowInlineScript
-                || modifiers.script
-              ) {
-                readdScripts(...target.children)
-              }
-            }
+								// Morph first child to given target tree.
+								const root = morphTree(
+									target.children[0],
+									selectFromElement(
+										elementFromString(html),
+										component,
+										attribute,
+										processExpression,
+									),
+								);
+								if (!target.children[0].isSameNode(root)) {
+									target.children[0].remove();
+									target.append(root);
+								}
+							}
+						} else if (modifiers.outer) {
+							if (target.outerHTML !== html) {
+								target.outerHTML = selectFromElement(
+									html,
+									component,
+									attribute,
+									processExpression,
+								);
+								if (libraryOptions.allowInlineScript || modifiers.script) {
+									readdScripts(target);
+								}
+							}
+						} else if (target.innerHTML !== html) {
+							target.innerHTML = selectFromElement(
+								html,
+								component,
+								attribute,
+								processExpression,
+							);
+							if (libraryOptions.allowInlineScript || modifiers.script) {
+								readdScripts(...target.children);
+							}
+						}
 
-            // Get new document link.
-            if (
-              libraryOptions.redirectHeaderName
-              && response.headers.has(libraryOptions.prefix + '-' + libraryOptions.redirectHeaderName)
-            ) {
-              window.location.href = response.headers.get(libraryOptions.prefix + '-' + libraryOptions.redirectHeaderName)
-              return
-            }
+						// Get new document link.
+						if (
+							libraryOptions.redirectHeaderName &&
+							response.headers.has(
+								`${libraryOptions.prefix}-${libraryOptions.redirectHeaderName}`,
+							)
+						) {
+							window.location.href = response.headers.get(
+								`${libraryOptions.prefix}-${libraryOptions.redirectHeaderName}`,
+							);
+							return;
+						}
 
-            // Get new document title.
-            let documentTitle = ''
-            if (
-              libraryOptions.titleHeaderName
-              && response.headers.has(libraryOptions.prefix + '-' + libraryOptions.titleHeaderName)
-            ) {
-              documentTitle = response.headers.get(libraryOptions.prefix + '-' + libraryOptions.titleHeaderName)
-            }
+						// Get new document title.
+						let documentTitle = "";
+						if (
+							libraryOptions.titleHeaderName &&
+							response.headers.has(
+								`${libraryOptions.prefix}-${libraryOptions.titleHeaderName}`,
+							)
+						) {
+							documentTitle = response.headers.get(
+								`${libraryOptions.prefix}-${libraryOptions.titleHeaderName}`,
+							);
+						}
 
-            // Update history api.
-            if (modifiers.history) {
-              history.pushState({}, documentTitle, url)
-            }
+						// Update history api.
+						if (modifiers.history) {
+							history.pushState({}, documentTitle, url);
+						}
 
-            // If document title was not updated via the history update, then set it now.
-            if (
-              documentTitle
-              && document.title !== documentTitle
-            ) {
-              document.title = documentTitle
-            }
+						// If document title was not updated via the history update, then set it now.
+						if (documentTitle && document.title !== documentTitle) {
+							document.title = documentTitle;
+						}
 
-            hideIndicator(
-              component,
-              attribute,
-            )
+						hideIndicator(component, attribute);
 
-            delete attribute[NAVIGATE].url
-            delete attribute[NAVIGATE].identifier
+						delete attribute[NAVIGATE].url;
+						delete attribute[NAVIGATE].identifier;
 
-            dispatchEvent('-succeeded', {
-              url,
-            })
-          })
-          .catch(() =>
-            dispatchEvent('-failed', {
-              url,
-            }),
-          )
-      }
+						dispatchEvent("-succeeded", {
+							url,
+						});
+					})
+					.catch(() =>
+						dispatchEvent("-failed", {
+							url,
+						}),
+					);
+			};
 
-      const interactionHandler = (
-        event,
-      ) => {
-        const anchor = event.target.closest('a')
-        if (
-          !anchor
-          || !anchor.hasAttribute('href')
-        ) {
-          return
-        }
-        const href = anchor.getAttribute('href')
-        const url = new URL(href, window.location)
+			const interactionHandler = (event) => {
+				const anchor = event.target.closest("a");
+				if (!anchor || !anchor.hasAttribute("href")) {
+					return;
+				}
+				const href = anchor.getAttribute("href");
+				const url = new URL(href, window.location);
 
-        if (window.location.hostname !== url.hostname) {
-          return
-        }
+				if (window.location.hostname !== url.hostname) {
+					return;
+				}
 
-        // Exit early if the link is being loaded.
-        if (
-          attribute[NAVIGATE].url
-          && attribute[NAVIGATE].url.href === url.href
-        ) {
-          return
-        }
+				// Exit early if the link is being loaded.
+				if (
+					attribute[NAVIGATE].url &&
+					attribute[NAVIGATE].url.href === url.href
+				) {
+					return;
+				}
 
-        // Prevent default.
-        event.preventDefault()
-        if (modifiers.stop) {
-          event.stopPropagation()
-        }
+				// Prevent default.
+				event.preventDefault();
+				if (modifiers.stop) {
+					event.stopPropagation();
+				}
 
-        loadFromUrl(url)
-      }
-      element.addEventListener(
-        'click',
-        interactionHandler,
-        listenerOptions,
-      )
+				loadFromUrl(url);
+			};
+			element.addEventListener("click", interactionHandler, listenerOptions);
 
-      // Listen to history api if it can target the whole page.
-      let historyHandler
-      if (modifiers.document && modifiers.history) {
-        historyHandler = (
-          event,
-        ) => {
-          const url = new URL(event.target.location)
+			// Listen to history api if it can target the whole page.
+			let historyHandler;
+			if (modifiers.document && modifiers.history) {
+				historyHandler = (event) => {
+					const url = new URL(event.target.location);
 
-          // Exit early if the link is being loaded already.
-          if (
-            attribute[NAVIGATE].url
-            && attribute[NAVIGATE].url.href === url.href
-          ) {
-            return
-          }
+					// Exit early if the link is being loaded already.
+					if (
+						attribute[NAVIGATE].url &&
+						attribute[NAVIGATE].url.href === url.href
+					) {
+						return;
+					}
 
-          loadFromUrl(url)
-        }
-        window.addEventListener(
-          'popstate',
-          historyHandler,
-          { passive: true },
-        )
-      }
+					loadFromUrl(url);
+				};
+				window.addEventListener("popstate", historyHandler, { passive: true });
+			}
 
-      let destroyPreloader
-      if (modifiers.preload === 'interact') {
-        const preloadHandler = (event) => {
-          const anchor = event.target.closest('a')
-          if (
-            !anchor
-            || !anchor.hasAttribute('href')
-          ) {
-            return
-          }
-          const url = new URL(
-            anchor.getAttribute('href'),
-            window.location,
-          )
+			let destroyPreloader;
+			if (modifiers.preload === "interact") {
+				const preloadHandler = (event) => {
+					const anchor = event.target.closest("a");
+					if (!anchor || !anchor.hasAttribute("href")) {
+						return;
+					}
+					const url = new URL(anchor.getAttribute("href"), window.location);
 
-          // Dispatch navigation started event.
-          dispatchEvent('-started', {
-            url,
-          })
+					// Dispatch navigation started event.
+					dispatchEvent("-started", {
+						url,
+					});
 
-          fetchAndParse(
-            url,
-            Object.assign({}, fetchOptions, {
-              headers: Object.assign({}, fetchOptions.headers, fetchHeaders),
-            }),
-            'text',
-          )
-        }
-        element.addEventListener(
-          'focusin',
-          preloadHandler,
-          Object.assign({ passive: true }, listenerOptions),
-        )
-        element.addEventListener(
-          'pointerenter',
-          preloadHandler,
-          Object.assign({ passive: true }, listenerOptions),
-        )
+					fetchAndParse(
+						url,
+						Object.assign({}, fetchOptions, {
+							headers: Object.assign({}, fetchOptions.headers, fetchHeaders),
+						}),
+						"text",
+					);
+				};
+				element.addEventListener(
+					"focusin",
+					preloadHandler,
+					Object.assign({ passive: true }, listenerOptions),
+				);
+				element.addEventListener(
+					"pointerenter",
+					preloadHandler,
+					Object.assign({ passive: true }, listenerOptions),
+				);
 
-        destroyPreloader = (
-        ) => {
-          element.removeEventListener(
-            'focusin',
-            attribute[NAVIGATE].preloadHandler,
-          )
-          element.removeEventListener(
-            'pointerenter',
-            attribute[NAVIGATE].preloadHandler,
-          )
-        }
-      } else if (modifiers.preload === 'intersect') {
-        const intersectionObserver = new IntersectionObserver(
-          (anchors) => {
-            for (const anchor of anchors) {
-              if (anchor.isIntersecting) {
-                const url = new URL(
-                  anchor.target.getAttribute('href'),
-                  window.location,
-                )
+				destroyPreloader = () => {
+					element.removeEventListener(
+						"focusin",
+						attribute[NAVIGATE].preloadHandler,
+					);
+					element.removeEventListener(
+						"pointerenter",
+						attribute[NAVIGATE].preloadHandler,
+					);
+				};
+			} else if (modifiers.preload === "intersect") {
+				const intersectionObserver = new IntersectionObserver(
+					(anchors) => {
+						for (const anchor of anchors) {
+							if (anchor.isIntersecting) {
+								const url = new URL(
+									anchor.target.getAttribute("href"),
+									window.location,
+								);
 
-                // Dispatch navigation started event.
-                dispatchEvent('-started', {
-                  url,
-                })
+								// Dispatch navigation started event.
+								dispatchEvent("-started", {
+									url,
+								});
 
-                fetchAndParse(
-                  url,
-                  Object.assign({}, fetchOptions, {
-                    headers: Object.assign({}, fetchOptions.headers, fetchHeaders),
-                  }),
-                  'text',
-                )
-              }
-            }
-          },
-          {
-            root: null,
-            rootMargin: intersectionMargin,
-            threshold: intersectionThreshold,
-          },
-        )
-        const mutationObserver = new MutationObserver(
-          (mutations) => {
-            for (const mutation of mutations) {
-              if (mutation.type === 'attributes') {
-                if (
-                  mutation.attributeName === 'href'
-                  && mutation.target instanceof HTMLElement
-                  && mutation.target.tagName === 'A'
-                ) {
-                  // Start or stop observing the element if the href was added or removed.
-                  if (mutation.target.hasAttribute('href')) {
-                    intersectionObserver.observe(mutation.target)
-                  } else {
-                    intersectionObserver.unobserve(mutation.target)
-                  }
-                }
-              } else if (mutation.type === 'childList') {
-                for (const node of mutation.addedNodes) {
-                  if (
-                    node instanceof HTMLElement
-                    && node.tagName === 'A'
-                    && node.hasAttribute('href')
-                  ) {
-                    // Start observing the node.
-                    intersectionObserver.observe(node)
-                  }
-                }
+								fetchAndParse(
+									url,
+									Object.assign({}, fetchOptions, {
+										headers: Object.assign(
+											{},
+											fetchOptions.headers,
+											fetchHeaders,
+										),
+									}),
+									"text",
+								);
+							}
+						}
+					},
+					{
+						root: null,
+						rootMargin: intersectionMargin,
+						threshold: intersectionThreshold,
+					},
+				);
+				const mutationObserver = new MutationObserver((mutations) => {
+					for (const mutation of mutations) {
+						if (mutation.type === "attributes") {
+							if (
+								mutation.attributeName === "href" &&
+								mutation.target instanceof HTMLElement &&
+								mutation.target.tagName === "A"
+							) {
+								// Start or stop observing the element if the href was added or removed.
+								if (mutation.target.hasAttribute("href")) {
+									intersectionObserver.observe(mutation.target);
+								} else {
+									intersectionObserver.unobserve(mutation.target);
+								}
+							}
+						} else if (mutation.type === "childList") {
+							for (const node of mutation.addedNodes) {
+								if (
+									node instanceof HTMLElement &&
+									node.tagName === "A" &&
+									node.hasAttribute("href")
+								) {
+									// Start observing the node.
+									intersectionObserver.observe(node);
+								}
+							}
 
-                // Stop observing removed nodes.
-                for (const node of mutation.removedNodes) {
-                  if (
-                    node instanceof HTMLElement
-                    && node.tagName === 'A'
-                    && node.hasAttribute('href')
-                  ) {
-                    intersectionObserver.unobserve(node)
-                  }
-                }
-              }
-            }
-          },
-        )
+							// Stop observing removed nodes.
+							for (const node of mutation.removedNodes) {
+								if (
+									node instanceof HTMLElement &&
+									node.tagName === "A" &&
+									node.hasAttribute("href")
+								) {
+									intersectionObserver.unobserve(node);
+								}
+							}
+						}
+					}
+				});
 
-        destroyPreloader = (
-        ) => {
-          mutationObserver.disconnect()
-          intersectionObserver.disconnect()
-        }
+				destroyPreloader = () => {
+					mutationObserver.disconnect();
+					intersectionObserver.disconnect();
+				};
 
-        // Start observing existing anchor tags.
-        const anchors = element.querySelectorAll('a[href]')
-        for (const anchor of anchors) {
-          intersectionObserver.observe(anchor)
-        }
+				// Start observing existing anchor tags.
+				const anchors = element.querySelectorAll("a[href]");
+				for (const anchor of anchors) {
+					intersectionObserver.observe(anchor);
+				}
 
-        mutationObserver.observe(
-          element,
-          {
-            attributes: true,
-            childList: true,
-            subtree: true,
-          },
-        )
-      }
+				mutationObserver.observe(element, {
+					attributes: true,
+					childList: true,
+					subtree: true,
+				});
+			}
 
-      attribute[NAVIGATE] = {
-        element,
-        historyHandler,
-        loadHandler: interactionHandler,
-        destroyPreloader,
-      }
-    },
+			attribute[NAVIGATE] = {
+				element,
+				historyHandler,
+				loadHandler: interactionHandler,
+				destroyPreloader,
+			};
+		},
 
-    destroy: (
-      component,
-      attribute,
-    ) => {
-      // Exit early if no listeners can be found.
-      if (!attribute[NAVIGATE]) {
-        return
-      }
+		destroy: (component, attribute) => {
+			// Exit early if no listeners can be found.
+			if (!attribute[NAVIGATE]) {
+				return;
+			}
 
-      // Remove existing listener.
-      attribute[NAVIGATE].element.removeEventListener(
-        'click',
-        attribute[NAVIGATE].loadHandler,
-      )
-      if (attribute[NAVIGATE].historyHandler) {
-        window.removeEventListener(
-          'popstate',
-          attribute[NAVIGATE].historyHandler,
-        )
-      }
-      if (attribute[NAVIGATE].destroyPreloader) {
-        attribute[NAVIGATE].destroyPreloader()
-      }
+			// Remove existing listener.
+			attribute[NAVIGATE].element.removeEventListener(
+				"click",
+				attribute[NAVIGATE].loadHandler,
+			);
+			if (attribute[NAVIGATE].historyHandler) {
+				window.removeEventListener(
+					"popstate",
+					attribute[NAVIGATE].historyHandler,
+				);
+			}
+			if (attribute[NAVIGATE].destroyPreloader) {
+				attribute[NAVIGATE].destroyPreloader();
+			}
 
-      hideIndicator(
-        component,
-        attribute,
-      )
+			hideIndicator(component, attribute);
 
-      // Delete directive data.
-      delete attribute[NAVIGATE]
-    },
-  }
-}
+			// Delete directive data.
+			delete attribute[NAVIGATE];
+		},
+	};
+};

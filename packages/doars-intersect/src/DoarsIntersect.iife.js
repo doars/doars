@@ -1,3 +1,3 @@
-import DoarsIntersect from './DoarsIntersect.js'
+import DoarsIntersect from "./DoarsIntersect.js";
 
-window.DoarsIntersect = DoarsIntersect
+window.DoarsIntersect = DoarsIntersect;

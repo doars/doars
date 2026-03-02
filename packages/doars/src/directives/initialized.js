@@ -1,5 +1,5 @@
-// Symbols.
-const INITIALIZED = Symbol('INITIALIZED')
+const EVENT_NAME = "updated";
+const INITIALIZED = Symbol("INITIALIZED");
 
 /**
  * @typedef {import('../Attribute.js').default} Attribute
@@ -14,92 +14,65 @@ const INITIALIZED = Symbol('INITIALIZED')
  * @param {Attribute} attribute The attribute the directive is part of.
  * @returns {undefined}
  */
-const destroy = (
-  component,
-  attribute,
-) => {
-  // Exit early if no listeners can be found.
-  if (!attribute[INITIALIZED]) {
-    return
-  }
+const destroy = (component, attribute) => {
+	// Exit early if no listeners can be found.
+	if (!attribute[INITIALIZED]) {
+		return;
+	}
 
-  // Deconstruct component.
-  const element = component.getElement()
+	const library = component.getLibrary();
+	const name = "updated";
 
-  // Create event name.
-  const name = component.getLibrary().getOptions().prefix + '-updated'
-
-  // Remove existing listener and delete directive data.
-  element.removeEventListener(name, attribute[INITIALIZED].handler)
-  delete attribute[INITIALIZED]
-}
+	// Remove existing listener and delete directive data.
+	library.removeEventListener(name, attribute[INITIALIZED].handler);
+	delete attribute[INITIALIZED];
+};
 
 /**
  * Create the initialized directive.
  * @param {DoarsOptions} options Library options.
  * @returns {Directive} The directive.
  */
-export default ({
-  initializedDirectiveName,
-}) => ({
-  name: initializedDirectiveName,
+export default ({ initializedDirectiveName }) => ({
+	name: initializedDirectiveName,
 
-  update: (
-    component,
-    attribute,
-    processExpression,
-  ) => {
-    // Deconstruct component.
-    const element = component.getElement()
+	update: (component, attribute, processExpression) => {
+		const library = component.getLibrary();
+		const value = attribute.getValue();
 
-    // Deconstruct attribute.
-    const value = attribute.getValue()
+		// Check if existing listener exists.
+		if (attribute[INITIALIZED]) {
+			// Exit early if listener has not changed.
+			if (attribute[INITIALIZED].value === value) {
+				return;
+			}
 
-    // Create event name.
-    const name = component.getLibrary().getOptions().prefix + '-updated'
+			// Remove existing listener so we don' listen twice.
+			library.removeEventListener(EVENT_NAME, attribute[INITIALIZED].handler);
+			delete attribute[INITIALIZED];
+		}
 
-    // Check if existing listener exists.
-    if (attribute[INITIALIZED]) {
-      // Exit early if listener has not changed.
-      if (attribute[INITIALIZED].value === value) {
-        return
-      }
+		const handler = () => {
+			// Execute value using a copy of the attribute since this attribute does not need to update based on what it accesses.
+			processExpression(component, attribute, value, null, {
+				access: false,
+				return: false,
+			});
 
-      // Remove existing listener so we don' listen twice.
-      element.removeEventListener(name, attribute[INITIALIZED].handler)
-      delete attribute[INITIALIZED]
-    }
+			// Call destroy.
+			destroy(component, attribute);
+		};
 
-    const handler = ({ detail }) => {
-      // Only execute on self.
-      if (detail.element !== element) {
-        return
-      }
+		library.addEventListener(EVENT_NAME, handler, {
+			once: true,
+		});
 
-      // Execute value using a copy of the attribute since this attribute does not need to update based on what it accesses.
-      processExpression(
-        component,
-        attribute.clone(),
-        value,
-        {},
-        { return: false },
-      )
+		// Store listener data on the component.
+		attribute[INITIALIZED] = {
+			handler,
+			value,
+		};
+	},
 
-      // Call destroy.
-      destroy(component, attribute)
-    }
-
-    // Add listener to component.
-    element.addEventListener(name, handler, {
-      once: true,
-    })
-
-    // Store listener data on the component.
-    attribute[INITIALIZED] = {
-      handler,
-      value,
-    }
-  },
-
-  destroy,
-})
+	destroy,
+});

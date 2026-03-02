@@ -1,55 +1,114 @@
 (() => {
-  // ../common/src/utilities/Fetch.js
-  var parseResponse = (response, type) => {
-    let promise;
-    switch (String.prototype.toLowerCase.call(type)) {
-      default:
-        console.warn('Unknown response type "' + type + '" used.');
-        break;
-      case "arraybuffer":
-        promise = response.arrayBuffer();
-        break;
-      case "blob":
-        promise = response.blob();
-        break;
-      case "formdata":
-        promise = response.formData();
-        break;
-      case "json":
-        promise = response.json();
-        break;
-      case "element":
-      case "html-partial":
-      case "html":
-      case "svg":
-      case "text":
-      case "xml":
-        promise = response.text();
-        break;
+  // ../common/src/polyfills/IntersectionDispatcher.js
+  class IntersectionDispatcher {
+    constructor(options = null) {
+      const items = new WeakMap;
+      const intersect = (entries) => {
+        for (const entry of entries) {
+          for (const callback of items.get(entry.target)) {
+            callback(entry);
+          }
+        }
+      };
+      const observer = new window.IntersectionObserver(intersect, options);
+      this.add = (element, callback) => {
+        if (!items.has(element)) {
+          items.set(element, []);
+        }
+        items.get(element).push(callback);
+        observer.observe(element);
+      };
+      this.remove = (element, callback) => {
+        if (!items.has(element)) {
+          return;
+        }
+        const list = items.get(element);
+        const index = list.indexOf(callback);
+        if (index >= 0) {
+          list.splice(index, 1);
+        }
+        if (list.length === 0) {
+          items.delete(element);
+          observer.unobserve(element);
+        }
+      };
     }
-    if (!promise) {
+  }
+
+  // ../common/src/utilities/Fetch.js
+  var builtInParsers = [
+    {
+      types: ["arraybuffer"],
+      parser: (response) => response.arrayBuffer()
+    },
+    {
+      types: ["blob"],
+      parser: (response) => response.blob()
+    },
+    {
+      types: ["formdata"],
+      parser: (response) => response.formData()
+    },
+    {
+      types: ["json"],
+      parser: (response) => response.json()
+    },
+    {
+      types: ["text", "txt"],
+      parser: (response) => response.text()
+    },
+    {
+      types: ["element", "html-partial"],
+      parser: async (response) => {
+        const text = await response.text();
+        const template = document.createElement("template");
+        template.innerHTML = text;
+        return template.content.childNodes;
+      }
+    },
+    {
+      types: ["html"],
+      parser: async (response) => {
+        const text = await response.text();
+        return new DOMParser().parseFromString(text, "text/html");
+      }
+    },
+    {
+      types: ["svg"],
+      parser: async (response) => {
+        const text = await response.text();
+        return new DOMParser().parseFromString(text, "image/svg+xml");
+      }
+    },
+    {
+      types: ["xml"],
+      parser: async (response) => {
+        const text = await response.text();
+        return new DOMParser().parseFromString(text, "application/xml");
+      }
+    }
+  ];
+  var findParser = (type, customParsers = []) => {
+    const lowerType = String.prototype.toLowerCase.call(type);
+    for (const parser of customParsers) {
+      if (parser.types.includes(lowerType)) {
+        return parser;
+      }
+    }
+    for (const parser of builtInParsers) {
+      if (parser.types.includes(lowerType)) {
+        return parser;
+      }
+    }
+    return;
+  };
+  var parseResponse = (response, type, customParsers) => {
+    const parser = findParser(type, customParsers);
+    if (!parser) {
+      console.warn(`Unknown response type "${type}" used.`);
       return null;
     }
-    return promise.then((response2) => {
-      switch (type) {
-        case "element":
-        case "html-partial":
-          const template = document.createElement("template");
-          template.innerHTML = response2;
-          response2 = template.content.childNodes[0];
-          break;
-        case "html":
-          response2 = new DOMParser().parseFromString(response2, "text/html");
-          break;
-        case "svg":
-          response2 = new DOMParser().parseFromString(response2, "image/svg+xml");
-          break;
-        case "xml":
-          response2 = new DOMParser().parseFromString(response2, "application/xml");
-          break;
-      }
-      return response2;
-    });
+    return parser.parser(response, type);
   };
   var responseType = (response, request = null) => {
     let contentType = response.headers.get("Content-Type");
@@ -112,16 +171,22 @@
         return "xml";
     }
   };
-  var fetchAndParse = (url, options, returnType) => new Promise((resolve, reject) => {
+  var fetchAndParse = (url, options, returnType, parseOptions = {}) => new Promise((resolve, reject) => {
+    const { autoParse = true, parsers = [] } = parseOptions;
     fetch(url, options).then((response) => {
       if (response.status < 200 || response.status >= 500) {
         reject(response);
         return;
       }
-      if (!returnType || returnType === "auto") {
+      if (autoParse && (!returnType || returnType === "auto")) {
         returnType = responseType(response, options);
       }
-      const responseParse = parseResponse(response, returnType);
+      if (!autoParse && !returnType) {
+        response.value = response;
+        resolve(response);
+        return;
+      }
+      const responseParse = parseResponse(response, returnType, parsers);
       if (!responseParse) {
         throw new Error("No valid response returned.");
       }
@@ -172,7 +237,9 @@
   // src/contexts/fetch.js
   var fetch_default = ({
     fetchContextName,
-    fetchOptions
+    fetchOptions,
+    fetchAutoParse,
+    fetchParsers
   }) => ({
     name: fetchContextName,
     create: () => {
@@ -183,8 +250,15 @@
           }
           const returnType = options.returnType ? options.returnType : null;
           delete options.returnType;
-          return fetchAndParse(url, options, returnType).then((result) => {
-            if (result && result.value) {
+          const requestParsers = options.parsers || fetchParsers;
+          const requestAutoParse = options.autoParse !== undefined ? options.autoParse : fetchAutoParse;
+          delete options.parsers;
+          delete options.autoParse;
+          return fetchAndParse(url, options, returnType, {
+            autoParse: requestAutoParse,
+            parsers: requestParsers
+          }).then((result) => {
+            if (result?.value) {
               return result.value;
             }
           });
@@ -206,7 +280,7 @@
     return template.content.childNodes[0];
   };
   var isSame = (a, b) => {
-    if (a.isSameNode && a.isSameNode(b)) {
+    if (a.isSameNode?.(b)) {
       return true;
     }
     if (a.type === 3) {
@@ -229,7 +303,7 @@
     if (libraryOptions.selectFromElementDirectiveEvaluate) {
       selector = processExpression(component, attribute, element.getAttribute(attributeName));
       if (typeof selector !== "string") {
-        console.warn("Doars: `" + attributeName + "` must return a string.");
+        console.warn(`Doars: \`${attributeName}\` must return a string.`);
         return null;
       }
     } else {
@@ -293,40 +367,6 @@
     return string.replaceAll(DECODE_REGEXP, (character) => {
       return DECODE_LOOKUP[character];
     });
-  };
-
-  // ../common/src/utilities/String.js
-  var parseSelector = (selector) => {
-    if (typeof selector === "string") {
-      selector = selector.split(/(?=\.)|(?=#)|(?=\[)/);
-    }
-    if (!Array.isArray(selector)) {
-      console.error("Doars: parseSelector expects Array of string or a single string.");
-      return;
-    }
-    const attributes = {};
-    for (let selectorSegment of selector) {
-      selectorSegment = selectorSegment.trim();
-      switch (selectorSegment[0]) {
-        case "#":
-          attributes.id = selectorSegment.substring(1);
-          break;
-        case ".":
-          selectorSegment = selectorSegment.substring(1);
-          if (!attributes.class) {
-            attributes.class = [];
-          }
-          if (!attributes.class.includes(selectorSegment)) {
-            attributes.class.push(selectorSegment);
-          }
-          break;
-        case "[":
-          const [full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
-          attributes[key] = value;
-          break;
-      }
-    }
-    return attributes;
   };
 
   // ../common/src/utilities/Attribute.js
@@ -408,6 +448,41 @@
     }
   };
 
+  // ../common/src/utilities/String.js
+  var parseSelector = (selector) => {
+    if (typeof selector === "string") {
+      selector = selector.split(/(?=\.)|(?=#)|(?=\[)/);
+    }
+    if (!Array.isArray(selector)) {
+      console.error("Doars: parseSelector expects Array of string or a single string.");
+      return;
+    }
+    const attributes = {};
+    for (let selectorSegment of selector) {
+      selectorSegment = selectorSegment.trim();
+      switch (selectorSegment[0]) {
+        case "#":
+          attributes.id = selectorSegment.substring(1);
+          break;
+        case ".":
+          selectorSegment = selectorSegment.substring(1);
+          if (!attributes.class) {
+            attributes.class = [];
+          }
+          if (!attributes.class.includes(selectorSegment)) {
+            attributes.class.push(selectorSegment);
+          }
+          break;
+        case "[": {
+          const [_full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
+          attributes[key] = value;
+          break;
+        }
+      }
+    }
+    return attributes;
+  };
+
   // ../common/src/utilities/Transition.js
   var TRANSITION_NAME = "-transition:";
   var transition = (type, libraryOptions, element, callback = null) => {
@@ -418,27 +493,29 @@
       return;
     }
     const transitionDirectiveName = libraryOptions.prefix + TRANSITION_NAME + type;
-    const dispatchEvent = (phase) => {
-      element.dispatchEvent(new CustomEvent("transition-" + phase));
-      element.dispatchEvent(new CustomEvent("transition-" + type + "-" + phase));
-    };
-    let name, value, timeout, requestFrame;
-    let isDone = false;
     const selectors = {};
-    name = transitionDirectiveName;
-    value = element.getAttribute(name);
+    const value = element.getAttribute(transitionDirectiveName);
     if (value) {
       selectors.during = parseSelector(value);
       addAttributes(element, selectors.during);
     }
-    name = transitionDirectiveName + ".from";
-    value = element.getAttribute(name);
-    if (value) {
-      selectors.from = parseSelector(value);
+    const valueFrom = element.getAttribute(`${transitionDirectiveName}.from`);
+    if (valueFrom) {
+      selectors.from = parseSelector(valueFrom);
       addAttributes(element, selectors.from);
     }
-    dispatchEvent("start");
-    requestFrame = requestAnimationFrame(() => {
+    const valueTo = element.getAttribute(`${transitionDirectiveName}.to`);
+    if (valueTo) {
+      selectors.to = parseSelector(valueTo);
+    }
+    if (!value && !valueFrom && !valueTo) {
+      if (callback) {
+        callback();
+      }
+      return;
+    }
+    let isDone = false, timeout;
+    let requestFrame = requestAnimationFrame(() => {
       requestFrame = null;
       if (isDone) {
         return;
@@ -447,13 +524,9 @@
         removeAttributes(element, selectors.from);
         selectors.from = undefined;
       }
-      name = transitionDirectiveName + ".to";
-      value = element.getAttribute(name);
-      if (value) {
-        selectors.to = parseSelector(value);
+      if (valueTo) {
         addAttributes(element, selectors.to);
       } else if (!selectors.during) {
-        dispatchEvent("end");
         if (callback) {
           callback();
         }
@@ -461,6 +534,7 @@
         return;
       }
       const styles = getComputedStyle(element);
+      const delay = Number(styles.transitionDelay.replace(/,.*/, "").replace("s", "")) * 1000;
       let duration = Number(styles.transitionDuration.replace(/,.*/, "").replace("s", "")) * 1000;
       if (duration === 0) {
         duration = Number(styles.animationDuration.replace("s", "")) * 1000;
@@ -478,12 +552,11 @@
           removeAttributes(element, selectors.to);
           selectors.to = undefined;
         }
-        dispatchEvent("end");
         if (callback) {
           callback();
         }
         isDone = true;
-      }, duration);
+      }, delay + duration);
     });
     return () => {
       if (!isDone) {
@@ -508,7 +581,6 @@
         clearTimeout(timeout);
         timeout = null;
       }
-      dispatchEvent("end");
       if (callback) {
         callback();
       }
@@ -564,11 +636,11 @@
       }
     }
     if (indicatorTemplate.tagName !== "TEMPLATE") {
-      console.warn("Doars: `" + attributeName + "` must be placed on a `<template>`.");
+      console.warn(`Doars: \`${attributeName}\` must be placed on a \`<template>\`.`);
       return;
     }
     if (indicatorTemplate.childCount > 1) {
-      console.warn("Doars: `" + attributeName + "` must have one child.");
+      console.warn(`Doars: \`${attributeName}\` must have one child.`);
       return;
     }
     if (attribute.indicator) {
@@ -580,6 +652,10 @@
       }
     }
     const indicatorElement = document.importNode(indicatorTemplate.content, true).firstElementChild;
+    if (!indicatorElement) {
+      console.warn("Unable to get element from indicator template");
+      return;
+    }
     indicatorTemplate.insertAdjacentElement("afterend", indicatorElement);
     attribute.indicator = {
       indicatorElement,
@@ -616,7 +692,7 @@
     } else if (typeof newTree !== "object") {
       throw new Error("New tree should be an object.");
     }
-    if (options && options.childrenOnly || newTree.nodeType === 11) {
+    if (options?.childrenOnly || newTree.nodeType === 11) {
       _updateChildren(existingTree, newTree);
       return existingTree;
     }
@@ -673,7 +749,7 @@
     if (!newTree) {
       return null;
     }
-    if (existingTree.isSameNode && existingTree.isSameNode(newTree)) {
+    if (existingTree.isSameNode?.(newTree)) {
       return existingTree;
     }
     if (existingTree.tagName !== newTree.tagName) {
@@ -683,6 +759,7 @@
     _updateChildren(existingTree, newTree);
     return existingTree;
   };
+  var setBefore = typeof window !== "undefined" && window.Element?.prototype?.moveBefore ? "moveBefore" : "insertBefore";
   var _updateChildren = (existingNode, newNode) => {
     let existingChild, newChild, morphed, existingMatch;
     let offset = 0;
@@ -716,7 +793,7 @@
           if (morphed !== existingMatch) {
             offset++;
           }
-          existingNode.insertBefore(morphed, existingChild);
+          existingNode[setBefore](morphed, existingChild);
         } else if (!newChild.id && !existingChild.id) {
           morphed = _updateTree(existingChild, newChild);
           if (morphed !== existingChild) {
@@ -724,7 +801,7 @@
             offset++;
           }
         } else {
-          existingNode.insertBefore(newChild, existingChild);
+          existingNode[setBefore](newChild, existingChild);
           offset++;
         }
       }
@@ -785,6 +862,8 @@
     fetchOptions,
     fetchDirectiveEvaluate,
     fetchDirectiveName,
+    fetchAutoParse,
+    fetchParsers,
     intersectionEvent,
     loadedEvent
   }, intersectionDispatcher) => ({
@@ -794,7 +873,7 @@
       const libraryOptions = library.getOptions();
       const element = attribute.getElement();
       const directive = attribute.getDirective();
-      const modifiers = attribute.getModifiers();
+      const modifiers = Object.assign({}, attribute.getModifiers());
       const value = attribute.getValue();
       const isForm = element.tagName === "FORM";
       const isButton = element.tagName === "BUTTON";
@@ -858,11 +937,11 @@
         eventName = loadedEvent;
       }
       const fetchHeaders = {
-        [libraryOptions.prefix + "-" + libraryOptions.requestHeaderName]: directive,
-        Vary: libraryOptions.prefix + "-" + libraryOptions.requestHeaderName
+        [`${libraryOptions.prefix}-${libraryOptions.requestHeaderName}`]: directive,
+        Vary: `${libraryOptions.prefix}-${libraryOptions.requestHeaderName}`
       };
       const dispatchEvent = (suffix = "", data = {}) => {
-        element.dispatchEvent(new CustomEvent(libraryOptions.prefix + "-" + directive + suffix, {
+        element.dispatchEvent(new CustomEvent(`${libraryOptions.prefix}-${directive}${suffix}`, {
           detail: Object.assign({
             attribute,
             component
@@ -901,7 +980,7 @@
               _fetchOptions.headers["Content-Type"] = "multipart/form-data";
               _fetchOptions.body = formData;
               break;
-            case "parameters":
+            case "parameters": {
               url = new URL(url, window.location.href);
               const parameters = new URLSearchParams(formData);
               for (const [parameterName, parameterValue] of parameters) {
@@ -909,6 +988,7 @@
               }
               url = url.toString();
               break;
+            }
             case "urlencoded":
             case "application/x-www-form-urlencoded":
               _fetchOptions.headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8";
@@ -928,7 +1008,10 @@
         });
         return fetchAndParse(url, Object.assign({}, fetchOptions, _fetchOptions, {
           headers: Object.assign({}, _fetchOptions.headers, fetchHeaders)
-        }), "text").then((response) => {
+        }), "text", {
+          autoParse: fetchAutoParse,
+          parsers: fetchParsers
+        }).then((response) => {
           isLoading = false;
           let html = response.value;
           if (modifiers.decode) {
@@ -1005,13 +1088,13 @@
               readdScripts(...target.children);
             }
           }
-          if (libraryOptions.redirectHeaderName && response.headers.has(libraryOptions.prefix + "-" + libraryOptions.redirectHeaderName)) {
-            window.location.href = response.headers.get(libraryOptions.prefix + "-" + libraryOptions.redirectHeaderName);
+          if (libraryOptions.redirectHeaderName && response.headers.has(`${libraryOptions.prefix}-${libraryOptions.redirectHeaderName}`)) {
+            window.location.href = response.headers.get(`${libraryOptions.prefix}-${libraryOptions.redirectHeaderName}`);
             return;
           }
           let documentTitle = "";
-          if (libraryOptions.titleHeaderName && response.headers.has(libraryOptions.prefix + "-" + libraryOptions.titleHeaderName)) {
-            documentTitle = response.headers.get(libraryOptions.prefix + "-" + libraryOptions.titleHeaderName);
+          if (libraryOptions.titleHeaderName && response.headers.has(`${libraryOptions.prefix}-${libraryOptions.titleHeaderName}`)) {
+            documentTitle = response.headers.get(`${libraryOptions.prefix}-${libraryOptions.titleHeaderName}`);
           }
           if (modifiers.history) {
             history.pushState({}, documentTitle, url);
@@ -1088,7 +1171,7 @@
             }
             attribute[FETCH].timeout = setTimeout(execute, modifiers.debounce);
             return;
-          case EXECUTION_MODIFIERS.THROTTLE:
+          case EXECUTION_MODIFIERS.THROTTLE: {
             const nowThrottle = window.performance.now();
             if (attribute[FETCH].lastExecution && nowThrottle - attribute[FETCH].lastExecution < modifiers.throttle) {
               resolve();
@@ -1097,6 +1180,7 @@
             execute();
             attribute[FETCH].lastExecution = nowThrottle;
             return;
+          }
           case EXECUTION_MODIFIERS.DELAY:
             attribute[FETCH].timeout = setTimeout(execute, modifiers.delay);
             return;
@@ -1154,42 +1238,6 @@
     }
   });
 
-  // ../common/src/polyfills/IntersectionDispatcher.js
-  class IntersectionDispatcher {
-    constructor(options = null) {
-      const items = new WeakMap;
-      const intersect = (entries) => {
-        for (const entry of entries) {
-          for (const callback of items.get(entry.target)) {
-            callback(entry);
-          }
-        }
-      };
-      const observer = new window.IntersectionObserver(intersect, options);
-      this.add = (element, callback) => {
-        if (!items.has(element)) {
-          items.set(element, []);
-        }
-        items.get(element).push(callback);
-        observer.observe(element);
-      };
-      this.remove = (element, callback) => {
-        if (!items.has(element)) {
-          return;
-        }
-        const list = items.get(element);
-        const index = list.indexOf(callback);
-        if (index >= 0) {
-          list.splice(index, 1);
-        }
-        if (list.length === 0) {
-          items.delete(element);
-          observer.unobserve(element);
-        }
-      };
-    }
-  }
-
   // src/DoarsFetch.js
   function DoarsFetch_default(library, options = null) {
     options = Object.assign({
@@ -1197,6 +1245,8 @@
       fetchDirectiveEvaluate: true,
       fetchDirectiveName: "fetch",
       fetchOptions: {},
+      fetchAutoParse: true,
+      fetchParsers: [],
       intersectionEvent: "intersect",
       intersectionRoot: null,
       intersectionMargin: "0px",
@@ -1208,7 +1258,7 @@
     }
     let isEnabled = false;
     const intersectionDispatcher = options.intersectionEvent ? new IntersectionDispatcher({
-      root: options.intersectionRoot ? options.intersectionRoot : library.getOptions().root,
+      root: options.intersectionRoot,
       rootMargin: options.intersectionMargin,
       threshold: options.intersectionThreshold
     }) : null;
@@ -1242,4 +1292,4 @@
   window.DoarsFetch = DoarsFetch_default;
 })();
 
-//# debugId=4A18B6E63A5F160764756E2164756E21
+//# debugId=DB68AC8C2CF87D1E64756E2164756E21

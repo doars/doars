@@ -2,8 +2,6 @@
  * @typedef {import('../events/ProxyDispatcher.js').ProxyDispatcher} ProxyDispatcher
  */
 
-import RevocableProxy from '../polyfills/RevocableProxy.js'
-
 /**
  * Factory function to create a context for a state which dispatched update events when mutated.
  * @param {string} name Name of the state.
@@ -12,52 +10,31 @@ import RevocableProxy from '../polyfills/RevocableProxy.js'
  * @param {ProxyDispatcher} proxy Dispatcher to pass events through.
  * @returns {object} Proxied state and destroy callback.
  */
-export default (
-  name,
-  id,
-  state,
-  proxy,
-) => {
-  return (
-    component,
-    attribute,
-    update,
-  ) => {
-    // Create event handlers.
-    const onDelete = (
-      target,
-      path,
-    ) => update(id, name + '.' + path.join('.'))
-    const onGet = (
-      target,
-      path,
-    ) => attribute.accessed(id, name + '.' + path.join('.'))
-    const onSet = (
-      target,
-      path,
-    ) => update(id, name + '.' + path.join('.'))
+export default (name, id, state, proxy) => {
+	return (_component, attribute, update, options) => {
+		// Create event handlers.
+		const onDelete = (_target, path) => update(id, `${name}.${path.join(".")}`);
+		const onGet = (_target, path) => {
+			if (!options || options.accessed) {
+				attribute.accessed(id, `${name}.${path.join(".")}`);
+			}
+		};
+		const onSet = (_target, path) => update(id, `${name}.${path.join(".")}`);
 
-    // Add event listeners.
-    proxy.addEventListener('delete', onDelete)
-    proxy.addEventListener('get', onGet)
-    proxy.addEventListener('set', onSet)
+		// Add event listeners.
+		proxy.addEventListener("delete", onDelete);
+		proxy.addEventListener("get", onGet);
+		proxy.addEventListener("set", onSet);
 
-    // Wrap in a revocable proxy.
-    const revocable = RevocableProxy(state, {})
+		return {
+			value: state,
 
-    return {
-      value: revocable.proxy,
-
-      // Remove event listeners.
-      destroy: (
-      ) => {
-        proxy.removeEventListener('delete', onDelete)
-        proxy.removeEventListener('get', onGet)
-        proxy.removeEventListener('set', onSet)
-
-        // Revoke access to state.
-        revocable.revoke()
-      },
-    }
-  }
-}
+			// Remove event listeners.
+			destroy: () => {
+				proxy.removeEventListener("delete", onDelete);
+				proxy.removeEventListener("get", onGet);
+				proxy.removeEventListener("set", onSet);
+			},
+		};
+	};
+};

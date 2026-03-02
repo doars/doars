@@ -35,20 +35,20 @@
 
 // List of methods to revoke access to.
 const PROXY_TRAPS = [
-  'apply',
-  'construct',
-  'defineProperty',
-  'deleteProperty',
-  'get',
-  'getOwnPropertyDescriptor',
-  'getPrototypeOf',
-  'has',
-  'isExtensible',
-  'ownKeys',
-  'preventExtensions',
-  'set',
-  'setPrototypeOf',
-]
+	"apply",
+	"construct",
+	"defineProperty",
+	"deleteProperty",
+	"get",
+	"getOwnPropertyDescriptor",
+	"getPrototypeOf",
+	"has",
+	"isExtensible",
+	"ownKeys",
+	"preventExtensions",
+	"set",
+	"setPrototypeOf",
+];
 
 /**
  * Revocable proxy made using regular a proxy and a simple boolean.
@@ -56,37 +56,47 @@ const PROXY_TRAPS = [
  * @param {ProxyHandler} handler Object of handler methods.
  * @returns {?RevocableProxy} Proxy object and revoke method.
  */
-export default (
-  target,
-  handler,
-) => {
-  // Keep track of status.
-  let revoked = false
+export default (target, handler, options = {}) => {
+	options = Object.assign(
+		{
+			irrevocable: [],
+		},
+		options,
+	);
 
-  // Add revocable handlers for each given handlers.
-  /**
-   * Copy of allowed handlers with a revocable layer in between.
-   * @type {ProxyHandler}
-   */
-  const revocableHandler = {}
-  for (const key of PROXY_TRAPS) {
-    revocableHandler[key] = (...parameters) => {
-      if (revoked) {
-        return
-      }
+	// Keep track of status.
+	let revoked = false;
 
-      if (key in handler) {
-        return handler[key](...parameters)
-      }
-      return Reflect[key](...parameters)
-    }
-  }
+	/**
+	 * Copy of allowed handlers with a revocable layer in between.
+	 * @type {ProxyHandler}
+	 */
+	const revocableHandler = {};
+	for (const key of PROXY_TRAPS) {
+		revocableHandler[key] = (...parameters) => {
+			const [localTarget, ...localParameters] = parameters;
+			if (revoked) {
+				for (const key of Object.keys(localTarget)) {
+					if (!options.irrevocable || !options.irrevocable.includes(key)) {
+						localTarget[key] = undefined;
+					}
+				}
+			}
 
-  // Return proxy and revoke method.
-  return {
-    proxy: new Proxy(target, revocableHandler),
-    revoke: () => {
-      revoked = true
-    },
-  }
-}
+			if (key in handler) {
+				const trap = handler[key];
+				if (typeof trap === "function") {
+					return trap(localTarget, ...localParameters);
+				}
+			}
+			return Reflect[key](localTarget, ...localParameters);
+		};
+	}
+
+	return {
+		proxy: new Proxy(target, revocableHandler),
+		revoke: () => {
+			revoked = true;
+		},
+	};
+};

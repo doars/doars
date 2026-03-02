@@ -1,3 +1,3 @@
-import DoarsPersist from './DoarsPersist.js'
+import DoarsPersist from "./DoarsPersist.js";
 
-window.DoarsPersist = DoarsPersist
+window.DoarsPersist = DoarsPersist;

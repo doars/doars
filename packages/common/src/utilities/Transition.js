@@ -1,9 +1,10 @@
 // Import utilities.
-import { parseSelector } from './String.js'
-import { addAttributes, removeAttributes } from './Attribute.js'
+
+import { addAttributes, removeAttributes } from "./Attribute.js";
+import { parseSelector } from "./String.js";
 
 // Transition name.
-const TRANSITION_NAME = '-transition:'
+const TRANSITION_NAME = "-transition:";
 
 /**
  * @callback TransitionEnd
@@ -17,170 +18,155 @@ const TRANSITION_NAME = '-transition:'
  * @param {Function} callback Function to call after transition is done.
  * @returns {TransitionEnd | undefined} Function to immediately end the transition.
  */
-export const transition = (
-  type,
-  libraryOptions,
-  element,
-  callback = null,
-) => {
-  // Only transition element nodes.
-  if (element.nodeType !== 1) {
-    if (callback) {
-      callback()
-    }
-    return
-  }
+export const transition = (type, libraryOptions, element, callback = null) => {
+	// Only transition element nodes.
+	if (element.nodeType !== 1) {
+		if (callback) {
+			callback();
+		}
+		return;
+	}
 
-  // Transition attribute name.
-  const transitionDirectiveName = libraryOptions.prefix + TRANSITION_NAME + type
+	// Transition attribute name.
+	const transitionDirectiveName =
+		libraryOptions.prefix + TRANSITION_NAME + type;
 
-  // Setup dispatcher function.
-  const dispatchEvent = (phase) => {
-    element.dispatchEvent(
-      new CustomEvent('transition-' + phase),
-    )
-    element.dispatchEvent(
-      new CustomEvent('transition-' + type + '-' + phase),
-    )
-  }
+	const selectors = {};
 
-  // Declare variables for later.
-  let name, value, timeout, requestFrame
-  let isDone = false
-  const selectors = {}
+	// Process transition during attribute.
+	const value = element.getAttribute(transitionDirectiveName);
+	if (value) {
+		selectors.during = parseSelector(value);
+		addAttributes(element, selectors.during);
+	}
 
-  // Process transition during attribute.
-  name = transitionDirectiveName
-  value = element.getAttribute(name)
-  // Parse and apply returned selector.
-  if (value) {
-    selectors.during = parseSelector(value)
-    addAttributes(element, selectors.during)
-  }
+	// Process transition from attribute.
+	const valueFrom = element.getAttribute(`${transitionDirectiveName}.from`);
+	if (valueFrom) {
+		selectors.from = parseSelector(valueFrom);
+		addAttributes(element, selectors.from);
+	}
 
-  // Process transition from attribute.
-  name = transitionDirectiveName + '.from'
-  value = element.getAttribute(name)
-  // Parse and apply returned selector.
-  if (value) {
-    selectors.from = parseSelector(value)
-    addAttributes(element, selectors.from)
-  }
+	// Process transition to attribute.
+	const valueTo = element.getAttribute(`${transitionDirectiveName}.to`);
+	if (valueTo) {
+		selectors.to = parseSelector(valueTo);
+	}
 
-  // Dispatch transition event.
-  dispatchEvent('start')
+	if (!value && !valueFrom && !valueTo) {
+		if (callback) {
+			callback();
+		}
+		return;
+	}
 
-  requestFrame = requestAnimationFrame(() => {
-    requestFrame = null
+	// Declare variables for later.
+	let isDone = false,
+		timeout;
 
-    // If cancelled then stop immediately.
-    if (isDone) {
-      return
-    }
+	let requestFrame = requestAnimationFrame(() => {
+		requestFrame = null;
 
-    // Remove from selector.
-    if (selectors.from) {
-      removeAttributes(element, selectors.from)
-      selectors.from = undefined
-    }
+		// If cancelled then stop immediately.
+		if (isDone) {
+			return;
+		}
 
-    // Process transition to attribute.
-    name = transitionDirectiveName + '.to'
-    value = element.getAttribute(name)
-    // Parse and apply returned selector.
-    if (value) {
-      selectors.to = parseSelector(value)
-      addAttributes(element, selectors.to)
-    } else if (!selectors.during) {
-      // Exit early if no active selectors set.
+		// Remove from selector.
+		if (selectors.from) {
+			removeAttributes(element, selectors.from);
+			selectors.from = undefined;
+		}
 
-      // Dispatch end event.
-      dispatchEvent('end')
-      // Invoke callback.
-      if (callback) {
-        callback()
-      }
-      // Mark as done.
-      isDone = true
-      return
-    }
+		if (valueTo) {
+			addAttributes(element, selectors.to);
+		} else if (!selectors.during) {
+			// Exit early if no active selectors set.
 
-    // Get computes style.
-    const styles = getComputedStyle(element)
+			// Invoke callback.
+			if (callback) {
+				callback();
+			}
+			// Mark as done.
+			isDone = true;
+			return;
+		}
 
-    let duration = Number(styles.transitionDuration.replace(/,.*/, '').replace('s', '')) * 1000
-    if (duration === 0) {
-      duration = Number(styles.animationDuration.replace('s', '')) * 1000
-    }
+		// Get computes style.
+		const styles = getComputedStyle(element);
 
-    timeout = setTimeout(() => {
-      timeout = null
+		const delay =
+			Number(styles.transitionDelay.replace(/,.*/, "").replace("s", "")) * 1000;
+		let duration =
+			Number(styles.transitionDuration.replace(/,.*/, "").replace("s", "")) *
+			1000;
+		if (duration === 0) {
+			duration = Number(styles.animationDuration.replace("s", "")) * 1000;
+		}
 
-      // If cancelled then stop immediately.
-      if (isDone) {
-        return
-      }
+		timeout = setTimeout(() => {
+			timeout = null;
 
-      // Remove during selector.
-      if (selectors.during) {
-        removeAttributes(element, selectors.during)
-        selectors.during = undefined
-      }
+			// If cancelled then stop immediately.
+			if (isDone) {
+				return;
+			}
 
-      // Remove to selector.
-      if (selectors.to) {
-        removeAttributes(element, selectors.to)
-        selectors.to = undefined
-      }
+			// Remove during selector.
+			if (selectors.during) {
+				removeAttributes(element, selectors.during);
+				selectors.during = undefined;
+			}
 
-      // Dispatch end event.
-      dispatchEvent('end')
-      // Invoke callback.
-      if (callback) {
-        callback()
-      }
-      // Mark as done.
-      isDone = true
-    }, duration)
-  })
+			// Remove to selector.
+			if (selectors.to) {
+				removeAttributes(element, selectors.to);
+				selectors.to = undefined;
+			}
 
-  return (
-  ) => {
-    if (!isDone) {
-      return
-    }
-    isDone = true
+			// Invoke callback.
+			if (callback) {
+				callback();
+			}
+			// Mark as done.
+			isDone = true;
+		}, delay + duration);
+	});
 
-    // Remove applied selector.
-    if (selectors.during) {
-      removeAttributes(element, selectors.during)
-      selectors.during = undefined
-    }
-    if (selectors.from) {
-      removeAttributes(element, selectors.from)
-      selectors.from = undefined
-    } else if (selectors.to) {
-      removeAttributes(element, selectors.to)
-      selectors.to = undefined
-    }
+	return () => {
+		if (!isDone) {
+			return;
+		}
+		isDone = true;
 
-    // Clear request animation frame and timeout.
-    if (requestFrame) {
-      cancelAnimationFrame(requestFrame)
-      requestFrame = null
-    } else if (timeout) {
-      clearTimeout(timeout)
-      timeout = null
-    }
+		// Remove applied selector.
+		if (selectors.during) {
+			removeAttributes(element, selectors.during);
+			selectors.during = undefined;
+		}
+		if (selectors.from) {
+			removeAttributes(element, selectors.from);
+			selectors.from = undefined;
+		} else if (selectors.to) {
+			removeAttributes(element, selectors.to);
+			selectors.to = undefined;
+		}
 
-    // Dispatch end event.
-    dispatchEvent('end')
-    // Invoke callback.
-    if (callback) {
-      callback()
-    }
-  }
-}
+		// Clear request animation frame and timeout.
+		if (requestFrame) {
+			cancelAnimationFrame(requestFrame);
+			requestFrame = null;
+		} else if (timeout) {
+			clearTimeout(timeout);
+			timeout = null;
+		}
+
+		// Invoke callback.
+		if (callback) {
+			callback();
+		}
+	};
+};
 
 /**
  * Transition an element in.
@@ -189,13 +175,9 @@ export const transition = (
  * @param {Function} callback Function to call after transition is done.
  * @returns {TransitionEnd | undefined} Function to immediately end the transition.
  */
-export const transitionIn = (
-  libraryOptions,
-  element,
-  callback,
-) => {
-  return transition('in', libraryOptions, element, callback)
-}
+export const transitionIn = (libraryOptions, element, callback) => {
+	return transition("in", libraryOptions, element, callback);
+};
 
 /**
  * Transition an element out.
@@ -204,16 +186,12 @@ export const transitionIn = (
  * @param {Function} callback Function to call after transition is done.
  * @returns {TransitionEnd | undefined} Function to immediately end the transition.
  */
-export const transitionOut = (
-  libraryOptions,
-  element,
-  callback,
-) => {
-  return transition('out', libraryOptions, element, callback)
-}
+export const transitionOut = (libraryOptions, element, callback) => {
+	return transition("out", libraryOptions, element, callback);
+};
 
 export default {
-  transition,
-  transitionIn,
-  transitionOut,
-}
+	transition,
+	transitionIn,
+	transitionOut,
+};

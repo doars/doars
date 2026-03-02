@@ -1,0 +1,48 @@
+{
+	"author": {
+		"name": "Ron Dekker",
+		"website": "https://rondekker.nl/en-gb"
+	},
+	"name": "@doars/doars-ipc",
+	"packagename": "DoarsIPC",
+	"description": "Doars plugin that adds an IPC context and directive that handles communication with an IPC back-end.",
+	"keywords": [
+		"doars",
+		"ipc"
+	],
+	"version": "3.0.0-alpha",
+	"license": "MIT",
+	"type": "module",
+	"main": "src/DoarsIPC.js",
+	"browser": "dst/doars-ipc.js",
+	"homepage": "https://github.com/doars/doars/tree/main/packages/doars-ipc#readme",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/doars/doars.git"
+	},
+	"bugs": {
+		"url": "https://github.com/doars/doars/issues"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"scripts": {
+		"build": "NODE_ENV=production bun config.bundle.js",
+		"check": "biome check ./src/ ./tst/",
+		"check:write": "biome check --write ./src/ ./tst/",
+		"develop": "NODE_ENV=development bun config.bundle.js"
+	},
+	"files": [
+		"dst",
+		"src",
+		"skills",
+		"CHANGELOG.md",
+		"README.md"
+	],
+	"devDependencies": {
+		"@doars/doars": "^3.1.1"
+	},
+	"dependencies": {
+		"@doars/common": "^2.1.2"
+	}
+}

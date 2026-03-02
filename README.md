@@ -55,24 +55,18 @@ This mono-repository includes the core library as well as several plugins. See t
 | [@doars/doars](https://github.com/doars/doars/tree/main/packages/doars#readme)                     | The core library, it manages the components and plugins as well as includes the basic contexts and directives.           |
 | [@doars/doars-fetch](https://github.com/doars/doars/tree/main/packages/doars-fetch#readme)         | Plugin that adds a fetch context that handles parsing the returned content.                                              |
 | [@doars/doars-intersect](https://github.com/doars/doars/tree/main/packages/doars-intersect#readme) | Plugin that adds an intersect directive for reacting to intersection changes.                                            |
+| [@doars/doars-ipc](https://github.com/doars/doars/tree/main/packages/doars-ipc#readme)             | Plugin that adds an IPC context and directive for bidirectional communication between Bun and WebView.                   |
 | [@doars/doars-navigate](https://github.com/doars/doars/tree/main/packages/doars-navigate#readme)   | Plugin that adds a navigation directive that loads pages without unloading the current page by listening to anchor tags. |
 | [@doars/doars-persist](https://github.com/doars/doars/tree/main/packages/doars-persist#readme)     | Plugin that adds cookies, local storage, and sessions storage contexts to get and set persistent data.                   |
 | [@doars/doars-router](https://github.com/doars/doars/tree/main/packages/doars-router#readme)       | Plugin that adds a router context with set of directives to control it.                                                  |
 | [@doars/doars-update](https://github.com/doars/doars/tree/main/packages/doars-update#readme)       | Plugin that adds an update loop context and directive.                                                                   |
 | [@doars/interpret](https://github.com/doars/doars/tree/main/packages/interpret#readme)             | Interpret a subset of JavaScript expressions without using the eval function or Function constructor.                    |
 
-## Contributing
-
-If you are using the library and are running into an problem that you don't know how to solve, or would love to see a particular feature then feel free to [create an issue](./issues/new/choose). Or perhaps you want to make that cool feature, or help out in any other way. Then you are more then welcome! Read more about how to [contribute](./CONTRIBUTING.md).
-
-## In the wild
-
-If you are using _Doars_ then please [let me know](https://rondekker.nl/en-gb#contact), I would love to hear about it!
-
 ## Ideas
 
+- `$id` context for generating unique identifiers.
+- Focus plugin for setting and trapping the focus.
 - Input masking plugin for formatting dates, money et cetera.
 - Visibility directives similar to intersection plugin.
 - Websocket plugin.
 - Sensor plugin for accessing the accelerometer, gyroscope et cetera.
-- Realtime shared state between clients using WebRTC.

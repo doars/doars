@@ -1,11 +1,4 @@
 (() => {
-  // src/symbols.js
-  var ATTRIBUTES = Symbol("ATTRIBUTES");
-  var COMPONENT = Symbol("COMPONENT");
-  var FOR = Symbol("FOR");
-  var REFERENCES = Symbol("REFERENCES");
-  var REFERENCES_CACHE = Symbol("REFERENCES_CACHE");
-
   // ../common/src/events/EventDispatcher.js
   class EventDispatcher {
     constructor() {
@@ -54,12 +47,192 @@
         }
         const eventData = events[name];
         for (let i = 0;i < eventData.length; i++) {
-          const event = options && options.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
-          if (event.options && event.options.once) {
+          const event = options?.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
+          if (event.options?.once) {
             eventData.splice(i, 1);
           }
           event.callback(...parameters);
         }
+      };
+    }
+  }
+
+  // ../common/src/utilities/Element.js
+  var fromString = (string) => {
+    const stringStart = string.substring(0, 15).toLowerCase();
+    if (stringStart.startsWith("<!doctype html>") || stringStart.startsWith("<html>")) {
+      const html = document.createElement("html");
+      html.innerHTML = string;
+      return html;
+    }
+    const template = document.createElement("template");
+    template.innerHTML = string;
+    return template.content.childNodes[0];
+  };
+  var isSame = (a, b) => {
+    if (a.isSameNode?.(b)) {
+      return true;
+    }
+    if (a.type === 3) {
+      return a.nodeValue === b.nodeValue;
+    }
+    if (a.tagName === b.tagName) {
+      return true;
+    }
+    return false;
+  };
+  var walk = (node, filter) => {
+    let index = -1;
+    let iterator = null;
+    return () => {
+      if (index >= 0 && iterator) {
+        const child2 = iterator();
+        if (child2) {
+          return child2;
+        }
+      }
+      let child = null;
+      do {
+        index++;
+        if (index >= node.childElementCount) {
+          return null;
+        }
+        child = node.children[index];
+      } while (!filter(child));
+      if (child.childElementCount) {
+        iterator = walk(child, filter);
+      }
+      return child;
+    };
+  };
+
+  // ../common/src/polyfills/RevocableProxy.js
+  var PROXY_TRAPS = [
+    "apply",
+    "construct",
+    "defineProperty",
+    "deleteProperty",
+    "get",
+    "getOwnPropertyDescriptor",
+    "getPrototypeOf",
+    "has",
+    "isExtensible",
+    "ownKeys",
+    "preventExtensions",
+    "set",
+    "setPrototypeOf"
+  ];
+  var RevocableProxy_default = (target, handler, options = {}) => {
+    options = Object.assign({
+      irrevocable: []
+    }, options);
+    let revoked = false;
+    const revocableHandler = {};
+    for (const key of PROXY_TRAPS) {
+      revocableHandler[key] = (...parameters) => {
+        const [localTarget, ...localParameters] = parameters;
+        if (revoked) {
+          for (const key2 of Object.keys(localTarget)) {
+            if (!options.irrevocable || !options.irrevocable.includes(key2)) {
+              localTarget[key2] = undefined;
+            }
+          }
+        }
+        if (key in handler) {
+          const trap = handler[key];
+          if (typeof trap === "function") {
+            return trap(localTarget, ...localParameters);
+          }
+        }
+        return Reflect[key](localTarget, ...localParameters);
+      };
+    }
+    return {
+      proxy: new Proxy(target, revocableHandler),
+      revoke: () => {
+        revoked = true;
+      }
+    };
+  };
+
+  // ../common/src/events/ProxyDispatcher.js
+  class ProxyDispatcher extends EventDispatcher {
+    constructor(options = {}) {
+      super();
+      options = Object.assign({
+        delete: true,
+        get: true,
+        set: true
+      }, options);
+      const map = new WeakMap;
+      this.add = (target, path = []) => {
+        if (map.has(target)) {
+          return map.get(target);
+        }
+        for (const key in target) {
+          if (target[key] && typeof target[key] === "object") {
+            target[key] = this.add(target[key], [...path, key]);
+          }
+        }
+        const handler = {};
+        if (options.delete) {
+          handler.deleteProperty = (target2, key) => {
+            if (!Reflect.has(target2, key)) {
+              return true;
+            }
+            this.remove(target2, key);
+            const deleted = Reflect.deleteProperty(target2, key);
+            if (deleted) {
+              this.dispatchEvent("delete", [
+                target2,
+                Array.isArray(target2) ? [...path] : [...path, key]
+              ]);
+            }
+            return deleted;
+          };
+        }
+        if (options.get) {
+          handler.get = (target2, key, receiver) => {
+            if (key !== Symbol.unscopables) {
+              this.dispatchEvent("get", [target2, [...path, key], receiver]);
+            }
+            return Reflect.get(target2, key, receiver);
+          };
+        }
+        if (options.set) {
+          handler.set = (target2, key, value, receiver) => {
+            if (target2[key] === value) {
+              return true;
+            }
+            if (value && typeof value === "object") {
+              value = this.add(value, [...path, key]);
+            }
+            target2[key] = value;
+            this.dispatchEvent("set", [
+              target2,
+              Array.isArray(target2) ? [...path] : [...path, key],
+              value,
+              receiver
+            ]);
+            return true;
+          };
+        }
+        const revocable = RevocableProxy_default(target, handler);
+        map.set(target, revocable);
+        return revocable.proxy;
+      };
+      this.remove = (target) => {
+        if (!map.has(target)) {
+          return;
+        }
+        const revocable = map.get(target);
+        map.delete(target);
+        for (const property in revocable.proxy) {
+          if (typeof revocable.proxy[property] === "object") {
+            this.remove(revocable.proxy[property]);
+          }
+        }
+        revocable.revoke();
       };
     }
   }
@@ -69,7 +242,7 @@
     return text.replace(/\\/g, "\\\\").replace(/\\'/g, "\\'").replace(/\\"/g, "\\\"").replace(/\n/g, "\\n");
   };
   var kebabToCamel = (text) => {
-    return text.replace(/-(\w)/g, (match, character) => character.toUpperCase());
+    return text.replace(/-(\w)/g, (_match, character) => character.toUpperCase());
   };
   var parseAttributeModifiers = (modifiers) => {
     const result = {};
@@ -99,8 +272,8 @@
         type = "h";
         tmpValue = value.substring(-1);
       }
-      tmpValue = Number.parseInt(tmpValue);
-      if (!isNaN(tmpValue)) {
+      tmpValue = Number.parseInt(tmpValue, 10);
+      if (!Number.isNaN(tmpValue)) {
         value = tmpValue;
         switch (type) {
           case "h":
@@ -117,11 +290,11 @@
     return result;
   };
   var parseAttributeName = (prefix, name) => {
-    name = name.match(new RegExp("^" + prefix + "-([a-z][0-9a-z-]{1,}):?([a-z][0-9a-z-]*)?(\\..*]*)?$", "i"));
+    name = name.match(new RegExp(`^${prefix}-([a-z][0-9a-z-]{1,}):?([a-z][0-9a-z-]*)?(\\..*]*)?$`, "i"));
     if (!name) {
       return;
     }
-    let [full, directive, keyRaw, modifiers] = name;
+    let [_full, directive, keyRaw, modifiers] = name;
     keyRaw = keyRaw !== "" ? keyRaw : null;
     const key = keyRaw ? kebabToCamel(keyRaw) : null;
     modifiers = modifiers ? modifiers.substring(1).split(".") : [];
@@ -167,14 +340,22 @@
             attributes.class.push(selectorSegment);
           }
           break;
-        case "[":
-          const [full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
+        case "[": {
+          const [_full, key, value] = selectorSegment.match(/^(?:\[)?([-$_.a-z0-9]{1,})(?:[$*^])?(?:=)?([\s\S]{0,})(?:\])$/i);
           attributes[key] = value;
           break;
+        }
       }
     }
     return attributes;
   };
+
+  // src/symbols.js
+  var ATTRIBUTES = Symbol("ATTRIBUTES");
+  var COMPONENT = Symbol("COMPONENT");
+  var FOR = Symbol("FOR");
+  var REFERENCES = Symbol("REFERENCES");
+  var REFERENCES_CACHE = Symbol("REFERENCES_CACHE");
 
   // src/Attribute.js
   class Attribute extends EventDispatcher {
@@ -187,7 +368,7 @@
         }
         element[ATTRIBUTES].push(this);
       }
-      let accessedItems = {}, data = null, directive, key, keyRaw, modifiersRaw, modifiers;
+      let accessedItems = {}, accessedItemIds = new Set, data = null, directive, key, keyRaw, modifiersRaw, modifiers;
       if (name) {
         const [_directive, _keyRaw, _key, _modifiers] = parseAttributeName(component.getLibrary().getOptions().prefix, name);
         directive = _directive;
@@ -195,7 +376,7 @@
         keyRaw = _keyRaw;
         modifiersRaw = _modifiers;
         if (_modifiers) {
-          modifiers = parseAttributeModifiers(_modifiers);
+          modifiers = Object.freeze(parseAttributeModifiers(_modifiers));
         }
       }
       this.getComponent = () => {
@@ -217,7 +398,7 @@
         return keyRaw;
       };
       this.getModifiers = () => {
-        return Object.assign({}, modifiers);
+        return modifiers;
       };
       this.getModifiersRaw = () => {
         return modifiersRaw;
@@ -255,143 +436,31 @@
         this.removeAllEventListeners();
       };
       this.accessed = (id2, path) => {
-        if (!accessedItems[id2]) {
-          accessedItems[id2] = [];
-        } else if (accessedItems[id2].includes(path)) {
-          return;
+        if (accessedItemIds.has(id2)) {
+          if (accessedItems[id2].has(path)) {
+            return;
+          }
+        } else {
+          accessedItems[id2] = new Set;
+          accessedItemIds.add(id2);
         }
-        accessedItems[id2].push(path);
-        this.dispatchEvent("accessed", [this, id2, path]);
+        accessedItems[id2].add(path);
       };
       this.clearAccessed = () => {
         accessedItems = {};
+        accessedItemIds.clear();
       };
       this.hasAccessed = (id2, paths) => {
-        if (!(id2 in accessedItems)) {
+        if (!accessedItemIds.has(id2)) {
           return false;
         }
         const accessedAtId = accessedItems[id2];
         for (const path of paths) {
-          if (accessedAtId.includes(path)) {
+          if (accessedAtId.has(path)) {
             return true;
           }
         }
         return false;
-      };
-      this.clone = () => {
-        return new Attribute(component, element, name, value, true);
-      };
-    }
-  }
-
-  // ../common/src/polyfills/RevocableProxy.js
-  var PROXY_TRAPS = [
-    "apply",
-    "construct",
-    "defineProperty",
-    "deleteProperty",
-    "get",
-    "getOwnPropertyDescriptor",
-    "getPrototypeOf",
-    "has",
-    "isExtensible",
-    "ownKeys",
-    "preventExtensions",
-    "set",
-    "setPrototypeOf"
-  ];
-  var RevocableProxy_default = (target, handler) => {
-    let revoked = false;
-    const revocableHandler = {};
-    for (const key of PROXY_TRAPS) {
-      revocableHandler[key] = (...parameters) => {
-        if (revoked) {
-          return;
-        }
-        if (key in handler) {
-          return handler[key](...parameters);
-        }
-        return Reflect[key](...parameters);
-      };
-    }
-    return {
-      proxy: new Proxy(target, revocableHandler),
-      revoke: () => {
-        revoked = true;
-      }
-    };
-  };
-
-  // ../common/src/events/ProxyDispatcher.js
-  class ProxyDispatcher extends EventDispatcher {
-    constructor(options = {}) {
-      super();
-      options = Object.assign({
-        delete: true,
-        get: true,
-        set: true
-      }, options);
-      const map = new WeakMap;
-      this.add = (target, path = []) => {
-        if (map.has(target)) {
-          return map.get(target);
-        }
-        for (const key in target) {
-          if (target[key] && typeof target[key] === "object") {
-            target[key] = this.add(target[key], [...path, key]);
-          }
-        }
-        const handler = {};
-        if (options.delete) {
-          handler.deleteProperty = (target2, key) => {
-            if (!Reflect.has(target2, key)) {
-              return true;
-            }
-            this.remove(target2, key);
-            const deleted = Reflect.deleteProperty(target2, key);
-            if (deleted) {
-              this.dispatchEvent("delete", [target2, Array.isArray(target2) ? [...path] : [...path, key]]);
-            }
-            return deleted;
-          };
-        }
-        if (options.get) {
-          handler.get = (target2, key, receiver) => {
-            if (key !== Symbol.unscopables) {
-              this.dispatchEvent("get", [target2, [...path, key], receiver]);
-            }
-            return Reflect.get(target2, key, receiver);
-          };
-        }
-        if (options.set) {
-          handler.set = (target2, key, value, receiver) => {
-            if (target2[key] === value) {
-              return true;
-            }
-            if (value && typeof value === "object") {
-              value = this.add(value, [...path, key]);
-            }
-            target2[key] = value;
-            this.dispatchEvent("set", [target2, Array.isArray(target2) ? [...path] : [...path, key], value, receiver]);
-            return true;
-          };
-        }
-        const revocable = RevocableProxy_default(target, handler);
-        map.set(revocable, target);
-        return revocable.proxy;
-      };
-      this.remove = (target) => {
-        if (!map.has(target)) {
-          return;
-        }
-        const revocable = map.get(target);
-        map.delete(revocable);
-        for (const property in revocable.proxy) {
-          if (typeof revocable.proxy[property] === "object") {
-            this.remove(revocable.proxy[property]);
-          }
-        }
-        revocable.revoke();
       };
     }
   }
@@ -407,66 +476,16 @@
     }
   };
 
-  // ../common/src/utilities/Element.js
-  var fromString = (string) => {
-    const stringStart = string.substring(0, 15).toLowerCase();
-    if (stringStart.startsWith("<!doctype html>") || stringStart.startsWith("<html>")) {
-      const html = document.createElement("html");
-      html.innerHTML = string;
-      return html;
-    }
-    const template = document.createElement("template");
-    template.innerHTML = string;
-    return template.content.childNodes[0];
-  };
-  var isSame = (a, b) => {
-    if (a.isSameNode && a.isSameNode(b)) {
-      return true;
-    }
-    if (a.type === 3) {
-      return a.nodeValue === b.nodeValue;
-    }
-    if (a.tagName === b.tagName) {
-      return true;
-    }
-    return false;
-  };
-  var walk = (node, filter) => {
-    let index = -1;
-    let iterator = null;
-    return () => {
-      if (index >= 0 && iterator) {
-        const child2 = iterator();
-        if (child2) {
-          return child2;
-        }
-      }
-      let child = null;
-      do {
-        index++;
-        if (index >= node.childElementCount) {
-          return null;
-        }
-        child = node.children[index];
-      } while (!filter(child));
-      if (child.childElementCount) {
-        iterator = walk(child, filter);
-      }
-      return child;
-    };
-  };
-
   // src/Component.js
   class Component {
     constructor(library, element) {
       const id = Symbol("ID_COMPONENT");
-      const {
-        prefix,
-        stateDirectiveName
-      } = library.getOptions();
+      const { prefix, stateDirectiveName, ignoreDirectiveName } = library.getOptions();
       const processExpression = library.getProcessor();
-      let attributes = [], hasUpdated = false, isInitialized = false, data, proxy, state;
-      if (!element.attributes[prefix + "-" + stateDirectiveName]) {
+      const componentName = `${prefix}-${stateDirectiveName}`;
+      const ignoreName = `${prefix}-${ignoreDirectiveName}`;
+      let attributes = [], isInitialized = false, data, proxy, state;
+      if (!element.attributes[`${prefix}-${stateDirectiveName}`]) {
         console.error("Doars: element given to component does not contain a state attribute!");
         return;
       }
@@ -476,18 +495,12 @@
       if (parent) {
         if (!parent.getChildren().includes(this)) {
           parent.getChildren().push(this);
-          library.update([{
+          library.update({
             id: parent.getId(),
             path: "children"
-          }]);
+          });
         }
       }
-      const dispatchEvent = (name, detail) => {
-        element.dispatchEvent(new CustomEvent(prefix + "-" + name, {
-          detail,
-          bubbles: true
-        }));
-      };
       this.getAttributes = () => {
         return attributes;
       };
@@ -520,14 +533,12 @@
           return;
         }
         isInitialized = true;
-        const { stateDirectiveName: stateDirectiveName2 } = this.getLibrary().getOptions();
-        const componentName = prefix + "-" + stateDirectiveName2;
         const value = element.attributes[componentName].value;
         data = value ? processExpression(this, new Attribute(this, element, null, value), value) : {};
         if (data === null) {
           data = {};
         } else if (typeof data !== "object" || Array.isArray(data)) {
-          console.error("Doars: component tag must return an object!");
+          console.error("Doars: component tag must return an object!", data);
           return;
         }
         proxy = new ProxyDispatcher;
@@ -539,7 +550,7 @@
           return;
         }
         if (attributes.length > 0) {
-          const directives = library.getDirectivesObject();
+          const directives = Object.assign({}, library.getDirectivesObject());
           for (const key in directives) {
             if (!directives[key].destroy) {
               directives[key] = undefined;
@@ -553,23 +564,16 @@
             attribute.destroy();
           }
         }
-        delete element[COMPONENT];
         attributes = [];
-        isInitialized = false;
-        proxy.remove(data);
-        state = null;
-        proxy = null;
-        data = null;
-        const triggers = [];
         if (children.length > 0) {
           for (const child of children) {
             child.setParent(parent);
-            triggers.push({
+            library.update({
               id: child.getId(),
               path: "parent"
             });
           }
-          triggers.push({
+          library.update({
             id,
             path: "children"
           });
@@ -577,36 +581,26 @@
         if (parent) {
           if (children.length > 0) {
             parent.getChildren().push(...children);
-            triggers.push({
+            library.update({
               id: parent.getId(),
               path: "children"
             });
           }
-          triggers.push({
+          library.update({
             id,
             path: "parent"
           });
         }
-        if (triggers.length > 0) {
-          library.update(triggers);
-        }
-        dispatchEvent("destroyed", {
-          element,
-          id
-        });
+        delete element[COMPONENT];
+        isInitialized = false;
+        proxy.remove(data);
+        state = null;
+        proxy = null;
+        data = null;
       };
       this.addAttribute = (element2, name, value) => {
-        const directivesKeys = library.getDirectivesNames();
         const attribute = new Attribute(this, element2, name, value);
-        let index = attribute.length;
-        const directiveIndex = directivesKeys.indexOf(attribute.getDirective());
-        for (let i = attributes.length - 1;i >= 0; i--) {
-          if (directivesKeys.indexOf(attributes[i].getDirective()) <= directiveIndex) {
-            index = i + 1;
-            break;
-          }
-        }
-        attributes.splice(index, 0, attribute);
+        attributes.push(attribute);
         return attribute;
       };
       this.removeAttribute = (attribute) => {
@@ -616,19 +610,13 @@
         }
         const directives = library.getDirectivesObject;
         const directive = directives[attribute.getKey()];
-        if (directive && directive.destroy) {
+        if (directive?.destroy) {
           directive.destroy(this, attribute, processExpression);
         }
         attributes.splice(indexInAttributes, 1);
         attribute.destroy();
       };
       this.scanAttributes = (element2) => {
-        const {
-          stateDirectiveName: stateDirectiveName2,
-          ignoreDirectiveName
-        } = this.getLibrary().getOptions();
-        const componentName = prefix + "-" + stateDirectiveName2;
-        const ignoreName = prefix + "-" + ignoreDirectiveName;
         const newAttributes = [];
         const iterator = walk(element2, (element3) => !element3.hasAttribute(componentName) && !element3.hasAttribute(ignoreName));
         do {
@@ -653,26 +641,22 @@
         }
       };
       this.updateAttributes = (attributes2) => {
-        if (!isInitialized || attributes2.length <= 0) {
-          if (!hasUpdated) {
-            hasUpdated = true;
-            dispatchEvent("updated", {
-              attributes: attributes2,
-              element,
-              id
-            });
-          }
+        if (!isInitialized) {
           return;
         }
-        for (const attribute of attributes2) {
+        if (attributes2.length > 0) {
+          for (const attribute of attributes2) {
+            this.updateAttribute(attribute);
+          }
+        }
+      };
+      this.updateAllAttributes = () => {
+        if (!isInitialized) {
+          return;
+        }
+        for (const attribute of attributes) {
           this.updateAttribute(attribute);
         }
-        hasUpdated = true;
-        dispatchEvent("updated", {
-          attributes: attributes2,
-          element,
-          id
-        });
       };
       this.update = (triggers) => {
         if (!isInitialized) {
@@ -688,122 +672,154 @@
             }
           }
         }
-        if (!hasUpdated || updatedAttributes.length > 0) {
-          hasUpdated = true;
-          dispatchEvent("updated", {
-            attributes: updatedAttributes,
-            element,
-            id
-          });
-        }
       };
     }
   }
 
   // src/utilities/Context.js
-  var createContexts = (component, attribute, update, extra = null) => {
+  var PROXY_TRAPS2 = ["get", "getOwnPropertyDescriptor", "getPrototypeOf"];
+  var createContexts = (component, attribute, extra = null, options = null) => {
+    const logAccess = !options || options.accessed;
     const library = component.getLibrary();
+    const update = (id, context) => library.update({
+      id,
+      path: context
+    });
+    const creatableContexts = library.getContextsByName();
+    const hasExtra = extra && typeof extra === "object";
+    const irrevocable = [];
+    const createableContextNames = [];
+    const contextsKeysCache = [];
+    for (const contextName in creatableContexts) {
+      createableContextNames.push(contextName);
+      contextsKeysCache.push(contextName);
+      const creatableContext = creatableContexts[contextName];
+      if (creatableContext.revocable === false) {
+        irrevocable.push(contextName);
+      }
+    }
     const contexts = library.getSimpleContexts();
-    const deconstructed = [];
-    let after = "", before = "";
-    const creatableContexts = library.getContexts();
-    const destroyFunctions = [];
-    for (const creatableContext of creatableContexts) {
-      if (!creatableContext || !creatableContext.name) {
-        continue;
-      }
-      const result = creatableContext.create(component, attribute, update);
-      if (!result || !result.value) {
-        continue;
-      }
-      if (result.destroy && typeof result.destroy === "function") {
-        destroyFunctions.push(result.destroy);
-      }
-      if (creatableContext.deconstruct && typeof result.value === "object") {
-        deconstructed.push(creatableContext.name);
-        before += "with(" + creatableContext.name + ") { ";
-        after += " }";
-      }
-      contexts[creatableContext.name] = result.value;
-    }
-    if (typeof extra === "object") {
-      for (const name in extra) {
-        contexts[name] = extra[name];
+    for (const key of Object.keys(contexts)) {
+      if (!contextsKeysCache.includes(key)) {
+        contextsKeysCache.push(key);
       }
     }
-    return {
-      contexts,
-      destroy: () => {
-        for (const destroyFunction of destroyFunctions) {
-          destroyFunction();
+    if (hasExtra) {
+      for (const key of Object.keys(extra)) {
+        if (!contextsKeysCache.includes(key)) {
+          contextsKeysCache.push(key);
         }
-      },
-      after,
-      before,
-      deconstructed
+      }
+    }
+    const destroyCallbacks = [];
+    const addContext = (target, creatableContext) => {
+      const result = creatableContext.create(component, attribute, update, options);
+      if (result) {
+        if (result.destroy && typeof result.destroy === "function") {
+          destroyCallbacks.push(result.destroy);
+        }
+        if (result.value) {
+          target[creatableContext.name] = result.value;
+          return result.value;
+        }
+      }
     };
-  };
-  var createContextsProxy = (component, attribute, update, extra = null) => {
-    let data = null;
-    const revocable = RevocableProxy_default({}, {
-      get: (target, property) => {
-        if (!data) {
-          data = createContexts(component, attribute, update, extra);
-        }
-        if (property in data.contexts) {
-          attribute.accessed(component.getId(), property);
-          return data.contexts[property];
-        }
-        if (data.contexts.$state) {
-          if (property in data.contexts.$state) {
-            attribute.accessed(component.getId(), "$state");
-            return data.contexts.$state[property];
+    let addedDeconstructed = false;
+    const addDeconstruted = (target) => {
+      addedDeconstructed = true;
+      for (const contextName in creatableContexts) {
+        const creatableContext = creatableContexts[contextName];
+        if (creatableContext.deconstruct) {
+          const resultValue = addContext(target, creatableContext);
+          if (resultValue) {
+            for (const key in resultValue) {
+              if (!contextsKeysCache.includes(key)) {
+                contextsKeysCache.push(key);
+              }
+              target[key] = resultValue[key];
+            }
           }
         }
       }
+    };
+    const reflect = (functionName, ...parameters) => {
+      const [target, key, ...otherParameters] = parameters;
+      if (Object.hasOwn(contexts, key)) {
+        if (logAccess) {
+          attribute.accessed(component.getId(), key);
+        }
+        return Reflect[functionName](target, key, ...otherParameters);
+      }
+      if (hasExtra && Object.hasOwn(extra, key)) {
+        if (logAccess) {
+          attribute.accessed(component.getId(), key);
+        }
+        return Reflect[functionName](extra, key, ...otherParameters);
+      }
+      if (!addedDeconstructed) {
+        addDeconstruted(target);
+        if (Object.hasOwn(contexts, key)) {
+          if (logAccess) {
+            attribute.accessed(component.getId(), key);
+          }
+          return Reflect[functionName](target, key, ...otherParameters);
+        }
+      }
+      if (createableContextNames.includes(key)) {
+        addContext(target, creatableContexts[key]);
+        if (Object.hasOwn(contexts, key)) {
+          if (logAccess) {
+            attribute.accessed(component.getId(), key);
+          }
+          return Reflect[functionName](target, key, ...otherParameters);
+        }
+      }
+    };
+    const handler = {
+      has: (target, key) => {
+        if (!addedDeconstructed) {
+          addDeconstruted(target);
+        }
+        return contextsKeysCache.includes(key);
+      },
+      ownKeys: (target) => {
+        if (!addedDeconstructed) {
+          addDeconstruted(target);
+        }
+        return contextsKeysCache;
+      }
+    };
+    for (const trap of PROXY_TRAPS2) {
+      handler[trap] = (...parameters) => {
+        return reflect(trap, ...parameters);
+      };
+    }
+    const revocable = RevocableProxy_default(contexts, handler, {
+      irrevocable
     });
     return {
       contexts: revocable.proxy,
       destroy: () => {
-        if (data && data.destroy) {
-          data.destroy(component, attribute);
+        for (let index = destroyCallbacks.length - 1;index >= 0; index--) {
+          destroyCallbacks[index]();
         }
         revocable.revoke();
       }
     };
   };
-  var createAutoContexts = (component, attribute, extra = null) => {
-    const triggers = [];
-    const update = (id, context) => {
-      triggers.push({
-        id,
-        path: context
-      });
-    };
-    const {
-      contexts,
-      destroy
-    } = createContexts(component, attribute, update, extra);
-    return [contexts, () => {
-      destroy();
-      if (triggers.length > 0) {
-        component.getLibrary().update(triggers);
-      }
-    }];
-  };
 
   // src/contexts/children.js
-  var children_default = ({
-    childrenContextName
-  }) => ({
+  var children_default = ({ childrenContextName }) => ({
     name: childrenContextName,
-    create: (component, attribute, update) => {
+    create: (component, attribute, _update, options) => {
       let childrenContexts;
       const revocable = RevocableProxy_default(component.getChildren(), {
         get: (target, key, receiver) => {
           if (!childrenContexts) {
-            childrenContexts = target.map((child2) => createContextsProxy(child2, attribute, update));
-            attribute.accessed(component.getId(), "children");
+            childrenContexts = target.map((child2) => createContexts(child2, attribute, null, options));
+            if (!options || options.accessed) {
+              attribute.accessed(component.getId(), "children");
+            }
           }
           if (isNaN(key)) {
             return Reflect.get(childrenContexts, key, receiver);
@@ -818,7 +834,9 @@
         value: revocable.proxy,
         destroy: () => {
           if (childrenContexts) {
-            childrenContexts.forEach((child) => child.destroy());
+            childrenContexts.forEach((child) => {
+              child.destroy();
+            });
           }
           revocable.revoke();
         }
@@ -827,29 +845,15 @@
   });
 
   // src/contexts/component.js
-  var component_default = ({
-    componentContextName
-  }) => ({
+  var component_default = ({ componentContextName }) => ({
     name: componentContextName,
     create: (component) => ({
       value: component.getElement()
     })
   });
 
-  // src/contexts/element.js
-  var element_default = ({
-    elementContextName
-  }) => ({
-    name: elementContextName,
-    create: (component, attribute) => ({
-      value: attribute.getElement()
-    })
-  });
-
   // src/contexts/dispatch.js
-  var dispatch_default = ({
-    dispatchContextName
-  }) => ({
+  var dispatch_default = ({ dispatchContextName }) => ({
     name: dispatchContextName,
     create: (component) => {
       return {
@@ -863,14 +867,19 @@
     }
   });
 
+  // src/contexts/element.js
+  var element_default = ({ elementContextName }) => ({
+    name: elementContextName,
+    create: (_component, attribute) => ({
+      value: attribute.getElement()
+    })
+  });
+
   // src/contexts/for.js
-  var for_default = ({
-    forContextDeconstruct,
-    forContextName
-  }) => ({
+  var for_default = ({ forContextDeconstruct, forContextName }) => ({
     deconstruct: forContextDeconstruct,
     name: forContextName,
-    create: (component, attribute) => {
+    create: (component, attribute, _update, options) => {
       if (component !== attribute.getComponent()) {
         return;
       }
@@ -890,10 +899,12 @@
         return;
       }
       const revocable = RevocableProxy_default(target, {
-        get: (target2, key) => {
+        get: (_target, key) => {
           for (const item of items) {
-            if (key in item.variables) {
-              attribute.accessed(item.id, "$for");
+            if (Object.hasOwn(item.variables, key)) {
+              if (!options || options.accessed) {
+                attribute.accessed(item.id, "$for");
+              }
               return item.variables[key];
             }
           }
@@ -909,39 +920,23 @@
   });
 
   // src/contexts/inContext.js
-  var inContext_default = ({
-    inContextContextName
-  }) => ({
+  var inContext_default = ({ inContextContextName }) => ({
+    revocable: false,
     name: inContextContextName,
-    create: (component, attribute) => ({
+    create: (component, attribute, _update, options) => ({
       value: (callback) => {
-        const newTriggers = [];
-        const contextUpdate = (id, path) => {
-          newTriggers.push({
-            id,
-            path
-          });
-        };
-        const {
-          contexts,
-          destroy
-        } = createContexts(component, attribute, contextUpdate, {});
+        const { contexts, destroy } = createContexts(component, attribute, null, options);
         const result = callback(contexts);
         destroy();
-        if (newTriggers.length > 0) {
-          component.getLibrary().update(newTriggers);
-        }
         return result;
       }
     })
   });
 
   // src/contexts/nextSibling.js
-  var nextSibling_default = ({
-    nextSiblingContextName
-  }) => ({
+  var nextSibling_default = ({ nextSiblingContextName }) => ({
     name: nextSiblingContextName,
-    create: (component, attribute, update) => {
+    create: (component, attribute, _update, options) => {
       const parent = component.getParent();
       if (!parent) {
         return {
@@ -955,10 +950,7 @@
           value: null
         };
       }
-      const {
-        contexts,
-        destroy
-      } = createContextsProxy(siblings[index + 1], attribute, update);
+      const { contexts, destroy } = createContexts(siblings[index + 1], attribute, null, options);
       return {
         value: contexts,
         destroy
@@ -967,11 +959,9 @@
   });
 
   // src/contexts/nextTick.js
-  var nextTick_default = ({
-    nextTickContextName
-  }) => ({
+  var nextTick_default = ({ nextTickContextName }) => ({
     name: nextTickContextName,
-    create: (component, attribute, update) => {
+    create: (component, attribute, _update, options) => {
       let callbacks;
       let isInitialized = false;
       const initialize = () => {
@@ -983,10 +973,7 @@
         callbacks = [];
         const handleUpdate = () => {
           stopListening();
-          const {
-            contexts,
-            destroy
-          } = createContexts(component, attribute, update, {});
+          const { contexts, destroy } = createContexts(component, attribute, null, options);
           for (const callback of callbacks) {
             callback(contexts);
           }
@@ -994,10 +981,12 @@
         };
         const stopListening = () => {
           library.removeEventListener("updated", handleUpdate);
+          cancelAnimationFrame(handleUpdate);
           attribute.removeEventListener("changed", stopListening);
           attribute.removeEventListener("destroyed", stopListening);
         };
         library.addEventListener("updated", handleUpdate);
+        requestAnimationFrame(handleUpdate);
         attribute.addEventListener("changed", stopListening);
         attribute.addEventListener("destroyed", stopListening);
       };
@@ -1011,21 +1000,16 @@
   });
 
   // src/contexts/parent.js
-  var parent_default = ({
-    parentContextName
-  }) => ({
+  var parent_default = ({ parentContextName }) => ({
     name: parentContextName,
-    create: (component, attribute, update) => {
+    create: (component, attribute, _update, options) => {
       const parent = component.getParent();
       if (!parent) {
         return {
           value: null
         };
       }
-      const {
-        contexts,
-        destroy
-      } = createContextsProxy(parent, attribute, update);
+      const { contexts, destroy } = createContexts(parent, attribute, null, options);
       return {
         value: contexts,
         destroy
@@ -1034,11 +1018,9 @@
   });
 
   // src/contexts/previousSibling.js
-  var previousSibling_default = ({
-    previousSiblingContextName
-  }) => ({
+  var previousSibling_default = ({ previousSiblingContextName }) => ({
     name: previousSiblingContextName,
-    create: (component, attribute, update) => {
+    create: (component, attribute, _update, options) => {
       const parent = component.getParent();
       if (!parent) {
         return {
@@ -1052,10 +1034,7 @@
           value: null
         };
       }
-      const {
-        contexts,
-        destroy
-      } = createContextsProxy(siblings[index - 1], attribute, update);
+      const { contexts, destroy } = createContexts(siblings[index - 1], attribute, null, options);
       return {
         value: contexts,
         destroy
@@ -1064,11 +1043,9 @@
   });
 
   // src/contexts/references.js
-  var references_default = ({
-    referencesContextName
-  }) => ({
+  var references_default = ({ referencesContextName }) => ({
     name: referencesContextName,
-    create: (component, attribute) => {
+    create: (component, attribute, _update, options) => {
       if (!component[REFERENCES]) {
         return {
           value: []
@@ -1087,7 +1064,9 @@
       }
       const revocable = RevocableProxy_default(cache, {
         get: (target, propertyKey, receiver) => {
-          attribute.accessed(component.getId(), "$references." + propertyKey);
+          if (!options || options.accessed) {
+            attribute.accessed(component.getId(), `$references.${propertyKey}`);
+          }
           return Reflect.get(target, propertyKey, receiver);
         }
       });
@@ -1101,11 +1080,9 @@
   });
 
   // src/contexts/siblings.js
-  var siblings_default = ({
-    siblingsContextName
-  }) => ({
+  var siblings_default = ({ siblingsContextName }) => ({
     name: siblingsContextName,
-    create: (component, attribute, update) => {
+    create: (component, attribute, _update, options) => {
       const parent = component.getParent();
       if (!parent) {
         return {
@@ -1116,8 +1093,10 @@
       const revocable = RevocableProxy_default(parent.getChildren().filter((sibling) => sibling !== component), {
         get: (target, key, receiver) => {
           if (!siblingsContexts) {
-            siblingsContexts = target.map((child) => createContextsProxy(child, attribute, update));
-            attribute.accessed(component.getId(), "siblings");
+            siblingsContexts = target.map((child) => createContexts(child, attribute, null, options));
+            if (!options || options.accessed) {
+              attribute.accessed(component.getId(), "siblings");
+            }
           }
           if (isNaN(key)) {
             return Reflect.get(siblingsContexts, key, receiver);
@@ -1132,7 +1111,9 @@
         value: revocable.proxy,
         destroy: () => {
           if (siblingsContexts) {
-            siblingsContexts.forEach((child) => child.destroy());
+            siblingsContexts.forEach((child) => {
+              child.destroy();
+            });
           }
           revocable.revoke();
         }
@@ -1142,31 +1123,30 @@
 
   // ../common/src/factories/createState.js
   var createState_default = (name, id, state, proxy) => {
-    return (component, attribute, update) => {
-      const onDelete = (target, path) => update(id, name + "." + path.join("."));
-      const onGet = (target, path) => attribute.accessed(id, name + "." + path.join("."));
-      const onSet = (target, path) => update(id, name + "." + path.join("."));
+    return (_component, attribute, update, options) => {
+      const onDelete = (_target, path) => update(id, `${name}.${path.join(".")}`);
+      const onGet = (_target, path) => {
+        if (!options || options.accessed) {
+          attribute.accessed(id, `${name}.${path.join(".")}`);
+        }
+      };
+      const onSet = (_target, path) => update(id, `${name}.${path.join(".")}`);
       proxy.addEventListener("delete", onDelete);
       proxy.addEventListener("get", onGet);
       proxy.addEventListener("set", onSet);
-      const revocable = RevocableProxy_default(state, {});
       return {
-        value: revocable.proxy,
+        value: state,
         destroy: () => {
           proxy.removeEventListener("delete", onDelete);
           proxy.removeEventListener("get", onGet);
           proxy.removeEventListener("set", onSet);
-          revocable.revoke();
         }
       };
     };
   };
 
   // src/contexts/state.js
-  var state_default = ({
-    stateContextDeconstruct,
-    stateContextName
-  }) => ({
+  var state_default = ({ stateContextDeconstruct, stateContextName }) => ({
     deconstruct: stateContextDeconstruct,
     name: stateContextName,
     create: (component, attribute, update, utilities) => {
@@ -1235,13 +1215,6 @@
     object[path[i]] = value;
   };
 
-  // ../common/src/factories/createStateContext.js
-  var createStateContext_default = (name, id, state, proxy, deconstruct) => ({
-    deconstruct,
-    name,
-    create: createState_default(name, id, state, proxy)
-  });
-
   // src/contexts/store.js
   var store_default = ({
     storeContextDeconstruct,
@@ -1251,94 +1224,69 @@
     const data = deepAssign({}, storeContextInitial);
     const proxy = new ProxyDispatcher;
     const state = proxy.add(data);
-    return createStateContext_default(storeContextName, Symbol("ID_STORE"), state, proxy, storeContextDeconstruct);
+    return {
+      deconstruct: !!storeContextDeconstruct,
+      name: storeContextName,
+      create: createState_default(storeContextName, Symbol("ID_STORE"), state, proxy)
+    };
   };
 
   // src/contexts/watch.js
-  var watch_default = ({
-    watchContextName
-  }) => ({
+  var watch_default = ({ watchContextName }) => ({
     name: watchContextName,
     create: (component, attribute) => {
-      let callbacks = null, contextIsDestroyed = false, directiveIsDestroyed = false, isInitialized = false, processExpression = null;
-      const initialized = () => {
-        isInitialized = true;
-        callbacks = [];
-        const library = component.getLibrary();
-        processExpression = library.getProcessor();
-        const onUpdate = (_, triggers) => {
-          const ids = Object.getOwnPropertySymbols(triggers);
-          if (ids.length > 0) {
-            const newTriggers = [];
-            const contextUpdate = (id, path) => {
-              newTriggers.push({
-                id,
-                path
-              });
-            };
-            for (const id of ids) {
-              for (const callback of callbacks) {
-                if (!callback.attribute) {
-                  callback.attribute = attribute.clone();
-                  processExpression(component, callback.attribute, callback.path);
-                }
-                if (callback.attribute.hasAccessed(id, triggers[id])) {
-                  const {
-                    contexts,
-                    destroy
-                  } = createContexts(component, attribute, contextUpdate, {});
-                  callback.callback(contexts);
-                  destroy();
-                  continue;
+      let callbacks = null, contextIsDestroyed = false, directiveIsDestroyed = false, isInitialized = false;
+      const componentId = component.getId();
+      const initialize = () => {
+        if (!isInitialized) {
+          isInitialized = true;
+          callbacks = [];
+          const library = component.getLibrary();
+          const onUpdate = (_, triggers) => {
+            const ids = Object.getOwnPropertySymbols(triggers);
+            if (ids.length > 0) {
+              for (const id of ids) {
+                if (id === componentId) {
+                  for (const callbackData of callbacks) {
+                    if (triggers[id].includes(callbackData.path)) {
+                      const { contexts, destroy } = createContexts(component, attribute);
+                      callbackData.callback(contexts);
+                      destroy();
+                    }
+                  }
                 }
               }
             }
-            if (newTriggers.length > 0) {
-              component.getLibrary().update(newTriggers);
+          };
+          const stopHandling = () => {
+            if (!directiveIsDestroyed) {
+              directiveIsDestroyed = true;
+              attribute.removeEventListener("changed", stopHandling);
+              attribute.removeEventListener("destroyed", stopHandling);
+              library.removeEventListener("updating", onUpdate);
             }
-          }
-        };
-        const stopHandling = () => {
-          if (!directiveIsDestroyed) {
-            directiveIsDestroyed = true;
-            attribute.removeEventListener("changed", stopHandling);
-            attribute.removeEventListener("destroyed", stopHandling);
-            library.removeEventListener("updating", onUpdate);
-          }
-        };
-        attribute.addEventListener("changed", stopHandling);
-        attribute.addEventListener("destroyed", stopHandling);
-        library.addEventListener("updating", onUpdate);
+          };
+          attribute.addEventListener("changed", stopHandling);
+          attribute.addEventListener("destroyed", stopHandling);
+          library.addEventListener("updating", onUpdate);
+        }
       };
       return {
         value: (path, callback) => {
           if (contextIsDestroyed || directiveIsDestroyed) {
             return;
           }
-          if (!isInitialized) {
-            initialized();
-          }
+          initialize();
           callbacks.push({
             path,
             callback
           });
-          return () => {
-            const newTriggers = [];
-            const contextUpdate = (id, path2) => {
-              newTriggers.push({
-                id,
-                path: path2
-              });
-            };
-            const {
-              contexts,
-              destroy
-            } = createContexts(component, attribute.clone(), contextUpdate, {});
+          return async () => {
+            const { contexts, destroy } = createContexts(component, attribute, null, {
+              access: false
+            });
             callback(contexts);
             destroy();
-            if (newTriggers.length > 0) {
-              component.getLibrary().update(newTriggers);
-            }
           };
         },
         destroy: () => {
@@ -1435,6 +1383,7 @@
         return;
       }
       element.setAttribute(key, data);
+      element.value = data;
       return;
     }
     if (key === "checked") {
@@ -1447,17 +1396,17 @@
       if (Array.isArray(data)) {
         data = data.join(" ");
       } else if (typeof data === "object") {
-        data = Object.entries(data).filter(([key2, value]) => value).map(([key2]) => key2).join(" ");
+        data = Object.entries(data).filter(([_, value]) => value).map(([key2]) => key2).join(" ");
       }
     }
     if (key === "style") {
       if (Array.isArray(data)) {
         data = data.join(" ");
       } else if (typeof data === "object") {
-        data = Object.entries(data).map(([key2, value]) => key2 + ":" + value).join(";");
+        data = Object.entries(data).filter(([_, value]) => value).map(([key2, value]) => `${key2}:${value}`).join(";");
       }
     }
-    if (data === false || data === null || data === undefined) {
+    if (data === false || data === null || data === undefined || data === "") {
       element.removeAttribute(key);
     } else {
       element.setAttribute(key, data);
@@ -1476,9 +1425,7 @@
   };
 
   // src/directives/attribute.js
-  var attribute_default = ({
-    attributeDirectiveName
-  }) => ({
+  var attribute_default = ({ attributeDirectiveName }) => ({
     name: attributeDirectiveName,
     update: (component, attribute, processExpression) => {
       const directive = attribute.getDirective();
@@ -1530,27 +1477,29 @@
       return;
     }
     const transitionDirectiveName = libraryOptions.prefix + TRANSITION_NAME + type;
-    const dispatchEvent = (phase) => {
-      element.dispatchEvent(new CustomEvent("transition-" + phase));
-      element.dispatchEvent(new CustomEvent("transition-" + type + "-" + phase));
-    };
-    let name, value, timeout, requestFrame;
-    let isDone = false;
     const selectors = {};
-    name = transitionDirectiveName;
-    value = element.getAttribute(name);
+    const value = element.getAttribute(transitionDirectiveName);
     if (value) {
       selectors.during = parseSelector(value);
       addAttributes(element, selectors.during);
     }
-    name = transitionDirectiveName + ".from";
-    value = element.getAttribute(name);
-    if (value) {
-      selectors.from = parseSelector(value);
+    const valueFrom = element.getAttribute(`${transitionDirectiveName}.from`);
+    if (valueFrom) {
+      selectors.from = parseSelector(valueFrom);
       addAttributes(element, selectors.from);
     }
-    dispatchEvent("start");
-    requestFrame = requestAnimationFrame(() => {
+    const valueTo = element.getAttribute(`${transitionDirectiveName}.to`);
+    if (valueTo) {
+      selectors.to = parseSelector(valueTo);
+    }
+    if (!value && !valueFrom && !valueTo) {
+      if (callback) {
+        callback();
+      }
+      return;
+    }
+    let isDone = false, timeout;
+    let requestFrame = requestAnimationFrame(() => {
       requestFrame = null;
       if (isDone) {
         return;
@@ -1559,13 +1508,9 @@
         removeAttributes(element, selectors.from);
         selectors.from = undefined;
       }
-      name = transitionDirectiveName + ".to";
-      value = element.getAttribute(name);
-      if (value) {
-        selectors.to = parseSelector(value);
+      if (valueTo) {
         addAttributes(element, selectors.to);
       } else if (!selectors.during) {
-        dispatchEvent("end");
         if (callback) {
           callback();
         }
@@ -1573,6 +1518,7 @@
         return;
       }
       const styles = getComputedStyle(element);
+      const delay = Number(styles.transitionDelay.replace(/,.*/, "").replace("s", "")) * 1000;
       let duration = Number(styles.transitionDuration.replace(/,.*/, "").replace("s", "")) * 1000;
       if (duration === 0) {
         duration = Number(styles.animationDuration.replace("s", "")) * 1000;
@@ -1590,12 +1536,11 @@
           removeAttributes(element, selectors.to);
           selectors.to = undefined;
         }
-        dispatchEvent("end");
         if (callback) {
           callback();
         }
         isDone = true;
-      }, duration);
+      }, delay + duration);
     });
     return () => {
       if (!isDone) {
@@ -1620,7 +1565,6 @@
         clearTimeout(timeout);
         timeout = null;
       }
-      dispatchEvent("end");
       if (callback) {
         callback();
       }
@@ -1634,14 +1578,12 @@
   };
 
   // src/directives/cloak.js
-  var cloak_default = ({
-    cloakDirectiveName
-  }) => ({
+  var cloak_default = ({ cloakDirectiveName }) => ({
     name: cloakDirectiveName,
     update: (component, attribute) => {
       const element = attribute.getElement();
       const libraryOptions = component.getLibrary().getOptions();
-      element.removeAttribute(libraryOptions.prefix + "-" + null.name);
+      element.removeAttribute(attribute.getName());
       transitionIn(libraryOptions, element);
     }
   });
@@ -1676,7 +1618,9 @@
       if (i >= names.length) {
         break;
       }
-      variables[names[i]] = values[i];
+      if (names[i] !== undefined) {
+        variables[names[i]] = values[i];
+      }
     }
     return variables;
   };
@@ -1703,6 +1647,10 @@
       return;
     }
     const element = document.importNode(template.content, true).firstElementChild;
+    if (!element) {
+      console.warn("Unable to get element from for template");
+      return;
+    }
     const sibling = index === -1 ? template : elements[index];
     sibling.insertAdjacentElement("afterend", element);
     if (allowInlineScript) {
@@ -1729,10 +1677,7 @@
       });
     }
   };
-  var for_default2 = ({
-    allowInlineScript,
-    forDirectiveName
-  }) => ({
+  var for_default2 = ({ allowInlineScript, forDirectiveName }) => ({
     name: forDirectiveName,
     update: (component, attribute, processExpression) => {
       const directive = attribute.getDirective();
@@ -1744,7 +1689,7 @@
       }
       const expression = parseForExpression(attribute.getValue());
       if (!expression) {
-        console.error('Doars: Error in "' + directive + '" expression: ', attribute.getValue());
+        console.error(`Doars: Error in "${directive}" expression: `, attribute.getValue());
         return;
       }
       const triggers = {};
@@ -1753,7 +1698,7 @@
           triggers[id] = ["$for"];
         }
       };
-      const set = (iterable) => {
+      const setFor = (iterable) => {
         const data2 = attribute.getData();
         const elements = data2.elements ? data2.elements : [];
         const iterableType = typeof iterable;
@@ -1819,10 +1764,10 @@
           if (attribute.getData().result !== result) {
             return;
           }
-          set(resultResolved);
+          setFor(resultResolved);
         });
       } else {
-        set(result);
+        setFor(result);
       }
     },
     destroy: (component, attribute) => {
@@ -1889,7 +1834,7 @@
     } else if (typeof newTree !== "object") {
       throw new Error("New tree should be an object.");
     }
-    if (options && options.childrenOnly || newTree.nodeType === 11) {
+    if (options?.childrenOnly || newTree.nodeType === 11) {
       _updateChildren(existingTree, newTree);
       return existingTree;
     }
@@ -1946,7 +1891,7 @@
     if (!newTree) {
       return null;
     }
-    if (existingTree.isSameNode && existingTree.isSameNode(newTree)) {
+    if (existingTree.isSameNode?.(newTree)) {
       return existingTree;
     }
     if (existingTree.tagName !== newTree.tagName) {
@@ -1956,6 +1901,7 @@
     _updateChildren(existingTree, newTree);
     return existingTree;
   };
+  var setBefore = typeof window !== "undefined" && window.Element?.prototype?.moveBefore ? "moveBefore" : "insertBefore";
   var _updateChildren = (existingNode, newNode) => {
     let existingChild, newChild, morphed, existingMatch;
     let offset = 0;
@@ -1989,7 +1935,7 @@
           if (morphed !== existingMatch) {
             offset++;
           }
-          existingNode.insertBefore(morphed, existingChild);
+          existingNode[setBefore](morphed, existingChild);
         } else if (!newChild.id && !existingChild.id) {
           morphed = _updateTree(existingChild, newChild);
           if (morphed !== existingChild) {
@@ -1997,7 +1943,7 @@
             offset++;
           }
         } else {
-          existingNode.insertBefore(newChild, existingChild);
+          existingNode[setBefore](newChild, existingChild);
           offset++;
         }
       }
@@ -2005,16 +1951,13 @@
   };
 
   // src/directives/html.js
-  var html_default = ({
-    allowInlineScript,
-    htmlDirectiveName
-  }) => ({
+  var html_default = ({ allowInlineScript, htmlDirectiveName }) => ({
     name: htmlDirectiveName,
     update: (component, attribute, processExpression) => {
       const directive = attribute.getDirective();
       const element = attribute.getElement();
       const modifiers = attribute.getModifiers();
-      const set = (html) => {
+      const setHtml = (html) => {
         if (modifiers.decode) {
           html = decode(html);
         }
@@ -2058,7 +2001,7 @@
           }
           return;
         }
-        console.error('Doars: Unknown type returned to "' + directive + '" directive.');
+        console.error(`Doars: Unknown type returned to "${directive}" directive.`);
       };
       const result = processExpression(component, attribute, attribute.getValue());
       attribute.setData(result);
@@ -2067,19 +2010,16 @@
           if (attribute.getData() !== result) {
             return;
           }
-          set(resultResolved);
+          setHtml(resultResolved);
         });
       } else {
-        set(result);
+        setHtml(result);
       }
     }
   });
 
   // src/directives/if.js
-  var if_default = ({
-    allowInlineScript,
-    ifDirectiveName
-  }) => ({
+  var if_default = ({ allowInlineScript, ifDirectiveName }) => ({
     name: ifDirectiveName,
     update: (component, attribute, processExpression) => {
       const libraryOptions = component.getLibrary().getOptions();
@@ -2087,14 +2027,14 @@
       const modifiers = attribute.getModifiers();
       const template = attribute.getElement();
       if (template.tagName !== "TEMPLATE") {
-        console.warn('Doars: "' + directive + '" must be placed on a `<template>`.');
+        console.warn(`Doars: "${directive}" must be placed on a \`<template>\`.`);
         return;
       }
       if (template.childCount > 1) {
-        console.warn('Doars: "' + directive + '" must have one child.');
+        console.warn(`Doars: "${directive}" must have one child.`);
         return;
       }
-      const set = (result2) => {
+      const setIf = (result2) => {
         const data2 = attribute.getData();
         let element = data2.element;
         let transition2 = data2.transition;
@@ -2112,11 +2052,15 @@
             transition2();
           }
           element = document.importNode(template.content, true).firstElementChild;
-          template.insertAdjacentElement("afterend", element);
-          if (allowInlineScript || modifiers.script) {
-            readdScripts(element);
+          if (element) {
+            template.insertAdjacentElement("afterend", element);
+            if (allowInlineScript || modifiers.script) {
+              readdScripts(element);
+            }
+            transition2 = transitionIn(libraryOptions, element);
+          } else {
+            console.warn("Unable to get element from if template");
           }
-          transition2 = transitionIn(libraryOptions, element);
         }
         attribute.setData(Object.assign({}, data2, {
           element,
@@ -2133,15 +2077,13 @@
           if (attribute.getData().result !== result2) {
             return;
           }
-          set(result2);
+          setIf(result2);
         });
       } else {
-        set(result);
+        setIf(result);
       }
     },
-    destroy: (component, attribute, {
-      transitionOut: transitionOut2
-    }) => {
+    destroy: (component, attribute, { transitionOut: transitionOut2 }) => {
       const data = attribute.getData();
       if (data.element) {
         transitionOut2(component.getLibrary().getOptions(), data.element, () => {
@@ -2152,39 +2094,37 @@
   });
 
   // src/directives/initialized.js
+  var EVENT_NAME = "updated";
   var INITIALIZED = Symbol("INITIALIZED");
   var destroy = (component, attribute) => {
     if (!attribute[INITIALIZED]) {
       return;
     }
-    const element = component.getElement();
-    const name = component.getLibrary().getOptions().prefix + "-updated";
-    element.removeEventListener(name, attribute[INITIALIZED].handler);
+    const library = component.getLibrary();
+    const name = "updated";
+    library.removeEventListener(name, attribute[INITIALIZED].handler);
     delete attribute[INITIALIZED];
   };
-  var initialized_default = ({
-    initializedDirectiveName
-  }) => ({
+  var initialized_default = ({ initializedDirectiveName }) => ({
     name: initializedDirectiveName,
     update: (component, attribute, processExpression) => {
-      const element = component.getElement();
+      const library = component.getLibrary();
       const value = attribute.getValue();
-      const name = component.getLibrary().getOptions().prefix + "-updated";
       if (attribute[INITIALIZED]) {
         if (attribute[INITIALIZED].value === value) {
           return;
         }
-        element.removeEventListener(name, attribute[INITIALIZED].handler);
+        library.removeEventListener(EVENT_NAME, attribute[INITIALIZED].handler);
         delete attribute[INITIALIZED];
       }
-      const handler = ({ detail }) => {
-        if (detail.element !== element) {
-          return;
-        }
-        processExpression(component, attribute.clone(), value, {}, { return: false });
+      const handler = () => {
+        processExpression(component, attribute, value, null, {
+          access: false,
+          return: false
+        });
         destroy(component, attribute);
       };
-      element.addEventListener(name, handler, {
+      library.addEventListener(EVENT_NAME, handler, {
         once: true
       });
       attribute[INITIALIZED] = {
@@ -2211,21 +2151,14 @@
     THROTTLE: 5,
     DELAY: 6
   };
-  var KEYPRESS_MODIFIERS = [
-    "alt",
-    "ctrl",
-    "meta",
-    "shift"
-  ];
-  var on_default = ({
-    onDirectiveName
-  }) => ({
+  var KEYPRESS_MODIFIERS = ["alt", "ctrl", "meta", "shift"];
+  var on_default = ({ onDirectiveName }) => ({
     name: onDirectiveName,
     update: (component, attribute, processExpression) => {
       const directive = attribute.getDirective();
       let eventName = attribute.getKeyRaw();
       if (!eventName) {
-        console.warn('Doars: "' + directive + '" directive must have a key.');
+        console.warn(`Doars: "${directive}" directive must have a key.`);
         return;
       }
       let key;
@@ -2248,7 +2181,7 @@
         }
         delete attribute[ON];
       }
-      const modifiers = attribute.getModifiers();
+      const modifiers = Object.assign({}, attribute.getModifiers());
       const listenerOptions = {};
       if (modifiers.capture) {
         listenerOptions.capture = true;
@@ -2321,7 +2254,7 @@
         }
         if ((eventName === "keydown" || eventName === "keyup") && key) {
           for (const keypressModifier of keypressModifiers) {
-            if (!event[keypressModifier + "Key"]) {
+            if (!event[`${keypressModifier}Key`]) {
               return;
             }
           }
@@ -2341,10 +2274,13 @@
           event.stopPropagation();
         }
         const execute = () => {
-          processExpression(component, attribute.clone(), value, {
+          processExpression(component, attribute, value, {
             $event: event,
             $events: attribute[ON].buffer
-          }, { return: false });
+          }, {
+            access: false,
+            return: false
+          });
           attribute[ON].buffer = [];
         };
         attribute[ON].buffer.push(event);
@@ -2362,8 +2298,8 @@
             }
             attribute[ON].timeout = setTimeout(execute, modifiers.debounce);
             return;
-          case EXECUTION_MODIFIERS.HELD:
-            if (!(eventName in CANCEL_EVENTS)) {
+          case EXECUTION_MODIFIERS.HELD: {
+            if (!Object.hasOwn(CANCEL_EVENTS, eventName)) {
               console.warn('Doars: "' + directive + '" directive, event of name "' + eventName + '" is not cancelable and can not have "held" modifier.');
               return;
             }
@@ -2376,7 +2312,7 @@
               }
               if (cancelHeldName === "keyup" && key) {
                 for (const keypressModifier of keypressModifiers) {
-                  if (!cancelEvent[keypressModifier + "Key"]) {
+                  if (!cancelEvent[`${keypressModifier}Key`]) {
                     attribute[ON].prevent = false;
                     return;
                   }
@@ -2402,10 +2338,13 @@
               execute();
             };
             attribute[ON].prevent = true;
-            target.addEventListener(cancelHeldName, attribute[ON].cancel, { once: true });
+            target.addEventListener(cancelHeldName, attribute[ON].cancel, {
+              once: true
+            });
             return;
-          case EXECUTION_MODIFIERS.HOLD:
-            if (!(eventName in CANCEL_EVENTS)) {
+          }
+          case EXECUTION_MODIFIERS.HOLD: {
+            if (!Object.hasOwn(CANCEL_EVENTS, eventName)) {
               console.warn('Doars: "' + directive + '" directive, event of name "' + eventName + '" is not cancelable and can not have "hold" modifier.');
               return;
             }
@@ -2414,7 +2353,7 @@
               if (cancelHoldName === "keyup" && key) {
                 let keyLetGo = false;
                 for (const keypressModifier of keypressModifiers) {
-                  if (!cancelEvent[keypressModifier + "Key"]) {
+                  if (!cancelEvent[`${keypressModifier}Key`]) {
                     keyLetGo = true;
                   }
                 }
@@ -2441,7 +2380,9 @@
               }
               clearTimeout(attribute[ON].timeout);
             };
-            target.addEventListener(cancelHoldName, attribute[ON].cancel, { once: true });
+            target.addEventListener(cancelHoldName, attribute[ON].cancel, {
+              once: true
+            });
             attribute[ON].prevent = true;
             attribute[ON].timeout = setTimeout(() => {
               target.removeEventListener(cancelHoldName, attribute[ON].cancel);
@@ -2449,7 +2390,8 @@
               execute();
             }, modifiers.hold);
             return;
-          case EXECUTION_MODIFIERS.THROTTLE:
+          }
+          case EXECUTION_MODIFIERS.THROTTLE: {
             const nowThrottle = window.performance.now();
             if (attribute[ON].lastExecution && nowThrottle - attribute[ON].lastExecution < modifiers.throttle) {
               return;
@@ -2457,6 +2399,7 @@
             execute();
             attribute[ON].lastExecution = nowThrottle;
             return;
+          }
           case EXECUTION_MODIFIERS.DELAY:
             attribute[ON].prevent = true;
             attribute[ON].timeout = setTimeout(() => {
@@ -2478,7 +2421,7 @@
         prevent: false
       };
     },
-    destroy: (component, attribute) => {
+    destroy: (_component, attribute) => {
       if (!attribute[ON]) {
         return;
       }
@@ -2510,14 +2453,12 @@
     if (Object.keys(component[REFERENCES]).length === 0) {
       delete component[REFERENCES];
     }
-    library.update([{
+    library.update({
       id: componentId,
-      path: "$references." + name
-    }]);
+      path: `$references.${name}`
+    });
   };
-  var reference_default = ({
-    referenceDirectiveName
-  }) => ({
+  var reference_default = ({ referenceDirectiveName }) => ({
     name: referenceDirectiveName,
     update: (component, attribute, processExpression) => {
       const library = component.getLibrary();
@@ -2525,9 +2466,7 @@
       const directive = attribute.getDirective();
       const element = attribute.getElement();
       const attributeId = attribute.getId();
-      const {
-        referenceDirectiveEvaluate
-      } = library.getOptions();
+      const { referenceDirectiveEvaluate } = library.getOptions();
       let name = attribute.getValue();
       name = referenceDirectiveEvaluate ? processExpression(component, attribute, name) : name.trim();
       if (!name || typeof name !== "string" || !/^[_$a-z]{1}[_\-$a-z0-9]{0,}$/i.test(name)) {
@@ -2543,10 +2482,10 @@
         name
       };
       delete component[REFERENCES_CACHE];
-      library.update([{
+      library.update({
         id: componentId,
-        path: "$references." + name
-      }]);
+        path: `$references.${name}`
+      });
     },
     destroy: destroy2
   });
@@ -2556,9 +2495,7 @@
   var CHECKED = "checked";
   var SELECTED = "selected";
   var TYPE_CHECKBOX = "checkbox";
-  var select_default = ({
-    selectDirectiveName
-  }) => ({
+  var select_default = ({ selectDirectiveName }) => ({
     name: selectDirectiveName,
     update: (component, attribute, processExpression) => {
       const element = attribute.getElement();
@@ -2568,7 +2505,7 @@
         console.warn('Doars: "' + directive + '" directive must be placed on a `select` tag or `input` of type checkbox or radio.');
         return;
       }
-      const set = (data) => {
+      const setSelect = (data) => {
         if (element.tagName === TAG_SELECT) {
           for (const option of Array.from(element.options)) {
             const select = Array.isArray(data) ? data.includes(option.value) : data === option.value;
@@ -2608,30 +2545,28 @@
           if (attribute.getData() !== result) {
             return;
           }
-          set(resultResolved);
+          setSelect(resultResolved);
         });
       } else {
-        set(result);
+        setSelect(result);
       }
     }
   });
 
   // src/directives/show.js
-  var show_default = ({
-    showDirectiveName
-  }) => ({
+  var show_default = ({ showDirectiveName }) => ({
     name: showDirectiveName,
     update: (component, attribute, processExpression) => {
       const libraryOptions = component.getLibrary().getOptions();
       const element = attribute.getElement();
-      const set = () => {
+      const setShow = () => {
         const data2 = attribute.getData();
         if (data2.transition) {
           data2.transition();
         }
         let transition2;
         if (data2.result) {
-          element.style.display = null;
+          element.style.display = "";
           transition2 = transitionIn(libraryOptions, element);
         } else {
           transition2 = transitionOut(libraryOptions, element, () => {
@@ -2652,22 +2587,20 @@
           if (attribute.getData().result !== result) {
             return;
           }
-          set(resultResolved);
+          setShow(resultResolved);
         });
       } else if (!data || data.result !== result) {
         attribute.setData(Object.assign({}, data, {
           result
         }));
-        set();
+        setShow();
       }
     }
   });
 
   // src/directives/sync.js
   var SYNC = Symbol("SYNC");
-  var sync_default = ({
-    syncDirectiveName
-  }) => ({
+  var sync_default = ({ syncDirectiveName }) => ({
     name: syncDirectiveName,
     update: (component, attribute, processExpression) => {
       const element = attribute.getElement();
@@ -2682,7 +2615,7 @@
       let value = attribute.getValue().trim();
       const key = attribute.getKey();
       if (key) {
-        value = "$" + key + "." + value;
+        value = `$${key}.${value}`;
       }
       if (!/^[_$a-z]{1}[._$a-z0-9]{0,}$/i.test(value)) {
         console.warn('Doars: "' + directive + `" directive's value not a valid variable name "` + value + '".');
@@ -2694,15 +2627,19 @@
         switch (element.tagName) {
           case "DIV":
             handler = () => {
-              const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone());
+              const { contexts, destroy: destroy3 } = createContexts(component, attribute, null, {
+                access: false
+              });
               setDeeply(contexts, valueSplit, escapeHtml(element.innerText));
-              destroyContexts();
+              destroy3();
             };
             break;
           case "INPUT":
             handler = () => {
               const elementValue = escapeHtml(element.value);
-              const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone());
+              const { contexts, destroy: destroy3 } = createContexts(component, attribute, null, {
+                access: false
+              });
               if (element.type === "checkbox") {
                 const dataValue2 = getDeeply(contexts, valueSplit);
                 if (element.checked) {
@@ -2730,19 +2667,23 @@
               } else {
                 setDeeply(contexts, valueSplit, elementValue);
               }
-              destroyContexts();
+              destroy3();
             };
             break;
           case "TEXTAREA":
             handler = () => {
-              const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone());
+              const { contexts, destroy: destroy3 } = createContexts(component, attribute, null, {
+                access: false
+              });
               setDeeply(contexts, valueSplit, escapeHtml(element.innerText));
-              destroyContexts();
+              destroy3();
             };
             break;
           case "SELECT":
             handler = () => {
-              const [contexts, destroyContexts] = createAutoContexts(component, attribute.clone());
+              const { contexts, destroy: destroy3 } = createContexts(component, attribute, null, {
+                access: false
+              });
               if (element.multiple) {
                 const elementValues = [];
                 for (const option of element.selectedOptions) {
@@ -2752,14 +2693,14 @@
               } else {
                 setDeeply(contexts, valueSplit, escapeHtml(element.selectedOptions[0].value));
               }
-              destroyContexts();
+              destroy3();
             };
             break;
         }
         element.addEventListener("input", handler);
         attribute[SYNC] = handler;
       }
-      const dataValue = processExpression(component, attribute.clone(), value);
+      const dataValue = processExpression(component, attribute, value);
       switch (element.tagName) {
         case "DIV":
         case "TEXTAREA":
@@ -2809,7 +2750,7 @@
           break;
       }
     },
-    destroy: (component, attribute) => {
+    destroy: (_component, attribute) => {
       if (!attribute[SYNC]) {
         return;
       }
@@ -2820,20 +2761,22 @@
   });
 
   // src/directives/text.js
-  var text_default = ({
-    textDirectiveName
-  }) => ({
+  var text_default = ({ textDirectiveName }) => ({
     name: textDirectiveName,
     update: (component, attribute, processExpression) => {
       const element = attribute.getElement();
       const modifiers = attribute.getModifiers();
-      const set = (text) => {
-        if (modifiers.content) {
-          if (element.textContent !== text) {
-            element.textContent = text;
+      const setText = (text) => {
+        const textType = typeof text;
+        if (textType !== "string") {
+          text = String(text);
+        }
+        if (modifiers.inner) {
+          if (element.innerText !== text) {
+            element.innerText = text;
           }
-        } else if (element.innerText !== text) {
-          element.innerText = text;
+        } else if (element.textContent !== text) {
+          element.textContent = text;
         }
       };
       const result = processExpression(component, attribute, attribute.getValue());
@@ -2843,31 +2786,28 @@
           if (attribute.getData() !== result) {
             return;
           }
-          set(resultResolved);
+          setText(resultResolved);
         });
       } else {
-        set(result);
+        setText(result);
       }
     }
   });
 
   // src/directives/watch.js
-  var watch_default2 = ({
-    watchDirectiveName
-  }) => ({
+  var watch_default2 = ({ watchDirectiveName }) => ({
     name: watchDirectiveName,
-    update: (component, attribute, processExpression) => processExpression(component, attribute.clone(), attribute.getValue(), {}, { return: false })
+    update: (component, attribute, processExpression) => processExpression(component, attribute, attribute.getValue(), null, {
+      access: false,
+      return: false
+    })
   });
 
   // src/Doars.js
   class Doars extends EventDispatcher {
     constructor(options) {
       super();
-      let {
-        prefix,
-        processor,
-        root
-      } = options = Object.assign({
+      let { prefix, processor, root, ignoreDirectiveName, stateDirectiveName } = options = Object.assign({
         prefix: "d",
         processor: "execute",
         root: document.body,
@@ -2939,9 +2879,8 @@
         return;
       }
       const id = Symbol("ID_DOARS");
-      let isEnabled = false, isUpdating = false, mutations, observer, triggers;
-      const components = [];
-      const contextsBase = {}, contexts = [
+      let isEnabled = false, isUpdating = false, updatePromise = null, mutations, observer, triggers;
+      const components = [], contextsBase = {}, contexts = [
         children_default(options),
         component_default(options),
         element_default(options),
@@ -2958,6 +2897,7 @@
         state_default(options),
         for_default(options)
       ];
+      let contextsByName;
       const directives = [
         reference_default(options),
         attribute_default(options),
@@ -2974,12 +2914,13 @@
         watch_default2(options)
       ];
       let directivesNames, directivesObject, directivesRegexp;
+      const componentName = `${prefix}-${stateDirectiveName}`, ignoreName = `${prefix}-${ignoreDirectiveName}`;
       const processorType = typeof processor;
       let processExpression;
       if (processorType === "function") {
         processExpression = processor;
-      } else if (processorType === "string" && this.constructor[processor + "Expression"]) {
-        processExpression = this.constructor[processor + "Expression"];
+      } else if (processorType === "string" && this.constructor[`${processor}Expression`]) {
+        processExpression = this.constructor[`${processor}Expression`];
       } else {
         console.warn("Doars: Expression processor not found. Using fallback instead.");
         processExpression = this.constructor.executeExpression ?? this.constructor.interpretExpression ?? this.constructor.callExpression;
@@ -2991,7 +2932,7 @@
         return id;
       };
       this.getOptions = () => {
-        return Object.assign({}, options);
+        return options;
       };
       this.getEnabled = () => {
         return isEnabled;
@@ -3005,11 +2946,19 @@
         triggers = {};
         this.dispatchEvent("enabling", [this]);
         isEnabled = true;
-        directivesNames = directives.map((directive) => directive.name);
+        contextsByName = {};
+        for (const context of contexts) {
+          contextsByName[context.name] = context;
+        }
+        contextsByName = Object.freeze(contextsByName);
+        directivesNames = [];
         directivesObject = {};
         for (const directive of directives) {
+          directivesNames.push(directive.name);
           directivesObject[directive.name] = directive;
         }
+        directivesNames = Object.freeze(directivesNames);
+        directivesObject = Object.freeze(directivesObject);
         directivesRegexp = new RegExp("^" + prefix + "-(" + directivesNames.join("|") + ")(?:[$-_.a-z0-9]{0,})?$", "i");
         observer = new MutationObserver(handleMutation.bind(this));
         observer.observe(root, {
@@ -3017,15 +2966,11 @@
           childList: true,
           subtree: true
         });
-        const {
-          stateDirectiveName,
-          ignoreDirectiveName
-        } = this.getOptions();
-        const componentName = prefix + "-" + stateDirectiveName;
-        const ignoreName = prefix + "-" + ignoreDirectiveName;
-        const componentElements = [...root.querySelectorAll("[" + componentName + "]")];
+        const componentElements = [
+          ...root.querySelectorAll(`[${componentName}]`)
+        ];
         for (let i = componentElements.length - 1;i >= 0; i--) {
-          if (componentElements[i].closest("[" + ignoreName + "]")) {
+          if (componentElements[i].closest(`[${ignoreName}]`)) {
             componentElements.splice(i, 1);
           }
         }
@@ -3040,10 +2985,15 @@
         }
         observer.disconnect();
         observer = null;
-        isUpdating = mutations = triggers = null;
+        isUpdating = false;
+        mutations = [];
+        triggers = {};
         this.dispatchEvent("disabling", [this], { reverse: true });
         removeComponents(...components);
-        directivesNames = directivesObject = directivesRegexp = null;
+        directivesNames = [];
+        directivesObject = {};
+        directivesRegexp = null;
+        contextsByName = {};
         isEnabled = false;
         this.dispatchEvent("disabled", [this], { reverse: true });
         return this;
@@ -3070,7 +3020,7 @@
           component.initialize();
         }
         for (const component of results) {
-          component.updateAttributes(component.getAttributes());
+          component.updateAllAttributes();
         }
         return results;
       };
@@ -3108,13 +3058,14 @@
       this.setSimpleContexts = (contexts2) => {
         const result = {};
         for (const name in contexts2) {
-          if (Object.hasOwnProperty.call(contexts2, name)) {
+          if (Object.hasOwn(contexts2, name)) {
             result[name] = this.setSimpleContext(name, contexts2[name]);
           }
         }
         return result;
       };
       this.getContexts = () => [...contexts];
+      this.getContextsByName = () => contextsByName;
       this.addContexts = (index, ..._contexts) => {
         if (isEnabled) {
           console.warn("Doars: Unable to add contexts after being enabled!");
@@ -3159,8 +3110,8 @@
         return results;
       };
       this.getDirectives = () => [...directives];
-      this.getDirectivesNames = () => [...directivesNames];
-      this.getDirectivesObject = () => Object.assign({}, directivesObject);
+      this.getDirectivesNames = () => directivesNames;
+      this.getDirectivesObject = () => directivesObject;
       this.isDirectiveName = (attributeName) => directivesRegexp.test(attributeName);
       this.addDirectives = (index, ..._directives) => {
         if (isEnabled) {
@@ -3182,7 +3133,6 @@
           results.push(directive);
         }
         if (results.length > 0) {
-          directivesNames = directivesObject = directivesRegexp = null;
           this.dispatchEvent("directives-added", [this, results]);
         }
         return results;
@@ -3202,7 +3152,6 @@
           results.push(directive);
         }
         if (results.length > 0) {
-          directivesNames = directivesObject = directivesRegexp = null;
           this.dispatchEvent("directives-removed", [this, results]);
         }
         return results;
@@ -3210,34 +3159,39 @@
       this.getProcessor = () => {
         return processExpression;
       };
-      this.update = (_triggers) => {
+      this.update = async (_triggers) => {
         if (!isEnabled) {
           return;
         }
         if (_triggers) {
-          for (const trigger of _triggers) {
-            const {
-              id: id2,
-              path
-            } = trigger;
-            if (!(id2 in triggers)) {
-              triggers[id2] = [
-                path
-              ];
-              continue;
+          if (Array.isArray(_triggers)) {
+            for (const trigger of _triggers) {
+              const { id: id2, path } = trigger;
+              if (!Object.hasOwn(triggers, id2)) {
+                triggers[id2] = [path];
+              } else if (!triggers[id2].includes(path)) {
+                triggers[id2].push(path);
+              }
             }
-            if (!triggers[id2].includes(path)) {
+          } else {
+            const { id: id2, path } = _triggers;
+            if (!Object.hasOwn(triggers, id2)) {
+              triggers[id2] = [path];
+            } else if (!triggers[id2].includes(path)) {
               triggers[id2].push(path);
             }
           }
         }
         if (isUpdating) {
+          await updatePromise;
           return;
         }
         if (Object.getOwnPropertySymbols(triggers).length === 0) {
           return;
         }
         isUpdating = true;
+        updatePromise = Promise.resolve();
+        await updatePromise;
         _triggers = Object.freeze(triggers);
         triggers = {};
         this.dispatchEvent("updating", [this, _triggers]);
@@ -3245,34 +3199,33 @@
           component.update(_triggers);
         }
         isUpdating = false;
+        updatePromise = null;
         if (Object.getOwnPropertySymbols(triggers).length > 0) {
           console.warn("Doars: during an update another update has been triggered. This should not happen unless an expression in one of the directives is causing a infinite loop by mutating the state.");
-          window.requestAnimationFrame(() => this.update());
+          await this.update();
           return;
         }
         if (mutations.length > 0) {
-          handleMutation();
+          await handleMutation();
           return;
         }
         this.dispatchEvent("updated", [this, _triggers]);
       };
-      const handleMutation = (newMutations) => {
-        mutations.push(...newMutations);
+      const handleMutation = async (newMutations) => {
+        if (newMutations) {
+          mutations.push(...newMutations);
+        }
         if (isUpdating) {
-          return;
+          return updatePromise;
         }
         if (mutations.length === 0) {
           return;
         }
         isUpdating = true;
-        newMutations = [...mutations];
+        updatePromise = Promise.resolve();
+        await updatePromise;
+        newMutations = mutations;
         mutations = [];
-        const {
-          stateDirectiveName,
-          ignoreDirectiveName
-        } = this.getOptions();
-        const componentName = prefix + "-" + stateDirectiveName;
-        const ignoreName = prefix + "-" + ignoreDirectiveName;
         const componentsToAdd = [];
         const componentsToRemove = [];
         const remove = (element) => {
@@ -3309,13 +3262,13 @@
           if (element.nodeType !== 1) {
             return;
           }
-          const ignoreParent = element.closest("[" + ignoreName + "]");
+          const ignoreParent = element.closest(`[${ignoreName}]`);
           if (ignoreParent) {
             return;
           }
-          const componentElements = element.querySelectorAll("[" + componentName + "]");
+          const componentElements = element.querySelectorAll(`[${componentName}]`);
           for (const componentElement of componentElements) {
-            const ignoreParent2 = componentElement.closest("[" + ignoreName + "]");
+            const ignoreParent2 = componentElement.closest(`[${ignoreName}]`);
             if (ignoreParent2) {
               continue;
             }
@@ -3373,16 +3326,19 @@
               continue;
             }
             let attribute = null;
-            for (const targetAttribute of element[ATTRIBUTES]) {
-              if (targetAttribute.getName() === mutation.attributeName) {
-                attribute = targetAttribute;
-                break;
+            if (element[ATTRIBUTES]) {
+              for (const targetAttribute of element[ATTRIBUTES]) {
+                if (targetAttribute.getName() === mutation.attributeName) {
+                  attribute = targetAttribute;
+                  break;
+                }
               }
             }
             const value = element.getAttribute(mutation.attributeName);
             if (!attribute) {
               if (value) {
-                component.addAttribute(element, mutation.attributeName, value);
+                attribute = component.addAttribute(element, mutation.attributeName, value);
+                component.updateAttribute(attribute);
               }
               continue;
             }
@@ -3397,12 +3353,14 @@
           addComponents(...componentsToAdd);
         }
         isUpdating = false;
+        updatePromise = null;
         if (mutations.length > 0) {
-          handleMutation();
+          console.warn("Doars: during a mutation another mutation has been triggered. This should not happen unless an expression in one of the directives is causing a infinite loop by mutating the document.");
+          await handleMutation();
           return;
         }
         if (Object.getOwnPropertySymbols(triggers).length > 0) {
-          this.update();
+          await this.update();
         }
       };
     }
@@ -3411,10 +3369,7 @@
   // src/utilities/Call.js
   var PATH_VALIDATOR = /^[a-z$_]+[0-9a-z$_]*(?:\.[a-z$_]+[0-9a-z$_]*)*$/is;
   var call = (component, attribute, expression, extra = null, options = null) => {
-    options = Object.assign({
-      return: true
-    }, options);
-    const [contexts, destroyContexts] = createAutoContexts(component, attribute, extra);
+    const { contexts, destroy: destroy3 } = createContexts(component, attribute, extra, options);
     expression = expression.trim();
     let result;
     if (!PATH_VALIDATOR.test(expression)) {
@@ -3427,13 +3382,13 @@
           result = result(contexts);
         } catch (error) {
           console.error("ExpressionError in:", expression, `
-` + error.name + ": " + error.message);
+${error.name}: ${error.message}`);
           result = null;
         }
       }
     }
-    destroyContexts();
-    if (options.return) {
+    destroy3();
+    if (!options || options?.return) {
       return result;
     }
   };
@@ -3446,4 +3401,4 @@
   window.Doars = DoarsCall_default;
 })();
 
-//# debugId=80B38A1B4533AF1B64756E2164756E21
+//# debugId=942C89EE539DD2A364756E2164756E21

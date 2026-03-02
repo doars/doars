@@ -1,8 +1,5 @@
-import { createAutoContexts } from './Context.js'
-import {
-  parse,
-  run,
-} from '@doars/interpret'
+import { parse, run } from "@doars/interpret";
+import { createContexts } from "./Context.js";
 
 /**
  * @typedef {import('../Attribute.js').default} Attribute
@@ -15,47 +12,55 @@ import {
  * @param {Attribute} attribute Instance of the attribute.
  * @param {string} expression Expression to execute.
  * @param {object|null} extra Optional extra context items.
- * @param {object|null} options Optional options object.
+ * @param {object|null} options Optional options for the expression, for example whether a value needs to be returned, or whether access needs to be logged to the attribute.
  * @returns {any} Result of expression.
  */
 export const interpret = (
-  component,
-  attribute,
-  expression,
-  extra = null,
-  options = null,
+	component,
+	attribute,
+	expression,
+	extra = null,
+	options = null,
 ) => {
-  // Override default with given options.
-  options = Object.assign({
-    return: true,
-  }, options)
+	const { contexts, destroy } = createContexts(
+		component,
+		attribute,
+		extra,
+		options,
+	);
 
-  // Create contexts.
-  const [contexts, destroyContexts] = createAutoContexts(component, attribute, extra)
+	// Get result from the expression.
+	let result;
+	try {
+		const expressionParsed = parse(expression);
+		if (
+			(!options || options?.return) &&
+			expressionParsed &&
+			expressionParsed.length > 1
+		) {
+			throw new Error(
+				'Unable to return a single value from a compound expression of: "' +
+					expression +
+					'".',
+			);
+		}
+		result = run(expressionParsed, contexts);
+	} catch (error) {
+		console.error(
+			"ExpressionError in:",
+			expression,
+			`\n${error.name}: ${error.message}`,
+		);
+		result = null;
+	}
 
-  // Get result from the expression.
-  let result
-  try {
-    const expressionParsed = parse(expression)
-    if (options.return && expressionParsed && expressionParsed.length > 1) {
-      throw new Error('Unable to return a single value from a compound expression of: "' + expression + '".')
-    }
-    result = run(expressionParsed, contexts)
-  } catch (error) {
-    console.error('ExpressionError in:', expression, '\n' + error.name + ': ' + error.message)
-    result = null
-  }
+	destroy();
 
-  // Cleanup contexts.
-  destroyContexts()
-
-  // Unwrap results.
-  if (options.return && result) {
-    result = result[0]
-    return result
-  }
-}
+	if (!options || options?.return) {
+		return result;
+	}
+};
 
 export default {
-  interpret,
-}
+	interpret,
+};

@@ -1,32 +1,42 @@
-import ProxyDispatcher from '@doars/common/src/events/ProxyDispatcher.js'
-import createStateContext from '@doars/common/src/factories/createStateContext.js'
+import ProxyDispatcher from "@doars/common/src/events/ProxyDispatcher.js";
+import createState from "@doars/common/src/factories/createState.js";
 
-import { getAll } from '../utilities/sessionStorage.js'
+import { getAll } from "../utilities/sessionStorage.js";
 
 export default ({
-  sessionStorageContextDeconstruct,
-  sessionStorageContextName,
+	sessionStorageContextDeconstruct,
+	sessionStorageContextName,
 }) => {
-  // Setup proxy that updates to local storage.
-  const proxy = new ProxyDispatcher()
-  proxy.addEventListener('delete', (target, path) => {
-    if (path.length > 1) {
-      console.warn('Nested local storage impossible tried to set "' + path.join('.') + '".')
-    }
-    sessionStorage.removeItem(path[0])
-  })
-  proxy.addEventListener('set', (target, path) => {
-    if (path.length > 1) {
-      console.warn('Nested local storage impossible tried to set "' + path.join('.') + '".')
-    }
-    sessionStorage.setItem(path[0], target[path[0]])
-  })
+	// Setup proxy that updates to local storage.
+	const proxy = new ProxyDispatcher();
+	proxy.addEventListener("delete", (_target, path) => {
+		if (path.length > 1) {
+			console.warn(
+				`Nested local storage impossible tried to set "${path.join(".")}".`,
+			);
+		}
+		sessionStorage.removeItem(path[0]);
+	});
+	proxy.addEventListener("set", (target, path) => {
+		if (path.length > 1) {
+			console.warn(
+				`Nested local storage impossible tried to set "${path.join(".")}".`,
+			);
+		}
+		sessionStorage.setItem(path[0], target[path[0]]);
+	});
+	const state = proxy.add(getAll());
 
-  return createStateContext(
-    sessionStorageContextName,
-    Symbol('ID_LOCAL_STORAGE'),
-    proxy.add(getAll()),
-    proxy,
-    !!sessionStorageContextDeconstruct,
-  )
-}
+	return {
+		deconstruct: !!sessionStorageContextDeconstruct,
+
+		name: sessionStorageContextName,
+
+		create: createState(
+			sessionStorageContextName,
+			Symbol("ID_LOCAL_STORAGE"),
+			state,
+			proxy,
+		),
+	};
+};

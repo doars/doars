@@ -10,6 +10,7 @@
 | [@doars/doars-cookies](https://github.com/doars/doars/tree/main/packages/doars-cookies#readme)             | 2.x     | :x:                |
 | [@doars/doars-fetch](https://github.com/doars/doars/tree/main/packages/doars-fetch#readme)                 | 3.x     | :white_check_mark: |
 | [@doars/doars-intersect](https://github.com/doars/doars/tree/main/packages/doars-intersect#readme)         | 3.x     | :white_check_mark: |
+| [@doars/doars-ipc](https://github.com/doars/doars/tree/main/packages/doars-ipc#readme)                     | 3.x     | :white_check_mark: |
 | [@doars/doars-local-storage](https://github.com/doars/doars/tree/main/packages/doars-local-storage#readme) | 2.x     | :x:                |
 | [@doars/doars-morph](https://github.com/doars/doars/tree/main/packages/doars-morph#readme)                 | 2.x     | :x:                |
 | [@doars/doars-navigate](https://github.com/doars/doars/tree/main/packages/doars-navigate#readme)           | 3.x     | :white_check_mark: |

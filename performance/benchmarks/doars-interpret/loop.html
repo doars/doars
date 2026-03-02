@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+
+  <body>
+    <button type="button" data-purpose="setup">Setup</button>
+    <button type="button" data-purpose="run" hidden>Run</button>
+    <div data-purpose="results"></div>
+
+    <div d-state="{ messages: [] }">
+      <ul>
+        <template d-for="todo in todos">
+          <li d-attribute:class="todo.completed ? 'completed' : ''">
+            <span d-text="todo.text + ' (' + (todo.completed ? 'completed' : 'pending') + ')'"></span>
+            <button type="button" d-on:click.capture="todo.completed = !todo.completed">Toggle</button>
+          </li>
+        </template>
+      </ul>
+    </div>
+
+    <script src="../../dst/doars-interpret.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const setupButton = document.querySelector('[data-purpose="setup"]')
+        const runButton = document.querySelector('[data-purpose="run"]')
+        const results = document.querySelector('[data-purpose="results"]')
+        const rootNode = document.querySelector('[d-state]')
+
+        const complexity = 1e3
+
+        const todos = [];
+        for (let i = 0; i < complexity; i++) {
+          todos.push({
+            text: `todo ${i}`,
+            id: i,
+            completed: false,
+          });
+        }
+        rootNode.setAttribute(
+          "d-state",
+          JSON.stringify({
+            todos,
+          }),
+        );
+
+        const benchmark = async (method) => {
+          const startMemory = performance.memory?.usedJSHeapSize || 0;
+  				const startTime = performance.now()
+
+          await method()
+
+          return {
+            time: performance.now() - startTime,
+            memory: (performance.memory?.usedJSHeapSize || 0) - startMemory,
+          }
+        }
+
+        let doars
+        const setup = async () => {
+          doars = new window.Doars({
+            processor: 'interpret',
+          })
+          await doars.enable()
+        }
+
+        let buttons
+        const run = async () => {
+          const event = new CustomEvent("click");
+          for (let i = 0; i < complexity; i++) {
+            buttons[i].dispatchEvent(event);
+          }
+          await doars.update();
+        }
+
+        setupButton.addEventListener('click', async () => {
+          const setupResult = await benchmark(setup)
+          buttons = Array.from(rootNode.querySelectorAll("button"));
+          setupButton.setAttribute('hidden', true)
+          runButton.removeAttribute('hidden')
+
+          results.innerHTML = `
+            <table>
+              <tbody>
+                <tr>
+                  <td></td>
+                  <td>Time</td>
+                  <td>Memory</td>
+                </tr>
+                <tr>
+                  <td>Setup</td>
+                  <td>${setupResult.time.toFixed(2)}</td>
+                  <td>${(setupResult.memory / (1024 * 1024)).toFixed(3)}mb</td>
+                </tr>
+              </tbody>
+            </table>
+          `
+
+          const runResults = []
+          runButton.addEventListener('click', async () => {
+            runResults.push(
+              await benchmark(run)
+            )
+            results.innerHTML = `
+              <table>
+                <tbody>
+                  <tr>
+                    <td></td>
+                    <td>Time</td>
+                    <td>Memory</td>
+                  </tr>
+                  <tr>
+                    <td>Setup</td>
+                    <td>${setupResult.time.toFixed(2)}</td>
+                    <td>${(setupResult.memory / (1024 * 1024)).toFixed(3)}mb</td>
+                  </tr>
+                  ${runResults.map((runResult, index) => `
+                    <tr>
+                      <td>Run #${(index + 1).toString()}</td>
+                      <td>${runResult.time.toFixed(2)}</td>
+                      <td>${(runResult.memory / (1024 * 1024)).toFixed(3)}mb</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            `
+          })
+        })
+      })
+    </script>
+  </body>
+
+</html>

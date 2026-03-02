@@ -8,16 +8,11 @@
  * @param {DoarsOptions} options Library options.
  * @returns {Context} The context.
  */
-export default ({
-  elementContextName,
-}) => ({
-  name: elementContextName,
+export default ({ elementContextName }) => ({
+	name: elementContextName,
 
-  create: (
-    component,
-    attribute,
-  ) => ({
-    // Return the attribute's element.
-    value: attribute.getElement(),
-  }),
-})
+	create: (_component, attribute) => ({
+		// Return the attribute's element.
+		value: attribute.getElement(),
+	}),
+});

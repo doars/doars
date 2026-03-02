@@ -1,4 +1,4 @@
-import { isPromise } from '@doars/common/src/utilities/Promise.js'
+import { isPromise } from "@doars/common/src/utilities/Promise.js";
 
 /**
  * @typedef {import('../Directive.js').Directive} Directive
@@ -10,56 +10,53 @@ import { isPromise } from '@doars/common/src/utilities/Promise.js'
  * @param {DoarsOptions} options Library options.
  * @returns {Directive} The directive.
  */
-export default ({
-  textDirectiveName,
-}) => ({
-  name: textDirectiveName,
+export default ({ textDirectiveName }) => ({
+	name: textDirectiveName,
 
-  update: (
-    component,
-    attribute,
-    processExpression,
-  ) => {
-    // Deconstruct attribute.
-    const element = attribute.getElement()
-    const modifiers = attribute.getModifiers()
+	update: (component, attribute, processExpression) => {
+		// Deconstruct attribute.
+		const element = attribute.getElement();
+		const modifiers = attribute.getModifiers();
 
-    const set = (text) => {
-      // Assign text.
-      if (modifiers.content) {
-        if (element.textContent !== text) {
-          element.textContent = text
-        }
-      } else if (element.innerText !== text) {
-        element.innerText = text
-      }
-    }
+		const setText = (text) => {
+			// Make sure it is text.
+			const textType = typeof text;
+			if (textType !== "string") {
+				text = String(text);
+			}
 
-    // Execute value and retrieve result.
-    const result = processExpression(
-      component,
-      attribute,
-      attribute.getValue(),
-    )
+			// Assign text.
+			if (modifiers.inner) {
+				if (element.innerText !== text) {
+					element.innerText = text;
+				}
+			} else if (element.textContent !== text) {
+				element.textContent = text;
+			}
+		};
 
-    // Store results.
-    attribute.setData(result)
+		// Execute value and retrieve result.
+		const result = processExpression(
+			component,
+			attribute,
+			attribute.getValue(),
+		);
 
-    // Handle promises.
-    if (isPromise(result)) {
-      Promise.resolve(result)
-        .then((
-          resultResolved,
-        ) => {
-          // If stored data has changed then this promise should be ignored.
-          if (attribute.getData() !== result) {
-            return
-          }
+		// Store results.
+		attribute.setData(result);
 
-          set(resultResolved)
-        })
-    } else {
-      set(result)
-    }
-  },
-})
+		// Handle promises.
+		if (isPromise(result)) {
+			Promise.resolve(result).then((resultResolved) => {
+				// If stored data has changed then this promise should be ignored.
+				if (attribute.getData() !== result) {
+					return;
+				}
+
+				setText(resultResolved);
+			});
+		} else {
+			setText(result);
+		}
+	},
+});

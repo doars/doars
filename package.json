@@ -1,18 +1,21 @@
 {
-  "private": true,
-  "name": "@doars/doars-workspace",
-  "workspaces": [
-    "docs-src/",
-    "packages/*"
-  ],
-  "type": "module",
-  "scripts": {
-    "build": "bun --filter=\"./packages/*\" run build",
-    "serve": "bun ./scripts/srv.js ./"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.49.1",
-    "brotli-size": "^4.0.0"
-  },
-  "dependencies": {}
+	"private": true,
+	"name": "@doars/doars-workspace",
+	"workspaces": [
+		"docs-src/",
+		"packages/*",
+		"performance/"
+	],
+	"type": "module",
+	"scripts": {
+		"build": "bun --filter=\"./packages/*\" run build",
+		"check": "bun --filter=\"./packages/*\" run check",
+		"check:write": "bun --filter=\"./packages/*\" run check:write",
+		"serve": "bun ./helpers/serve.js ./"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.4",
+		"brotli-size": "^4.0.0",
+		"happy-dom": "^20.7.0"
+	}
 }

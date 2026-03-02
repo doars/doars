@@ -1,30 +1,31 @@
 // src/contexts/update.js
-var update_default = ({
-  updateContextName
-}, updater) => {
+var update_default = ({ updateContextName }, updater) => {
   const id = updater.getId();
   const proxy = updater.getProxy();
   const time = updater.getTime();
   return {
     name: updateContextName,
-    create: (component, attribute) => {
-      const onGet = (target, path) => attribute.accessed(id, path.join("."));
-      proxy.addEventListener("get", onGet);
+    create: (_component, attribute, _update, options) => {
+      let destroy = null;
+      if (!options || options.accessed) {
+        const onGet = (_target, path) => {
+          attribute.accessed(id, path.join("."));
+        };
+        proxy.addEventListener("get", onGet);
+        destroy = () => {
+          proxy.removeEventListener("get", onGet);
+        };
+      }
       return {
         value: time,
-        destroy: () => {
-          proxy.removeEventListener("get", onGet);
-        }
+        destroy
       };
     }
   };
 };
 
 // src/directives/update.js
-var update_default2 = ({
-  defaultOrder,
-  updateDirectiveName
-}) => {
+var update_default2 = ({ defaultOrder, updateDirectiveName }) => {
   const itemIds = [];
   const items = [];
   const directive = {
@@ -34,7 +35,7 @@ var update_default2 = ({
         directive._execute = processExpression;
       }
       const id = attribute.getId();
-      if (itemIds.indexOf(id) >= 0) {
+      if (itemIds.includes(id)) {
         return;
       }
       let { order } = attribute.getModifiers();
@@ -54,7 +55,7 @@ var update_default2 = ({
         order
       });
     },
-    destroy: (component, attribute) => {
+    destroy: (_component, attribute) => {
       const id = attribute.getId();
       const index = itemIds.indexOf(id);
       if (index >= 0) {
@@ -73,7 +74,8 @@ var update_default2 = ({
     directive,
     () => {
       for (const item of items) {
-        directive._execute(item.component, item.attribute.clone(), item.attribute.getValue(), {}, {
+        directive._execute(item.component, item.attribute, item.attribute.getValue(), null, {
+          access: false,
           return: false
         });
       }
@@ -97,18 +99,29 @@ var PROXY_TRAPS = [
   "set",
   "setPrototypeOf"
 ];
-var RevocableProxy_default = (target, handler) => {
+var RevocableProxy_default = (target, handler, options = {}) => {
+  options = Object.assign({
+    irrevocable: []
+  }, options);
   let revoked = false;
   const revocableHandler = {};
   for (const key of PROXY_TRAPS) {
     revocableHandler[key] = (...parameters) => {
+      const [localTarget, ...localParameters] = parameters;
       if (revoked) {
-        return;
+        for (const key2 of Object.keys(localTarget)) {
+          if (!options.irrevocable || !options.irrevocable.includes(key2)) {
+            localTarget[key2] = undefined;
+          }
+        }
       }
       if (key in handler) {
-        return handler[key](...parameters);
+        const trap = handler[key];
+        if (typeof trap === "function") {
+          return trap(localTarget, ...localParameters);
+        }
       }
-      return Reflect[key](...parameters);
+      return Reflect[key](localTarget, ...localParameters);
     };
   }
   return {
@@ -167,8 +180,8 @@ class EventDispatcher {
       }
       const eventData = events[name];
       for (let i = 0;i < eventData.length; i++) {
-        const event = options && options.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
-        if (event.options && event.options.once) {
+        const event = options?.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
+        if (event.options?.once) {
           eventData.splice(i, 1);
         }
         event.callback(...parameters);
@@ -205,7 +218,10 @@ class ProxyDispatcher extends EventDispatcher {
           this.remove(target2, key);
           const deleted = Reflect.deleteProperty(target2, key);
           if (deleted) {
-            this.dispatchEvent("delete", [target2, Array.isArray(target2) ? [...path] : [...path, key]]);
+            this.dispatchEvent("delete", [
+              target2,
+              Array.isArray(target2) ? [...path] : [...path, key]
+            ]);
           }
           return deleted;
         };
@@ -227,12 +243,17 @@ class ProxyDispatcher extends EventDispatcher {
             value = this.add(value, [...path, key]);
           }
           target2[key] = value;
-          this.dispatchEvent("set", [target2, Array.isArray(target2) ? [...path] : [...path, key], value, receiver]);
+          this.dispatchEvent("set", [
+            target2,
+            Array.isArray(target2) ? [...path] : [...path, key],
+            value,
+            receiver
+          ]);
           return true;
         };
       }
       const revocable = RevocableProxy_default(target, handler);
-      map.set(revocable, target);
+      map.set(target, revocable);
       return revocable.proxy;
     };
     this.remove = (target) => {
@@ -240,7 +261,7 @@ class ProxyDispatcher extends EventDispatcher {
         return;
       }
       const revocable = map.get(target);
-      map.delete(revocable);
+      map.delete(target);
       for (const property in revocable.proxy) {
         if (typeof revocable.proxy[property] === "object") {
           this.remove(revocable.proxy[property]);
@@ -253,9 +274,7 @@ class ProxyDispatcher extends EventDispatcher {
 
 // src/Updater.js
 class Updater {
-  constructor({
-    stepMinimum
-  }, callback) {
+  constructor({ stepMinimum }, callback) {
     const id = Symbol("ID_UPDATE");
     let isEnabled = false, request;
     const proxy = new ProxyDispatcher({
@@ -331,19 +350,24 @@ function DoarsUpdate_default(library, options = null) {
   let isEnabled = false;
   const updater = new Updater(options, () => {
     update();
-    library.update([{
-      id: updater.getId(),
-      path: "current"
-    }, {
-      id: updater.getId(),
-      path: "delta"
-    }, {
-      id: updater.getId(),
-      path: "last"
-    }, {
-      id: updater.getId(),
-      path: "passed"
-    }]);
+    library.update([
+      {
+        id: updater.getId(),
+        path: "current"
+      },
+      {
+        id: updater.getId(),
+        path: "delta"
+      },
+      {
+        id: updater.getId(),
+        path: "last"
+      },
+      {
+        id: updater.getId(),
+        path: "passed"
+      }
+    ]);
   });
   const contextUpdate = update_default(options, updater);
   const [directiveUpdate, update] = update_default2(options);
@@ -377,4 +401,4 @@ export {
   DoarsUpdate_default as default
 };
 
-//# debugId=42BD5F4AA32011AF64756E2164756E21
+//# debugId=8C336D44FE5F5FD364756E2164756E21

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+
+  <body>
+    <div d-state="{}"></div>
+
+    <script src="../../../dst/doars.iife.js"></script>
+    <script>
+      // Wait for the DOM to be interactive.
+      document.addEventListener('DOMContentLoaded', () => {
+        // Setup a library instance.
+        const doars = new window.Doars()
+
+        // Listen to event and log parameters.
+        doars.addEventListener('disabled', (...parameters) => {
+          console.log('disabled', ...parameters)
+        })
+
+        // Enable library.
+        doars.enable()
+
+        // Disable library.
+        doars.disable()
+      })
+    </script>
+  </body>
+
+</html>

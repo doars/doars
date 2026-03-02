@@ -1,7 +1,5 @@
-// Import polyfill.
-import RevocableProxy from '@doars/common/src/polyfills/RevocableProxy.js'
-
-import { createContextsProxy } from '../utilities/Context.js'
+import RevocableProxy from "@doars/common/src/polyfills/RevocableProxy.js";
+import { createContexts } from "../utilities/Context.js";
 
 /**
  * @typedef {import('../Context.js').Context} Context
@@ -13,54 +11,54 @@ import { createContextsProxy } from '../utilities/Context.js'
  * @param {DoarsOptions} options Library options.
  * @returns {Context} The context.
  */
-export default ({
-  childrenContextName,
-}) => ({
-  name: childrenContextName,
+export default ({ childrenContextName }) => ({
+	name: childrenContextName,
 
-  create: (
-    component,
-    attribute,
-    update,
-  ) => {
-    // Create contexts proxy for children.
-    let childrenContexts
-    const revocable = RevocableProxy(component.getChildren(), {
-      get: (target, key, receiver) => {
-        if (!childrenContexts) {
-          // Create list of child contexts.
-          childrenContexts = target.map((child) => createContextsProxy(child, attribute, update))
+	create: (component, attribute, _update, options) => {
+		// Create contexts proxy for children.
+		let childrenContexts;
+		const revocable = RevocableProxy(component.getChildren(), {
+			get: (target, key, receiver) => {
+				if (!childrenContexts) {
+					// Create list of child contexts.
+					childrenContexts = target.map((child) =>
+						createContexts(child, attribute, null, options),
+					);
 
-          // Set children of this component as accessed.
-          attribute.accessed(component.getId(), 'children')
-        }
+					// Set children of this component as accessed.
+					if (!options || options.accessed) {
+						attribute.accessed(component.getId(), "children");
+					}
+				}
 
-        // If not a number then do a normal access.
-        if (isNaN(key)) {
-          return Reflect.get(childrenContexts, key, receiver)
-        }
+				// If not a number then do a normal access.
+				// biome-ignore lint/suspicious/noGlobalIsNan: Intentional coercion
+				if (isNaN(key)) {
+					return Reflect.get(childrenContexts, key, receiver);
+				}
 
-        // Return context from child.
-        const child = Reflect.get(childrenContexts, key, receiver)
-        if (child) {
-          return child.contexts
-        }
-      },
-    })
+				// Return context from child.
+				const child = Reflect.get(childrenContexts, key, receiver);
+				if (child) {
+					return child.contexts;
+				}
+			},
+		});
 
-    return {
-      value: revocable.proxy,
+		return {
+			value: revocable.proxy,
 
-      destroy: (
-      ) => {
-        // Call destroy on all created contexts.
-        if (childrenContexts) {
-          childrenContexts.forEach((child) => child.destroy())
-        }
+			destroy: () => {
+				// Call destroy on all created contexts.
+				if (childrenContexts) {
+					childrenContexts.forEach((child) => {
+						child.destroy();
+					});
+				}
 
-        // Revoke proxy.
-        revocable.revoke()
-      },
-    }
-  },
-})
+				// Revoke proxy.
+				revocable.revoke();
+			},
+		};
+	},
+});

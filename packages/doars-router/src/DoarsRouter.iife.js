@@ -1,3 +1,3 @@
-import DoarsRouter from './DoarsRouter.js'
+import DoarsRouter from "./DoarsRouter.js";
 
-window.DoarsRouter = DoarsRouter
+window.DoarsRouter = DoarsRouter;

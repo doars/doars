@@ -14,18 +14,29 @@ var PROXY_TRAPS = [
   "set",
   "setPrototypeOf"
 ];
-var RevocableProxy_default = (target, handler) => {
+var RevocableProxy_default = (target, handler, options = {}) => {
+  options = Object.assign({
+    irrevocable: []
+  }, options);
   let revoked = false;
   const revocableHandler = {};
   for (const key of PROXY_TRAPS) {
     revocableHandler[key] = (...parameters) => {
+      const [localTarget, ...localParameters] = parameters;
       if (revoked) {
-        return;
+        for (const key2 of Object.keys(localTarget)) {
+          if (!options.irrevocable || !options.irrevocable.includes(key2)) {
+            localTarget[key2] = undefined;
+          }
+        }
       }
       if (key in handler) {
-        return handler[key](...parameters);
+        const trap = handler[key];
+        if (typeof trap === "function") {
+          return trap(localTarget, ...localParameters);
+        }
       }
-      return Reflect[key](...parameters);
+      return Reflect[key](localTarget, ...localParameters);
     };
   }
   return {
@@ -84,8 +95,8 @@ class EventDispatcher {
       }
       const eventData = events[name];
       for (let i = 0;i < eventData.length; i++) {
-        const event = options && options.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
-        if (event.options && event.options.once) {
+        const event = options?.reverse ? eventData[eventData.length - (i + 1)] : eventData[i];
+        if (event.options?.once) {
           eventData.splice(i, 1);
         }
         event.callback(...parameters);
@@ -122,7 +133,10 @@ class ProxyDispatcher extends EventDispatcher {
           this.remove(target2, key);
           const deleted = Reflect.deleteProperty(target2, key);
           if (deleted) {
-            this.dispatchEvent("delete", [target2, Array.isArray(target2) ? [...path] : [...path, key]]);
+            this.dispatchEvent("delete", [
+              target2,
+              Array.isArray(target2) ? [...path] : [...path, key]
+            ]);
           }
           return deleted;
         };
@@ -144,12 +158,17 @@ class ProxyDispatcher extends EventDispatcher {
             value = this.add(value, [...path, key]);
           }
           target2[key] = value;
-          this.dispatchEvent("set", [target2, Array.isArray(target2) ? [...path] : [...path, key], value, receiver]);
+          this.dispatchEvent("set", [
+            target2,
+            Array.isArray(target2) ? [...path] : [...path, key],
+            value,
+            receiver
+          ]);
           return true;
         };
       }
       const revocable = RevocableProxy_default(target, handler);
-      map.set(revocable, target);
+      map.set(target, revocable);
       return revocable.proxy;
     };
     this.remove = (target) => {
@@ -157,7 +176,7 @@ class ProxyDispatcher extends EventDispatcher {
         return;
       }
       const revocable = map.get(target);
-      map.delete(revocable);
+      map.delete(target);
       for (const property in revocable.proxy) {
         if (typeof revocable.proxy[property] === "object") {
           this.remove(revocable.proxy[property]);
@@ -170,32 +189,27 @@ class ProxyDispatcher extends EventDispatcher {
 
 // ../common/src/factories/createState.js
 var createState_default = (name, id, state, proxy) => {
-  return (component, attribute, update) => {
-    const onDelete = (target, path) => update(id, name + "." + path.join("."));
-    const onGet = (target, path) => attribute.accessed(id, name + "." + path.join("."));
-    const onSet = (target, path) => update(id, name + "." + path.join("."));
+  return (_component, attribute, update, options) => {
+    const onDelete = (_target, path) => update(id, `${name}.${path.join(".")}`);
+    const onGet = (_target, path) => {
+      if (!options || options.accessed) {
+        attribute.accessed(id, `${name}.${path.join(".")}`);
+      }
+    };
+    const onSet = (_target, path) => update(id, `${name}.${path.join(".")}`);
     proxy.addEventListener("delete", onDelete);
     proxy.addEventListener("get", onGet);
     proxy.addEventListener("set", onSet);
-    const revocable = RevocableProxy_default(state, {});
     return {
-      value: revocable.proxy,
+      value: state,
       destroy: () => {
         proxy.removeEventListener("delete", onDelete);
         proxy.removeEventListener("get", onGet);
         proxy.removeEventListener("set", onSet);
-        revocable.revoke();
       }
     };
   };
 };
-
-// ../common/src/factories/createStateContext.js
-var createStateContext_default = (name, id, state, proxy, deconstruct) => ({
-  deconstruct,
-  name,
-  create: createState_default(name, id, state, proxy)
-});
 
 // src/utilities/cookies.js
 var _cache = null;
@@ -211,7 +225,7 @@ var getAll = () => {
 var set = (name, value = "", days = 60) => {
   name = name.trim();
   if (!value || value === "") {
-    document.cookie = name + "=; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Path=/; SameSite=Strict;";
+    document.cookie = `${name}=; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Path=/; SameSite=Strict;`;
     if (_cache !== null) {
       delete _cache[name];
     }
@@ -220,29 +234,31 @@ var set = (name, value = "", days = 60) => {
     if (days) {
       const date = new Date;
       date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-      expires = "; expires=" + date.toUTCString();
+      expires = `; expires=${date.toUTCString()}`;
     }
-    document.cookie = name + "=" + encodeURIComponent(value) + expires + "; Path=/; SameSite=Strict;";
+    document.cookie = `${name}=${encodeURIComponent(value)}${expires}; Path=/; SameSite=Strict;`;
     getAll();
     _cache[name] = value;
   }
 };
 
 // src/contexts/cookies.js
-var cookies_default = ({
-  cookiesContextDeconstruct,
-  cookiesContextName
-}) => {
+var cookies_default = ({ cookiesContextDeconstruct, cookiesContextName }) => {
   const proxy = new ProxyDispatcher;
   const onMutate = (target, path) => {
     if (path.length > 1) {
-      console.warn('Nested cookies impossible tried to set "' + path.join(".") + '".');
+      console.warn(`Nested cookies impossible tried to set "${path.join(".")}".`);
     }
     set(path[0], target[path[0]]);
   };
   proxy.addEventListener("delete", onMutate);
   proxy.addEventListener("set", onMutate);
-  return createStateContext_default(cookiesContextName, Symbol("ID_COOKIES"), proxy.add(getAll()), proxy, !!cookiesContextDeconstruct);
+  const state = proxy.add(getAll());
+  return {
+    deconstruct: !!cookiesContextDeconstruct,
+    name: cookiesContextName,
+    create: createState_default(cookiesContextName, Symbol("ID_COOKIES"), state, proxy)
+  };
 };
 
 // src/utilities/localStorage.js
@@ -261,19 +277,24 @@ var localStorage_default = ({
   localStorageContextName
 }) => {
   const proxy = new ProxyDispatcher;
-  proxy.addEventListener("delete", (target, path) => {
+  proxy.addEventListener("delete", (_target, path) => {
     if (path.length > 1) {
-      console.warn('Nested local storage impossible tried to set "' + path.join(".") + '".');
+      console.warn(`Nested local storage impossible tried to set "${path.join(".")}".`);
     }
     localStorage.removeItem(path[0]);
   });
   proxy.addEventListener("set", (target, path) => {
     if (path.length > 1) {
-      console.warn('Nested local storage impossible tried to set "' + path.join(".") + '".');
+      console.warn(`Nested local storage impossible tried to set "${path.join(".")}".`);
     }
     localStorage.setItem(path[0], target[path[0]]);
   });
-  return createStateContext_default(localStorageContextName, Symbol("ID_LOCAL_STORAGE"), proxy.add(getAll2()), proxy, !!localStorageContextDeconstruct);
+  const state = proxy.add(getAll2());
+  return {
+    deconstruct: !!localStorageContextDeconstruct,
+    name: localStorageContextName,
+    create: createState_default(localStorageContextName, Symbol("ID_LOCAL_STORAGE"), state, proxy)
+  };
 };
 
 // src/utilities/sessionStorage.js
@@ -292,19 +313,24 @@ var sessionStorage_default = ({
   sessionStorageContextName
 }) => {
   const proxy = new ProxyDispatcher;
-  proxy.addEventListener("delete", (target, path) => {
+  proxy.addEventListener("delete", (_target, path) => {
     if (path.length > 1) {
-      console.warn('Nested local storage impossible tried to set "' + path.join(".") + '".');
+      console.warn(`Nested local storage impossible tried to set "${path.join(".")}".`);
     }
     sessionStorage.removeItem(path[0]);
   });
   proxy.addEventListener("set", (target, path) => {
     if (path.length > 1) {
-      console.warn('Nested local storage impossible tried to set "' + path.join(".") + '".');
+      console.warn(`Nested local storage impossible tried to set "${path.join(".")}".`);
     }
     sessionStorage.setItem(path[0], target[path[0]]);
   });
-  return createStateContext_default(sessionStorageContextName, Symbol("ID_LOCAL_STORAGE"), proxy.add(getAll3()), proxy, !!sessionStorageContextDeconstruct);
+  const state = proxy.add(getAll3());
+  return {
+    deconstruct: !!sessionStorageContextDeconstruct,
+    name: sessionStorageContextName,
+    create: createState_default(sessionStorageContextName, Symbol("ID_LOCAL_STORAGE"), state, proxy)
+  };
 };
 
 // src/DoarsPersist.js
@@ -360,4 +386,4 @@ export {
   DoarsPersist_default as default
 };
 
-//# debugId=493A0AA1E28B41A064756E2164756E21
+//# debugId=918C711CDADF9A7D64756E2164756E21

@@ -1,5 +1,5 @@
 // Import symbols.
-import { COMPONENT } from '../symbols.js'
+import { COMPONENT } from "../symbols.js";
 
 /**
  * @typedef {import('../Component.js').default} Component
@@ -10,21 +10,19 @@ import { COMPONENT } from '../symbols.js'
  * @param {HTMLElement} element Element to start searching from.
  * @returns {Component|undefined} Closest component.
  */
-export const closestComponent = (
-  element,
-) => {
-  if (element.parentElement) {
-    element = element.parentElement
+export const closestComponent = (element) => {
+	if (element.parentElement) {
+		element = element.parentElement;
 
-    if (element[COMPONENT]) {
-      /** @type {Component} */
-      return element[COMPONENT]
-    }
+		if (element[COMPONENT]) {
+			/** @type {Component} */
+			return element[COMPONENT];
+		}
 
-    return closestComponent(element)
-  }
-}
+		return closestComponent(element);
+	}
+};
 
 export default {
-  closestComponent,
-}
+	closestComponent,
+};
