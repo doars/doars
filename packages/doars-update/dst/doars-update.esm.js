@@ -35,7 +35,7 @@ var update_default2 = ({ defaultOrder, updateDirectiveName }) => {
         directive._execute = processExpression;
       }
       const id = attribute.getId();
-      if (itemIds.indexOf(id) >= 0) {
+      if (itemIds.includes(id)) {
         return;
       }
       let { order } = attribute.getModifiers();
@@ -110,7 +110,7 @@ var RevocableProxy_default = (target, handler, options = {}) => {
       const [localTarget, ...localParameters] = parameters;
       if (revoked) {
         for (const key2 of Object.keys(localTarget)) {
-          if (!options.irrevocable || options.irrevocable.indexOf(key2) < 0) {
+          if (!options.irrevocable || !options.irrevocable.includes(key2)) {
             localTarget[key2] = undefined;
           }
         }
@@ -401,4 +401,4 @@ export {
   DoarsUpdate_default as default
 };
 
-//# debugId=CA75555D9B066CB864756E2164756E21
+//# debugId=8C336D44FE5F5FD364756E2164756E21

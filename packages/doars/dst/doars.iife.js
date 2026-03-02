@@ -133,7 +133,7 @@
         const [localTarget, ...localParameters] = parameters;
         if (revoked) {
           for (const key2 of Object.keys(localTarget)) {
-            if (!options.irrevocable || options.irrevocable.indexOf(key2) < 0) {
+            if (!options.irrevocable || !options.irrevocable.includes(key2)) {
               localTarget[key2] = undefined;
             }
           }
@@ -493,7 +493,7 @@
       const children = [];
       let parent = closestComponent(element);
       if (parent) {
-        if (parent.getChildren().indexOf(this) < 0) {
+        if (!parent.getChildren().includes(this)) {
           parent.getChildren().push(this);
           library.update({
             id: parent.getId(),
@@ -700,13 +700,13 @@
     }
     const contexts = library.getSimpleContexts();
     for (const key of Object.keys(contexts)) {
-      if (contextsKeysCache.indexOf(key) < 0) {
+      if (!contextsKeysCache.includes(key)) {
         contextsKeysCache.push(key);
       }
     }
     if (hasExtra) {
       for (const key of Object.keys(extra)) {
-        if (contextsKeysCache.indexOf(key) < 0) {
+        if (!contextsKeysCache.includes(key)) {
           contextsKeysCache.push(key);
         }
       }
@@ -733,7 +733,7 @@
           const resultValue = addContext(target, creatableContext);
           if (resultValue) {
             for (const key in resultValue) {
-              if (contextsKeysCache.indexOf(key) < 0) {
+              if (!contextsKeysCache.includes(key)) {
                 contextsKeysCache.push(key);
               }
               target[key] = resultValue[key];
@@ -765,7 +765,7 @@
           return Reflect[functionName](target, key, ...otherParameters);
         }
       }
-      if (createableContextNames.indexOf(key) >= 0) {
+      if (createableContextNames.includes(key)) {
         addContext(target, creatableContexts[key]);
         if (Object.hasOwn(contexts, key)) {
           if (logAccess) {
@@ -780,7 +780,7 @@
         if (!addedDeconstructed) {
           addDeconstruted(target);
         }
-        return contextsKeysCache.indexOf(key) >= 0;
+        return contextsKeysCache.includes(key);
       },
       ownKeys: (target) => {
         if (!addedDeconstructed) {
@@ -1248,7 +1248,7 @@
               for (const id of ids) {
                 if (id === componentId) {
                   for (const callbackData of callbacks) {
-                    if (triggers[id].indexOf(callbackData.path) >= 0) {
+                    if (triggers[id].includes(callbackData.path)) {
                       const { contexts, destroy } = createContexts(component, attribute);
                       callbackData.callback(contexts);
                       destroy();
@@ -2508,7 +2508,7 @@
       const setSelect = (data) => {
         if (element.tagName === TAG_SELECT) {
           for (const option of Array.from(element.options)) {
-            const select = Array.isArray(data) ? data.indexOf(option.value) >= 0 : data === option.value;
+            const select = Array.isArray(data) ? data.includes(option.value) : data === option.value;
             if (option.selected !== select) {
               option.selected = select;
               if (select) {
@@ -2519,7 +2519,7 @@
             }
           }
         } else if (type === TYPE_CHECKBOX) {
-          const checked = data.indexOf(element.value) >= 0;
+          const checked = data.includes(element.value);
           if (element.checked !== checked) {
             if (checked) {
               element.setAttribute(CHECKED, "");
@@ -2646,7 +2646,7 @@
                   if (!dataValue2) {
                     setDeeply(contexts, valueSplit, [elementValue]);
                   }
-                  if (dataValue2.indexOf(element.value) <= 0) {
+                  if (!dataValue2.includes(element.value)) {
                     dataValue2.push(elementValue);
                   }
                 } else if (dataValue2) {
@@ -2710,7 +2710,7 @@
           break;
         case "INPUT":
           if (element.type === "checkbox") {
-            const checked = dataValue.indexOf(element.value) >= 0;
+            const checked = dataValue.includes(element.value);
             if (element.checked !== checked) {
               element.checked = checked;
               if (checked) {
@@ -2737,7 +2737,7 @@
           break;
         case "SELECT":
           for (const option of Array.from(element.options)) {
-            const select = Array.isArray(dataValue) ? dataValue.indexOf(option.value) >= 0 : dataValue === option.value;
+            const select = Array.isArray(dataValue) ? dataValue.includes(option.value) : dataValue === option.value;
             if (option.selected !== select) {
               option.selected = select;
               if (select) {
@@ -3079,7 +3079,7 @@
         const results = [];
         for (let i = 0;i < _contexts.length; i++) {
           const context = _contexts[i];
-          if (contexts.indexOf(context) >= 0) {
+          if (contexts.includes(context)) {
             continue;
           }
           contexts.splice(index + i, 0, context);
@@ -3126,7 +3126,7 @@
         const results = [];
         for (let i = 0;i < _directives.length; i++) {
           const directive = _directives[i];
-          if (directives.indexOf(directive) >= 0) {
+          if (directives.includes(directive)) {
             continue;
           }
           directives.splice(index + i, 0, directive);
@@ -3169,7 +3169,7 @@
               const { id: id2, path } = trigger;
               if (!Object.hasOwn(triggers, id2)) {
                 triggers[id2] = [path];
-              } else if (triggers[id2].indexOf(path) < 0) {
+              } else if (!triggers[id2].includes(path)) {
                 triggers[id2].push(path);
               }
             }
@@ -3177,7 +3177,7 @@
             const { id: id2, path } = _triggers;
             if (!Object.hasOwn(triggers, id2)) {
               triggers[id2] = [path];
-            } else if (triggers[id2].indexOf(path) < 0) {
+            } else if (!triggers[id2].includes(path)) {
               triggers[id2].push(path);
             }
           }
@@ -3391,4 +3391,4 @@ ${error.name}: ${error.message}`);
   window.Doars = DoarsExecute_default;
 })();
 
-//# debugId=8F92B7EF88FB5B6C64756E2164756E21
+//# debugId=A8614959640961D964756E2164756E21

@@ -16,7 +16,7 @@ export default ({ defaultOrder, updateDirectiveName }) => {
 			const id = attribute.getId();
 
 			// Exit early if already in list.
-			if (itemIds.indexOf(id) >= 0) {
+			if (itemIds.includes(id)) {
 				return;
 			}
 

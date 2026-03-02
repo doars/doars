@@ -207,7 +207,7 @@
           value = stack.pop().value;
           left = stack.pop();
           node = {
-            type: ASSIGNMENT_OPERATORS.indexOf(value) >= 0 ? ASSIGN : BINARY,
+            type: ASSIGNMENT_OPERATORS.includes(value) ? ASSIGN : BINARY,
             operator: value,
             left,
             right
@@ -225,7 +225,7 @@
       while (i > 1) {
         value = stack[i - 1].value;
         node = {
-          type: ASSIGNMENT_OPERATORS.indexOf(value) >= 0 ? ASSIGN : BINARY,
+          type: ASSIGNMENT_OPERATORS.includes(value) ? ASSIGN : BINARY,
           operator: value,
           left: stack[i - 2],
           right: node
@@ -522,7 +522,7 @@
       throw new Error("Unclosed (");
     };
     const gobbleSpaces = () => {
-      while (SPACE_CODES.indexOf(expression.charCodeAt(index)) >= 0) {
+      while (SPACE_CODES.includes(expression.charCodeAt(index))) {
         index++;
       }
     };
@@ -686,7 +686,7 @@
         let toCheck = expression.substring(index, index + 1);
         let toCheckLength = toCheck.length;
         while (toCheckLength > 0) {
-          if (UNARY_OPERATORS.indexOf(toCheck) >= 0 && (!isIdentifierStart(expression.charCodeAt(index)) || index + toCheck.length < expression.length && !isIdentifierPart(expression.charCodeAt(index + toCheck.length)))) {
+          if (UNARY_OPERATORS.includes(toCheck) && (!isIdentifierStart(expression.charCodeAt(index)) || index + toCheck.length < expression.length && !isIdentifierPart(expression.charCodeAt(index + toCheck.length)))) {
             index += toCheckLength;
             const parameter = gobbleToken();
             if (!parameter) {
@@ -1117,4 +1117,4 @@
   };
 })();
 
-//# debugId=C36DABAB6F3BA10B64756E2164756E21
+//# debugId=2CD7D5131C98822E64756E2164756E21

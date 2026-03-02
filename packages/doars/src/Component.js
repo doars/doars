@@ -61,7 +61,7 @@ export default class Component {
 		let parent = closestComponent(element);
 		if (parent) {
 			// Add to list of children in parent.
-			if (parent.getChildren().indexOf(this) < 0) {
+			if (!parent.getChildren().includes(this)) {
 				parent.getChildren().push(this);
 
 				// Trigger children update.

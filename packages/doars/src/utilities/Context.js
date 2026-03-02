@@ -61,13 +61,13 @@ export const createContexts = (
 	}
 	const contexts = library.getSimpleContexts();
 	for (const key of Object.keys(contexts)) {
-		if (contextsKeysCache.indexOf(key) < 0) {
+		if (!contextsKeysCache.includes(key)) {
 			contextsKeysCache.push(key);
 		}
 	}
 	if (hasExtra) {
 		for (const key of Object.keys(extra)) {
-			if (contextsKeysCache.indexOf(key) < 0) {
+			if (!contextsKeysCache.includes(key)) {
 				contextsKeysCache.push(key);
 			}
 		}
@@ -104,7 +104,7 @@ export const createContexts = (
 				const resultValue = addContext(target, creatableContext);
 				if (resultValue) {
 					for (const key in resultValue) {
-						if (contextsKeysCache.indexOf(key) < 0) {
+						if (!contextsKeysCache.includes(key)) {
 							contextsKeysCache.push(key);
 						}
 						target[key] = resultValue[key];
@@ -144,7 +144,7 @@ export const createContexts = (
 		}
 
 		// Try to add a missing context by the name of the key.
-		if (createableContextNames.indexOf(key) >= 0) {
+		if (createableContextNames.includes(key)) {
 			addContext(target, creatableContexts[key]);
 
 			if (Object.hasOwn(contexts, key)) {
@@ -161,7 +161,7 @@ export const createContexts = (
 			if (!addedDeconstructed) {
 				addDeconstruted(target);
 			}
-			return contextsKeysCache.indexOf(key) >= 0;
+			return contextsKeysCache.includes(key);
 		},
 		ownKeys: (target) => {
 			if (!addedDeconstructed) {

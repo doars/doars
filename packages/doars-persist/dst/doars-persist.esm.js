@@ -25,7 +25,7 @@ var RevocableProxy_default = (target, handler, options = {}) => {
       const [localTarget, ...localParameters] = parameters;
       if (revoked) {
         for (const key2 of Object.keys(localTarget)) {
-          if (!options.irrevocable || options.irrevocable.indexOf(key2) < 0) {
+          if (!options.irrevocable || !options.irrevocable.includes(key2)) {
             localTarget[key2] = undefined;
           }
         }
@@ -386,4 +386,4 @@ export {
   DoarsPersist_default as default
 };
 
-//# debugId=F8603B3AC360DB5464756E2164756E21
+//# debugId=918C711CDADF9A7D64756E2164756E21

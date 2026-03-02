@@ -206,7 +206,7 @@ var parse_default = (expression) => {
         value = stack.pop().value;
         left = stack.pop();
         node = {
-          type: ASSIGNMENT_OPERATORS.indexOf(value) >= 0 ? ASSIGN : BINARY,
+          type: ASSIGNMENT_OPERATORS.includes(value) ? ASSIGN : BINARY,
           operator: value,
           left,
           right
@@ -224,7 +224,7 @@ var parse_default = (expression) => {
     while (i > 1) {
       value = stack[i - 1].value;
       node = {
-        type: ASSIGNMENT_OPERATORS.indexOf(value) >= 0 ? ASSIGN : BINARY,
+        type: ASSIGNMENT_OPERATORS.includes(value) ? ASSIGN : BINARY,
         operator: value,
         left: stack[i - 2],
         right: node
@@ -521,7 +521,7 @@ var parse_default = (expression) => {
     throw new Error("Unclosed (");
   };
   const gobbleSpaces = () => {
-    while (SPACE_CODES.indexOf(expression.charCodeAt(index)) >= 0) {
+    while (SPACE_CODES.includes(expression.charCodeAt(index))) {
       index++;
     }
   };
@@ -685,7 +685,7 @@ var parse_default = (expression) => {
       let toCheck = expression.substring(index, index + 1);
       let toCheckLength = toCheck.length;
       while (toCheckLength > 0) {
-        if (UNARY_OPERATORS.indexOf(toCheck) >= 0 && (!isIdentifierStart(expression.charCodeAt(index)) || index + toCheck.length < expression.length && !isIdentifierPart(expression.charCodeAt(index + toCheck.length)))) {
+        if (UNARY_OPERATORS.includes(toCheck) && (!isIdentifierStart(expression.charCodeAt(index)) || index + toCheck.length < expression.length && !isIdentifierPart(expression.charCodeAt(index + toCheck.length)))) {
           index += toCheckLength;
           const parameter = gobbleToken();
           if (!parameter) {
@@ -1158,4 +1158,4 @@ export {
   ARRAY2 as ARRAY
 };
 
-//# debugId=47D4492BD8C9E63C64756E2164756E21
+//# debugId=4BA92E443E72DD0C64756E2164756E21

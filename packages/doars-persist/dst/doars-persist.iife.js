@@ -26,7 +26,7 @@
         const [localTarget, ...localParameters] = parameters;
         if (revoked) {
           for (const key2 of Object.keys(localTarget)) {
-            if (!options.irrevocable || options.irrevocable.indexOf(key2) < 0) {
+            if (!options.irrevocable || !options.irrevocable.includes(key2)) {
               localTarget[key2] = undefined;
             }
           }
@@ -388,4 +388,4 @@
   window.DoarsPersist = DoarsPersist_default;
 })();
 
-//# debugId=9BFCFEF5876F984C64756E2164756E21
+//# debugId=218FD27960E25C8164756E2164756E21

@@ -36,7 +36,7 @@
           directive._execute = processExpression;
         }
         const id = attribute.getId();
-        if (itemIds.indexOf(id) >= 0) {
+        if (itemIds.includes(id)) {
           return;
         }
         let { order } = attribute.getModifiers();
@@ -111,7 +111,7 @@
         const [localTarget, ...localParameters] = parameters;
         if (revoked) {
           for (const key2 of Object.keys(localTarget)) {
-            if (!options.irrevocable || options.irrevocable.indexOf(key2) < 0) {
+            if (!options.irrevocable || !options.irrevocable.includes(key2)) {
               localTarget[key2] = undefined;
             }
           }
@@ -403,4 +403,4 @@
   window.DoarsUpdate = DoarsUpdate_default;
 })();
 
-//# debugId=0B9F29F2B63FCFED64756E2164756E21
+//# debugId=F68B4962195DFB1164756E2164756E21

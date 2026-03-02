@@ -60,7 +60,7 @@ var RevocableProxy_default = (target, handler, options = {}) => {
       const [localTarget, ...localParameters] = parameters;
       if (revoked) {
         for (const key2 of Object.keys(localTarget)) {
-          if (!options.irrevocable || options.irrevocable.indexOf(key2) < 0) {
+          if (!options.irrevocable || !options.irrevocable.includes(key2)) {
             localTarget[key2] = undefined;
           }
         }
@@ -439,7 +439,7 @@ class Router extends EventDispatcher {
       path = newPath;
       route = newRoute;
       if (options.updateHistory) {
-        const _url = url.indexOf(options.basePath) >= 0 ? url : options.basePath + url;
+        const _url = url.includes(options.basePath) ? url : options.basePath + url;
         if (_url !== window.location.pathname) {
           window.history.pushState(null, window.document.title, _url);
         }
@@ -930,4 +930,4 @@ export {
   DoarsRouter_default as default
 };
 
-//# debugId=20BDF4833C79FAB364756E2164756E21
+//# debugId=8337C232F261F79164756E2164756E21

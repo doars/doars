@@ -672,7 +672,7 @@ export default class Doars extends EventDispatcher {
 				const context = _contexts[i];
 
 				// Skip if already in list.
-				if (contexts.indexOf(context) >= 0) {
+				if (contexts.includes(context)) {
 					continue;
 				}
 
@@ -777,7 +777,7 @@ export default class Doars extends EventDispatcher {
 				const directive = _directives[i];
 
 				// Skip if already in list.
-				if (directives.indexOf(directive) >= 0) {
+				if (directives.includes(directive)) {
 					continue;
 				}
 
@@ -850,7 +850,7 @@ export default class Doars extends EventDispatcher {
 						// Create list at id if not already there.
 						if (!Object.hasOwn(triggers, id)) {
 							triggers[id] = [path];
-						} else if (triggers[id].indexOf(path) < 0) {
+						} else if (!triggers[id].includes(path)) {
 							// Add path to list at id.
 							triggers[id].push(path);
 						}
@@ -860,7 +860,7 @@ export default class Doars extends EventDispatcher {
 					// Create list at id if not already there.
 					if (!Object.hasOwn(triggers, id)) {
 						triggers[id] = [path];
-					} else if (triggers[id].indexOf(path) < 0) {
+					} else if (!triggers[id].includes(path)) {
 						// Add path to list at id.
 						triggers[id].push(path);
 					}

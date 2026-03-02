@@ -61,7 +61,7 @@
         const [localTarget, ...localParameters] = parameters;
         if (revoked) {
           for (const key2 of Object.keys(localTarget)) {
-            if (!options.irrevocable || options.irrevocable.indexOf(key2) < 0) {
+            if (!options.irrevocable || !options.irrevocable.includes(key2)) {
               localTarget[key2] = undefined;
             }
           }
@@ -440,7 +440,7 @@
         path = newPath;
         route = newRoute;
         if (options.updateHistory) {
-          const _url = url.indexOf(options.basePath) >= 0 ? url : options.basePath + url;
+          const _url = url.includes(options.basePath) ? url : options.basePath + url;
           if (_url !== window.location.pathname) {
             window.history.pushState(null, window.document.title, _url);
           }
@@ -932,4 +932,4 @@
   window.DoarsRouter = DoarsRouter_default;
 })();
 
-//# debugId=EB1470BC8C9C9D6964756E2164756E21
+//# debugId=D1C883F5F257105164756E2164756E21

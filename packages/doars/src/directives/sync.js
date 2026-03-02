@@ -107,7 +107,7 @@ export default ({ syncDirectiveName }) => ({
 								if (!dataValue) {
 									setDeeply(contexts, valueSplit, [elementValue]);
 								}
-								if (dataValue.indexOf(element.value) <= 0) {
+								if (!dataValue.includes(element.value)) {
 									dataValue.push(elementValue);
 								}
 							} else if (dataValue) {
@@ -208,7 +208,7 @@ export default ({ syncDirectiveName }) => ({
 			case "INPUT":
 				if (element.type === "checkbox") {
 					// Update option if the checked value has changed.
-					const checked = dataValue.indexOf(element.value) >= 0;
+					const checked = dataValue.includes(element.value);
 					if (element.checked !== checked) {
 						// Update checked value.
 						element.checked = checked;
@@ -248,7 +248,7 @@ export default ({ syncDirectiveName }) => ({
 				for (const option of Array.from(element.options)) {
 					// Update option if the selected value has changed.
 					const select = Array.isArray(dataValue)
-						? dataValue.indexOf(option.value) >= 0
+						? dataValue.includes(option.value)
 						: dataValue === option.value;
 					if (option.selected !== select) {
 						// Update option status.

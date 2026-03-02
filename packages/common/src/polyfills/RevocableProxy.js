@@ -77,7 +77,7 @@ export default (target, handler, options = {}) => {
 			const [localTarget, ...localParameters] = parameters;
 			if (revoked) {
 				for (const key of Object.keys(localTarget)) {
-					if (!options.irrevocable || options.irrevocable.indexOf(key) < 0) {
+					if (!options.irrevocable || !options.irrevocable.includes(key)) {
 						localTarget[key] = undefined;
 					}
 				}

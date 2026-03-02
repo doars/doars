@@ -301,7 +301,7 @@ export default (expression) => {
 				value = stack.pop().value;
 				left = stack.pop();
 				node = {
-					type: ASSIGNMENT_OPERATORS.indexOf(value) >= 0 ? ASSIGN : BINARY,
+					type: ASSIGNMENT_OPERATORS.includes(value) ? ASSIGN : BINARY,
 					operator: value,
 					left,
 					right,
@@ -324,7 +324,7 @@ export default (expression) => {
 		while (i > 1) {
 			value = stack[i - 1].value;
 			node = {
-				type: ASSIGNMENT_OPERATORS.indexOf(value) >= 0 ? ASSIGN : BINARY,
+				type: ASSIGNMENT_OPERATORS.includes(value) ? ASSIGN : BINARY,
 				operator: value,
 				left: stack[i - 2],
 				right: node,
@@ -755,7 +755,7 @@ export default (expression) => {
 	 * Skips whitespace characters (space, tab, newline, carriage return). Advances the index past any consecutive whitespace.
 	 */
 	const gobbleSpaces = () => {
-		while (SPACE_CODES.indexOf(expression.charCodeAt(index)) >= 0) {
+		while (SPACE_CODES.includes(expression.charCodeAt(index))) {
 			index++;
 		}
 	};
@@ -977,7 +977,7 @@ export default (expression) => {
 
 			while (toCheckLength > 0) {
 				if (
-					UNARY_OPERATORS.indexOf(toCheck) >= 0 &&
+					UNARY_OPERATORS.includes(toCheck) &&
 					(!isIdentifierStart(expression.charCodeAt(index)) ||
 						(index + toCheck.length < expression.length &&
 							!isIdentifierPart(expression.charCodeAt(index + toCheck.length))))

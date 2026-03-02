@@ -55,7 +55,7 @@ export default ({ watchContextName }) => ({
 								for (const callbackData of callbacks) {
 									// TODO: Get list of deconstruted contexts and see if it matches with any of them prefixed.
 
-									if (triggers[id].indexOf(callbackData.path) >= 0) {
+									if (triggers[id].includes(callbackData.path)) {
 										// Invoke callback and provide it with a new context.
 										const { contexts, destroy } = createContexts(
 											component,
