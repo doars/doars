@@ -14,7 +14,9 @@ import { createContexts } from "../utilities/Context.js";
 export default ({ childrenContextName }) => ({
 	name: childrenContextName,
 
-	create: (component, attribute, _update, options) => {
+	create: (component, attribute, options) => {
+		const library = component.getLibrary();
+
 		// Create contexts proxy for children.
 		let childrenContexts;
 		const revocable = RevocableProxy(component.getChildren(), {
@@ -27,7 +29,7 @@ export default ({ childrenContextName }) => ({
 
 					// Set children of this component as accessed.
 					if (!options || options.accessed) {
-						attribute.accessed(component.getId(), "children");
+						library.accessed(attribute, `${component.getId()}:children`);
 					}
 				}
 

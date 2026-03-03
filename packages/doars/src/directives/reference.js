@@ -47,10 +47,7 @@ const destroy = (component, attribute) => {
 	}
 
 	// Trigger references update.
-	library.update({
-		id: componentId,
-		path: `$references.${name}`,
-	});
+	library.update(`${componentId}:$references.${name}`);
 };
 
 /**
@@ -111,10 +108,7 @@ export default ({ referenceDirectiveName }) => ({
 		delete component[REFERENCES_CACHE];
 
 		// Trigger references update.
-		library.update({
-			id: componentId,
-			path: `$references.${name}`,
-		});
+		library.update(`${componentId}:$references.${name}`);
 	},
 
 	destroy,

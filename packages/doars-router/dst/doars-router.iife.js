@@ -418,9 +418,9 @@
 
   // src/Router.js
   class Router extends EventDispatcher {
-    constructor(options = {}) {
+    constructor(options = {}, library) {
       super();
-      const id = Symbol("ID_ROUTER");
+      const id = library.getInstance();
       options = Object.assign({
         basePath: "",
         path: null,
@@ -521,7 +521,8 @@
   // src/contexts/router.js
   var router_default = ({ routerContextName }) => ({
     name: routerContextName,
-    create: (_component, attribute, _update, options) => {
+    create: (component, attribute, options) => {
+      const library = component.getLibrary();
       const element = attribute.getElement();
       let router = null;
       const revocable = RevocableProxy_default({}, {
@@ -537,7 +538,7 @@
             }
           }
           if (!options || options.accessed) {
-            attribute.accessed(router.getId(), "");
+            library.accessed(attribute, `${router.getId()}:`);
           }
           if (!router) {
             return;
@@ -822,7 +823,7 @@
       const element = attribute.getElement();
       const router = element[ROUTER];
       if (!router) {
-        element[ROUTER] = new Router(Object.assign({}, options, processExpression(component, attribute, attribute.getValue())));
+        element[ROUTER] = new Router(Object.assign({}, options, processExpression(component, attribute, attribute.getValue())), component.getLibrary());
       }
     },
     destroy: (component, attribute) => {
@@ -835,10 +836,7 @@
       const id = router.getId();
       router.destroy();
       const library = component.getLibrary();
-      library.update({
-        id,
-        path: ""
-      });
+      library.update(`${id}:`);
     }
   });
 
@@ -932,4 +930,4 @@
   window.DoarsRouter = DoarsRouter_default;
 })();
 
-//# debugId=D1C883F5F257105164756E2164756E21
+//# debugId=B248551CD61D4DAC64756E2164756E21

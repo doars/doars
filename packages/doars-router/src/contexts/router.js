@@ -9,7 +9,9 @@ import closestRouter from "../utilities/closestRouter.js";
 export default ({ routerContextName }) => ({
 	name: routerContextName,
 
-	create: (_component, attribute, _update, options) => {
+	create: (component, attribute, options) => {
+		const library = component.getLibrary();
+
 		// Deconstruct attribute.
 		const element = attribute.getElement();
 
@@ -34,7 +36,7 @@ export default ({ routerContextName }) => ({
 
 					if (!options || options.accessed) {
 						// Mark as router accessed.
-						attribute.accessed(router.getId(), "");
+						library.accessed(attribute, `${router.getId()}:`);
 					}
 
 					if (!router) {

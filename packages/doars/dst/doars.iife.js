@@ -106,6 +106,23 @@
     };
   };
 
+  // ../common/src/utilities/Identifier.js
+  var CHARACTER_SET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$_";
+  var createIdFactory = (characterSet = CHARACTER_SET) => {
+    const characterDepth = characterSet.length;
+    let index = 0;
+    return () => {
+      let identifierIndex = index;
+      index++;
+      let identifier = "";
+      do {
+        identifier = characterSet[identifierIndex % characterDepth] + identifier;
+        identifierIndex = Math.floor(identifierIndex / characterDepth);
+      } while (identifierIndex > 0);
+      return identifier;
+    };
+  };
+
   // ../common/src/polyfills/RevocableProxy.js
   var PROXY_TRAPS = [
     "apply",
@@ -359,26 +376,28 @@
 
   // src/Attribute.js
   class Attribute extends EventDispatcher {
-    constructor(component, element, name, value, isClone = false) {
+    constructor(library, component, element, name, value) {
       super();
-      const id = Symbol("ID_ATTRIBUTE");
-      if (!isClone) {
-        if (!element[ATTRIBUTES]) {
-          element[ATTRIBUTES] = [];
-        }
-        element[ATTRIBUTES].push(this);
+      const id = library.generateId();
+      if (!element[ATTRIBUTES]) {
+        element[ATTRIBUTES] = [];
       }
-      let accessedItems = {}, accessedItemIds = new Set, data = null, directive, key, keyRaw, modifiersRaw, modifiers;
+      element[ATTRIBUTES].push(this);
+      let data = null, directive, directiveName, key, keyRaw, modifiersRaw, modifiers, processExpression = library.getProcessor();
       if (name) {
         const [_directive, _keyRaw, _key, _modifiers] = parseAttributeName(component.getLibrary().getOptions().prefix, name);
-        directive = _directive;
+        directiveName = _directive;
         key = _key;
         keyRaw = _keyRaw;
         modifiersRaw = _modifiers;
+        directive = library.getDirectiveByName(directiveName);
         if (_modifiers) {
           modifiers = Object.freeze(parseAttributeModifiers(_modifiers));
         }
       }
+      this.getLibrary = () => {
+        return library;
+      };
       this.getComponent = () => {
         return component;
       };
@@ -389,7 +408,7 @@
         return id;
       };
       this.getDirective = () => {
-        return directive;
+        return directiveName;
       };
       this.getKey = () => {
         return key;
@@ -426,8 +445,10 @@
         data = _data;
       };
       this.destroy = () => {
+        if (directive?.destroy) {
+          directive.destroy(component, this, processExpression);
+        }
         this.setData(null);
-        this.clearAccessed();
         const indexInElement = element[ATTRIBUTES].indexOf(this);
         if (indexInElement >= 0) {
           element[ATTRIBUTES].splice(indexInElement, 1);
@@ -435,32 +456,12 @@
         this.dispatchEvent("destroyed", [this]);
         this.removeAllEventListeners();
       };
-      this.accessed = (id2, path) => {
-        if (accessedItemIds.has(id2)) {
-          if (accessedItems[id2].has(path)) {
-            return;
-          }
-        } else {
-          accessedItems[id2] = new Set;
-          accessedItemIds.add(id2);
+      this.update = () => {
+        if (!this.getElement() || this.getValue() === null || this.getValue() === undefined) {
+          component.removeAttribute(this);
+        } else if (directive) {
+          directive.update(component, this, processExpression);
         }
-        accessedItems[id2].add(path);
-      };
-      this.clearAccessed = () => {
-        accessedItems = {};
-        accessedItemIds.clear();
-      };
-      this.hasAccessed = (id2, paths) => {
-        if (!accessedItemIds.has(id2)) {
-          return false;
-        }
-        const accessedAtId = accessedItems[id2];
-        for (const path of paths) {
-          if (accessedAtId.has(path)) {
-            return true;
-          }
-        }
-        return false;
       };
     }
   }
@@ -477,64 +478,54 @@
   };
 
   // src/Component.js
-  class Component {
-    constructor(library, element) {
-      const id = Symbol("ID_COMPONENT");
-      const { prefix, stateDirectiveName, ignoreDirectiveName } = library.getOptions();
-      const processExpression = library.getProcessor();
-      const componentName = `${prefix}-${stateDirectiveName}`;
-      const ignoreName = `${prefix}-${ignoreDirectiveName}`;
-      let attributes = [], isInitialized = false, data, proxy, state;
-      if (!element.attributes[`${prefix}-${stateDirectiveName}`]) {
-        console.error("Doars: element given to component does not contain a state attribute!");
-        return;
-      }
-      element[COMPONENT] = this;
-      const children = [];
-      let parent = closestComponent(element);
-      if (parent) {
-        if (!parent.getChildren().includes(this)) {
-          parent.getChildren().push(this);
-          library.update({
-            id: parent.getId(),
-            path: "children"
-          });
-        }
-      }
-      this.getAttributes = () => {
+  var Component_default = (library, element) => {
+    const id = library.generateId();
+    const { prefix, stateDirectiveName, ignoreDirectiveName } = library.getOptions();
+    const processExpression = library.getProcessor();
+    const componentName = `${prefix}-${stateDirectiveName}`;
+    const ignoreName = `${prefix}-${ignoreDirectiveName}`;
+    let attributes = [], isInitialized = false, data, proxy, state;
+    if (!element.attributes[`${prefix}-${stateDirectiveName}`]) {
+      console.error("Doars: element given to component does not contain a state attribute!");
+      return;
+    }
+    const component = {
+      getAttributes: () => {
         return attributes;
-      };
-      this.getChildren = () => {
+      },
+      getChildren: () => {
         return children;
-      };
-      this.getElement = () => {
+      },
+      getElement: () => {
         return element;
-      };
-      this.getId = () => {
+      },
+      getId: () => {
         return id;
-      };
-      this.getLibrary = () => {
+      },
+      getLibrary: () => {
         return library;
-      };
-      this.getParent = () => {
+      },
+      getParent: () => {
         return parent;
-      };
-      this.getProxy = () => {
+      },
+      getProxy: () => {
         return proxy;
-      };
-      this.getState = () => {
+      },
+      getState: () => {
         return state;
-      };
-      this.setParent = (_parent) => {
+      },
+      setParent: (_parent) => {
         parent = _parent;
-      };
-      this.initialize = () => {
+      },
+      initialize: () => {
         if (isInitialized) {
           return;
         }
         isInitialized = true;
         const value = element.attributes[componentName].value;
-        data = value ? processExpression(this, new Attribute(this, element, null, value), value) : {};
+        data = value ? processExpression(component, new Attribute(library, component, element, null, value), value, {
+          accessed: false
+        }) : {};
         if (data === null) {
           data = {};
         } else if (typeof data !== "object" || Array.isArray(data)) {
@@ -543,9 +534,9 @@
         }
         proxy = new ProxyDispatcher;
         state = proxy.add(data);
-        this.scanAttributes(element);
-      };
-      this.destroy = () => {
+        component.scanAttributes(element);
+      },
+      destroy: () => {
         if (!isInitialized) {
           return;
         }
@@ -559,7 +550,7 @@
           for (const attribute of attributes) {
             const directive = directives[attribute.getKey()];
             if (directive) {
-              directive.destroy(this, attribute, processExpression);
+              directive.destroy(component, attribute, processExpression);
             }
             attribute.destroy();
           }
@@ -568,28 +559,16 @@
         if (children.length > 0) {
           for (const child of children) {
             child.setParent(parent);
-            library.update({
-              id: child.getId(),
-              path: "parent"
-            });
+            library.update(`${child.getId()}:parent`);
           }
-          library.update({
-            id,
-            path: "children"
-          });
+          library.update(`${id}:children`);
         }
         if (parent) {
           if (children.length > 0) {
             parent.getChildren().push(...children);
-            library.update({
-              id: parent.getId(),
-              path: "children"
-            });
+            library.update(`${parent.getId()}:children`);
           }
-          library.update({
-            id,
-            path: "parent"
-          });
+          library.update(`${id}:parent`);
         }
         delete element[COMPONENT];
         isInitialized = false;
@@ -597,94 +576,68 @@
         state = null;
         proxy = null;
         data = null;
-      };
-      this.addAttribute = (element2, name, value) => {
-        const attribute = new Attribute(this, element2, name, value);
+      },
+      addAttribute: (element2, name, value) => {
+        const attribute = new Attribute(library, component, element2, name, value);
         attributes.push(attribute);
         return attribute;
-      };
-      this.removeAttribute = (attribute) => {
+      },
+      removeAttribute: (attribute) => {
         const indexInAttributes = attributes.indexOf(attribute);
         if (indexInAttributes < 0) {
           return;
         }
-        const directives = library.getDirectivesObject;
-        const directive = directives[attribute.getKey()];
-        if (directive?.destroy) {
-          directive.destroy(this, attribute, processExpression);
-        }
         attributes.splice(indexInAttributes, 1);
         attribute.destroy();
-      };
-      this.scanAttributes = (element2) => {
-        const newAttributes = [];
+      },
+      scanAttributes: (element2) => {
+        const attributesLength = attributes.length;
         const iterator = walk(element2, (element3) => !element3.hasAttribute(componentName) && !element3.hasAttribute(ignoreName));
         do {
           for (const { name, value } of element2.attributes) {
             if (library.isDirectiveName(name)) {
-              newAttributes.push(this.addAttribute(element2, name, value));
+              component.addAttribute(element2, name, value);
             }
           }
         } while (element2 = iterator());
-        return newAttributes;
-      };
-      this.updateAttribute = (attribute) => {
-        if (!attribute.getElement() || attribute.getValue() === null || attribute.getValue() === undefined) {
-          this.removeAttribute(attribute);
-          return;
-        }
-        const directives = library.getDirectivesObject();
-        attribute.clearAccessed();
-        const directive = directives[attribute.getDirective()];
-        if (directive) {
-          directive.update(this, attribute, processExpression);
-        }
-      };
-      this.updateAttributes = (attributes2) => {
+        return attributes.slice(attributesLength);
+      },
+      updateAttributes: (attributes2) => {
         if (!isInitialized) {
           return;
         }
         if (attributes2.length > 0) {
           for (const attribute of attributes2) {
-            this.updateAttribute(attribute);
+            attribute.update();
           }
         }
-      };
-      this.updateAllAttributes = () => {
+      },
+      updateAllAttributes: () => {
         if (!isInitialized) {
           return;
         }
         for (const attribute of attributes) {
-          this.updateAttribute(attribute);
+          attribute.update();
         }
-      };
-      this.update = (triggers) => {
-        if (!isInitialized) {
-          return;
-        }
-        const triggerIds = Object.getOwnPropertySymbols(triggers);
-        const updatedAttributes = [];
-        for (const attribute of attributes) {
-          for (const id2 of triggerIds) {
-            if (attribute.hasAccessed(id2, triggers[id2])) {
-              this.updateAttribute(attribute);
-              updatedAttributes.push(attribute);
-            }
-          }
-        }
-      };
+      }
+    };
+    element[COMPONENT] = component;
+    const children = [];
+    let parent = closestComponent(element);
+    if (parent) {
+      if (!parent.getChildren().includes(component)) {
+        parent.getChildren().push(component);
+        library.update(`${parent.getId()}:children`);
+      }
     }
-  }
+    return component;
+  };
 
   // src/utilities/Context.js
   var PROXY_TRAPS2 = ["get", "getOwnPropertyDescriptor", "getPrototypeOf"];
   var createContexts = (component, attribute, extra = null, options = null) => {
     const logAccess = !options || options.accessed;
     const library = component.getLibrary();
-    const update = (id, context) => library.update({
-      id,
-      path: context
-    });
     const creatableContexts = library.getContextsByName();
     const hasExtra = extra && typeof extra === "object";
     const irrevocable = [];
@@ -713,7 +666,7 @@
     }
     const destroyCallbacks = [];
     const addContext = (target, creatableContext) => {
-      const result = creatableContext.create(component, attribute, update, options);
+      const result = creatableContext.create(component, attribute, options);
       if (result) {
         if (result.destroy && typeof result.destroy === "function") {
           destroyCallbacks.push(result.destroy);
@@ -746,13 +699,13 @@
       const [target, key, ...otherParameters] = parameters;
       if (Object.hasOwn(contexts, key)) {
         if (logAccess) {
-          attribute.accessed(component.getId(), key);
+          library.accessed(attribute, `${component.getId()}:${key}`);
         }
         return Reflect[functionName](target, key, ...otherParameters);
       }
       if (hasExtra && Object.hasOwn(extra, key)) {
         if (logAccess) {
-          attribute.accessed(component.getId(), key);
+          library.accessed(attribute, `${component.getId()}:${key}`);
         }
         return Reflect[functionName](extra, key, ...otherParameters);
       }
@@ -760,7 +713,7 @@
         addDeconstruted(target);
         if (Object.hasOwn(contexts, key)) {
           if (logAccess) {
-            attribute.accessed(component.getId(), key);
+            library.accessed(attribute, `${component.getId()}:${key}`);
           }
           return Reflect[functionName](target, key, ...otherParameters);
         }
@@ -769,7 +722,7 @@
         addContext(target, creatableContexts[key]);
         if (Object.hasOwn(contexts, key)) {
           if (logAccess) {
-            attribute.accessed(component.getId(), key);
+            library.accessed(attribute, `${component.getId()}:${key}`);
           }
           return Reflect[functionName](target, key, ...otherParameters);
         }
@@ -811,14 +764,15 @@
   // src/contexts/children.js
   var children_default = ({ childrenContextName }) => ({
     name: childrenContextName,
-    create: (component, attribute, _update, options) => {
+    create: (component, attribute, options) => {
+      const library = component.getLibrary();
       let childrenContexts;
       const revocable = RevocableProxy_default(component.getChildren(), {
         get: (target, key, receiver) => {
           if (!childrenContexts) {
             childrenContexts = target.map((child2) => createContexts(child2, attribute, null, options));
             if (!options || options.accessed) {
-              attribute.accessed(component.getId(), "children");
+              library.accessed(attribute, `${component.getId()}:children`);
             }
           }
           if (isNaN(key)) {
@@ -879,10 +833,11 @@
   var for_default = ({ forContextDeconstruct, forContextName }) => ({
     deconstruct: forContextDeconstruct,
     name: forContextName,
-    create: (component, attribute, _update, options) => {
+    create: (component, attribute, options) => {
       if (component !== attribute.getComponent()) {
         return;
       }
+      const library = component.getLibrary();
       let element = attribute.getElement();
       const componentElement = component.getElement(), items = [], target = {};
       while (element && !element.isSameNode(componentElement)) {
@@ -903,7 +858,7 @@
           for (const item of items) {
             if (Object.hasOwn(item.variables, key)) {
               if (!options || options.accessed) {
-                attribute.accessed(item.id, "$for");
+                library.accessed(attribute, `${item.id}:$for`);
               }
               return item.variables[key];
             }
@@ -923,7 +878,7 @@
   var inContext_default = ({ inContextContextName }) => ({
     revocable: false,
     name: inContextContextName,
-    create: (component, attribute, _update, options) => ({
+    create: (component, attribute, options) => ({
       value: (callback) => {
         const { contexts, destroy } = createContexts(component, attribute, null, options);
         const result = callback(contexts);
@@ -936,7 +891,7 @@
   // src/contexts/nextSibling.js
   var nextSibling_default = ({ nextSiblingContextName }) => ({
     name: nextSiblingContextName,
-    create: (component, attribute, _update, options) => {
+    create: (component, attribute, options) => {
       const parent = component.getParent();
       if (!parent) {
         return {
@@ -961,7 +916,7 @@
   // src/contexts/nextTick.js
   var nextTick_default = ({ nextTickContextName }) => ({
     name: nextTickContextName,
-    create: (component, attribute, _update, options) => {
+    create: (component, attribute, options) => {
       let callbacks;
       let isInitialized = false;
       const initialize = () => {
@@ -1002,7 +957,7 @@
   // src/contexts/parent.js
   var parent_default = ({ parentContextName }) => ({
     name: parentContextName,
-    create: (component, attribute, _update, options) => {
+    create: (component, attribute, options) => {
       const parent = component.getParent();
       if (!parent) {
         return {
@@ -1020,7 +975,7 @@
   // src/contexts/previousSibling.js
   var previousSibling_default = ({ previousSiblingContextName }) => ({
     name: previousSiblingContextName,
-    create: (component, attribute, _update, options) => {
+    create: (component, attribute, options) => {
       const parent = component.getParent();
       if (!parent) {
         return {
@@ -1045,12 +1000,13 @@
   // src/contexts/references.js
   var references_default = ({ referencesContextName }) => ({
     name: referencesContextName,
-    create: (component, attribute, _update, options) => {
+    create: (component, attribute, options) => {
       if (!component[REFERENCES]) {
         return {
           value: []
         };
       }
+      const library = component.getLibrary();
       let cache = component[REFERENCES_CACHE];
       if (!cache) {
         const references = component[REFERENCES];
@@ -1065,7 +1021,7 @@
       const revocable = RevocableProxy_default(cache, {
         get: (target, propertyKey, receiver) => {
           if (!options || options.accessed) {
-            attribute.accessed(component.getId(), `$references.${propertyKey}`);
+            library.accessed(attribute, `${component.getId()}:$references.${propertyKey}`);
           }
           return Reflect.get(target, propertyKey, receiver);
         }
@@ -1082,20 +1038,21 @@
   // src/contexts/siblings.js
   var siblings_default = ({ siblingsContextName }) => ({
     name: siblingsContextName,
-    create: (component, attribute, _update, options) => {
+    create: (component, attribute, options) => {
       const parent = component.getParent();
       if (!parent) {
         return {
           value: []
         };
       }
+      const library = component.getLibrary();
       let siblingsContexts;
       const revocable = RevocableProxy_default(parent.getChildren().filter((sibling) => sibling !== component), {
         get: (target, key, receiver) => {
           if (!siblingsContexts) {
             siblingsContexts = target.map((child) => createContexts(child, attribute, null, options));
             if (!options || options.accessed) {
-              attribute.accessed(component.getId(), "siblings");
+              library.accessed(attribute, `${component.getId()}:siblings`);
             }
           }
           if (isNaN(key)) {
@@ -1123,14 +1080,15 @@
 
   // ../common/src/factories/createState.js
   var createState_default = (name, id, state, proxy) => {
-    return (_component, attribute, update, options) => {
-      const onDelete = (_target, path) => update(id, `${name}.${path.join(".")}`);
+    return (component, attribute, options) => {
+      const library = component.getLibrary();
+      const onDelete = (_target, path) => library.update(`${id}:${name}.${path.join(".")}`);
       const onGet = (_target, path) => {
         if (!options || options.accessed) {
-          attribute.accessed(id, `${name}.${path.join(".")}`);
+          library.accessed(attribute, `${id}:${name}.${path.join(".")}`);
         }
       };
-      const onSet = (_target, path) => update(id, `${name}.${path.join(".")}`);
+      const onSet = (_target, path) => library.update(`${id}:${name}.${path.join(".")}`);
       proxy.addEventListener("delete", onDelete);
       proxy.addEventListener("get", onGet);
       proxy.addEventListener("set", onSet);
@@ -1149,13 +1107,13 @@
   var state_default = ({ stateContextDeconstruct, stateContextName }) => ({
     deconstruct: stateContextDeconstruct,
     name: stateContextName,
-    create: (component, attribute, update, utilities) => {
+    create: (component, attribute, options) => {
       const proxy = component.getProxy();
       const state = component.getState();
       if (!proxy || !state) {
         return;
       }
-      return createState_default(stateContextName, component.getId(), state, proxy)(component, attribute, update, utilities);
+      return createState_default(stateContextName, component.getId(), state, proxy)(component, attribute, options);
     }
   });
 
@@ -1216,18 +1174,14 @@
   };
 
   // src/contexts/store.js
-  var store_default = ({
-    storeContextDeconstruct,
-    storeContextInitial,
-    storeContextName
-  }) => {
+  var store_default = ({ storeContextDeconstruct, storeContextInitial, storeContextName }, id) => {
     const data = deepAssign({}, storeContextInitial);
     const proxy = new ProxyDispatcher;
     const state = proxy.add(data);
     return {
       deconstruct: !!storeContextDeconstruct,
       name: storeContextName,
-      create: createState_default(storeContextName, Symbol("ID_STORE"), state, proxy)
+      create: createState_default(storeContextName, id, state, proxy)
     };
   };
 
@@ -1242,19 +1196,12 @@
           isInitialized = true;
           callbacks = [];
           const library = component.getLibrary();
-          const onUpdate = (_, triggers) => {
-            const ids = Object.getOwnPropertySymbols(triggers);
-            if (ids.length > 0) {
-              for (const id of ids) {
-                if (id === componentId) {
-                  for (const callbackData of callbacks) {
-                    if (triggers[id].includes(callbackData.path)) {
-                      const { contexts, destroy } = createContexts(component, attribute);
-                      callbackData.callback(contexts);
-                      destroy();
-                    }
-                  }
-                }
+          const onUpdate = (triggers) => {
+            for (const callbackData of callbacks) {
+              if (triggers.includes(callbackData.path)) {
+                const { contexts, destroy } = createContexts(component, attribute);
+                callbackData.callback(contexts);
+                destroy();
               }
             }
           };
@@ -1278,7 +1225,7 @@
           }
           initialize();
           callbacks.push({
-            path,
+            path: `${componentId}:${path}`,
             callback
           });
           return async () => {
@@ -1634,8 +1581,9 @@
     }
     return indexInSiblings(elements, value, offset);
   };
-  var setAfter = (component, update, template, elements, index, value, variables, allowInlineScript) => {
-    const libraryOptions = component.getLibrary().getOptions();
+  var setAfter = (component, template, elements, index, value, variables, allowInlineScript) => {
+    const library = component.getLibrary();
+    const libraryOptions = library.getOptions();
     const existingIndex = indexInSiblings(elements, value, index);
     if (existingIndex >= 0) {
       if (existingIndex === index + 1) {
@@ -1643,7 +1591,7 @@
       }
       const element2 = elements[existingIndex];
       (elements[index] ? elements[index] : template).insertAdjacentElement("afterend", element2);
-      update(element2[FOR].id);
+      library.update(`${element2[FOR].id}:$for`);
       return;
     }
     const element = document.importNode(template.content, true).firstElementChild;
@@ -1658,7 +1606,7 @@
     }
     transitionIn(libraryOptions, element);
     element[FOR] = {
-      id: Symbol("ID_FOR"),
+      id: library.generateId(),
       value,
       variables
     };
@@ -1680,6 +1628,7 @@
   var for_default2 = ({ allowInlineScript, forDirectiveName }) => ({
     name: forDirectiveName,
     update: (component, attribute, processExpression) => {
+      const library = component.getLibrary();
       const directive = attribute.getDirective();
       const template = attribute.getElement();
       const modifiers = attribute.getModifiers();
@@ -1692,12 +1641,6 @@
         console.error(`Doars: Error in "${directive}" expression: `, attribute.getValue());
         return;
       }
-      const triggers = {};
-      const update = (id) => {
-        if (!triggers[id]) {
-          triggers[id] = ["$for"];
-        }
-      };
       const setFor = (iterable) => {
         const data2 = attribute.getData();
         const elements = data2.elements ? data2.elements : [];
@@ -1706,14 +1649,14 @@
           if (iterableType === "number") {
             for (let index = 0;index < iterable; index++) {
               const variables = createVariables(expression.variables, index);
-              setAfter(component, update, template, elements, index - 1, iterable, variables, allowInlineScript || modifiers.script);
+              setAfter(component, template, elements, index - 1, iterable, variables, allowInlineScript || modifiers.script);
             }
             removeAfter(component, elements, iterable);
           } else if (iterableType === "string") {
             for (let index = 0;index < iterable.length; index++) {
               const value = iterable[index];
               const variables = createVariables(expression.variables, value, index);
-              setAfter(component, update, template, elements, index - 1, value, variables, allowInlineScript || modifiers.script);
+              setAfter(component, template, elements, index - 1, value, variables, allowInlineScript || modifiers.script);
             }
             removeAfter(component, elements, iterable.length);
           } else {
@@ -1727,7 +1670,7 @@
               for (let index = 0;index < length; index++) {
                 const value = iterable[index];
                 const variables = createVariables(expression.variables, value, index);
-                setAfter(component, update, template, elements, index - 1, value, variables, allowInlineScript || modifiers.script);
+                setAfter(component, template, elements, index - 1, value, variables, allowInlineScript || modifiers.script);
               }
             } else {
               const keys = Object.keys(iterable);
@@ -1736,14 +1679,11 @@
                 const key = keys[index];
                 const value = iterable[key];
                 const variables = createVariables(expression.variables, key, value, index);
-                setAfter(component, update, template, elements, index - 1, value, variables, allowInlineScript || modifiers.script);
+                setAfter(component, template, elements, index - 1, value, variables, allowInlineScript || modifiers.script);
               }
             }
             removeAfter(component, elements, length);
           }
-        }
-        if (Object.getOwnPropertySymbols(triggers).length > 0) {
-          component.update(triggers);
         }
         attribute.setData(Object.assign({}, data2, {
           elements
@@ -2083,10 +2023,10 @@
         setIf(result);
       }
     },
-    destroy: (component, attribute, { transitionOut: transitionOut2 }) => {
+    destroy: (component, attribute) => {
       const data = attribute.getData();
       if (data.element) {
-        transitionOut2(component.getLibrary().getOptions(), data.element, () => {
+        transitionOut(component.getLibrary().getOptions(), data.element, () => {
           data.element.remove();
         });
       }
@@ -2453,10 +2393,7 @@
     if (Object.keys(component[REFERENCES]).length === 0) {
       delete component[REFERENCES];
     }
-    library.update({
-      id: componentId,
-      path: `$references.${name}`
-    });
+    library.update(`${componentId}:$references.${name}`);
   };
   var reference_default = ({ referenceDirectiveName }) => ({
     name: referenceDirectiveName,
@@ -2482,10 +2419,7 @@
         name
       };
       delete component[REFERENCES_CACHE];
-      library.update({
-        id: componentId,
-        path: `$references.${name}`
-      });
+      library.update(`${componentId}:$references.${name}`);
     },
     destroy: destroy2
   });
@@ -2878,8 +2812,8 @@
         console.error("Doars: `root` option must be a string or HTMLElement.");
         return;
       }
-      const id = Symbol("ID_DOARS");
-      let isEnabled = false, isUpdating = false, updatePromise = null, mutations, observer, triggers;
+      const idFactory = createIdFactory();
+      let isEnabled = false, isUpdating = false, updatePromise = null, mutations, observer, accessed, triggers;
       const components = [], contextsBase = {}, contexts = [
         children_default(options),
         component_default(options),
@@ -2893,7 +2827,7 @@
         references_default(options),
         siblings_default(options),
         watch_default(options),
-        store_default(options),
+        store_default(options, idFactory()),
         state_default(options),
         for_default(options)
       ];
@@ -2928,8 +2862,8 @@
       if (!processExpression) {
         console.error("Doars: No expression processor available. Process option: ", process);
       }
-      this.getId = () => {
-        return id;
+      this.generateId = () => {
+        return idFactory();
       };
       this.getOptions = () => {
         return options;
@@ -2943,7 +2877,8 @@
         }
         isUpdating = false;
         mutations = [];
-        triggers = {};
+        accessed = {};
+        triggers = [];
         this.dispatchEvent("enabling", [this]);
         isEnabled = true;
         contextsByName = {};
@@ -2987,7 +2922,8 @@
         observer = null;
         isUpdating = false;
         mutations = [];
-        triggers = {};
+        accessed = {};
+        triggers = [];
         this.dispatchEvent("disabling", [this], { reverse: true });
         removeComponents(...components);
         directivesNames = [];
@@ -3008,7 +2944,7 @@
           if (element[COMPONENT]) {
             continue;
           }
-          const component = new Component(this, element);
+          const component = Component_default(this, element);
           components.push(component);
           results.push(component);
           resultElements.push(element);
@@ -3110,6 +3046,13 @@
         return results;
       };
       this.getDirectives = () => [...directives];
+      this.getDirectiveByName = (name) => {
+        for (const directive of directives) {
+          if (directive.name === name) {
+            return directive;
+          }
+        }
+      };
       this.getDirectivesNames = () => directivesNames;
       this.getDirectivesObject = () => directivesObject;
       this.isDirectiveName = (attributeName) => directivesRegexp.test(attributeName);
@@ -3159,48 +3102,48 @@
       this.getProcessor = () => {
         return processExpression;
       };
-      this.update = async (_triggers) => {
+      this.accessed = async (attribute, path) => {
+        if (Object.hasOwn(accessed, path)) {
+          if (!accessed[path].includes(attribute)) {
+            accessed[path].push(attribute);
+          }
+        } else {
+          accessed[path] = [attribute];
+        }
+      };
+      this.update = async (path) => {
         if (!isEnabled) {
           return;
         }
-        if (_triggers) {
-          if (Array.isArray(_triggers)) {
-            for (const trigger of _triggers) {
-              const { id: id2, path } = trigger;
-              if (!Object.hasOwn(triggers, id2)) {
-                triggers[id2] = [path];
-              } else if (!triggers[id2].includes(path)) {
-                triggers[id2].push(path);
-              }
-            }
-          } else {
-            const { id: id2, path } = _triggers;
-            if (!Object.hasOwn(triggers, id2)) {
-              triggers[id2] = [path];
-            } else if (!triggers[id2].includes(path)) {
-              triggers[id2].push(path);
-            }
-          }
+        if (path && !triggers.includes(path)) {
+          triggers.push(path);
         }
         if (isUpdating) {
           await updatePromise;
           return;
         }
-        if (Object.getOwnPropertySymbols(triggers).length === 0) {
-          return;
-        }
         isUpdating = true;
         updatePromise = Promise.resolve();
         await updatePromise;
-        _triggers = Object.freeze(triggers);
-        triggers = {};
-        this.dispatchEvent("updating", [this, _triggers]);
-        for (const component of components) {
-          component.update(_triggers);
+        const _triggers = triggers;
+        triggers = [];
+        this.dispatchEvent("updating", _triggers);
+        const updatedAttributes = [];
+        for (const trigger of _triggers) {
+          if (Object.hasOwn(accessed, trigger)) {
+            const attributes = accessed[trigger];
+            delete accessed[trigger];
+            for (const attribute of attributes) {
+              if (!updatedAttributes.includes(attribute)) {
+                attribute.update();
+                updatedAttributes.push(attribute);
+              }
+            }
+          }
         }
         isUpdating = false;
         updatePromise = null;
-        if (Object.getOwnPropertySymbols(triggers).length > 0) {
+        if (triggers.length > 0) {
           console.warn("Doars: during an update another update has been triggered. This should not happen unless an expression in one of the directives is causing a infinite loop by mutating the state.");
           await this.update();
           return;
@@ -3209,7 +3152,7 @@
           await handleMutation();
           return;
         }
-        this.dispatchEvent("updated", [this, _triggers]);
+        this.dispatchEvent("updated", _triggers);
       };
       const handleMutation = async (newMutations) => {
         if (newMutations) {
@@ -3249,11 +3192,10 @@
               return true;
             });
             do {
-              if (!element[ATTRIBUTES]) {
-                continue;
-              }
-              for (const attribute of element[ATTRIBUTES]) {
-                attribute.getComponent().removeAttribute(attribute);
+              if (element[ATTRIBUTES]) {
+                for (const attribute of element[ATTRIBUTES]) {
+                  attribute.getComponent().removeAttribute(attribute);
+                }
               }
             } while (element = iterator());
           }
@@ -3338,12 +3280,12 @@
             if (!attribute) {
               if (value) {
                 attribute = component.addAttribute(element, mutation.attributeName, value);
-                component.updateAttribute(attribute);
+                attribute.update();
               }
               continue;
             }
             attribute.setValue(value);
-            component.updateAttribute(attribute);
+            attribute.update();
           }
         }
         if (componentsToRemove.length > 0) {
@@ -3359,7 +3301,7 @@
           await handleMutation();
           return;
         }
-        if (Object.getOwnPropertySymbols(triggers).length > 0) {
+        if (triggers.length > 0) {
           await this.update();
         }
       };
@@ -3391,4 +3333,4 @@ ${error.name}: ${error.message}`);
   window.Doars = DoarsExecute_default;
 })();
 
-//# debugId=A8614959640961D964756E2164756E21
+//# debugId=9A899E24D6B61BFF64756E2164756E21

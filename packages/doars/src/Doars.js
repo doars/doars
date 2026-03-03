@@ -1,8 +1,9 @@
 // Import event dispatcher.
 import EventDispatcher from "@doars/common/src/events/EventDispatcher.js";
 import { walk } from "@doars/common/src/utilities/Element.js";
+import { createIdFactory } from "@doars/common/src/utilities/Identifier.js";
 // Import classes.
-import Component from "./Component.js";
+import createComponent from "./Component.js";
 // Import contexts.
 import createChildrenContext from "./contexts/children.js";
 import createComponentContext from "./contexts/component.js";
@@ -40,6 +41,7 @@ import { closestComponent } from "./utilities/Component.js";
 /**
  * @typedef {import('./Attribute.js').default} Attribute
  * @typedef {import('./Context.js').Context} Context
+ * @typedef {import('./Component.js').Component} Component
  * @typedef {import('./Directive.js').Directive} Directive
  */
 
@@ -273,8 +275,7 @@ export default class Doars extends EventDispatcher {
 			return;
 		}
 
-		// Create unique identifier.
-		const id = Symbol("ID_DOARS");
+		const idFactory = createIdFactory();
 
 		// Create private variables.
 		let isEnabled = false,
@@ -282,6 +283,7 @@ export default class Doars extends EventDispatcher {
 			updatePromise = null,
 			mutations,
 			observer,
+			accessed,
 			triggers;
 
 		/** @type {Array<Component>} */
@@ -304,7 +306,7 @@ export default class Doars extends EventDispatcher {
 				createWatchContext(options),
 
 				// Order of `store`, `state` and `for` context is important for deconstruction.
-				createStoreContext(options), // FIXME: Needs to be created on enable and the proxies within destroyed on disable.
+				createStoreContext(options, idFactory()), // FIXME: Needs to be created on enable and the proxies within destroyed on disable.
 				createStateContext(options), // FIXME: Needs to be created on enable and the proxies within destroyed on disable.
 				createForContext(options), // FIXME: Needs to be created on enable and the proxies within destroyed on disable.
 			];
@@ -362,11 +364,11 @@ export default class Doars extends EventDispatcher {
 		}
 
 		/**
-		 * Get the unique identifier.
-		 * @returns {symbol} Unique identifier.
+		 * Generate a unique identifier.
+		 * @returns {string} The newly created unique identifier.
 		 */
-		this.getId = () => {
-			return id;
+		this.generateId = () => {
+			return idFactory();
 		};
 
 		/**
@@ -399,7 +401,8 @@ export default class Doars extends EventDispatcher {
 			// Setup values.
 			isUpdating = false;
 			mutations = [];
-			triggers = {};
+			accessed = {};
+			triggers = [];
 
 			// Dispatch event.
 			this.dispatchEvent("enabling", [this]);
@@ -479,7 +482,8 @@ export default class Doars extends EventDispatcher {
 			// Reset values.
 			isUpdating = false;
 			mutations = [];
-			triggers = {};
+			accessed = {};
+			triggers = [];
 
 			// Dispatch event.
 			this.dispatchEvent("disabling", [this], { reverse: true });
@@ -523,7 +527,7 @@ export default class Doars extends EventDispatcher {
 				}
 
 				// Create component.
-				const component = new Component(this, element);
+				const component = createComponent(this, element);
 				components.push(component);
 
 				// Add to results.
@@ -734,6 +738,19 @@ export default class Doars extends EventDispatcher {
 		this.getDirectives = () => [...directives];
 
 		/**
+		 * Get directives by name.
+		 * @param {string} name Directive's name.
+		 * @returns {Directive|undefined} Directive matching the specified name.
+		 */
+		this.getDirectiveByName = (name) => {
+			for (const directive of directives) {
+				if (directive.name === name) {
+					return directive;
+				}
+			}
+		};
+
+		/**
 		 * Get list of directive names. Only defined when the library is enabled. Use getDirectives() for the full list at any given time.
 		 * @returns {Array<string>} List of directive names.
 		 */
@@ -832,49 +849,29 @@ export default class Doars extends EventDispatcher {
 			return processExpression;
 		};
 
-		/**
-		 * Update directives based on triggers. *Can only be called when enabled.*
-		 * @param {Array<Trigger>} _triggers List of triggers to update with.
-		 */
-		this.update = async (_triggers) => {
+		this.accessed = async (attribute, path) => {
+			if (Object.hasOwn(accessed, path)) {
+				if (!accessed[path].includes(attribute)) {
+					accessed[path].push(attribute);
+				}
+			} else {
+				accessed[path] = [attribute];
+			}
+		};
+
+		this.update = async (path) => {
 			if (!isEnabled) {
 				// Exit early since it needs to be enabled first.
 				return;
 			}
 
-			if (_triggers) {
-				// Add new triggers to existing triggers.
-				if (Array.isArray(_triggers)) {
-					for (const trigger of _triggers) {
-						const { id, path } = trigger;
-						// Create list at id if not already there.
-						if (!Object.hasOwn(triggers, id)) {
-							triggers[id] = [path];
-						} else if (!triggers[id].includes(path)) {
-							// Add path to list at id.
-							triggers[id].push(path);
-						}
-					}
-				} else {
-					const { id, path } = _triggers;
-					// Create list at id if not already there.
-					if (!Object.hasOwn(triggers, id)) {
-						triggers[id] = [path];
-					} else if (!triggers[id].includes(path)) {
-						// Add path to list at id.
-						triggers[id].push(path);
-					}
-				}
+			if (path && !triggers.includes(path)) {
+				triggers.push(path);
 			}
 
 			// Don't update while another update is going on.
 			if (isUpdating) {
 				await updatePromise;
-				return;
-			}
-
-			// Check if there is something to update.
-			if (Object.getOwnPropertySymbols(triggers).length === 0) {
 				return;
 			}
 
@@ -884,24 +881,34 @@ export default class Doars extends EventDispatcher {
 			updatePromise = Promise.resolve();
 			await updatePromise;
 
-			// Move update triggers to local scope only.
-			_triggers = Object.freeze(triggers);
-			triggers = {};
+			const _triggers = triggers;
+			triggers = [];
 
-			this.dispatchEvent("updating", [this, _triggers]);
+			this.dispatchEvent("updating", _triggers);
 
 			// Update each component and collect any triggers.
-			for (const component of components) {
-				component.update(_triggers);
-				// If this ever needs to be done in hierarchical order try the following. Go over each component and check if its parent is further down in the list. If so place the component directly after the parent. Then continue iteration over the components. This sorting only has to happen when a component is added to or moved in the hierarchy.
+			const updatedAttributes = [];
+			for (const trigger of _triggers) {
+				if (Object.hasOwn(accessed, trigger)) {
+					const attributes = accessed[trigger];
+					// Clear from accessed so this can be filled up again when updating the attribute.
+					delete accessed[trigger];
+
+					// Update each attribute.
+					for (const attribute of attributes) {
+						if (!updatedAttributes.includes(attribute)) {
+							attribute.update();
+							updatedAttributes.push(attribute);
+						}
+					}
+				}
 			}
 
 			// Set as NOT updating.
 			isUpdating = false;
 			updatePromise = null;
-
 			// If there are triggers again then update again.
-			if (Object.getOwnPropertySymbols(triggers).length > 0) {
+			if (triggers.length > 0) {
 				console.warn(
 					"Doars: during an update another update has been triggered. This should not happen unless an expression in one of the directives is causing a infinite loop by mutating the state.",
 				);
@@ -916,7 +923,7 @@ export default class Doars extends EventDispatcher {
 				return;
 			}
 
-			this.dispatchEvent("updated", [this, _triggers]);
+			this.dispatchEvent("updated", _triggers);
 		};
 
 		/**
@@ -980,14 +987,11 @@ export default class Doars extends EventDispatcher {
 						return true;
 					});
 					do {
-						// Check if element has attributes.
-						if (!element[ATTRIBUTES]) {
-							continue;
-						}
-
-						// Remove attributes from their component.
-						for (const attribute of element[ATTRIBUTES]) {
-							attribute.getComponent().removeAttribute(attribute);
+						if (element[ATTRIBUTES]) {
+							// Remove attributes from their component.
+							for (const attribute of element[ATTRIBUTES]) {
+								attribute.getComponent().removeAttribute(attribute);
+							}
 						}
 						// biome-ignore lint/suspicious/noAssignInExpressions: Common while loop pattern
 					} while ((element = iterator()));
@@ -1118,14 +1122,14 @@ export default class Doars extends EventDispatcher {
 								mutation.attributeName,
 								value,
 							);
-							component.updateAttribute(attribute);
+							attribute.update();
 						}
 						continue;
 					}
 
 					// Update attribute.
 					attribute.setValue(value);
-					component.updateAttribute(attribute);
+					attribute.update();
 				}
 			}
 
@@ -1153,7 +1157,7 @@ export default class Doars extends EventDispatcher {
 			}
 
 			// If there are any triggers then trigger an update.
-			if (Object.getOwnPropertySymbols(triggers).length > 0) {
+			if (triggers.length > 0) {
 				await this.update();
 			}
 		};

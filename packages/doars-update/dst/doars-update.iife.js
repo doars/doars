@@ -6,11 +6,12 @@
     const time = updater.getTime();
     return {
       name: updateContextName,
-      create: (_component, attribute, _update, options) => {
-        let destroy = null;
+      create: (component, _attribute, options) => {
+        const library = component.getLibrary();
+        let destroy;
         if (!options || options.accessed) {
           const onGet = (_target, path) => {
-            attribute.accessed(id, path.join("."));
+            library.accessed(`${id}:${path.join(".")}`);
           };
           proxy.addEventListener("get", onGet);
           destroy = () => {
@@ -275,8 +276,8 @@
 
   // src/Updater.js
   class Updater {
-    constructor({ stepMinimum }, callback) {
-      const id = Symbol("ID_UPDATE");
+    constructor({ stepMinimum }, library, callback) {
+      const id = library.generateId();
       let isEnabled = false, request;
       const proxy = new ProxyDispatcher({
         delete: false,
@@ -349,26 +350,12 @@
       updateDirectiveName: "update"
     }, options);
     let isEnabled = false;
-    const updater = new Updater(options, () => {
+    const updater = new Updater(options, library, () => {
       update();
-      library.update([
-        {
-          id: updater.getId(),
-          path: "current"
-        },
-        {
-          id: updater.getId(),
-          path: "delta"
-        },
-        {
-          id: updater.getId(),
-          path: "last"
-        },
-        {
-          id: updater.getId(),
-          path: "passed"
-        }
-      ]);
+      library.update(`${updater.getId()}:current`);
+      library.update(`${updater.getId()}:delta`);
+      library.update(`${updater.getId()}:last`);
+      library.update(`${updater.getId()}:passed`);
     });
     const contextUpdate = update_default(options, updater);
     const [directiveUpdate, update] = update_default2(options);
@@ -403,4 +390,4 @@
   window.DoarsUpdate = DoarsUpdate_default;
 })();
 
-//# debugId=F68B4962195DFB1164756E2164756E21
+//# debugId=060348CFE968AE6A64756E2164756E21

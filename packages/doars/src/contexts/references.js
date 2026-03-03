@@ -15,13 +15,15 @@ import { REFERENCES, REFERENCES_CACHE } from "../symbols.js";
 export default ({ referencesContextName }) => ({
 	name: referencesContextName,
 
-	create: (component, attribute, _update, options) => {
+	create: (component, attribute, options) => {
 		// Exit early if no references exist.
 		if (!component[REFERENCES]) {
 			return {
 				value: [],
 			};
 		}
+
+		const library = component.getLibrary();
 
 		// Generate references cache.
 		let cache = component[REFERENCES_CACHE];
@@ -44,7 +46,10 @@ export default ({ referencesContextName }) => ({
 			get: (target, propertyKey, receiver) => {
 				if (!options || options.accessed) {
 					// Mark references as accessed.
-					attribute.accessed(component.getId(), `$references.${propertyKey}`);
+					library.accessed(
+						attribute,
+						`${component.getId()}:$references.${propertyKey}`,
+					);
 				}
 
 				// Return reference.

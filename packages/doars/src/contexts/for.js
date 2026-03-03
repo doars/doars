@@ -17,13 +17,13 @@ export default ({ forContextDeconstruct, forContextName }) => ({
 
 	name: forContextName,
 
-	create: (component, attribute, _update, options) => {
+	create: (component, attribute, options) => {
 		// Exit early in parent contexts.
 		if (component !== attribute.getComponent()) {
 			return;
 		}
 
-		// Deconstruct attribute.
+		const library = component.getLibrary();
 		let element = attribute.getElement();
 
 		// Walk up the tree until the component's root element is found.
@@ -56,7 +56,7 @@ export default ({ forContextDeconstruct, forContextName }) => ({
 					if (Object.hasOwn(item.variables, key)) {
 						if (!options || options.accessed) {
 							// Mark as accessed for data.
-							attribute.accessed(item.id, "$for");
+							library.accessed(attribute, `${item.id}:$for`);
 						}
 
 						// Return value at key.

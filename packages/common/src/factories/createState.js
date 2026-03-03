@@ -11,15 +11,19 @@
  * @returns {object} Proxied state and destroy callback.
  */
 export default (name, id, state, proxy) => {
-	return (_component, attribute, update, options) => {
+	return (component, attribute, options) => {
+		const library = component.getLibrary();
+
 		// Create event handlers.
-		const onDelete = (_target, path) => update(id, `${name}.${path.join(".")}`);
+		const onDelete = (_target, path) =>
+			library.update(`${id}:${name}.${path.join(".")}`);
 		const onGet = (_target, path) => {
 			if (!options || options.accessed) {
-				attribute.accessed(id, `${name}.${path.join(".")}`);
+				library.accessed(attribute, `${id}:${name}.${path.join(".")}`);
 			}
 		};
-		const onSet = (_target, path) => update(id, `${name}.${path.join(".")}`);
+		const onSet = (_target, path) =>
+			library.update(`${id}:${name}.${path.join(".")}`);
 
 		// Add event listeners.
 		proxy.addEventListener("delete", onDelete);

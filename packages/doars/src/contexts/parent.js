@@ -13,7 +13,7 @@ import { createContexts } from "../utilities/Context.js";
 export default ({ parentContextName }) => ({
 	name: parentContextName,
 
-	create: (component, attribute, _update, options) => {
+	create: (component, attribute, options) => {
 		// Deconstruct component.
 		const parent = component.getParent();
 		if (!parent) {

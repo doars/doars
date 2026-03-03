@@ -14,13 +14,16 @@ import { createContexts } from "../utilities/Context.js";
 export default ({ siblingsContextName }) => ({
 	name: siblingsContextName,
 
-	create: (component, attribute, _update, options) => {
+	create: (component, attribute, options) => {
 		const parent = component.getParent();
 		if (!parent) {
 			return {
 				value: [],
 			};
 		}
+
+		const library = component.getLibrary();
+
 		// Create contexts proxy for children.
 		let siblingsContexts;
 		const revocable = RevocableProxy(
@@ -35,7 +38,7 @@ export default ({ siblingsContextName }) => ({
 
 						if (!options || options.accessed) {
 							// Set children of this component as accessed.
-							attribute.accessed(component.getId(), "siblings");
+							library.accessed(attribute, `${component.getId()}:siblings`);
 						}
 					}
 

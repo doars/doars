@@ -13,7 +13,7 @@ import { createContexts } from "../utilities/Context.js";
 export default ({ previousSiblingContextName }) => ({
 	name: previousSiblingContextName,
 
-	create: (component, attribute, _update, options) => {
+	create: (component, attribute, options) => {
 		const parent = component.getParent();
 		if (!parent) {
 			return {

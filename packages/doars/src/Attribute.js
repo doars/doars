@@ -18,35 +18,33 @@ import { ATTRIBUTES } from "./symbols.js";
 export default class Attribute extends EventDispatcher {
 	/**
 	 * Create instance.
+	 * @param {Doars} library Library instance.
 	 * @param {Component} component Component instance.
 	 * @param {HTMLElement} element Element.
 	 * @param {string} name Attribute name (with library prefix removed).
 	 * @param {string} value Attribute value.
-	 * @param {boolean} isClone Whether this will be a clone of an existing attribute.
 	 */
-	constructor(component, element, name, value, isClone = false) {
+	constructor(library, component, element, name, value) {
 		super();
 
 		// Create unique ID.
-		const id = Symbol("ID_ATTRIBUTE");
+		const id = library.generateId();
 
-		if (!isClone) {
-			// Add attribute reference to the element.
-			if (!element[ATTRIBUTES]) {
-				element[ATTRIBUTES] = [];
-			}
-			element[ATTRIBUTES].push(this);
+		// Add attribute reference to the element.
+		if (!element[ATTRIBUTES]) {
+			element[ATTRIBUTES] = [];
 		}
+		element[ATTRIBUTES].push(this);
 
 		// Create private variables.
-		let accessedItems = {},
-			accessedItemIds = new Set(),
-			data = null,
+		let data = null,
 			directive,
+			directiveName,
 			key,
 			keyRaw,
 			modifiersRaw,
-			modifiers;
+			modifiers,
+			processExpression = library.getProcessor();
 
 		// Parse and store name.
 		if (name) {
@@ -55,16 +53,26 @@ export default class Attribute extends EventDispatcher {
 				component.getLibrary().getOptions().prefix,
 				name,
 			);
-			directive = _directive;
+			directiveName = _directive;
 			key = _key;
 			keyRaw = _keyRaw;
 			modifiersRaw = _modifiers;
+
+			directive = library.getDirectiveByName(directiveName);
 
 			// Parse and store modifiers.
 			if (_modifiers) {
 				modifiers = Object.freeze(parseAttributeModifiers(_modifiers));
 			}
 		}
+
+		/**
+		 * Get the library this attribute is a part of.
+		 * @returns {Doars} Attribute's library.
+		 */
+		this.getLibrary = () => {
+			return library;
+		};
 
 		/**
 		 * Get the component this attribute is a part of.
@@ -95,7 +103,7 @@ export default class Attribute extends EventDispatcher {
 		 * @returns {string} Directive name.
 		 */
 		this.getDirective = () => {
-			return directive;
+			return directiveName;
 		};
 
 		/**
@@ -192,11 +200,12 @@ export default class Attribute extends EventDispatcher {
 		 * Destroy the attribute.
 		 */
 		this.destroy = () => {
+			if (directive?.destroy) {
+				directive.destroy(component, this, processExpression);
+			}
+
 			// Clear data.
 			this.setData(null);
-
-			// Clear accessed.
-			this.clearAccessed();
 
 			// Remove attribute from element's attributes.
 			const indexInElement = element[ATTRIBUTES].indexOf(this);
@@ -211,50 +220,16 @@ export default class Attribute extends EventDispatcher {
 			this.removeAllEventListeners();
 		};
 
-		/**
-		 * Mark an item as accessed.
-		 * @param {symbol} id Unique identifier.
-		 * @param {string} path Context path.
-		 */
-		this.accessed = (id, path) => {
-			if (accessedItemIds.has(id)) {
-				if (accessedItems[id].has(path)) {
-					return;
-				}
-			} else {
-				accessedItems[id] = new Set();
-				accessedItemIds.add(id);
+		this.update = () => {
+			if (
+				!this.getElement() ||
+				this.getValue() === null ||
+				this.getValue() === undefined
+			) {
+				component.removeAttribute(this);
+			} else if (directive) {
+				directive.update(component, this, processExpression);
 			}
-
-			accessedItems[id].add(path);
-		};
-
-		/**
-		 * Clear list of accessed items.
-		 */
-		this.clearAccessed = () => {
-			accessedItems = {};
-			accessedItemIds.clear();
-		};
-
-		/**
-		 * Check if attribute accessed any of the item's paths.
-		 * @param {symbol} id Unique identifier.
-		 * @param {Array<string>} paths Contexts path.
-		 * @returns {boolean} Whether any item's path was accessed.
-		 */
-		this.hasAccessed = (id, paths) => {
-			if (!accessedItemIds.has(id)) {
-				return false;
-			}
-			const accessedAtId = accessedItems[id];
-
-			for (const path of paths) {
-				if (accessedAtId.has(path)) {
-					return true;
-				}
-			}
-			return false;
 		};
 	}
 }

@@ -3,10 +3,10 @@ import createState from "@doars/common/src/factories/createState.js";
 
 import { getAll } from "../utilities/localStorage.js";
 
-export default ({
-	localStorageContextDeconstruct,
-	localStorageContextName,
-}) => {
+export default (
+	{ localStorageContextDeconstruct, localStorageContextName },
+	library,
+) => {
 	// Setup proxy that updates to local storage.
 	const proxy = new ProxyDispatcher();
 	proxy.addEventListener("delete", (_target, path) => {
@@ -34,7 +34,7 @@ export default ({
 
 		create: createState(
 			localStorageContextName,
-			Symbol("ID_LOCAL_STORAGE"),
+			library.generateId(),
 			state,
 			proxy,
 		),

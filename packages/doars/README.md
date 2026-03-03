@@ -1055,8 +1055,6 @@ Extends the [`EventDispatcher`](#eventdispatcher).
   - `@returns {Doars}`
 - `getEnabled` Whether this is currently enabled.
   - `@returns {boolean}` Whether the library is enabled.
-- `getId` Get the unique identifier.
-  - `@returns {Symbol}` Unique identifier.
 - `getOptions` Get the current options.
   - `@returns {object}` Current options.
 - `enable` Enable the library.

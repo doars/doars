@@ -67,7 +67,6 @@ const indexInSiblings = (elements, value, offset = -1) => {
  */
 const setAfter = (
 	component,
-	update,
 	template,
 	elements,
 	index,
@@ -75,7 +74,8 @@ const setAfter = (
 	variables,
 	allowInlineScript,
 ) => {
-	const libraryOptions = component.getLibrary().getOptions();
+	const library = component.getLibrary();
+	const libraryOptions = library.getOptions();
 
 	const existingIndex = indexInSiblings(elements, value, index);
 	if (existingIndex >= 0) {
@@ -94,7 +94,7 @@ const setAfter = (
 		);
 
 		// Update all attributes using this for item's data.
-		update(element[FOR].id);
+		library.update(`${element[FOR].id}:$for`);
 
 		return;
 	}
@@ -117,7 +117,7 @@ const setAfter = (
 
 	// Store data.
 	element[FOR] = {
-		id: Symbol("ID_FOR"),
+		id: library.generateId(),
 		value,
 		variables,
 	};
@@ -162,6 +162,8 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 	name: forDirectiveName,
 
 	update: (component, attribute, processExpression) => {
+		const library = component.getLibrary();
+
 		// Deconstruct attribute.
 		const directive = attribute.getDirective();
 		const template = attribute.getElement();
@@ -186,14 +188,6 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 			return;
 		}
 
-		// Setup update method.
-		const triggers = {};
-		const update = (id) => {
-			if (!triggers[id]) {
-				triggers[id] = ["$for"];
-			}
-		};
-
 		const setFor = (iterable) => {
 			// Get stored data.
 			const data = attribute.getData();
@@ -212,7 +206,6 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 						// Add element based on data after previously iterated value.
 						setAfter(
 							component,
-							update,
 							template,
 							elements,
 							index - 1,
@@ -239,7 +232,6 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 						// Add element based on data after previously iterated value.
 						setAfter(
 							component,
-							update,
 							template,
 							elements,
 							index - 1,
@@ -275,7 +267,6 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 							// Add element based on data after previously iterated value.
 							setAfter(
 								component,
-								update,
 								template,
 								elements,
 								index - 1,
@@ -304,7 +295,6 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 							// Add element based on data after previously iterated value.
 							setAfter(
 								component,
-								update,
 								template,
 								elements,
 								index - 1,
@@ -318,11 +308,6 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 					// Remove old values.
 					removeAfter(component, elements, length);
 				}
-			}
-
-			// Dispatch triggers.
-			if (Object.getOwnPropertySymbols(triggers).length > 0) {
-				component.update(triggers);
 			}
 
 			// Store results.

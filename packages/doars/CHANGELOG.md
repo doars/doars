@@ -6,6 +6,8 @@
 - Remove component events.
 - Bug fixes.
 - Performance improvements.
+- Overhauled how data access and update triggers are handled and stored.
+- Removed unused functions from instances.
 - Made `textContent` the default property to assign to instead of `innerText` for the `text` directive.
 
 ## 3.1.1

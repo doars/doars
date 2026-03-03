@@ -1,7 +1,4 @@
-// Import router.
 import Router from "../Router.js";
-
-// Import symbols.
 import { ROUTER } from "../symbols.js";
 
 export default (options) => ({
@@ -21,6 +18,7 @@ export default (options) => ({
 					options,
 					processExpression(component, attribute, attribute.getValue()),
 				),
+				component.getLibrary(),
 			);
 		}
 	},
@@ -48,9 +46,6 @@ export default (options) => ({
 		const library = component.getLibrary();
 
 		// Trigger update due to changed router.
-		library.update({
-			id,
-			path: "",
-		});
+		library.update(`${id}:`);
 	},
 });
