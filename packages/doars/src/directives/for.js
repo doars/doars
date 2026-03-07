@@ -6,7 +6,6 @@ import {
 	transitionIn,
 	transitionOut,
 } from "@doars/common/src/utilities/Transition.js";
-import { FOR } from "../symbols.js";
 
 /**
  * @typedef {import('../Component.js').default} Component
@@ -35,28 +34,29 @@ const createVariables = (names, ...values) => {
 
 /**
  * Finds the index of an element in list matching the value.
+ * @param {WeakMap} dataByElement For data per element in the component.
  * @param {HTMLElement} elements List of elements to search through.
  * @param {any} value Value to compare to.
  * @param {number} offset The index to start searching after.
  * @returns {number} Index of value in elements.
  */
-const indexInSiblings = (elements, value, offset = -1) => {
+const indexInSiblings = (dataByElement, elements, value, offset = -1) => {
 	offset++;
 	if (offset >= elements.length) {
 		return -1;
 	}
 
-	if (elements[offset][FOR].value === value) {
+	if (dataByElement.get(elements[offset])?.value === value) {
 		return offset;
 	}
 
-	return indexInSiblings(elements, value, offset);
+	return indexInSiblings(dataByElement, elements, value, offset);
 };
 
 /**
  * Adds item to document at right index.
- * @param {Component} component Component attribute is part of.
- * @param {Function} update Update trigger function.
+ * @param {Doars} doars Doars libray instance.
+ * @param {WeakMap} dataByElement For data per element in the component.
  * @param {DocumentFragment} template Template of items.
  * @param {Array<HTMLElement>} elements Existing item elements.
  * @param {number} index Index to start looking from.
@@ -66,7 +66,8 @@ const indexInSiblings = (elements, value, offset = -1) => {
  * @returns {void}
  */
 const setAfter = (
-	component,
+	library,
+	dataByElement,
 	template,
 	elements,
 	index,
@@ -74,10 +75,7 @@ const setAfter = (
 	variables,
 	allowInlineScript,
 ) => {
-	const library = component.getLibrary();
-	const libraryOptions = library.getOptions();
-
-	const existingIndex = indexInSiblings(elements, value, index);
+	const existingIndex = indexInSiblings(dataByElement, elements, value, index);
 	if (existingIndex >= 0) {
 		// Exit early it is already in place.
 		if (existingIndex === index + 1) {
@@ -86,6 +84,7 @@ const setAfter = (
 
 		// Get existing element to move.
 		const element = elements[existingIndex];
+		const data = dataByElement.get(element);
 
 		// Move element after element at index or directly after the template.
 		(elements[index] ? elements[index] : template).insertAdjacentElement(
@@ -94,7 +93,7 @@ const setAfter = (
 		);
 
 		// Update all attributes using this for item's data.
-		library.update(`${element[FOR].id}:$for`);
+		library.update(`${data.id}:${libraryOptions.forContextName}`);
 
 		return;
 	}
@@ -113,14 +112,14 @@ const setAfter = (
 	}
 
 	// Transition in.
-	transitionIn(libraryOptions, element);
+	transitionIn(library.getOptions(), element);
 
 	// Store data.
-	element[FOR] = {
+	dataByElement.set(element, {
 		id: library.generateId(),
 		value,
 		variables,
-	};
+	});
 
 	// Store reference.
 	elements.splice(index + 1, 0, element);
@@ -128,17 +127,15 @@ const setAfter = (
 
 /**
  * Removes elements after maximum length.
- * @param {Component} component Component the elements are part of.
+ * @param {Object} libraryOptions Doars library options.
  * @param {Array<HTMLElement>} elements List of existing elements.
  * @param {number} maxLength Maximum number of elements.
  */
-const removeAfter = (component, elements, maxLength) => {
+const removeAfter = (libraryOptions, elements, maxLength) => {
 	// Exit early if length is not exceeded.
 	if (elements.length < maxLength) {
 		return;
 	}
-
-	const libraryOptions = component.getLibrary().getOptions();
 
 	// Iterate over exceeding elements.
 	for (let i = elements.length - 1; i >= maxLength; i--) {
@@ -162,12 +159,8 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 	name: forDirectiveName,
 
 	update: (component, attribute, processExpression) => {
-		const library = component.getLibrary();
-
-		// Deconstruct attribute.
 		const directive = attribute.getDirective();
 		const template = attribute.getElement();
-		const modifiers = attribute.getModifiers();
 
 		// Check if placed on a template tag.
 		if (template.tagName !== "TEMPLATE") {
@@ -178,6 +171,16 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 			);
 			return;
 		}
+
+		const library = component.getLibrary();
+		const libraryOptions = library.getOptions();
+		let dataByElement = component.getData(libraryOptions.forContextName);
+		if (!dataByElement) {
+			dataByElement = new WeakMap();
+			component.setData(libraryOptions.forContextName, dataByElement);
+		}
+
+		const modifiers = attribute.getModifiers();
 
 		const expression = parseForExpression(attribute.getValue());
 		if (!expression) {
@@ -205,7 +208,8 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 
 						// Add element based on data after previously iterated value.
 						setAfter(
-							component,
+							library,
+							dataByElement,
 							template,
 							elements,
 							index - 1,
@@ -216,7 +220,7 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 					}
 
 					// Remove old values.
-					removeAfter(component, elements, iterable);
+					removeAfter(libraryOptions, elements, iterable);
 				} else if (iterableType === "string") {
 					for (let index = 0; index < iterable.length; index++) {
 						// Get value at index.
@@ -231,7 +235,8 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 
 						// Add element based on data after previously iterated value.
 						setAfter(
-							component,
+							library,
+							dataByElement,
 							template,
 							elements,
 							index - 1,
@@ -242,7 +247,7 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 					}
 
 					// Remove old values.
-					removeAfter(component, elements, iterable.length);
+					removeAfter(libraryOptions, elements, iterable.length);
 				} else {
 					// We can't rely on Array.isArray since it might be a proxy, therefore we try to convert it to an array.
 					let isArray, length;
@@ -266,7 +271,8 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 
 							// Add element based on data after previously iterated value.
 							setAfter(
-								component,
+								library,
+								dataByElement,
 								template,
 								elements,
 								index - 1,
@@ -294,7 +300,8 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 
 							// Add element based on data after previously iterated value.
 							setAfter(
-								component,
+								library,
+								dataByElement,
 								template,
 								elements,
 								index - 1,
@@ -306,7 +313,7 @@ export default ({ allowInlineScript, forDirectiveName }) => ({
 					}
 
 					// Remove old values.
-					removeAfter(component, elements, length);
+					removeAfter(libraryOptions, elements, length);
 				}
 			}
 

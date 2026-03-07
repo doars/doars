@@ -14,7 +14,6 @@ export default ({ parentContextName }) => ({
 	name: parentContextName,
 
 	create: (component, attribute, options) => {
-		// Deconstruct component.
 		const parent = component.getParent();
 		if (!parent) {
 			return {
@@ -22,13 +21,10 @@ export default ({ parentContextName }) => ({
 			};
 		}
 
-		// Create contexts proxy for parent.
-		const { contexts, destroy } = createContexts(
-			parent,
-			attribute,
-			null,
-			options,
-		);
+		const { contexts, destroy } = createContexts(parent, attribute, null, {
+			...options,
+			global: false,
+		});
 
 		return {
 			value: contexts,

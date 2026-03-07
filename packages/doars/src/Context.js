@@ -15,7 +15,6 @@
  * @callback CreateFunction
  * @param {Component} component The component the context is being created for.
  * @param {Attribute} attribute The attribute the context is being created for.
- * @param {UpdateFunction} update Function to trigger a state update.
  * @param {Object} options Additional options for the context.
  * @returns {ContextValue|undefined} The resulting context.
  */

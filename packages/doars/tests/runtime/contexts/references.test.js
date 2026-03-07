@@ -17,7 +17,6 @@ describe("References Context", () => {
 		container = null;
 	});
 
-	// TODO: resolve timing issue. References is not yet initialized when initialized is called. I think.
 	test("references context should provide referenced elements", async () => {
 		let captured;
 

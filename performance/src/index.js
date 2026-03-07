@@ -40,7 +40,7 @@ const options = {
 	profile: false,
 
 	complexity: 10,
-	iterations: 100,
+	iterations: 50,
 };
 const args = process.argv.slice(2);
 args.forEach((arg) => {

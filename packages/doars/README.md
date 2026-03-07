@@ -196,13 +196,14 @@ Loop over a value and create elements based on a template. The directive's value
 
 ### d-html
 
-Set the inner HTML of the element. The directive's value should be a function expression returning the HTML to set, or a promise resolving into the HTML to set. The inner HTML is only updated if it differs from the current value.
+Set the inner HTML of the element. The directive's value should be a function expression returning the HTML to set, or a promise resolving into the HTML to set. The inner HTML is only updated if it differs from the current value. HTML nodes can also be provided instead of string, in that case it will replace the existing child nodes with clones of the given nodes.
 
 #### d-html modifiers
 
-- `{boolean} decode = false` If the returned type is a string the value will's special HTML characters will be decoded. For example `&gt;` will become `>`.
-- `{boolean} morph = false` Whether to convert the old document structure to the new, or to fully overwrite the existing structure with the new.
-- `{boolean} outer = false` Set the result to `outerHTML` instead of the `innerHTML`.
+- `{boolean} clone = false` If the returned type is a node or node list the nodes will be cloned before setting them to the document.
+- `{boolean} decode = false` If the returned type is a string the value's special HTML characters will be decoded. For example `&gt;` will become `>`.
+- `{boolean} morph = false` Whether to convert the old document structure to the new, or to fully overwrite the existing structure with the new. Only used when returning a string.
+- `{boolean} outer = false` Set the result to `outerHTML` instead of the `innerHTML`. When HTML Nodes are returned it will replace the node itself with the give nodes.
 
 #### d-html examples
 

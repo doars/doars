@@ -4,6 +4,8 @@ export default ({ updateContextName }, updater) => {
 	const time = updater.getTime();
 
 	return {
+		global: true,
+
 		name: updateContextName,
 
 		create: (component, _attribute, options) => {

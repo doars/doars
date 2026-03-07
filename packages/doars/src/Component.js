@@ -1,13 +1,7 @@
-// Import proxy dispatcher.
 import ProxyDispatcher from "@doars/common/src/events/ProxyDispatcher.js";
 import { walk } from "@doars/common/src/utilities/Element.js";
-// Import classes.
 import Attribute from "./Attribute.js";
-
-// Import types.
 import Doars from "./Doars.js";
-import { COMPONENT } from "./symbols.js";
-import { closestComponent } from "./utilities/Component.js";
 
 /**
  * @typedef {import('./Doars.js').default} Doars
@@ -16,7 +10,6 @@ import { closestComponent } from "./utilities/Component.js";
 /**
  * @typedef Component
  * @type {object}
- * @property {() => Array<Attribute>} getAttributes
  * @property {() => Array<Component>} getChildren
  * @property {() => HTMLElement} getElement
  * @property {() => string} getId
@@ -44,21 +37,23 @@ export default (library, element) => {
 	// Create unique ID.
 	const id = library.generateId();
 
-	// Deconstruct library options.
-	const { prefix, stateDirectiveName, ignoreDirectiveName } =
-		library.getOptions();
+	const {
+		prefix,
+		childrenContextName,
+		ignoreDirectiveName,
+		parentContextName,
+		stateDirectiveName,
+	} = library.getOptions();
 
-	// Get the expression processor.
-	const processExpression = library.getProcessor();
-
-	// Cache directive name strings.
-	const componentName = `${prefix}-${stateDirectiveName}`;
-	const ignoreName = `${prefix}-${ignoreDirectiveName}`;
+	const attributes = [],
+		data = {},
+		componentName = `${prefix}-${stateDirectiveName}`,
+		ignoreName = `${prefix}-${ignoreDirectiveName}`,
+		processExpression = library.getProcessor();
 
 	// create private variables.
-	let attributes = [],
-		isInitialized = false,
-		data,
+	let isInitialized = false,
+		initialState,
 		proxy,
 		state;
 
@@ -72,19 +67,29 @@ export default (library, element) => {
 
 	const component = {
 		/**
-		 * Get the attributes in this component.
-		 * @returns {Array<Attribute>} List of attributes.
-		 */
-		getAttributes: () => {
-			return attributes;
-		},
-
-		/**
 		 * Get child components in hierarchy of this component.
 		 * @returns {Array<Component>} List of components.
 		 */
 		getChildren: () => {
 			return children;
+		},
+
+		/**
+		 * Get custom data set previously.
+		 * @param {string|Symbol} key Name to get the data from.
+		 * @returns {any} the data.
+		 */
+		getData: (key) => {
+			return data[key];
+		},
+
+		/**
+		 * Set custom attribute data.
+		 * @param {string|Symbol} key Name to set the data under.
+		 * @param {any} _data Some data.
+		 */
+		setData: (key, _data) => {
+			data[key] = _data;
 		},
 
 		/**
@@ -158,7 +163,7 @@ export default (library, element) => {
 			const value = element.attributes[componentName].value;
 
 			// Process expression for generating the state using a mock attribute.
-			data = value
+			initialState = value
 				? processExpression(
 						component,
 						new Attribute(library, component, element, null, value),
@@ -168,20 +173,26 @@ export default (library, element) => {
 						},
 					)
 				: {};
-			if (data === null) {
-				data = {};
-			} else if (typeof data !== "object" || Array.isArray(data)) {
-				console.error("Doars: component tag must return an object!", data);
+			if (initialState === null || initialState === undefined) {
+				initialState = {};
+			} else if (
+				typeof initialState !== "object" ||
+				Array.isArray(initialState)
+			) {
+				console.error(
+					"Doars: component tag must return an object!",
+					initialState,
+				);
 				return;
 			}
 
 			// Create proxy dispatcher for state.
 			proxy = new ProxyDispatcher();
 			// Add data to dispatcher to create the state.
-			state = proxy.add(data);
+			state = proxy.add(initialState);
 
 			// Scan for attributes.
-			component.scanAttributes(element);
+			return component.scanAttributes(element);
 		},
 
 		/**
@@ -214,7 +225,7 @@ export default (library, element) => {
 			}
 
 			// Reset variables.
-			attributes = [];
+			attributes.splice(0, attributes.length);
 
 			// Set children as children of parent.
 			if (children.length > 0) {
@@ -223,11 +234,11 @@ export default (library, element) => {
 					child.setParent(parent);
 
 					// Add parent update trigger.
-					library.update(`${child.getId()}:parent`);
+					library.update(`${child.getId()}:${parentContextName}`);
 				}
 
 				// Add children update trigger.
-				library.update(`${id}:children`);
+				library.update(`${id}:${childrenContextName}}`);
 			}
 			if (parent) {
 				if (children.length > 0) {
@@ -235,24 +246,21 @@ export default (library, element) => {
 					parent.getChildren().push(...children);
 
 					// Add children update trigger.
-					library.update(`${parent.getId()}:children`);
+					library.update(`${parent.getId()}:${childrenContextName}`);
 				}
 
 				// Add parent update trigger.
-				library.update(`${id}:parent`);
+				library.update(`${id}:${parentContextName}`);
 			}
-
-			// Remove reference from element.
-			delete element[COMPONENT];
 
 			// Set as not initialized.
 			isInitialized = false;
 
 			// Remove state and state handling.
-			proxy.remove(data);
+			proxy.remove(initialState);
 			state = null;
 			proxy = null;
-			data = null;
+			initialState = null;
 		},
 
 		/**
@@ -345,20 +353,17 @@ export default (library, element) => {
 		},
 	};
 
-	// Add reference to element.
-	element[COMPONENT] = component;
-
-	// Update position in hierarchy.
 	const children = [];
 	// Get current parent component.
-	let parent = closestComponent(element);
+	let parent = library.closestComponent(element);
 	if (parent) {
 		// Add to list of children in parent.
-		if (!parent.getChildren().includes(component)) {
-			parent.getChildren().push(component);
+		const siblings = parent.getChildren();
+		if (!siblings.includes(component)) {
+			siblings.push(component);
 
 			// Trigger children update.
-			library.update(`${parent.getId()}:children`);
+			library.update(`${parent.getId()}:${childrenContextName}}`);
 		}
 	}
 

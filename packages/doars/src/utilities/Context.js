@@ -30,6 +30,7 @@ export const createContexts = (
 	extra = null,
 	options = null,
 ) => {
+	const addGlobal = !options || !options.global;
 	const logAccess = !options || options.accessed;
 
 	const library = component.getLibrary();
@@ -44,10 +45,15 @@ export const createContexts = (
 	/** @type {Array<string>} */
 	const contextsKeysCache = [];
 	for (const contextName in creatableContexts) {
+		const creatableContext = creatableContexts[contextName];
+		// Skip global contexts if not allowed.
+		if (!addGlobal && creatableContext.global) {
+			continue;
+		}
+
 		createableContextNames.push(contextName);
 		contextsKeysCache.push(contextName);
 
-		const creatableContext = creatableContexts[contextName];
 		if (creatableContext.revocable === false) {
 			irrevocable.push(contextName);
 		}
@@ -69,6 +75,10 @@ export const createContexts = (
 	/** @type {Array<DestroyFunction>} */
 	const destroyCallbacks = [];
 	const addContext = (target, creatableContext) => {
+		if (!addGlobal && creatableContext.global) {
+			return;
+		}
+
 		const result = creatableContext.create(component, attribute, options);
 		if (result) {
 			if (result.destroy && typeof result.destroy === "function") {

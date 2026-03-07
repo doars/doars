@@ -1,4 +1,3 @@
-import RevocableProxy from "@doars/common/src/polyfills/RevocableProxy.js";
 import { createContexts } from "../utilities/Context.js";
 
 /**
@@ -15,51 +14,31 @@ export default ({ childrenContextName }) => ({
 	name: childrenContextName,
 
 	create: (component, attribute, options) => {
-		const library = component.getLibrary();
+		options = {
+			...options,
+			global: false,
+		};
 
-		// Create contexts proxy for children.
-		let childrenContexts;
-		const revocable = RevocableProxy(component.getChildren(), {
-			get: (target, key, receiver) => {
-				if (!childrenContexts) {
-					// Create list of child contexts.
-					childrenContexts = target.map((child) =>
-						createContexts(child, attribute, null, options),
-					);
-
-					// Set children of this component as accessed.
-					if (!options || options.accessed) {
-						library.accessed(attribute, `${component.getId()}:children`);
-					}
-				}
-
-				// If not a number then do a normal access.
-				// biome-ignore lint/suspicious/noGlobalIsNan: Intentional coercion
-				if (isNaN(key)) {
-					return Reflect.get(childrenContexts, key, receiver);
-				}
-
-				// Return context from child.
-				const child = Reflect.get(childrenContexts, key, receiver);
-				if (child) {
-					return child.contexts;
-				}
-			},
-		});
+		const childContexts = [];
+		const childDestroys = [];
+		for (const child of component.getChildren()) {
+			const { contexts, destroy } = createContexts(
+				child,
+				attribute,
+				null,
+				options,
+			);
+			childContexts.push(contexts);
+			childDestroys.push(destroy);
+		}
 
 		return {
-			value: revocable.proxy,
+			value: childContexts,
 
 			destroy: () => {
-				// Call destroy on all created contexts.
-				if (childrenContexts) {
-					childrenContexts.forEach((child) => {
-						child.destroy();
-					});
+				for (const childDestroy of childDestroys) {
+					childDestroy();
 				}
-
-				// Revoke proxy.
-				revocable.revoke();
 			},
 		};
 	},

@@ -24,6 +24,7 @@ export default (
 
 	return {
 		deconstruct: !!storeContextDeconstruct,
+		global: true,
 
 		name: storeContextName,
 

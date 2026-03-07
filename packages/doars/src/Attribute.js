@@ -1,14 +1,10 @@
-// Import event dispatcher.
 import EventDispatcher from "@doars/common/src/events/EventDispatcher.js";
-// Import utilities.
 import {
 	parseAttributeModifiers,
 	parseAttributeName,
 } from "@doars/common/src/utilities/String.js";
 
-// Import types.
 import Component from "./Component.js";
-// Import symbols.
 import { ATTRIBUTES } from "./symbols.js";
 
 /**
@@ -37,12 +33,12 @@ export default class Attribute extends EventDispatcher {
 		element[ATTRIBUTES].push(this);
 
 		// Create private variables.
-		let data = null,
+		let isEnabled = true,
+			data,
 			directive,
 			directiveName,
 			key,
 			keyRaw,
-			modifiersRaw,
 			modifiers,
 			processExpression = library.getProcessor();
 
@@ -56,7 +52,6 @@ export default class Attribute extends EventDispatcher {
 			directiveName = _directive;
 			key = _key;
 			keyRaw = _keyRaw;
-			modifiersRaw = _modifiers;
 
 			directive = library.getDirectiveByName(directiveName);
 
@@ -67,19 +62,35 @@ export default class Attribute extends EventDispatcher {
 		}
 
 		/**
-		 * Get the library this attribute is a part of.
-		 * @returns {Doars} Attribute's library.
-		 */
-		this.getLibrary = () => {
-			return library;
-		};
-
-		/**
 		 * Get the component this attribute is a part of.
 		 * @returns {Component} Attribute's component.
 		 */
 		this.getComponent = () => {
 			return component;
+		};
+
+		/**
+		 * Get custom data set previously.
+		 * @returns {any} the data.
+		 */
+		this.getData = () => {
+			return data;
+		};
+
+		/**
+		 * Set custom attribute data.
+		 * @param {any} _data Some data.
+		 */
+		this.setData = (_data) => {
+			data = _data;
+		};
+
+		/**
+		 * Get the directive this attribute matches.
+		 * @returns {string} Directive name.
+		 */
+		this.getDirective = () => {
+			return directiveName;
 		};
 
 		/**
@@ -90,20 +101,16 @@ export default class Attribute extends EventDispatcher {
 			return element;
 		};
 
+		this.getEnabled = () => {
+			return isEnabled;
+		};
+
 		/**
 		 * Get attribute id.
 		 * @returns {symbol} Unique identifier.
 		 */
 		this.getId = () => {
 			return id;
-		};
-
-		/**
-		 * Get the directive this attribute matches.
-		 * @returns {string} Directive name.
-		 */
-		this.getDirective = () => {
-			return directiveName;
 		};
 
 		/**
@@ -123,19 +130,19 @@ export default class Attribute extends EventDispatcher {
 		};
 
 		/**
+		 * Get the library this attribute is a part of.
+		 * @returns {Doars} Attribute's library.
+		 */
+		this.getLibrary = () => {
+			return library;
+		};
+
+		/**
 		 * Get the optional modifiers of the attribute.
 		 * @returns {object} Modifiers object.
 		 */
 		this.getModifiers = () => {
 			return modifiers;
-		};
-
-		/**
-		 * Get the optional modifiers of the attribute before being processed.
-		 * @returns {Array<string>} List of raw modifiers.
-		 */
-		this.getModifiersRaw = () => {
-			return modifiersRaw;
 		};
 
 		/**
@@ -166,46 +173,17 @@ export default class Attribute extends EventDispatcher {
 		};
 
 		/**
-		 * Clear custom data set.
-		 */
-		this.clearData = () => {
-			data = null;
-		};
-
-		/**
-		 * Whether there is data set.
-		 * @returns {boolean} Whether data is set.
-		 */
-		this.hasData = () => {
-			return data !== null;
-		};
-
-		/**
-		 * Get custom data set previously.
-		 * @returns {any} the data.
-		 */
-		this.getData = () => {
-			return data;
-		};
-
-		/**
-		 * Set custom attribute data.
-		 * @param {any} _data Some data.
-		 */
-		this.setData = (_data) => {
-			data = _data;
-		};
-
-		/**
 		 * Destroy the attribute.
 		 */
 		this.destroy = () => {
+			isEnabled = false;
+
 			if (directive?.destroy) {
 				directive.destroy(component, this, processExpression);
 			}
 
 			// Clear data.
-			this.setData(null);
+			data = null;
 
 			// Remove attribute from element's attributes.
 			const indexInElement = element[ATTRIBUTES].indexOf(this);

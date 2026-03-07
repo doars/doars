@@ -20,6 +20,7 @@ export default ({ cookiesContextDeconstruct, cookiesContextName }, library) => {
 
 	return {
 		deconstruct: !!cookiesContextDeconstruct,
+		global: true,
 
 		name: cookiesContextName,
 

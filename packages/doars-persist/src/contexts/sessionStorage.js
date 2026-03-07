@@ -29,6 +29,7 @@ export default (
 
 	return {
 		deconstruct: !!sessionStorageContextDeconstruct,
+		global: true,
 
 		name: sessionStorageContextName,
 

@@ -1,6 +1,5 @@
 // Import symbols.
 import RevocableProxy from "@doars/common/src/polyfills/RevocableProxy.js";
-import { FOR } from "../symbols.js";
 
 /**
  * @typedef {import('../Context.js').Context} Context
@@ -32,12 +31,15 @@ export default ({ forContextDeconstruct, forContextName }) => ({
 			target = {};
 		while (element && !element.isSameNode(componentElement)) {
 			// Check if element has for symbol.
-			const data = element[FOR];
-			if (data) {
-				items.push(data);
+			const dataByElement = component.getData(forContextName);
+			if (dataByElement?.has(element)) {
+				const data = dataByElement.get(element);
+				if (data) {
+					items.push(data);
 
-				for (const key in data.variables) {
-					target[key] = data.variables[key];
+					for (const key in data.variables) {
+						target[key] = data.variables[key];
+					}
 				}
 			}
 
@@ -56,7 +58,7 @@ export default ({ forContextDeconstruct, forContextName }) => ({
 					if (Object.hasOwn(item.variables, key)) {
 						if (!options || options.accessed) {
 							// Mark as accessed for data.
-							library.accessed(attribute, `${item.id}:$for`);
+							library.accessed(attribute, `${item.id}:${forContextName}`);
 						}
 
 						// Return value at key.

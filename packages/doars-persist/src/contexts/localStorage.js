@@ -29,6 +29,7 @@ export default (
 
 	return {
 		deconstruct: !!localStorageContextDeconstruct,
+		global: true,
 
 		name: localStorageContextName,
 

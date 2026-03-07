@@ -28,12 +28,14 @@ export default ({ previousSiblingContextName }) => ({
 			};
 		}
 
-		// Create contexts proxy for sibling.
 		const { contexts, destroy } = createContexts(
 			siblings[index - 1],
 			attribute,
 			null,
-			options,
+			{
+				...options,
+				global: false,
+			},
 		);
 
 		return {

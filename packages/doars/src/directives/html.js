@@ -19,28 +19,56 @@ export default ({ allowInlineScript, htmlDirectiveName }) => ({
 
 	update: (component, attribute, processExpression) => {
 		// Deconstruct attribute.
-		const directive = attribute.getDirective();
 		const element = attribute.getElement();
 		const modifiers = attribute.getModifiers();
 
 		const setHtml = (html) => {
-			// Decode string.
-			if (modifiers.decode) {
-				html = decode(html);
-			}
-
-			// Clone and set html as only child for HTMLElements.
-			if (html instanceof HTMLElement) {
-				for (const child of element.children) {
-					child.remove();
+			// Clone and set html as child(ren) for type element(s).
+			if (html instanceof Node) {
+				if (modifiers.clone) {
+					html = html.cloneNode(true);
 				}
+				if (modifiers.outer) {
+					element.insertAdjacentElement("beforebegin", html);
+					element.remove();
+				} else {
+					for (const staleChild of element.children) {
+						staleChild.remove();
+					}
 
-				element.append(html.cloneNode(true));
+					element.append(html);
+				}
+				return;
+			}
+			if (html instanceof NodeList) {
+				if (modifiers.outer) {
+					for (let newChild of html) {
+						if (modifiers.clone) {
+							newChild = newChild.cloneNode(true);
+						}
+						element.insertAdjacentElement("beforebegin", newChild);
+					}
+					element.remove();
+				} else {
+					for (const staleChild of element.children) {
+						staleChild.remove();
+					}
+
+					for (let newChild of html) {
+						if (modifiers.clone) {
+							newChild = newChild.cloneNode(true);
+						}
+						element.append(newChild);
+					}
+				}
 				return;
 			}
 
-			// Set html via inner html for strings.
 			if (typeof html === "string") {
+				if (modifiers.decode) {
+					html = decode(html);
+				}
+
 				if (modifiers.morph) {
 					if (modifiers.outer) {
 						// Morph the element as well.
@@ -79,7 +107,7 @@ export default ({ allowInlineScript, htmlDirectiveName }) => ({
 			}
 
 			console.error(
-				`Doars: Unknown type returned to "${directive}" directive.`,
+				`Doars: Unknown type returned to "${attribute.getDirective()}" directive.`,
 			);
 		};
 
