@@ -20,7 +20,7 @@ import {
 import { morphTree } from "@doars/common/src/utilities/Morph.js";
 import { readdScripts } from "@doars/common/src/utilities/Script.js";
 
-const NAVIGATE = Symbol("NAVIGATE");
+const NAVIGATE = Symbol("NAVIGATE"); // TODO: Switch to storing data on the attribute instance.
 
 /**
  * @typedef DirectiveOptions

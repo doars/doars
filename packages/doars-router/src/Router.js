@@ -15,13 +15,14 @@ import { pathToRegexp } from "path-to-regexp";
 
 export default class Router extends EventDispatcher {
 	/**
-	 * @param {RouterOptions} [options] Router options.
+	 * @param {RouterOptions} options Router options.
+	 * @param {Doars} library Doars instance.
 	 */
-	constructor(options = {}) {
+	constructor(options = {}, library) {
 		super();
 
 		// Create id.
-		const id = Symbol("ID_ROUTER");
+		const id = library.getInstance();
 
 		// Overwrite default with given options.
 		options = Object.assign(

@@ -41,9 +41,9 @@ export default function (library, options = null) {
 	let cookiesContext, localStorageContext, sessionStorageContext;
 
 	const onEnable = () => {
-		cookiesContext = createCookieContext(options);
-		localStorageContext = createLocalStorageContext(options);
-		sessionStorageContext = createSessionStorageContext(options);
+		cookiesContext = createCookieContext(options, library);
+		localStorageContext = createLocalStorageContext(options, library);
+		sessionStorageContext = createSessionStorageContext(options, library);
 
 		// Get index of state and insert the context directly before it.
 		const existingContexts = library.getContexts();

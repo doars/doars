@@ -138,7 +138,7 @@ export const walk = (node, filter) => {
 			}
 
 			child = node.children[index];
-		} while (!filter(child));
+		} while (!filter || !filter(child));
 
 		// Setup iterator for child.
 		if (child.childElementCount) {

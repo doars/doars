@@ -4,7 +4,7 @@
  */
 
 // Symbols.
-const ON = Symbol("ON");
+const ON = Symbol("ON"); // TODO: Switch to storing data on the attribute instance.
 
 // Declare constants.
 const CANCEL_EVENTS = {

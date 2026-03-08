@@ -2,11 +2,16 @@
 
 ## 4.0.0
 
-- Remove transition events.
-- Remove component events.
+- Removed `content` modifier of `text` directive, the `text` directive now writes to `textContent` instead of `innerText` by default.
+- Removed `transition` events.
+- Removed unused functions and events from `Doars`, `Component`, and `Attribute`.
+- Added `clone` modifier to `html` directive.
+- Added `inner` modifier to the `text` directive.
+- Added support for `NodeList` as a return type to the `html` directive.
+- Added support for `outer` modifier when return a `Node` to the `html` directive.
+- Changed how data access and update triggers are handled and stored.
 - Bug fixes.
 - Performance improvements.
-- Made `textContent` the default property to assign to instead of `innerText` for the `text` directive.
 
 ## 3.1.1
 

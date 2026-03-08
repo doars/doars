@@ -24,7 +24,7 @@ import { readdScripts } from "@doars/common/src/utilities/Script.js";
 
 import { serializeFormData } from "../utilities/Xml.js";
 
-const FETCH = Symbol("FETCH");
+const FETCH = Symbol("FETCH"); // TODO: Switch to storing data on the attribute instance.
 
 const EXECUTION_MODIFIERS = {
 	NONE: 0,
@@ -176,7 +176,7 @@ export default (
 			Vary: `${libraryOptions.prefix}-${libraryOptions.requestHeaderName}`,
 		};
 
-		// TODO: Should call directives directly instead.
+		// TODO: Should call directives directly instead of using events for this.
 		const dispatchEvent = (suffix = "", data = {}) => {
 			element.dispatchEvent(
 				new CustomEvent(`${libraryOptions.prefix}-${directive}${suffix}`, {

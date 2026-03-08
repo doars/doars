@@ -125,7 +125,7 @@ export default ({ allowInlineScript, ifDirectiveName }) => ({
 		}
 	},
 
-	destroy: (component, attribute, { transitionOut }) => {
+	destroy: (component, attribute) => {
 		// Get stored data.
 		const data = attribute.getData();
 

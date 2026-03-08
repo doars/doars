@@ -10,13 +10,13 @@ import { deepAssign } from "@doars/common/src/utilities/Object.js";
 /**
  * Create the store context.
  * @param {DoarsOptions} options Library options.
+ * @param {string} id Unique ID for the data store.
  * @returns {Context} The context.
  */
-export default ({
-	storeContextDeconstruct,
-	storeContextInitial,
-	storeContextName,
-}) => {
+export default (
+	{ storeContextDeconstruct, storeContextInitial, storeContextName },
+	id,
+) => {
 	// Create a single proxy for the store.
 	const data = deepAssign({}, storeContextInitial);
 	const proxy = new ProxyDispatcher();
@@ -24,9 +24,10 @@ export default ({
 
 	return {
 		deconstruct: !!storeContextDeconstruct,
+		global: true,
 
 		name: storeContextName,
 
-		create: createState(storeContextName, Symbol("ID_STORE"), state, proxy),
+		create: createState(storeContextName, id, state, proxy),
 	};
 };

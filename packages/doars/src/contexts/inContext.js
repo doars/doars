@@ -15,7 +15,7 @@ export default ({ inContextContextName }) => ({
 
 	name: inContextContextName,
 
-	create: (component, attribute, _update, options) => ({
+	create: (component, attribute, options) => ({
 		value: (callback) => {
 			// Create contexts.
 			const { contexts, destroy } = createContexts(

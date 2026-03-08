@@ -1,6 +1,3 @@
-// Import symbols.
-import { REFERENCES, REFERENCES_CACHE } from "../symbols.js";
-
 /**
  * @typedef {import('../Attribute.js').default} Attribute
  * @typedef {import('../Component.js').default} Component
@@ -9,56 +6,11 @@ import { REFERENCES, REFERENCES_CACHE } from "../symbols.js";
  */
 
 /**
- * Destroys the directive.
- * @param {Component} component The component the directive is part of.
- * @param {Attribute} attribute The attribute the directive is part of.
- * @returns {undefined}
- */
-const destroy = (component, attribute) => {
-	// Exit early if not set.
-	if (!component[REFERENCES]) {
-		return;
-	}
-
-	// Deconstruct attribute.
-	const attributeId = attribute.getId();
-
-	// Exit early if not the same attribute.
-	if (!component[REFERENCES][attributeId]) {
-		return;
-	}
-
-	// Deconstruct component.
-	const library = component.getLibrary();
-	const componentId = component.getId();
-
-	// Deconstruct attribute.
-	const name = component[REFERENCES][attributeId].name;
-
-	// Remove reference from object.
-	delete component[REFERENCES][attributeId];
-
-	// Remove context cache.
-	delete component[REFERENCES_CACHE];
-
-	// Remove object if it is empty now.
-	if (Object.keys(component[REFERENCES]).length === 0) {
-		delete component[REFERENCES];
-	}
-
-	// Trigger references update.
-	library.update({
-		id: componentId,
-		path: `$references.${name}`,
-	});
-};
-
-/**
  * Create the reference directive.
  * @param {DoarsOptions} options Library options.
  * @returns {Directive} The directive.
  */
-export default ({ referenceDirectiveName }) => ({
+export default ({ referencesContextName, referenceDirectiveName }) => ({
 	name: referenceDirectiveName,
 
 	update: (component, attribute, processExpression) => {
@@ -96,26 +48,62 @@ export default ({ referenceDirectiveName }) => ({
 			return;
 		}
 
-		// Check if references object exists.
-		if (!component[REFERENCES]) {
-			component[REFERENCES] = {};
-		}
-
-		// Store reference.
-		component[REFERENCES][attributeId] = {
+		// Add refernce to data.
+		const data = component.getData(referenceDirectiveName) ?? {};
+		data[attributeId] = {
 			element,
 			name,
 		};
+		component.setData(referenceDirectiveName, data);
 
 		// Remove context cache.
-		delete component[REFERENCES_CACHE];
+		component.setData(referencesContextName, null);
 
 		// Trigger references update.
-		library.update({
-			id: componentId,
-			path: `$references.${name}`,
-		});
+		library.update(`${componentId}:${referencesContextName}.${name}`);
 	},
 
-	destroy,
+	/**
+	 * Destroys the directive.
+	 * @param {Component} component The component the directive is part of.
+	 * @param {Attribute} attribute The attribute the directive is part of.
+	 * @returns {void}
+	 */
+	destroy: (component, attribute) => {
+		// Exit early if not set.
+		const referencesData = component.getData(referenceDirectiveName);
+		if (!referencesData) {
+			return;
+		}
+
+		// Deconstruct attribute.
+		const attributeId = attribute.getId();
+
+		// Exit early if not the same attribute.
+		const referenceData = referencesData[attributeId];
+		if (!referenceData) {
+			return;
+		}
+
+		// Deconstruct component.
+		const library = component.getLibrary();
+		const componentId = component.getId();
+
+		// Remove reference from object.
+		delete referencesData[attributeId];
+
+		// Remove context cache.
+		component.setData(referencesContextName, null);
+
+		// Remove object if it is empty now.
+		if (Object.keys(referencesData).length === 0) {
+			component.setData(referenceDirectiveName, null);
+		}
+		// Otherwise we don't need to write the data back since we got an object reference.
+
+		// Trigger references update.
+		library.update(
+			`${componentId}:${referencesContextName}.${referenceData.name}`,
+		);
+	},
 });

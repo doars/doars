@@ -1,15 +1,10 @@
-// Import event dispatcher.
 import EventDispatcher from "@doars/common/src/events/EventDispatcher.js";
-// Import utilities.
 import {
 	parseAttributeModifiers,
 	parseAttributeName,
 } from "@doars/common/src/utilities/String.js";
 
-// Import types.
 import Component from "./Component.js";
-// Import symbols.
-import { ATTRIBUTES } from "./symbols.js";
 
 /**
  * @typedef {import('./Doars.js').default} Doars
@@ -18,47 +13,40 @@ import { ATTRIBUTES } from "./symbols.js";
 export default class Attribute extends EventDispatcher {
 	/**
 	 * Create instance.
+	 * @param {Doars} library Library instance.
 	 * @param {Component} component Component instance.
 	 * @param {HTMLElement} element Element.
 	 * @param {string} name Attribute name (with library prefix removed).
 	 * @param {string} value Attribute value.
-	 * @param {boolean} isClone Whether this will be a clone of an existing attribute.
 	 */
-	constructor(component, element, name, value, isClone = false) {
+	constructor(library, component, element, name, value) {
 		super();
 
 		// Create unique ID.
-		const id = Symbol("ID_ATTRIBUTE");
-
-		if (!isClone) {
-			// Add attribute reference to the element.
-			if (!element[ATTRIBUTES]) {
-				element[ATTRIBUTES] = [];
-			}
-			element[ATTRIBUTES].push(this);
-		}
+		const id = library.generateId();
+		const processExpression = library.getProcessor();
 
 		// Create private variables.
-		let accessedItems = {},
-			accessedItemIds = new Set(),
-			data = null,
+		let isEnabled = true,
+			data,
 			directive,
+			directiveName,
 			key,
 			keyRaw,
-			modifiersRaw,
 			modifiers;
 
 		// Parse and store name.
 		if (name) {
 			// Parse and store attribute name.
 			const [_directive, _keyRaw, _key, _modifiers] = parseAttributeName(
-				component.getLibrary().getOptions().prefix,
+				library.getOptions().prefix,
 				name,
 			);
-			directive = _directive;
+			directiveName = _directive;
 			key = _key;
 			keyRaw = _keyRaw;
-			modifiersRaw = _modifiers;
+
+			directive = library.getDirectiveByName(directiveName);
 
 			// Parse and store modifiers.
 			if (_modifiers) {
@@ -75,11 +63,39 @@ export default class Attribute extends EventDispatcher {
 		};
 
 		/**
+		 * Get custom data set previously.
+		 * @returns {any} the data.
+		 */
+		this.getData = () => {
+			return data;
+		};
+
+		/**
+		 * Set custom attribute data.
+		 * @param {any} _data Some data.
+		 */
+		this.setData = (_data) => {
+			data = _data;
+		};
+
+		/**
+		 * Get the directive this attribute matches.
+		 * @returns {string} Directive name.
+		 */
+		this.getDirective = () => {
+			return directiveName;
+		};
+
+		/**
 		 * Get the element this attribute belongs to.
 		 * @returns {HTMLElement} Element.
 		 */
 		this.getElement = () => {
 			return element;
+		};
+
+		this.getEnabled = () => {
+			return isEnabled;
 		};
 
 		/**
@@ -88,14 +104,6 @@ export default class Attribute extends EventDispatcher {
 		 */
 		this.getId = () => {
 			return id;
-		};
-
-		/**
-		 * Get the directive this attribute matches.
-		 * @returns {string} Directive name.
-		 */
-		this.getDirective = () => {
-			return directive;
 		};
 
 		/**
@@ -115,19 +123,19 @@ export default class Attribute extends EventDispatcher {
 		};
 
 		/**
+		 * Get the library this attribute is a part of.
+		 * @returns {Doars} Attribute's library.
+		 */
+		this.getLibrary = () => {
+			return library;
+		};
+
+		/**
 		 * Get the optional modifiers of the attribute.
 		 * @returns {object} Modifiers object.
 		 */
 		this.getModifiers = () => {
 			return modifiers;
-		};
-
-		/**
-		 * Get the optional modifiers of the attribute before being processed.
-		 * @returns {Array<string>} List of raw modifiers.
-		 */
-		this.getModifiersRaw = () => {
-			return modifiersRaw;
 		};
 
 		/**
@@ -158,51 +166,17 @@ export default class Attribute extends EventDispatcher {
 		};
 
 		/**
-		 * Clear custom data set.
-		 */
-		this.clearData = () => {
-			data = null;
-		};
-
-		/**
-		 * Whether there is data set.
-		 * @returns {boolean} Whether data is set.
-		 */
-		this.hasData = () => {
-			return data !== null;
-		};
-
-		/**
-		 * Get custom data set previously.
-		 * @returns {any} the data.
-		 */
-		this.getData = () => {
-			return data;
-		};
-
-		/**
-		 * Set custom attribute data.
-		 * @param {any} _data Some data.
-		 */
-		this.setData = (_data) => {
-			data = _data;
-		};
-
-		/**
 		 * Destroy the attribute.
 		 */
 		this.destroy = () => {
-			// Clear data.
-			this.setData(null);
+			isEnabled = false;
 
-			// Clear accessed.
-			this.clearAccessed();
-
-			// Remove attribute from element's attributes.
-			const indexInElement = element[ATTRIBUTES].indexOf(this);
-			if (indexInElement >= 0) {
-				element[ATTRIBUTES].splice(indexInElement, 1);
+			if (directive?.destroy) {
+				directive.destroy(component, this, processExpression);
 			}
+
+			// Clear data.
+			data = null;
 
 			// Dispatch destroy event.
 			this.dispatchEvent("destroyed", [this]);
@@ -211,50 +185,10 @@ export default class Attribute extends EventDispatcher {
 			this.removeAllEventListeners();
 		};
 
-		/**
-		 * Mark an item as accessed.
-		 * @param {symbol} id Unique identifier.
-		 * @param {string} path Context path.
-		 */
-		this.accessed = (id, path) => {
-			if (accessedItemIds.has(id)) {
-				if (accessedItems[id].has(path)) {
-					return;
-				}
-			} else {
-				accessedItems[id] = new Set();
-				accessedItemIds.add(id);
+		this.update = () => {
+			if (directive) {
+				directive.update(component, this, processExpression);
 			}
-
-			accessedItems[id].add(path);
-		};
-
-		/**
-		 * Clear list of accessed items.
-		 */
-		this.clearAccessed = () => {
-			accessedItems = {};
-			accessedItemIds.clear();
-		};
-
-		/**
-		 * Check if attribute accessed any of the item's paths.
-		 * @param {symbol} id Unique identifier.
-		 * @param {Array<string>} paths Contexts path.
-		 * @returns {boolean} Whether any item's path was accessed.
-		 */
-		this.hasAccessed = (id, paths) => {
-			if (!accessedItemIds.has(id)) {
-				return false;
-			}
-			const accessedAtId = accessedItems[id];
-
-			for (const path of paths) {
-				if (accessedAtId.has(path)) {
-					return true;
-				}
-			}
-			return false;
 		};
 	}
 }

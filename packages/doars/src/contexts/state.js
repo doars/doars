@@ -16,7 +16,7 @@ export default ({ stateContextDeconstruct, stateContextName }) => ({
 	name: stateContextName,
 
 	// Wrap create state so the component's data can be used.
-	create: (component, attribute, update, utilities) => {
+	create: (component, attribute, options) => {
 		// Deconstruct component.
 		const proxy = component.getProxy();
 		const state = component.getState();
@@ -24,11 +24,11 @@ export default ({ stateContextDeconstruct, stateContextName }) => ({
 			return;
 		}
 
-		return createState(stateContextName, component.getId(), state, proxy)(
-			component,
-			attribute,
-			update,
-			utilities,
-		);
+		return createState(
+			stateContextName,
+			component.getId(),
+			state,
+			proxy,
+		)(component, attribute, options);
 	},
 });

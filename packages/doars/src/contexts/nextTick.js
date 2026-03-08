@@ -11,9 +11,11 @@ import { createContexts } from "../utilities/Context.js";
  * @returns {Context} The context.
  */
 export default ({ nextTickContextName }) => ({
+	global: true,
+
 	name: nextTickContextName,
 
-	create: (component, attribute, _update, options) => {
+	create: (component, attribute, options) => {
 		// Keep track of callbacks.
 		let callbacks;
 

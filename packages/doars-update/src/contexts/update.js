@@ -4,14 +4,18 @@ export default ({ updateContextName }, updater) => {
 	const time = updater.getTime();
 
 	return {
+		global: true,
+
 		name: updateContextName,
 
-		create: (_component, attribute, _update, options) => {
-			let destroy = null;
+		create: (component, _attribute, options) => {
+			const library = component.getLibrary();
+
+			let destroy;
 			if (!options || options.accessed) {
 				// Create access handler.
 				const onGet = (_target, path) => {
-					attribute.accessed(id, path.join("."));
+					library.accessed(`${id}:${path.join(".")}`);
 				};
 				proxy.addEventListener("get", onGet);
 

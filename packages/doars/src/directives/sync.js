@@ -8,7 +8,7 @@ import { createContexts } from "../utilities/Context.js";
  */
 
 // Symbols.
-const SYNC = Symbol("SYNC");
+const SYNC = Symbol("SYNC"); // TODO: Switch to storing data on the attribute instance.
 
 /**
  * Create the sync directive.

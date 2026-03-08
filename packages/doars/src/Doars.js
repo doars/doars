@@ -1,8 +1,9 @@
 // Import event dispatcher.
 import EventDispatcher from "@doars/common/src/events/EventDispatcher.js";
 import { walk } from "@doars/common/src/utilities/Element.js";
+import { createIdFactory } from "@doars/common/src/utilities/Identifier.js";
 // Import classes.
-import Component from "./Component.js";
+import createComponent from "./Component.js";
 // Import contexts.
 import createChildrenContext from "./contexts/children.js";
 import createComponentContext from "./contexts/component.js";
@@ -33,13 +34,11 @@ import createShowDirective from "./directives/show.js";
 import createSyncDirective from "./directives/sync.js";
 import createTextDirective from "./directives/text.js";
 import createWatchDirective from "./directives/watch.js";
-import { ATTRIBUTES, COMPONENT } from "./symbols.js";
-// Import utilities.
-import { closestComponent } from "./utilities/Component.js";
 
 /**
  * @typedef {import('./Attribute.js').default} Attribute
  * @typedef {import('./Context.js').Context} Context
+ * @typedef {import('./Component.js').Component} Component
  * @typedef {import('./Directive.js').Directive} Directive
  */
 
@@ -54,10 +53,10 @@ import { closestComponent } from "./utilities/Component.js";
  */
 
 /**
- * @typedef {{[key:string]:Directive}} ContextMap Object that maps names of contexts to the context.
+ * @typedef {[key:string]:Context} ContextMap Object that maps names of contexts to the context.
  */
 /**
- * @typedef {{[key:string]:Directive}} DirectiveMap Object that maps names of directives to the directive.
+ * @typedef {[key:string]:Directive} DirectiveMap Object that maps names of directives to the directive.
  */
 
 /**
@@ -189,7 +188,7 @@ export default class Doars extends EventDispatcher {
 			(options = Object.assign(
 				{
 					prefix: "d",
-					processor: "execute",
+					processor: null,
 					root: document.body,
 
 					allowInlineScript: false,
@@ -273,21 +272,36 @@ export default class Doars extends EventDispatcher {
 			return;
 		}
 
-		// Create unique identifier.
-		const id = Symbol("ID_DOARS");
+		const idFactory = createIdFactory();
 
 		// Create private variables.
-		let isEnabled = false,
-			isUpdating = false,
-			updatePromise = null,
+		let accessed,
+			/** @type {WeakMap<Node,Attribute>} */
+			attributesByElement,
+			/** @type {WeakMap<Node,Component>} */
+			componentByElement,
+			/** @type {ContextMap} */
+			contextsByName,
+			/** @type {string[]} */
+			directivesNames,
+			/** @type {DirectiveMap} */
+			directivesObject,
+			/** @type {Regexp} */
+			directivesRegexp,
+			flushPromise,
+			flushResolve,
+			isEnabled = false,
 			mutations,
 			observer,
+			processExpression,
 			triggers;
 
-		/** @type {Array<Component>} */
-		const components = [],
-			/** @type {{[key:string]Context}} */
-			contextsBase = {},
+		const componentName = `${prefix}-${stateDirectiveName}`,
+			ignoreName = `${prefix}-${ignoreDirectiveName}`,
+			/** @type {Array<Component>} */
+			components = [],
+			/** @type {ContextMap} */
+			contextsSimple = {},
 			/** @type {Array<Context>} */
 			contexts = [
 				createChildrenContext(options),
@@ -304,40 +318,34 @@ export default class Doars extends EventDispatcher {
 				createWatchContext(options),
 
 				// Order of `store`, `state` and `for` context is important for deconstruction.
-				createStoreContext(options), // FIXME: Needs to be created on enable and the proxies within destroyed on disable.
+				createStoreContext(options, idFactory()), // FIXME: Needs to be created on enable and the proxies within destroyed on disable.
 				createStateContext(options), // FIXME: Needs to be created on enable and the proxies within destroyed on disable.
 				createForContext(options), // FIXME: Needs to be created on enable and the proxies within destroyed on disable.
-			];
-		/** @type {[key:string]:Context} */
-		let contextsByName;
-		const directives = [
-			// Must happen first as other directives can rely on it.
-			createReferenceDirective(options),
+			],
+			directives = [
+				// Must happen first as other directives can rely on it.
+				createReferenceDirective(options),
 
-			// Then execute those that modify the document tree, since it could make other directives redundant and save on processing.
-			createAttributeDirective(options),
-			createForDirective(options),
-			createHtmlDirective(options),
-			createIfDirective(options),
-			createTextDirective(options),
+				// Then execute those that modify the document tree, since it could make other directives redundant and save on processing.
+				createAttributeDirective(options),
+				createForDirective(options),
+				createHtmlDirective(options),
+				createIfDirective(options),
+				createTextDirective(options),
 
-			// Order does not matter any more.
-			createCloakDirective(options),
-			createInitializedDirective(options),
-			createOnDirective(options),
-			createSelectDirective(options),
-			createShowDirective(options),
-			createSyncDirective(options),
-			createWatchDirective(options),
-		];
-		let directivesNames, directivesObject, directivesRegexp;
-
-		const componentName = `${prefix}-${stateDirectiveName}`,
-			ignoreName = `${prefix}-${ignoreDirectiveName}`;
+				// Order does not matter any more.
+				createCloakDirective(options),
+				createInitializedDirective(options),
+				createOnDirective(options),
+				createSelectDirective(options),
+				createShowDirective(options),
+				createSyncDirective(options),
+				createWatchDirective(options),
+				// FIXME: Make sure order is followed by storing attributes in rough order. Keep a list of sorted attributes and when an update trigger is processed create a sparse array where it is placed in its global order.
+			],
+			processorType = typeof processor;
 
 		// Get the expression processor.
-		const processorType = typeof processor;
-		let processExpression;
 		if (processorType === "function") {
 			processExpression = processor;
 		} else if (
@@ -346,12 +354,14 @@ export default class Doars extends EventDispatcher {
 		) {
 			processExpression = this.constructor[`${processor}Expression`];
 		} else {
-			console.warn(
-				"Doars: Expression processor not found. Using fallback instead.",
-			);
+			if (processor) {
+				console.warn(
+					"Doars: Expression processor not found. Using fallback instead.",
+				);
+			}
 			processExpression =
-				this.constructor.executeExpression ??
 				this.constructor.interpretExpression ??
+				this.constructor.executeExpression ??
 				this.constructor.callExpression;
 		}
 		if (!processExpression) {
@@ -362,11 +372,11 @@ export default class Doars extends EventDispatcher {
 		}
 
 		/**
-		 * Get the unique identifier.
-		 * @returns {symbol} Unique identifier.
+		 * Generate a unique identifier.
+		 * @returns {string} The newly created unique identifier.
 		 */
-		this.getId = () => {
-			return id;
+		this.generateId = () => {
+			return idFactory();
 		};
 
 		/**
@@ -397,15 +407,18 @@ export default class Doars extends EventDispatcher {
 			}
 
 			// Setup values.
-			isUpdating = false;
+			accessed = {};
 			mutations = [];
-			triggers = {};
+			triggers = [];
 
 			// Dispatch event.
 			this.dispatchEvent("enabling", [this]);
 
 			// Mark as enabled.
 			isEnabled = true;
+
+			attributesByElement = new WeakMap();
+			componentByElement = new WeakMap();
 
 			contextsByName = {};
 			for (const context of contexts) {
@@ -433,7 +446,13 @@ export default class Doars extends EventDispatcher {
 			);
 
 			// Create mutation observer.
-			observer = new MutationObserver(handleMutation.bind(this));
+			observer = new MutationObserver((newMutations) => {
+				// Add mutations to existing list.
+				if (newMutations) {
+					mutations.push(...newMutations);
+				}
+				flush();
+			});
 			observer.observe(root, {
 				attributes: true,
 				childList: true,
@@ -476,22 +495,22 @@ export default class Doars extends EventDispatcher {
 			observer.disconnect();
 			observer = null;
 
-			// Reset values.
-			isUpdating = false;
-			mutations = [];
-			triggers = {};
-
 			// Dispatch event.
 			this.dispatchEvent("disabling", [this], { reverse: true });
 
 			// Remove components.
-			removeComponents(...components);
+			removeComponentsByComponent(components);
 
+			// Reset values.
+			accessed = null;
+			attributesByElement = null;
+			componentByElement = null;
+			contextsByName = null;
 			directivesNames = [];
 			directivesObject = {};
 			directivesRegexp = null;
-
-			contextsByName = {};
+			mutations = null;
+			triggers = null;
 
 			// Mark as disabled.
 			isEnabled = false;
@@ -500,6 +519,35 @@ export default class Doars extends EventDispatcher {
 			this.dispatchEvent("disabled", [this], { reverse: true });
 
 			return this;
+		};
+
+		/* Attributes */
+
+		const addAttribute = (attribute) => {
+			const element = attribute.getElement();
+			let elementAttributes = attributesByElement.get(element);
+			if (!elementAttributes) {
+				elementAttributes = [attribute];
+			} else {
+				elementAttributes.push(attribute);
+			}
+			attributesByElement.set(element, elementAttributes);
+		};
+
+		const removeAttribute = (attribute) => {
+			const element = attribute.getElement();
+			const elementAttributes = attributesByElement.get(element);
+			if (elementAttributes?.length > 0) {
+				const attributeIndex = elementAttributes.indexOf(attribute);
+				if (attributeIndex >= 0) {
+					if (elementAttributes.length === 1) {
+						attributesByElement.delete(element);
+					} else {
+						elementAttributes.splice(attributeIndex, 1);
+						attributesByElement.set(element, elementAttributes);
+					}
+				}
+			}
 		};
 
 		/* Components */
@@ -518,13 +566,14 @@ export default class Doars extends EventDispatcher {
 				}
 
 				// Skip if already a component.
-				if (element[COMPONENT]) {
+				if (componentByElement.has(element)) {
 					continue;
 				}
 
 				// Create component.
-				const component = new Component(this, element);
+				const component = createComponent(this, element);
 				components.push(component);
+				componentByElement.set(element, component);
 
 				// Add to results.
 				results.push(component);
@@ -537,13 +586,16 @@ export default class Doars extends EventDispatcher {
 			}
 
 			// Initialize new components.
+			const attributes = [];
 			for (const component of results) {
 				component.initialize();
+				attributes.push(...component.scanAttributes());
 			}
 
 			// Update all attributes on new components.
-			for (const component of results) {
-				component.updateAllAttributes();
+			for (const attribute of attributes) {
+				addAttribute(attribute);
+				attribute.update();
 			}
 
 			return results;
@@ -551,24 +603,30 @@ export default class Doars extends EventDispatcher {
 
 		/**
 		 * Remove components from instance.
-		 * @param  {...Component} _components Components to remove.
+		 * @param  {HTMLElement[]} elements Components to remove.
 		 * @returns {Array<HTMLElement>} List of elements of removed components.
 		 */
-		const removeComponents = (..._components) => {
+		const removeComponents = (elements) => {
 			const results = [];
-			for (const component of _components) {
-				// Skip if not in list.
-				const index = components.indexOf(component);
-				if (index < 0) {
+			for (const element of elements) {
+				if (!componentByElement.has(element)) {
 					continue;
 				}
+				const component = componentByElement.get(element);
 
 				// Add to results.
-				results.push(component.getElement());
+				results.push(element);
+
+				// Remove attributes.
+				const attributes = component.getAttributes();
+				for (const attribute of attributes) {
+					attributesByElement.delete(attribute.getElement());
+				}
 
 				// Destroy component.
 				component.destroy();
-				// Remove from list.
+				// Remove from lists.
+				componentByElement.delete(element);
 				components.splice(index, 1);
 			}
 
@@ -580,13 +638,68 @@ export default class Doars extends EventDispatcher {
 			return results;
 		};
 
+		/**
+		 * Remove components from instance.
+		 * @param  {Component[]} _components Components to remove.
+		 * @returns {Array<HTMLElement>} List of elements of removed components.
+		 */
+		const removeComponentsByComponent = (_components) => {
+			const results = [];
+			for (const component of _components) {
+				const index = components.indexOf(component);
+				if (index < 0) {
+					continue;
+				}
+				const element = component.getElement();
+
+				// Add to results.
+				results.push(element);
+
+				// Remove attributes.
+				const attributes = component.getAttributes();
+				for (const attribute of attributes) {
+					attributesByElement.delete(attribute.getElement());
+				}
+
+				// Destroy component.
+				component.destroy();
+				// Remove from lists.
+				componentByElement.delete(element);
+				components.splice(index, 1);
+			}
+
+			if (results.length > 0) {
+				// Dispatch event.
+				this.dispatchEvent("components-removed", [this, results]);
+			}
+
+			return results;
+		};
+
+		/**
+		 * Get closest component in hierarchy.
+		 * @param {HTMLElement} element Element to start searching from.
+		 * @returns {Component|undefined} Closest component.
+		 */
+		this.closestComponent = (element) => {
+			if (element.parentElement) {
+				element = element.parentElement;
+
+				if (componentByElement.has(element)) {
+					return componentByElement.get(element);
+				}
+
+				return this.closestComponent(element);
+			}
+		};
+
 		/* Simple contexts */
 
 		/**
 		 * Get simple contexts.
 		 * @returns {ContextMap} Stored simple contexts.
 		 */
-		this.getSimpleContexts = () => Object.assign({}, contextsBase);
+		this.getSimpleContexts = () => Object.assign({}, contextsSimple);
 
 		/**
 		 * Add a value directly to the contexts without needing to use an object or having to deal with indices.
@@ -597,7 +710,7 @@ export default class Doars extends EventDispatcher {
 		this.setSimpleContext = (name, value = null) => {
 			// Delete context if value is null.
 			if (value === null) {
-				delete contextsBase[name];
+				delete contextsSimple[name];
 
 				// Dispatch event.
 				this.dispatchEvent("simple-context-removed", [this, name]);
@@ -606,12 +719,12 @@ export default class Doars extends EventDispatcher {
 
 			// Validate name.
 			if (!name.match("^([a-zA-Z_$][a-zA-Z\\d_$]*)$")) {
-				console.warn('Doars: name of a bind can not start with a "$".');
+				console.warn("Doars: invalid name for a simple context.");
 				return false;
 			}
 
 			// Store value on contexts base.
-			contextsBase[name] = value;
+			contextsSimple[name] = value;
 
 			// Dispatch event.
 			this.dispatchEvent("simple-context-added", [this, name, value]);
@@ -644,7 +757,7 @@ export default class Doars extends EventDispatcher {
 
 		/**
 		 * Get creatable contexts object with contexts added by name. Only defined when the library is enabled. Use getContexts() for the full list at any given time.
-		 * @returns {{[key:string]:Context}} Createable contexts object.
+		 * @returns {ContextMap} Createable contexts object.
 		 */
 		this.getContextsByName = () => contextsByName;
 
@@ -732,6 +845,19 @@ export default class Doars extends EventDispatcher {
 		 * @returns {Array<Directive>} List of directives.
 		 */
 		this.getDirectives = () => [...directives];
+
+		/**
+		 * Get directives by name.
+		 * @param {string} name Directive's name.
+		 * @returns {Directive|undefined} Directive matching the specified name.
+		 */
+		this.getDirectiveByName = (name) => {
+			for (const directive of directives) {
+				if (directive.name === name) {
+					return directive;
+				}
+			}
+		};
 
 		/**
 		 * Get list of directive names. Only defined when the library is enabled. Use getDirectives() for the full list at any given time.
@@ -832,329 +958,259 @@ export default class Doars extends EventDispatcher {
 			return processExpression;
 		};
 
-		/**
-		 * Update directives based on triggers. *Can only be called when enabled.*
-		 * @param {Array<Trigger>} _triggers List of triggers to update with.
-		 */
-		this.update = async (_triggers) => {
-			if (!isEnabled) {
-				// Exit early since it needs to be enabled first.
-				return;
-			}
-
-			if (_triggers) {
-				// Add new triggers to existing triggers.
-				if (Array.isArray(_triggers)) {
-					for (const trigger of _triggers) {
-						const { id, path } = trigger;
-						// Create list at id if not already there.
-						if (!Object.hasOwn(triggers, id)) {
-							triggers[id] = [path];
-						} else if (!triggers[id].includes(path)) {
-							// Add path to list at id.
-							triggers[id].push(path);
-						}
-					}
-				} else {
-					const { id, path } = _triggers;
-					// Create list at id if not already there.
-					if (!Object.hasOwn(triggers, id)) {
-						triggers[id] = [path];
-					} else if (!triggers[id].includes(path)) {
-						// Add path to list at id.
-						triggers[id].push(path);
-					}
+		this.accessed = async (attribute, path) => {
+			if (Object.hasOwn(accessed, path)) {
+				if (!accessed[path].includes(attribute)) {
+					accessed[path].push(attribute);
 				}
+			} else {
+				accessed[path] = [attribute];
 			}
-
-			// Don't update while another update is going on.
-			if (isUpdating) {
-				await updatePromise;
-				return;
-			}
-
-			// Check if there is something to update.
-			if (Object.getOwnPropertySymbols(triggers).length === 0) {
-				return;
-			}
-
-			// Set as updating.
-			isUpdating = true;
-			// Wait until later in the loop.
-			updatePromise = Promise.resolve();
-			await updatePromise;
-
-			// Move update triggers to local scope only.
-			_triggers = Object.freeze(triggers);
-			triggers = {};
-
-			this.dispatchEvent("updating", [this, _triggers]);
-
-			// Update each component and collect any triggers.
-			for (const component of components) {
-				component.update(_triggers);
-				// If this ever needs to be done in hierarchical order try the following. Go over each component and check if its parent is further down in the list. If so place the component directly after the parent. Then continue iteration over the components. This sorting only has to happen when a component is added to or moved in the hierarchy.
-			}
-
-			// Set as NOT updating.
-			isUpdating = false;
-			updatePromise = null;
-
-			// If there are triggers again then update again.
-			if (Object.getOwnPropertySymbols(triggers).length > 0) {
-				console.warn(
-					"Doars: during an update another update has been triggered. This should not happen unless an expression in one of the directives is causing a infinite loop by mutating the state.",
-				);
-
-				await this.update();
-				return;
-			}
-
-			// If there are any mutation to handle then handle them.
-			if (mutations.length > 0) {
-				await handleMutation();
-				return;
-			}
-
-			this.dispatchEvent("updated", [this, _triggers]);
 		};
 
-		/**
-		 * Handle document mutations by update internal data and executing directives.
-		 * @param {Array<MutationRecord>} newMutations List of mutations.
-		 */
-		const handleMutation = async (newMutations) => {
-			// Add mutations to existing list.
-			if (newMutations) {
-				mutations.push(...newMutations);
+		this.update = (path) => {
+			if (isEnabled && path && !triggers.includes(path)) {
+				triggers.push(path);
+
+				return flush();
 			}
+		};
 
-			// Don't handle mutations while an update is going on.
-			if (isUpdating) {
-				return updatePromise;
+		const flush = async () => {
+			if (isEnabled) {
+				if (flushPromise) {
+					return flushPromise;
+				}
+				flushPromise = new Promise((resolve) => {
+					flushResolve = resolve;
+				});
+
+				// Schedule a micro task to collect more triggers and mutations before acting on any.
+				await Promise.resolve();
+
+				while (isEnabled && (triggers.length > 0 || mutations.length > 0)) {
+					// Flush all update triggers and mutations until no more remain.
+					flushUpdates();
+					flushMutations();
+				}
+
+				flushPromise = null;
+				flushResolve();
 			}
+		};
 
-			// Check if there are any mutations to handle.
-			if (mutations.length === 0) {
-				return;
-			}
+		const flushUpdates = () => {
+			if (triggers.length > 0) {
+				const newTriggers = triggers;
+				triggers = [];
 
-			// Set as updating.
-			isUpdating = true;
-			// Wait until later in the loop.
-			updatePromise = Promise.resolve();
-			await updatePromise;
+				this.dispatchEvent("updating", newTriggers);
 
-			// Get mutations to handle.
-			newMutations = mutations;
-			mutations = [];
+				// Update each component and collect any triggers.
+				const updatedAttributes = [];
+				for (const trigger of newTriggers) {
+					if (Object.hasOwn(accessed, trigger)) {
+						const attributes = accessed[trigger];
+						// Clear from accessed so this can be filled up again when updating the attribute.
+						delete accessed[trigger];
 
-			// Store new attribute and elements that define new components.
-			const componentsToAdd = [];
-			const componentsToRemove = [];
-
-			const remove = (element) => {
-				// Skip if not an element.
-				if (element.nodeType !== 1) {
-					return;
-				}
-
-				// Check if element is a component itself.
-				if (element[COMPONENT]) {
-					// Add component to remove list.
-					componentsToRemove.unshift(element[COMPONENT]);
-					// Scan for more components inside this.
-					const componentElements = element.querySelectorAll(componentName);
-					for (const componentElement of componentElements) {
-						if (componentElement[COMPONENT]) {
-							componentsToRemove.unshift(componentElement);
-						}
-					}
-				} else {
-					// Create iterator for walking over all elements in the component, skipping elements that are components and adding those to the remove list.
-					const iterator = walk(element, (element) => {
-						if (element[COMPONENT]) {
-							componentsToRemove.unshift(element[COMPONENT]);
-							return false;
-						}
-						return true;
-					});
-					do {
-						// Check if element has attributes.
-						if (!element[ATTRIBUTES]) {
-							continue;
-						}
-
-						// Remove attributes from their component.
-						for (const attribute of element[ATTRIBUTES]) {
-							attribute.getComponent().removeAttribute(attribute);
-						}
-						// biome-ignore lint/suspicious/noAssignInExpressions: Common while loop pattern
-					} while ((element = iterator()));
-				}
-			};
-			const add = (element) => {
-				// Skip if not an element.
-				if (element.nodeType !== 1) {
-					return;
-				}
-
-				// Skip if inside an ignore tag.
-				const ignoreParent = element.closest(`[${ignoreName}]`);
-				if (ignoreParent) {
-					return;
-				}
-
-				// Scan for new components and add them to the list.
-				const componentElements = element.querySelectorAll(
-					`[${componentName}]`,
-				);
-				for (const componentElement of componentElements) {
-					// Skip if inside an ignore tag.
-					const ignoreParent = componentElement.closest(`[${ignoreName}]`);
-					if (ignoreParent) {
-						continue;
-					}
-
-					componentsToAdd.push(componentElement);
-				}
-
-				// Check if this elements defines a new component.
-				if (element.hasAttribute(componentName)) {
-					// Store new component element and exit early.
-					componentsToAdd.push(element);
-					return;
-				}
-
-				// Find nearest component.
-				const component = closestComponent(element);
-				if (component) {
-					// Scan for and update new attributes.
-					const attributes = component.scanAttributes(element);
-					component.updateAttributes(attributes);
-				}
-			};
-
-			// Iterate over mutations.
-			for (const mutation of newMutations) {
-				if (mutation.type === "childList") {
-					// Iterate over removed elements.
-					for (const element of mutation.removedNodes) {
-						remove(element);
-					}
-
-					// Iterate over added elements.
-					for (const element of mutation.addedNodes) {
-						add(element);
-					}
-				} else if (mutation.type === "attributes") {
-					const element = mutation.target;
-					// Check if new component is defined.
-					if (mutation.attributeName === componentName) {
-						// If a component is already defined ignore the change.
-						if (element[COMPONENT]) {
-							continue;
-						}
-
-						// Get nearest component, this will become the parent.
-						const component = closestComponent(element);
-						if (component) {
-							// Remove attributes part of nearest component, that will become part of the new component.
-							let currentElement = element;
-							const iterator = walk(element, (element) =>
-								element.hasAttribute(componentName),
-							);
-							do {
-								for (const attribute of currentElement[ATTRIBUTES]) {
-									component.removeAttribute(attribute);
-								}
-								// biome-ignore lint/suspicious/noAssignInExpressions: Common while loop pattern
-							} while ((currentElement = iterator()));
-						}
-
-						// Add new component.
-						addComponents(element);
-						continue;
-					} else if (mutation.attributeName === ignoreName) {
-						if (element.hasAttribute(ignoreName)) {
-							// Remove everything inside.
-							remove(element);
-							continue;
-						}
-
-						// Add everything inside.
-						add(element);
-						continue;
-					}
-
-					// Check if a directive is added.
-					if (!directivesRegexp.test(mutation.attributeName)) {
-						continue;
-					}
-
-					// Get component of mutated element.
-					const component = closestComponent(element);
-					if (!component) {
-						continue;
-					}
-
-					// Get attribute from component and value from element.
-					let attribute = null;
-					if (element[ATTRIBUTES]) {
-						for (const targetAttribute of element[ATTRIBUTES]) {
-							if (targetAttribute.getName() === mutation.attributeName) {
-								attribute = targetAttribute;
-								break;
+						// Update each attribute.
+						for (const attribute of attributes) {
+							if (
+								attribute.getEnabled() &&
+								!updatedAttributes.includes(attribute)
+							) {
+								updatedAttributes.push(attribute);
+								attribute.update();
 							}
 						}
 					}
-					const value = element.getAttribute(mutation.attributeName);
+				}
 
-					// If no attribute found add it.
-					if (!attribute) {
-						if (value) {
-							attribute = component.addAttribute(
-								element,
-								mutation.attributeName,
-								value,
-							);
-							component.updateAttribute(attribute);
+				this.dispatchEvent("updated", newTriggers);
+			}
+		};
+
+		const flushMutations = () => {
+			if (mutations.length > 0) {
+				// Get mutations to handle.
+				const newMutations = mutations;
+				mutations = [];
+
+				// Store new attribute and elements that define new components.
+				const componentsToAdd = [];
+				const componentsToRemove = [];
+
+				const remove = (element) => {
+					// Skip if not an element.
+					if (element.nodeType === 1) {
+						// Check if element is a component itself.
+						if (componentByElement.has(element)) {
+							componentsToRemove.unshift(element);
 						}
-						continue;
+
+						// Scan for more components inside this.
+						const componentElements = element.querySelectorAll(componentName);
+						for (const componentElement of componentElements) {
+							if (componentByElement.has(componentElement)) {
+								componentsToRemove.unshift(componentElement);
+							}
+						}
+					}
+				};
+				const add = (element) => {
+					// Skip if not an element.
+					if (element.nodeType !== 1) {
+						return;
 					}
 
-					// Update attribute.
-					attribute.setValue(value);
-					component.updateAttribute(attribute);
+					// Skip if inside an ignore tag.
+					const ignoreParent = element.closest(`[${ignoreName}]`);
+					if (ignoreParent) {
+						return;
+					}
+
+					// Scan for new components and add them to the list.
+					const componentElements = element.querySelectorAll(
+						`[${componentName}]`,
+					);
+					for (const componentElement of componentElements) {
+						// Skip if inside an ignore tag.
+						const ignoreParent = componentElement.closest(`[${ignoreName}]`);
+						if (ignoreParent) {
+							continue;
+						}
+
+						componentsToAdd.push(componentElement);
+					}
+
+					// Check if this elements defines a new component.
+					if (element.hasAttribute(componentName)) {
+						// Store new component element and exit early.
+						componentsToAdd.push(element);
+						return;
+					}
+
+					// Find nearest component.
+					const component = this.closestComponent(element);
+					if (component) {
+						// Scan for and update new attributes.
+						const attributes = component.scanAttributes(element);
+						for (const attribute of attributes) {
+							addAttribute(attribute);
+							attribute.update();
+						}
+					}
+				};
+
+				// Iterate over mutations.
+				for (const mutation of newMutations) {
+					if (mutation.type === "childList") {
+						// Iterate over removed elements.
+						for (const element of mutation.removedNodes) {
+							remove(element);
+						}
+
+						// Iterate over added elements.
+						for (const element of mutation.addedNodes) {
+							add(element);
+						}
+					} else if (mutation.type === "attributes") {
+						const element = mutation.target;
+						// Check if new component is defined.
+						if (mutation.attributeName === componentName) {
+							// If a component is already defined ignore the change.
+							if (componentByElement.has(element)) {
+								continue;
+							}
+
+							// Get nearest component, this will become the parent.
+							const component = this.closestComponent(element);
+							if (component) {
+								// Remove attributes part of nearest component, that will become part of the new component.
+								const iterator = walk(element, (element) =>
+									element.hasAttribute(componentName),
+								);
+								let currentElement = element;
+								do {
+									const currentAttributes =
+										attributesByElement.get(currentElement);
+									if (currentAttributes?.length > 0) {
+										for (const attribute of currentAttributes) {
+											component.removeAttribute(attribute);
+											removeAttribute(attribute);
+										}
+									}
+									// biome-ignore lint/suspicious/noAssignInExpressions: Common while loop pattern
+								} while ((currentElement = iterator()));
+							}
+
+							// Add new component.
+							addComponents(element);
+							continue;
+						} else if (mutation.attributeName === ignoreName) {
+							if (element.hasAttribute(ignoreName)) {
+								// Remove everything inside.
+								remove(element);
+								continue;
+							}
+
+							// Add everything inside.
+							add(element);
+							continue;
+						}
+
+						// Check if a directive is added.
+						if (!directivesRegexp.test(mutation.attributeName)) {
+							continue;
+						}
+
+						// Get component of mutated element.
+						const component = this.closestComponent(element);
+						if (!component) {
+							continue;
+						}
+
+						// Get attribute from component and value from element.
+						let attribute = null;
+						const elementAttributes = attributesByElement.get(element);
+						if (elementAttributes?.length > 0) {
+							for (const targetAttribute of elementAttributes) {
+								if (targetAttribute.getName() === mutation.attributeName) {
+									attribute = targetAttribute;
+									break;
+								}
+							}
+						}
+						const value = element.getAttribute(mutation.attributeName);
+
+						// If no attribute found add it.
+						if (!attribute) {
+							if (value) {
+								attribute = component.addAttribute(
+									element,
+									mutation.attributeName,
+									value,
+								);
+								attribute.update();
+							}
+							continue;
+						}
+
+						// Update attribute.
+						attribute.setValue(value);
+						attribute.update();
+					}
 				}
-			}
 
-			// Remove old components.
-			if (componentsToRemove.length > 0) {
-				removeComponents(...componentsToRemove);
-			}
-			// Add new components.
-			if (componentsToAdd.length > 0) {
-				addComponents(...componentsToAdd);
-			}
-
-			// Set as NOT updating.
-			isUpdating = false;
-			updatePromise = null;
-
-			// If there are any mutation to handle then handle them.
-			if (mutations.length > 0) {
-				console.warn(
-					"Doars: during a mutation another mutation has been triggered. This should not happen unless an expression in one of the directives is causing a infinite loop by mutating the document.",
-				);
-
-				await handleMutation();
-				return;
-			}
-
-			// If there are any triggers then trigger an update.
-			if (Object.getOwnPropertySymbols(triggers).length > 0) {
-				await this.update();
+				// Remove old components.
+				if (componentsToRemove.length > 0) {
+					removeComponents(...componentsToRemove);
+				}
+				// Add new components.
+				if (componentsToAdd.length > 0) {
+					addComponents(...componentsToAdd);
+				}
 			}
 		};
 	}

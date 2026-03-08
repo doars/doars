@@ -1,153 +1,163 @@
-// Import symbols.
-
-// Import proxy dispatcher.
 import ProxyDispatcher from "@doars/common/src/events/ProxyDispatcher.js";
 import { walk } from "@doars/common/src/utilities/Element.js";
-// Import classes.
 import Attribute from "./Attribute.js";
-
-// Import types.
 import Doars from "./Doars.js";
-import { COMPONENT } from "./symbols.js";
-// Import utilities.
-import { closestComponent } from "./utilities/Component.js";
 
 /**
  * @typedef {import('./Doars.js').default} Doars
  */
 
-export default class Component {
-	/**
-	 * Create instance.
-	 * @param {Doars} library Library instance.
-	 * @param {HTMLElement} element Element.
-	 */
-	constructor(library, element) {
-		// Create unique ID.
-		const id = Symbol("ID_COMPONENT");
+/**
+ * @typedef Component
+ * @type {object}
+ * @property {() => Array<Component>} getChildren
+ * @property {() => HTMLElement} getElement
+ * @property {() => string} getId
+ * @property {() => Doars} getLibrary
+ * @property {() => Component} getParent
+ * @property {() => ProxyDispatcher} getProxy
+ * @property {() => ProxyConstructor} getState
+ * @property {(_parent: Component) => void} setParent
+ * @property {() => void} initialize
+ * @property {() => void} destroy
+ * @property {(element: HTMLElement, name: string, value: string) => Attribute} addAttribute
+ * @property {(attribute: Attribute) => void} removeAttribute
+ * @property {(element: HTMLElement) => Array<Attribute>} scanAttributes
+ */
 
-		// Deconstruct library options.
-		const { prefix, stateDirectiveName, ignoreDirectiveName } =
-			library.getOptions();
+/**
+ * Create a component instance.
+ * @param {Doars} library Library instance.
+ * @param {HTMLElement} element Element.
+ * @returns {Component} The component data.
+ */
+export default (library, element) => {
+	// Create unique ID.
+	const id = library.generateId();
 
-		// Get the expression processor.
-		const processExpression = library.getProcessor();
+	const {
+		prefix,
+		childrenContextName,
+		ignoreDirectiveName,
+		parentContextName,
+		stateDirectiveName,
+	} = library.getOptions();
 
-		// Cache directive name strings.
-		const componentName = `${prefix}-${stateDirectiveName}`;
-		const ignoreName = `${prefix}-${ignoreDirectiveName}`;
+	const attributes = [],
+		data = {},
+		componentName = `${prefix}-${stateDirectiveName}`,
+		ignoreName = `${prefix}-${ignoreDirectiveName}`,
+		processExpression = library.getProcessor();
 
-		// create private variables.
-		let attributes = [],
-			isInitialized = false,
-			data,
-			proxy,
-			state;
+	// create private variables.
+	let isInitialized = false,
+		initialState,
+		proxy,
+		state;
 
-		// Check if element has a state attribute.
-		if (!element.attributes[`${prefix}-${stateDirectiveName}`]) {
-			console.error(
-				"Doars: element given to component does not contain a state attribute!",
-			);
-			return;
-		}
+	// Check if element has a state attribute.
+	if (!element.attributes[`${prefix}-${stateDirectiveName}`]) {
+		console.error(
+			"Doars: element given to component does not contain a state attribute!",
+		);
+		return;
+	}
 
-		// Add reference to element.
-		element[COMPONENT] = this;
-
-		// Update position in hierarchy.
-		const children = [];
-		// Get current parent component.
-		let parent = closestComponent(element);
-		if (parent) {
-			// Add to list of children in parent.
-			if (!parent.getChildren().includes(this)) {
-				parent.getChildren().push(this);
-
-				// Trigger children update.
-				library.update({
-					id: parent.getId(),
-					path: "children",
-				});
-			}
-		}
-
+	const component = {
 		/**
-		 * Get the attributes in this component.
-		 * @returns {Array<Attribute>} List of attributes.
+		 * Get child components in hierarchy of this component.
+		 * @returns {Array<Attribute>} List of components.
 		 */
-		this.getAttributes = () => {
+		getAttributes: () => {
 			return attributes;
-		};
+		},
 
 		/**
 		 * Get child components in hierarchy of this component.
 		 * @returns {Array<Component>} List of components.
 		 */
-		this.getChildren = () => {
+		getChildren: () => {
 			return children;
-		};
+		},
+
+		/**
+		 * Get custom data set previously.
+		 * @param {string|Symbol} key Name to get the data from.
+		 * @returns {any} the data.
+		 */
+		getData: (key) => {
+			return data[key];
+		},
+
+		/**
+		 * Set custom attribute data.
+		 * @param {string|Symbol} key Name to set the data under.
+		 * @param {any} _data Some data.
+		 */
+		setData: (key, _data) => {
+			data[key] = _data;
+		},
 
 		/**
 		 * Get root element of the component.
 		 * @returns {HTMLElement} Element.
 		 */
-		this.getElement = () => {
+		getElement: () => {
 			return element;
-		};
+		},
 
 		/**
 		 * Get component id.
 		 * @returns {symbol} Unique identifier.
 		 */
-		this.getId = () => {
+		getId: () => {
 			return id;
-		};
+		},
 
 		/**
 		 * Get the library instance this component is from.
 		 * @returns {Doars} Doars instance.
 		 */
-		this.getLibrary = () => {
+		getLibrary: () => {
 			return library;
-		};
+		},
 
 		/**
 		 * Get parent component in hierarchy of this component.
 		 * @returns {Component} Component.
 		 */
-		this.getParent = () => {
+		getParent: () => {
 			return parent;
-		};
+		},
 
 		/**
 		 * Get the event dispatcher of state's proxy.
 		 * @returns {ProxyDispatcher} State's proxy dispatcher.
 		 */
-		this.getProxy = () => {
+		getProxy: () => {
 			return proxy;
-		};
+		},
 
 		/**
 		 * Get the component's state.
 		 * @returns {Proxy} State.
 		 */
-		this.getState = () => {
+		getState: () => {
 			return state;
-		};
+		},
 
 		/**
 		 * Set new parent component of this component.
 		 * @param {Component} _parent Parent component.
 		 */
-		this.setParent = (_parent) => {
+		setParent: (_parent) => {
 			parent = _parent;
-		};
+		},
 
 		/**
 		 * Initialize the component.
 		 */
-		this.initialize = () => {
+		initialize: () => {
 			if (isInitialized) {
 				return;
 			}
@@ -159,33 +169,39 @@ export default class Component {
 			const value = element.attributes[componentName].value;
 
 			// Process expression for generating the state using a mock attribute.
-			data = value
+			initialState = value
 				? processExpression(
-						this,
-						new Attribute(this, element, null, value),
+						component,
+						new Attribute(library, component, element, null, value),
 						value,
+						{
+							accessed: false,
+						},
 					)
 				: {};
-			if (data === null) {
-				data = {};
-			} else if (typeof data !== "object" || Array.isArray(data)) {
-				console.error("Doars: component tag must return an object!", data);
+			if (initialState === null || initialState === undefined) {
+				initialState = {};
+			} else if (
+				typeof initialState !== "object" ||
+				Array.isArray(initialState)
+			) {
+				console.error(
+					"Doars: component tag must return an object!",
+					initialState,
+				);
 				return;
 			}
 
 			// Create proxy dispatcher for state.
 			proxy = new ProxyDispatcher();
 			// Add data to dispatcher to create the state.
-			state = proxy.add(data);
-
-			// Scan for attributes.
-			this.scanAttributes(element);
-		};
+			state = proxy.add(initialState);
+		},
 
 		/**
 		 * Destroy the component.
 		 */
-		this.destroy = () => {
+		destroy: () => {
 			if (!isInitialized) {
 				return;
 			}
@@ -203,7 +219,7 @@ export default class Component {
 					// Clean up attribute if the directive has a destroy function.
 					const directive = directives[attribute.getKey()];
 					if (directive) {
-						directive.destroy(this, attribute, processExpression);
+						directive.destroy(component, attribute, processExpression);
 					}
 
 					// Destroy the attribute.
@@ -212,7 +228,7 @@ export default class Component {
 			}
 
 			// Reset variables.
-			attributes = [];
+			attributes.splice(0, attributes.length);
 
 			// Set children as children of parent.
 			if (children.length > 0) {
@@ -221,17 +237,11 @@ export default class Component {
 					child.setParent(parent);
 
 					// Add parent update trigger.
-					library.update({
-						id: child.getId(),
-						path: "parent",
-					});
+					library.update(`${child.getId()}:${parentContextName}`);
 				}
 
 				// Add children update trigger.
-				library.update({
-					id,
-					path: "children",
-				});
+				library.update(`${id}:${childrenContextName}}`);
 			}
 			if (parent) {
 				if (children.length > 0) {
@@ -239,31 +249,22 @@ export default class Component {
 					parent.getChildren().push(...children);
 
 					// Add children update trigger.
-					library.update({
-						id: parent.getId(),
-						path: "children",
-					});
+					library.update(`${parent.getId()}:${childrenContextName}`);
 				}
 
 				// Add parent update trigger.
-				library.update({
-					id,
-					path: "parent",
-				});
+				library.update(`${id}:${parentContextName}`);
 			}
-
-			// Remove reference from element.
-			delete element[COMPONENT];
 
 			// Set as not initialized.
 			isInitialized = false;
 
 			// Remove state and state handling.
-			proxy.remove(data);
+			proxy.remove(initialState);
 			state = null;
 			proxy = null;
-			data = null;
-		};
+			initialState = null;
+		},
 
 		/**
 		 * Create and add an attribute. Assumes this attribute has not been added before.
@@ -272,152 +273,77 @@ export default class Component {
 		 * @param {string} value Value of the attribute.
 		 * @returns {Attribute} New attribute.
 		 */
-		this.addAttribute = (element, name, value) => {
-			// Create and add attribute.
-			const attribute = new Attribute(this, element, name, value);
+		addAttribute: (element, name, value) => {
+			const attribute = new Attribute(library, component, element, name, value);
 			attributes.push(attribute);
-
-			// Return new attribute.
 			return attribute;
-		};
+		},
 
 		/**
 		 * Remove an attribute.
 		 * @param {Attribute} attribute The attribute to remove.
 		 */
-		this.removeAttribute = (attribute) => {
+		removeAttribute: (attribute) => {
 			// Get index of attribute in list.
 			const indexInAttributes = attributes.indexOf(attribute);
 			if (indexInAttributes < 0) {
 				return;
 			}
-
-			// Get directives.
-			const directives = library.getDirectivesObject;
-
-			// Attribute has been removed, call the destroy directive.
-			const directive = directives[attribute.getKey()];
-			if (directive?.destroy) {
-				directive.destroy(this, attribute, processExpression);
-			}
-
-			// Remove attribute from list.
 			attributes.splice(indexInAttributes, 1);
 
-			// Destroy attribute.
+			// Inform attribute of destruction so it can clean up after itself.
 			attribute.destroy();
-		};
+		},
 
 		/**
 		 * Scans element for new attributes. It assumes this element as not been read before and is part of the component.
-		 * @param {HTMLElement} element Element to scan.
+		 * @param {HTMLElement|undefined} _element Element to scan.
 		 * @returns {Array<Attribute>} New attributes.
 		 */
-		this.scanAttributes = (element) => {
-			// Store new attributes.
-			const newAttributes = [];
+		scanAttributes: (_element) => {
+			if (!_element) {
+				_element = element;
+			}
+
+			// Store from where new attributes will be added.
+			const attributesLength = attributes.length;
 
 			// Create iterator for walking over all elements in the component, skipping elements that are components or contain the ignore directive.
 			const iterator = walk(
-				element,
-				(element) =>
-					!element.hasAttribute(componentName) &&
-					!element.hasAttribute(ignoreName),
+				_element,
+				(subElement) =>
+					!subElement.hasAttribute(componentName) &&
+					!subElement.hasAttribute(ignoreName),
 			);
 			// Start on the given element then continue iterating over all children.
 			do {
-				for (const { name, value } of element.attributes) {
+				for (const { name, value } of _element.attributes) {
 					// Skip attribute if it is not that of a directive.
 					if (library.isDirectiveName(name)) {
-						newAttributes.push(this.addAttribute(element, name, value));
+						component.addAttribute(_element, name, value);
 					}
 				}
 				// biome-ignore lint/suspicious/noAssignInExpressions: Common while loop pattern
-			} while ((element = iterator()));
+			} while ((_element = iterator()));
 
 			// Return new attributes.
-			return newAttributes;
-		};
+			return attributes.slice(attributesLength);
+		},
+	};
 
-		/**
-		 * Update an attribute.
-		 * @param {Attribute} attribute The attribute to update.
-		 */
-		this.updateAttribute = (attribute) => {
-			// Check if the attribute is still relevant, since the attribute or element could have been removed.
-			if (
-				!attribute.getElement() ||
-				attribute.getValue() === null ||
-				attribute.getValue() === undefined
-			) {
-				this.removeAttribute(attribute);
-				return;
-			}
+	const children = [];
+	// Get current parent component.
+	let parent = library.closestComponent(element);
+	if (parent) {
+		// Add to list of children in parent.
+		const siblings = parent.getChildren();
+		if (!siblings.includes(component)) {
+			siblings.push(component);
 
-			// Get directives.
-			const directives = library.getDirectivesObject();
-
-			// Clear accessed.
-			attribute.clearAccessed();
-
-			// Process directive on attribute.
-			const directive = directives[attribute.getDirective()];
-			if (directive) {
-				directive.update(this, attribute, processExpression);
-			}
-		};
-
-		/**
-		 * Update the specified attributes of the component.
-		 * @param {Array<Attribute>} attributes Attributes to update.
-		 */
-		this.updateAttributes = (attributes) => {
-			if (!isInitialized) {
-				return;
-			}
-
-			if (attributes.length > 0) {
-				for (const attribute of attributes) {
-					this.updateAttribute(attribute);
-				}
-			}
-		};
-
-		/**
-		 * Update all attributes of the component.
-		 */
-		this.updateAllAttributes = () => {
-			if (!isInitialized) {
-				return;
-			}
-
-			for (const attribute of attributes) {
-				this.updateAttribute(attribute);
-			}
-		};
-
-		/**
-		 * Start updating the component's attributes.
-		 * @param {Array<object>} triggers List of triggers.
-		 */
-		this.update = (triggers) => {
-			if (!isInitialized) {
-				return;
-			}
-
-			// Get all ids of triggers.
-			const triggerIds = Object.getOwnPropertySymbols(triggers);
-
-			// Update all attributes whose accessed items match any update trigger.
-			const updatedAttributes = [];
-			for (const attribute of attributes) {
-				for (const id of triggerIds) {
-					if (attribute.hasAccessed(id, triggers[id])) {
-						this.updateAttribute(attribute);
-						updatedAttributes.push(attribute);
-					}
-				}
-			}
-		};
+			// Trigger children update.
+			library.update(`${parent.getId()}:${childrenContextName}}`);
+		}
 	}
-}
+
+	return component;
+};

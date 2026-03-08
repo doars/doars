@@ -5,11 +5,12 @@ var update_default = ({ updateContextName }, updater) => {
   const time = updater.getTime();
   return {
     name: updateContextName,
-    create: (_component, attribute, _update, options) => {
-      let destroy = null;
+    create: (component, _attribute, options) => {
+      const library = component.getLibrary();
+      let destroy;
       if (!options || options.accessed) {
         const onGet = (_target, path) => {
-          attribute.accessed(id, path.join("."));
+          library.accessed(`${id}:${path.join(".")}`);
         };
         proxy.addEventListener("get", onGet);
         destroy = () => {
@@ -274,8 +275,8 @@ class ProxyDispatcher extends EventDispatcher {
 
 // src/Updater.js
 class Updater {
-  constructor({ stepMinimum }, callback) {
-    const id = Symbol("ID_UPDATE");
+  constructor({ stepMinimum }, library, callback) {
+    const id = library.generateId();
     let isEnabled = false, request;
     const proxy = new ProxyDispatcher({
       delete: false,
@@ -348,26 +349,12 @@ function DoarsUpdate_default(library, options = null) {
     updateDirectiveName: "update"
   }, options);
   let isEnabled = false;
-  const updater = new Updater(options, () => {
+  const updater = new Updater(options, library, () => {
     update();
-    library.update([
-      {
-        id: updater.getId(),
-        path: "current"
-      },
-      {
-        id: updater.getId(),
-        path: "delta"
-      },
-      {
-        id: updater.getId(),
-        path: "last"
-      },
-      {
-        id: updater.getId(),
-        path: "passed"
-      }
-    ]);
+    library.update(`${updater.getId()}:current`);
+    library.update(`${updater.getId()}:delta`);
+    library.update(`${updater.getId()}:last`);
+    library.update(`${updater.getId()}:passed`);
   });
   const contextUpdate = update_default(options, updater);
   const [directiveUpdate, update] = update_default2(options);
@@ -401,4 +388,4 @@ export {
   DoarsUpdate_default as default
 };
 
-//# debugId=8C336D44FE5F5FD364756E2164756E21
+//# debugId=1639FBD368C225D264756E2164756E21

@@ -35,29 +35,15 @@ export default function (library, options = null) {
 	// Set private variables.
 	let isEnabled = false;
 	// Setup update loop.
-	const updater = new Updater(options, () => {
+	const updater = new Updater(options, library, () => {
 		// Update all directives.
 		update();
 
 		// Dispatch update triggers.
-		library.update([
-			{
-				id: updater.getId(),
-				path: "current",
-			},
-			{
-				id: updater.getId(),
-				path: "delta",
-			},
-			{
-				id: updater.getId(),
-				path: "last",
-			},
-			{
-				id: updater.getId(),
-				path: "passed",
-			},
-		]);
+		library.update(`${updater.getId()}:current`);
+		library.update(`${updater.getId()}:delta`);
+		library.update(`${updater.getId()}:last`);
+		library.update(`${updater.getId()}:passed`);
 	});
 	const contextUpdate = createUpdateContext(options, updater);
 	const [directiveUpdate, update] = createUpdateDirective(options);

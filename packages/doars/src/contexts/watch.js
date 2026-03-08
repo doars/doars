@@ -47,25 +47,18 @@ export default ({ watchContextName }) => ({
 				 * @param {Array<Trigger>} triggers List of triggers that will be handled.
 				 * @returns {void}
 				 */
-				const onUpdate = (_, triggers) => {
-					const ids = Object.getOwnPropertySymbols(triggers);
-					if (ids.length > 0) {
-						for (const id of ids) {
-							if (id === componentId) {
-								for (const callbackData of callbacks) {
-									// TODO: Get list of deconstruted contexts and see if it matches with any of them prefixed.
+				const onUpdate = (triggers) => {
+					for (const callbackData of callbacks) {
+						// TODO: Get list of deconstruted contexts and see if it matches with any of them prefixed.
 
-									if (triggers[id].includes(callbackData.path)) {
-										// Invoke callback and provide it with a new context.
-										const { contexts, destroy } = createContexts(
-											component,
-											attribute,
-										);
-										callbackData.callback(contexts);
-										destroy();
-									}
-								}
-							}
+						if (triggers.includes(callbackData.path)) {
+							// Invoke callback and provide it with a new context.
+							const { contexts, destroy } = createContexts(
+								component,
+								attribute,
+							);
+							callbackData.callback(contexts);
+							destroy();
 						}
 					}
 				};
@@ -109,7 +102,7 @@ export default ({ watchContextName }) => ({
 
 				// Store path and callback.
 				callbacks.push({
-					path,
+					path: `${componentId}:${path}`,
 					callback,
 				});
 

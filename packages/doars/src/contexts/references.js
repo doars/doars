@@ -1,6 +1,5 @@
 // Import symbols.
 import RevocableProxy from "@doars/common/src/polyfills/RevocableProxy.js";
-import { REFERENCES, REFERENCES_CACHE } from "../symbols.js";
 
 /**
  * @typedef {import('../Context.js').Context} Context
@@ -12,23 +11,25 @@ import { REFERENCES, REFERENCES_CACHE } from "../symbols.js";
  * @param {DoarsOptions} options Library options.
  * @returns {Context} The context.
  */
-export default ({ referencesContextName }) => ({
+export default ({ referencesContextName, referenceDirectiveName }) => ({
 	name: referencesContextName,
 
-	create: (component, attribute, _update, options) => {
+	create: (component, attribute, options) => {
 		// Exit early if no references exist.
-		if (!component[REFERENCES]) {
+		if (!component.getData(referenceDirectiveName)) {
 			return {
 				value: [],
 			};
 		}
 
+		const library = component.getLibrary();
+
 		// Generate references cache.
-		let cache = component[REFERENCES_CACHE];
+		let cache = component.getData(referencesContextName);
 		if (!cache) {
 			// Get references from component.
-			const references = component[REFERENCES];
-			const attributeIds = Object.getOwnPropertySymbols(references);
+			const references = component.getData(referenceDirectiveName);
+			const attributeIds = Object.keys(references);
 
 			// Convert references to a named object.
 			cache = {};
@@ -36,7 +37,7 @@ export default ({ referencesContextName }) => ({
 				const { element, name } = references[id];
 				cache[name] = element;
 			}
-			component[REFERENCES_CACHE] = cache;
+			component.setData(referencesContextName, cache);
 		}
 
 		// Create revocable proxy.
@@ -44,7 +45,10 @@ export default ({ referencesContextName }) => ({
 			get: (target, propertyKey, receiver) => {
 				if (!options || options.accessed) {
 					// Mark references as accessed.
-					attribute.accessed(component.getId(), `$references.${propertyKey}`);
+					library.accessed(
+						attribute,
+						`${component.getId()}:${referencesContextName}.${propertyKey}`,
+					);
 				}
 
 				// Return reference.

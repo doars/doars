@@ -3,7 +3,7 @@ import createState from "@doars/common/src/factories/createState.js";
 
 import { getAll, set } from "../utilities/cookies.js";
 
-export default ({ cookiesContextDeconstruct, cookiesContextName }) => {
+export default ({ cookiesContextDeconstruct, cookiesContextName }, library) => {
 	// Setup proxy that updates to cookies.
 	const proxy = new ProxyDispatcher();
 	const onMutate = (target, path) => {
@@ -20,9 +20,10 @@ export default ({ cookiesContextDeconstruct, cookiesContextName }) => {
 
 	return {
 		deconstruct: !!cookiesContextDeconstruct,
+		global: true,
 
 		name: cookiesContextName,
 
-		create: createState(cookiesContextName, Symbol("ID_COOKIES"), state, proxy),
+		create: createState(cookiesContextName, library.generateId(), state, proxy),
 	};
 };

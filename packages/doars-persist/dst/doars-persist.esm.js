@@ -189,14 +189,15 @@ class ProxyDispatcher extends EventDispatcher {
 
 // ../common/src/factories/createState.js
 var createState_default = (name, id, state, proxy) => {
-  return (_component, attribute, update, options) => {
-    const onDelete = (_target, path) => update(id, `${name}.${path.join(".")}`);
+  return (component, attribute, options) => {
+    const library = component.getLibrary();
+    const onDelete = (_target, path) => library.update(`${id}:${name}.${path.join(".")}`);
     const onGet = (_target, path) => {
       if (!options || options.accessed) {
-        attribute.accessed(id, `${name}.${path.join(".")}`);
+        library.accessed(attribute, `${id}:${name}.${path.join(".")}`);
       }
     };
-    const onSet = (_target, path) => update(id, `${name}.${path.join(".")}`);
+    const onSet = (_target, path) => library.update(`${id}:${name}.${path.join(".")}`);
     proxy.addEventListener("delete", onDelete);
     proxy.addEventListener("get", onGet);
     proxy.addEventListener("set", onSet);
@@ -243,7 +244,7 @@ var set = (name, value = "", days = 60) => {
 };
 
 // src/contexts/cookies.js
-var cookies_default = ({ cookiesContextDeconstruct, cookiesContextName }) => {
+var cookies_default = ({ cookiesContextDeconstruct, cookiesContextName }, library) => {
   const proxy = new ProxyDispatcher;
   const onMutate = (target, path) => {
     if (path.length > 1) {
@@ -257,7 +258,7 @@ var cookies_default = ({ cookiesContextDeconstruct, cookiesContextName }) => {
   return {
     deconstruct: !!cookiesContextDeconstruct,
     name: cookiesContextName,
-    create: createState_default(cookiesContextName, Symbol("ID_COOKIES"), state, proxy)
+    create: createState_default(cookiesContextName, library.generateId(), state, proxy)
   };
 };
 
@@ -272,10 +273,7 @@ var getAll2 = () => {
 };
 
 // src/contexts/localStorage.js
-var localStorage_default = ({
-  localStorageContextDeconstruct,
-  localStorageContextName
-}) => {
+var localStorage_default = ({ localStorageContextDeconstruct, localStorageContextName }, library) => {
   const proxy = new ProxyDispatcher;
   proxy.addEventListener("delete", (_target, path) => {
     if (path.length > 1) {
@@ -293,7 +291,7 @@ var localStorage_default = ({
   return {
     deconstruct: !!localStorageContextDeconstruct,
     name: localStorageContextName,
-    create: createState_default(localStorageContextName, Symbol("ID_LOCAL_STORAGE"), state, proxy)
+    create: createState_default(localStorageContextName, library.generateId(), state, proxy)
   };
 };
 
@@ -308,10 +306,7 @@ var getAll3 = () => {
 };
 
 // src/contexts/sessionStorage.js
-var sessionStorage_default = ({
-  sessionStorageContextDeconstruct,
-  sessionStorageContextName
-}) => {
+var sessionStorage_default = ({ sessionStorageContextDeconstruct, sessionStorageContextName }, library) => {
   const proxy = new ProxyDispatcher;
   proxy.addEventListener("delete", (_target, path) => {
     if (path.length > 1) {
@@ -329,7 +324,7 @@ var sessionStorage_default = ({
   return {
     deconstruct: !!sessionStorageContextDeconstruct,
     name: sessionStorageContextName,
-    create: createState_default(sessionStorageContextName, Symbol("ID_LOCAL_STORAGE"), state, proxy)
+    create: createState_default(sessionStorageContextName, library.generateId(), state, proxy)
   };
 };
 
@@ -346,9 +341,9 @@ function DoarsPersist_default(library, options = null) {
   let isEnabled = false;
   let cookiesContext, localStorageContext, sessionStorageContext;
   const onEnable = () => {
-    cookiesContext = cookies_default(options);
-    localStorageContext = localStorage_default(options);
-    sessionStorageContext = sessionStorage_default(options);
+    cookiesContext = cookies_default(options, library);
+    localStorageContext = localStorage_default(options, library);
+    sessionStorageContext = sessionStorage_default(options, library);
     const existingContexts = library.getContexts();
     let stateIndex = 0;
     for (let i = existingContexts.length - 1;i >= 0; i--) {
@@ -386,4 +381,4 @@ export {
   DoarsPersist_default as default
 };
 
-//# debugId=918C711CDADF9A7D64756E2164756E21
+//# debugId=CE5859F74AC698AB64756E2164756E21

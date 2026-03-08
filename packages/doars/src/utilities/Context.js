@@ -2,7 +2,6 @@
  * @typedef {import('../Attribute.js').default} Attribute
  * @typedef {import('../Component.js').default} Component
  * @typedef {import('../Context.js').DestroyFunction} DestroyFunction
- * @typedef {import('../Context.js').UpdateFunction} UpdateFunction
  * @typedef {import('../Doars.js').ContextMap} ContextMap
  */
 
@@ -31,15 +30,10 @@ export const createContexts = (
 	extra = null,
 	options = null,
 ) => {
+	const addGlobal = !options || !options.global;
 	const logAccess = !options || options.accessed;
 
 	const library = component.getLibrary();
-
-	const update = (id, context) =>
-		library.update({
-			id,
-			path: context,
-		});
 
 	const creatableContexts = library.getContextsByName();
 	const hasExtra = extra && typeof extra === "object";
@@ -51,10 +45,15 @@ export const createContexts = (
 	/** @type {Array<string>} */
 	const contextsKeysCache = [];
 	for (const contextName in creatableContexts) {
+		const creatableContext = creatableContexts[contextName];
+		// Skip global contexts if not allowed.
+		if (!addGlobal && creatableContext.global) {
+			continue;
+		}
+
 		createableContextNames.push(contextName);
 		contextsKeysCache.push(contextName);
 
-		const creatableContext = creatableContexts[contextName];
 		if (creatableContext.revocable === false) {
 			irrevocable.push(contextName);
 		}
@@ -76,12 +75,11 @@ export const createContexts = (
 	/** @type {Array<DestroyFunction>} */
 	const destroyCallbacks = [];
 	const addContext = (target, creatableContext) => {
-		const result = creatableContext.create(
-			component,
-			attribute,
-			update,
-			options,
-		);
+		if (!addGlobal && creatableContext.global) {
+			return;
+		}
+
+		const result = creatableContext.create(component, attribute, options);
 		if (result) {
 			if (result.destroy && typeof result.destroy === "function") {
 				destroyCallbacks.push(result.destroy);
@@ -120,13 +118,13 @@ export const createContexts = (
 		// First check if the key already exists on the contexts.
 		if (Object.hasOwn(contexts, key)) {
 			if (logAccess) {
-				attribute.accessed(component.getId(), key);
+				library.accessed(attribute, `${component.getId()}:${key}`);
 			}
 			return Reflect[functionName](target, key, ...otherParameters);
 		}
 		if (hasExtra && Object.hasOwn(extra, key)) {
 			if (logAccess) {
-				attribute.accessed(component.getId(), key);
+				library.accessed(attribute, `${component.getId()}:${key}`);
 			}
 			return Reflect[functionName](extra, key, ...otherParameters);
 		}
@@ -137,7 +135,7 @@ export const createContexts = (
 
 			if (Object.hasOwn(contexts, key)) {
 				if (logAccess) {
-					attribute.accessed(component.getId(), key);
+					library.accessed(attribute, `${component.getId()}:${key}`);
 				}
 				return Reflect[functionName](target, key, ...otherParameters);
 			}
@@ -149,7 +147,7 @@ export const createContexts = (
 
 			if (Object.hasOwn(contexts, key)) {
 				if (logAccess) {
-					attribute.accessed(component.getId(), key);
+					library.accessed(attribute, `${component.getId()}:${key}`);
 				}
 				return Reflect[functionName](target, key, ...otherParameters);
 			}

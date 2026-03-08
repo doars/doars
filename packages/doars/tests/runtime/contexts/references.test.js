@@ -18,9 +18,10 @@ describe("References Context", () => {
 	});
 
 	test("references context should provide referenced elements", async () => {
+		let captured;
+
 		container.innerHTML = `
-      <div d-state="{ refCount: '0' }" d-initialized="$state.refCount = Object.keys($references).length.toString()">
-        <span d-text="$state.refCount"></span>
+      <div d-state="{}" d-initialized="$nextTick({ capture } => capture($references.myInput))">
         <input d-reference="'myInput'">
       </div>
     `;
@@ -30,13 +31,15 @@ describe("References Context", () => {
 			processor: "interpret",
 		});
 
-		doars.setSimpleContext("Object", Object);
+		doars.setSimpleContext("capture", (element) => {
+			captured = element;
+		});
 
 		doars.enable();
 
-		await new Promise((resolve) => setTimeout(resolve, 1));
+		await new Promise((resolve) => setTimeout(resolve, 100));
 
-		const span = container.querySelector("span");
-		expect(span.textContent).toBe("1");
+		const element = container.querySelector("input");
+		expect(element).toBe(captured);
 	});
 });

@@ -1,4 +1,3 @@
-import RevocableProxy from "@doars/common/src/polyfills/RevocableProxy.js";
 import { createContexts } from "../utilities/Context.js";
 
 /**
@@ -14,59 +13,41 @@ import { createContexts } from "../utilities/Context.js";
 export default ({ siblingsContextName }) => ({
 	name: siblingsContextName,
 
-	create: (component, attribute, _update, options) => {
+	create: (component, attribute, options) => {
 		const parent = component.getParent();
 		if (!parent) {
 			return {
 				value: [],
 			};
 		}
-		// Create contexts proxy for children.
-		let siblingsContexts;
-		const revocable = RevocableProxy(
-			parent.getChildren().filter((sibling) => sibling !== component),
-			{
-				get: (target, key, receiver) => {
-					if (!siblingsContexts) {
-						// Create list of child contexts.
-						siblingsContexts = target.map((child) =>
-							createContexts(child, attribute, null, options),
-						);
 
-						if (!options || options.accessed) {
-							// Set children of this component as accessed.
-							attribute.accessed(component.getId(), "siblings");
-						}
-					}
+		options = {
+			...options,
+			global: false,
+		};
 
-					// If not a number then do a normal access.
-					// biome-ignore lint/suspicious/noGlobalIsNan: Intentional coercion
-					if (isNaN(key)) {
-						return Reflect.get(siblingsContexts, key, receiver);
-					}
-
-					// Return context from child.
-					const sibling = Reflect.get(siblingsContexts, key, receiver);
-					if (sibling) {
-						return sibling.contexts;
-					}
-				},
-			},
-		);
+		const siblingContexts = [];
+		const siblingDestroys = [];
+		for (const sibling of parent.getChildren()) {
+			if (sibling !== component) {
+				const { contexts, destroy } = createContexts(
+					sibling,
+					attribute,
+					null,
+					options,
+				);
+				siblingContexts.push(contexts);
+				siblingDestroys.push(destroy);
+			}
+		}
 
 		return {
-			value: revocable.proxy,
+			value: siblingContexts,
 
 			destroy: () => {
-				// Call destroy on all created contexts.
-				if (siblingsContexts) {
-					siblingsContexts.forEach((child) => {
-						child.destroy();
-					});
+				for (const siblingDestroy of siblingDestroys) {
+					siblingDestroy();
 				}
-
-				// Revoke proxy.
-				revocable.revoke();
 			},
 		};
 	},

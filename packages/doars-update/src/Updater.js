@@ -14,11 +14,12 @@ import ProxyDispatcher from "@doars/common/src/events/ProxyDispatcher.js";
 export default class Updater {
 	/**
 	 * @param {UpdaterOptions} options Updater options.
+	 * @param {Doars} library Doars instance.
 	 * @param {UpdateCallback} callback Called every update tick.
 	 */
-	constructor({ stepMinimum }, callback) {
+	constructor({ stepMinimum }, library, callback) {
 		// Create id.
-		const id = Symbol("ID_UPDATE");
+		const id = library.generateId();
 
 		// Set private variables.
 		let isEnabled = false,
@@ -84,7 +85,7 @@ export default class Updater {
 
 		/**
 		 * Get updater id.
-		 * @returns {symbol} Unique identifier.
+		 * @returns {string} Unique identifier.
 		 */
 		this.getId = () => {
 			return id;

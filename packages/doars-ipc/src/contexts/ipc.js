@@ -13,6 +13,8 @@ import { getNestedProperty } from "../utilities/nested.js";
  * @returns {object} Created IPC context.
  */
 export default ({ ipcContextName, ipcPath }, ipcInstance) => ({
+	global: true,
+
 	name: ipcContextName,
 
 	create: () => ({

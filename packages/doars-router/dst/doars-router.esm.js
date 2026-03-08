@@ -417,9 +417,9 @@ function pathToRegexp(path, keys, options) {
 
 // src/Router.js
 class Router extends EventDispatcher {
-  constructor(options = {}) {
+  constructor(options = {}, library) {
     super();
-    const id = Symbol("ID_ROUTER");
+    const id = library.getInstance();
     options = Object.assign({
       basePath: "",
       path: null,
@@ -520,7 +520,8 @@ var closestRouter_default = closestRouter;
 // src/contexts/router.js
 var router_default = ({ routerContextName }) => ({
   name: routerContextName,
-  create: (_component, attribute, _update, options) => {
+  create: (component, attribute, options) => {
+    const library = component.getLibrary();
     const element = attribute.getElement();
     let router = null;
     const revocable = RevocableProxy_default({}, {
@@ -536,7 +537,7 @@ var router_default = ({ routerContextName }) => ({
           }
         }
         if (!options || options.accessed) {
-          attribute.accessed(router.getId(), "");
+          library.accessed(attribute, `${router.getId()}:`);
         }
         if (!router) {
           return;
@@ -821,7 +822,7 @@ var router_default2 = (options) => ({
     const element = attribute.getElement();
     const router = element[ROUTER];
     if (!router) {
-      element[ROUTER] = new Router(Object.assign({}, options, processExpression(component, attribute, attribute.getValue())));
+      element[ROUTER] = new Router(Object.assign({}, options, processExpression(component, attribute, attribute.getValue())), component.getLibrary());
     }
   },
   destroy: (component, attribute) => {
@@ -834,10 +835,7 @@ var router_default2 = (options) => ({
     const id = router.getId();
     router.destroy();
     const library = component.getLibrary();
-    library.update({
-      id,
-      path: ""
-    });
+    library.update(`${id}:`);
   }
 });
 
@@ -930,4 +928,4 @@ export {
   DoarsRouter_default as default
 };
 
-//# debugId=8337C232F261F79164756E2164756E21
+//# debugId=D758E5345BF1D00A64756E2164756E21

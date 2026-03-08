@@ -1,5 +1,4 @@
 const EVENT_NAME = "updated";
-const INITIALIZED = Symbol("INITIALIZED");
 
 /**
  * @typedef {import('../Attribute.js').default} Attribute
@@ -15,17 +14,14 @@ const INITIALIZED = Symbol("INITIALIZED");
  * @returns {undefined}
  */
 const destroy = (component, attribute) => {
-	// Exit early if no listeners can be found.
-	if (!attribute[INITIALIZED]) {
-		return;
+	const data = attribute.getData();
+	if (data) {
+		const library = component.getLibrary();
+
+		// Remove existing listener and delete directive data.
+		library.removeEventListener(EVENT_NAME, data.handler);
+		attribute.setData();
 	}
-
-	const library = component.getLibrary();
-	const name = "updated";
-
-	// Remove existing listener and delete directive data.
-	library.removeEventListener(name, attribute[INITIALIZED].handler);
-	delete attribute[INITIALIZED];
 };
 
 /**
@@ -41,15 +37,14 @@ export default ({ initializedDirectiveName }) => ({
 		const value = attribute.getValue();
 
 		// Check if existing listener exists.
-		if (attribute[INITIALIZED]) {
+		const data = attribute.getData();
+		if (data) {
 			// Exit early if listener has not changed.
-			if (attribute[INITIALIZED].value === value) {
-				return;
+			if (data.value !== value) {
+				// Remove existing listener so we don' listen twice.
+				library.removeEventListener(EVENT_NAME, data.handler);
+				attribute.setData(null);
 			}
-
-			// Remove existing listener so we don' listen twice.
-			library.removeEventListener(EVENT_NAME, attribute[INITIALIZED].handler);
-			delete attribute[INITIALIZED];
 		}
 
 		const handler = () => {
@@ -68,10 +63,10 @@ export default ({ initializedDirectiveName }) => ({
 		});
 
 		// Store listener data on the component.
-		attribute[INITIALIZED] = {
+		attribute.setData({
 			handler,
 			value,
-		};
+		});
 	},
 
 	destroy,

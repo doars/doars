@@ -21,7 +21,7 @@ import { morphTree } from "@doars/common/src/utilities/Morph.js";
 import { isPromise } from "@doars/common/src/utilities/Promise.js";
 import { readdScripts } from "@doars/common/src/utilities/Script.js";
 
-const IPC = Symbol("IPC");
+const IPC = Symbol("IPC"); // TODO: Switch to storing data on the attribute instance.
 
 const EXECUTION_MODIFIERS = {
 	NONE: 0,

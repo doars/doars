@@ -1,5 +1,3 @@
-// Import symbols.
-
 import Router from "../Router.js";
 import { ROUTER } from "../symbols.js";
 

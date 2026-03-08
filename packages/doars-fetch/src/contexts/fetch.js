@@ -8,6 +8,8 @@ export default ({
 	fetchAutoParse,
 	fetchParsers,
 }) => ({
+	global: true,
+
 	name: fetchContextName,
 
 	create: () => {
