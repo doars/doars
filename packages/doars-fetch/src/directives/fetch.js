@@ -24,7 +24,7 @@ import { readdScripts } from "@doars/common/src/utilities/Script.js";
 
 import { serializeFormData } from "../utilities/Xml.js";
 
-const FETCH = Symbol("FETCH");
+const FETCH = Symbol("FETCH"); // TODO: Switch to storing data on the attribute instance.
 
 const EXECUTION_MODIFIERS = {
 	NONE: 0,

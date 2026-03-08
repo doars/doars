@@ -34,7 +34,6 @@ import createShowDirective from "./directives/show.js";
 import createSyncDirective from "./directives/sync.js";
 import createTextDirective from "./directives/text.js";
 import createWatchDirective from "./directives/watch.js";
-import { ATTRIBUTES } from "./symbols.js";
 
 /**
  * @typedef {import('./Attribute.js').default} Attribute
@@ -277,6 +276,10 @@ export default class Doars extends EventDispatcher {
 
 		// Create private variables.
 		let accessed,
+			/** @type {WeakMap<Node,Attribute>} */
+			attributesByElement,
+			/** @type {WeakMap<Node,Component>} */
+			componentByElement,
 			/** @type {ContextMap} */
 			contextsByName,
 			/** @type {string[]} */
@@ -295,8 +298,6 @@ export default class Doars extends EventDispatcher {
 
 		const componentName = `${prefix}-${stateDirectiveName}`,
 			ignoreName = `${prefix}-${ignoreDirectiveName}`,
-			/** @type {WeakMap<Node,Component>} */
-			componentByElement = new WeakMap(),
 			/** @type {Array<Component>} */
 			components = [],
 			/** @type {ContextMap} */
@@ -340,7 +341,7 @@ export default class Doars extends EventDispatcher {
 				createShowDirective(options),
 				createSyncDirective(options),
 				createWatchDirective(options),
-				// FIXME: Make sure order is followed by storing attributes in rough order.
+				// FIXME: Make sure order is followed by storing attributes in rough order. Keep a list of sorted attributes and when an update trigger is processed create a sparse array where it is placed in its global order.
 			],
 			processorType = typeof processor;
 
@@ -415,6 +416,9 @@ export default class Doars extends EventDispatcher {
 
 			// Mark as enabled.
 			isEnabled = true;
+
+			attributesByElement = new WeakMap();
+			componentByElement = new WeakMap();
 
 			contextsByName = {};
 			for (const context of contexts) {
@@ -491,22 +495,22 @@ export default class Doars extends EventDispatcher {
 			observer.disconnect();
 			observer = null;
 
-			// Reset values.
-			accessed = {};
-			mutations = [];
-			triggers = [];
-
 			// Dispatch event.
 			this.dispatchEvent("disabling", [this], { reverse: true });
 
 			// Remove components.
 			removeComponentsByComponent(components);
 
+			// Reset values.
+			accessed = null;
+			attributesByElement = null;
+			componentByElement = null;
+			contextsByName = null;
 			directivesNames = [];
 			directivesObject = {};
 			directivesRegexp = null;
-
-			contextsByName = {};
+			mutations = null;
+			triggers = null;
 
 			// Mark as disabled.
 			isEnabled = false;
@@ -515,6 +519,35 @@ export default class Doars extends EventDispatcher {
 			this.dispatchEvent("disabled", [this], { reverse: true });
 
 			return this;
+		};
+
+		/* Attributes */
+
+		const addAttribute = (attribute) => {
+			const element = attribute.getElement();
+			let elementAttributes = attributesByElement.get(element);
+			if (!elementAttributes) {
+				elementAttributes = [attribute];
+			} else {
+				elementAttributes.push(attribute);
+			}
+			attributesByElement.set(element, elementAttributes);
+		};
+
+		const removeAttribute = (attribute) => {
+			const element = attribute.getElement();
+			const elementAttributes = attributesByElement.get(element);
+			if (elementAttributes?.length > 0) {
+				const attributeIndex = elementAttributes.indexOf(attribute);
+				if (attributeIndex >= 0) {
+					if (elementAttributes.length === 1) {
+						attributesByElement.delete(element);
+					} else {
+						elementAttributes.splice(attributeIndex, 1);
+						attributesByElement.set(element, elementAttributes);
+					}
+				}
+			}
 		};
 
 		/* Components */
@@ -553,13 +586,16 @@ export default class Doars extends EventDispatcher {
 			}
 
 			// Initialize new components.
+			const attributes = [];
 			for (const component of results) {
 				component.initialize();
+				attributes.push(...component.scanAttributes());
 			}
 
 			// Update all attributes on new components.
-			for (const component of results) {
-				component.updateAllAttributes();
+			for (const attribute of attributes) {
+				addAttribute(attribute);
+				attribute.update();
 			}
 
 			return results;
@@ -581,9 +617,15 @@ export default class Doars extends EventDispatcher {
 				// Add to results.
 				results.push(element);
 
+				// Remove attributes.
+				const attributes = component.getAttributes();
+				for (const attribute of attributes) {
+					attributesByElement.delete(attribute.getElement());
+				}
+
 				// Destroy component.
 				component.destroy();
-				// Remove from list.
+				// Remove from lists.
 				componentByElement.delete(element);
 				components.splice(index, 1);
 			}
@@ -613,9 +655,15 @@ export default class Doars extends EventDispatcher {
 				// Add to results.
 				results.push(element);
 
+				// Remove attributes.
+				const attributes = component.getAttributes();
+				for (const attribute of attributes) {
+					attributesByElement.delete(attribute.getElement());
+				}
+
 				// Destroy component.
 				component.destroy();
-				// Remove from list.
+				// Remove from lists.
 				componentByElement.delete(element);
 				components.splice(index, 1);
 			}
@@ -671,7 +719,7 @@ export default class Doars extends EventDispatcher {
 
 			// Validate name.
 			if (!name.match("^([a-zA-Z_$][a-zA-Z\\d_$]*)$")) {
-				console.warn('Doars: name of a bind can not start with a "$".');
+				console.warn("Doars: invalid name for a simple context.");
 				return false;
 			}
 
@@ -921,37 +969,34 @@ export default class Doars extends EventDispatcher {
 		};
 
 		this.update = (path) => {
-			if (!isEnabled) {
-				// Exit early since it needs to be enabled first.
-				return;
-			}
-
-			if (path && !triggers.includes(path)) {
+			if (isEnabled && path && !triggers.includes(path)) {
 				triggers.push(path);
-			}
 
-			return flush();
+				return flush();
+			}
 		};
 
 		const flush = async () => {
-			if (flushPromise) {
-				return flushPromise;
+			if (isEnabled) {
+				if (flushPromise) {
+					return flushPromise;
+				}
+				flushPromise = new Promise((resolve) => {
+					flushResolve = resolve;
+				});
+
+				// Schedule a micro task to collect more triggers and mutations before acting on any.
+				await Promise.resolve();
+
+				while (isEnabled && (triggers.length > 0 || mutations.length > 0)) {
+					// Flush all update triggers and mutations until no more remain.
+					flushUpdates();
+					flushMutations();
+				}
+
+				flushPromise = null;
+				flushResolve();
 			}
-			flushPromise = new Promise((resolve) => {
-				flushResolve = resolve;
-			});
-
-			// Schedule a micro task to collect more triggers and mutations before acting on any.
-			await Promise.resolve();
-
-			do {
-				// Flush all update triggers and mutations until no more remain.
-				flushUpdates();
-				flushMutations();
-			} while (triggers.length > 0 || mutations.length > 0);
-
-			flushPromise = null;
-			flushResolve();
 		};
 
 		const flushUpdates = () => {
@@ -972,7 +1017,7 @@ export default class Doars extends EventDispatcher {
 						// Update each attribute.
 						for (const attribute of attributes) {
 							if (
-								attribute.isEnabled() &&
+								attribute.getEnabled() &&
 								!updatedAttributes.includes(attribute)
 							) {
 								updatedAttributes.push(attribute);
@@ -998,14 +1043,12 @@ export default class Doars extends EventDispatcher {
 
 				const remove = (element) => {
 					// Skip if not an element.
-					if (element.nodeType !== 1) {
-						return;
-					}
+					if (element.nodeType === 1) {
+						// Check if element is a component itself.
+						if (componentByElement.has(element)) {
+							componentsToRemove.unshift(element);
+						}
 
-					// Check if element is a component itself.
-					if (componentByElement.has(element)) {
-						// Add component to remove list.
-						componentsToRemove.unshift(element);
 						// Scan for more components inside this.
 						const componentElements = element.querySelectorAll(componentName);
 						for (const componentElement of componentElements) {
@@ -1013,18 +1056,6 @@ export default class Doars extends EventDispatcher {
 								componentsToRemove.unshift(componentElement);
 							}
 						}
-					} else {
-						// Create iterator for walking over all elements in the component, skipping elements that are components and adding those to the remove list.
-						const iterator = walk(element, (element) => {
-							if (componentByElement.has(element)) {
-								componentsToRemove.unshift(element);
-								return false;
-							}
-							return true;
-						});
-						do {
-							// biome-ignore lint/suspicious/noAssignInExpressions: Common while loop pattern
-						} while ((element = iterator()));
 					}
 				};
 				const add = (element) => {
@@ -1065,7 +1096,10 @@ export default class Doars extends EventDispatcher {
 					if (component) {
 						// Scan for and update new attributes.
 						const attributes = component.scanAttributes(element);
-						component.updateAttributes(attributes);
+						for (const attribute of attributes) {
+							addAttribute(attribute);
+							attribute.update();
+						}
 					}
 				};
 
@@ -1094,13 +1128,18 @@ export default class Doars extends EventDispatcher {
 							const component = this.closestComponent(element);
 							if (component) {
 								// Remove attributes part of nearest component, that will become part of the new component.
-								let currentElement = element;
 								const iterator = walk(element, (element) =>
 									element.hasAttribute(componentName),
 								);
+								let currentElement = element;
 								do {
-									for (const attribute of currentElement[ATTRIBUTES]) {
-										component.removeAttribute(attribute);
+									const currentAttributes =
+										attributesByElement.get(currentElement);
+									if (currentAttributes?.length > 0) {
+										for (const attribute of currentAttributes) {
+											component.removeAttribute(attribute);
+											removeAttribute(attribute);
+										}
 									}
 									// biome-ignore lint/suspicious/noAssignInExpressions: Common while loop pattern
 								} while ((currentElement = iterator()));
@@ -1134,8 +1173,9 @@ export default class Doars extends EventDispatcher {
 
 						// Get attribute from component and value from element.
 						let attribute = null;
-						if (element[ATTRIBUTES]) {
-							for (const targetAttribute of element[ATTRIBUTES]) {
+						const elementAttributes = attributesByElement.get(element);
+						if (elementAttributes?.length > 0) {
+							for (const targetAttribute of elementAttributes) {
 								if (targetAttribute.getName() === mutation.attributeName) {
 									attribute = targetAttribute;
 									break;

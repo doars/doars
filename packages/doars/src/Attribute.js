@@ -5,7 +5,6 @@ import {
 } from "@doars/common/src/utilities/String.js";
 
 import Component from "./Component.js";
-import { ATTRIBUTES } from "./symbols.js";
 
 /**
  * @typedef {import('./Doars.js').default} Doars
@@ -25,12 +24,7 @@ export default class Attribute extends EventDispatcher {
 
 		// Create unique ID.
 		const id = library.generateId();
-
-		// Add attribute reference to the element.
-		if (!element[ATTRIBUTES]) {
-			element[ATTRIBUTES] = [];
-		}
-		element[ATTRIBUTES].push(this);
+		const processExpression = library.getProcessor();
 
 		// Create private variables.
 		let isEnabled = true,
@@ -39,14 +33,13 @@ export default class Attribute extends EventDispatcher {
 			directiveName,
 			key,
 			keyRaw,
-			modifiers,
-			processExpression = library.getProcessor();
+			modifiers;
 
 		// Parse and store name.
 		if (name) {
 			// Parse and store attribute name.
 			const [_directive, _keyRaw, _key, _modifiers] = parseAttributeName(
-				component.getLibrary().getOptions().prefix,
+				library.getOptions().prefix,
 				name,
 			);
 			directiveName = _directive;
@@ -185,12 +178,6 @@ export default class Attribute extends EventDispatcher {
 			// Clear data.
 			data = null;
 
-			// Remove attribute from element's attributes.
-			const indexInElement = element[ATTRIBUTES].indexOf(this);
-			if (indexInElement >= 0) {
-				element[ATTRIBUTES].splice(indexInElement, 1);
-			}
-
 			// Dispatch destroy event.
 			this.dispatchEvent("destroyed", [this]);
 
@@ -199,13 +186,7 @@ export default class Attribute extends EventDispatcher {
 		};
 
 		this.update = () => {
-			if (
-				!this.getElement() ||
-				this.getValue() === null ||
-				this.getValue() === undefined
-			) {
-				component.removeAttribute(this);
-			} else if (directive) {
+			if (directive) {
 				directive.update(component, this, processExpression);
 			}
 		};

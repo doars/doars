@@ -23,8 +23,6 @@ import Doars from "./Doars.js";
  * @property {(element: HTMLElement, name: string, value: string) => Attribute} addAttribute
  * @property {(attribute: Attribute) => void} removeAttribute
  * @property {(element: HTMLElement) => Array<Attribute>} scanAttributes
- * @property {(attributes: Array<Attribute>) => void} updateAttributes
- * @property {() => void} updateAllAttributes
  */
 
 /**
@@ -66,6 +64,14 @@ export default (library, element) => {
 	}
 
 	const component = {
+		/**
+		 * Get child components in hierarchy of this component.
+		 * @returns {Array<Attribute>} List of components.
+		 */
+		getAttributes: () => {
+			return attributes;
+		},
+
 		/**
 		 * Get child components in hierarchy of this component.
 		 * @returns {Array<Component>} List of components.
@@ -190,9 +196,6 @@ export default (library, element) => {
 			proxy = new ProxyDispatcher();
 			// Add data to dispatcher to create the state.
 			state = proxy.add(initialState);
-
-			// Scan for attributes.
-			return component.scanAttributes(element);
 		},
 
 		/**
@@ -294,62 +297,37 @@ export default (library, element) => {
 
 		/**
 		 * Scans element for new attributes. It assumes this element as not been read before and is part of the component.
-		 * @param {HTMLElement} element Element to scan.
+		 * @param {HTMLElement|undefined} _element Element to scan.
 		 * @returns {Array<Attribute>} New attributes.
 		 */
-		scanAttributes: (element) => {
+		scanAttributes: (_element) => {
+			if (!_element) {
+				_element = element;
+			}
+
 			// Store from where new attributes will be added.
 			const attributesLength = attributes.length;
 
 			// Create iterator for walking over all elements in the component, skipping elements that are components or contain the ignore directive.
 			const iterator = walk(
-				element,
-				(element) =>
-					!element.hasAttribute(componentName) &&
-					!element.hasAttribute(ignoreName),
+				_element,
+				(subElement) =>
+					!subElement.hasAttribute(componentName) &&
+					!subElement.hasAttribute(ignoreName),
 			);
 			// Start on the given element then continue iterating over all children.
 			do {
-				for (const { name, value } of element.attributes) {
+				for (const { name, value } of _element.attributes) {
 					// Skip attribute if it is not that of a directive.
 					if (library.isDirectiveName(name)) {
-						component.addAttribute(element, name, value);
+						component.addAttribute(_element, name, value);
 					}
 				}
 				// biome-ignore lint/suspicious/noAssignInExpressions: Common while loop pattern
-			} while ((element = iterator()));
+			} while ((_element = iterator()));
 
 			// Return new attributes.
 			return attributes.slice(attributesLength);
-		},
-
-		/**
-		 * Update the specified attributes of the component.
-		 * @param {Array<Attribute>} attributes Attributes to update.
-		 */
-		updateAttributes: (attributes) => {
-			if (!isInitialized) {
-				return;
-			}
-
-			if (attributes.length > 0) {
-				for (const attribute of attributes) {
-					attribute.update();
-				}
-			}
-		},
-
-		/**
-		 * Update all attributes of the component.
-		 */
-		updateAllAttributes: () => {
-			if (!isInitialized) {
-				return;
-			}
-
-			for (const attribute of attributes) {
-				attribute.update();
-			}
 		},
 	};
 

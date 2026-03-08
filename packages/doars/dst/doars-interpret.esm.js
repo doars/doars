@@ -97,7 +97,7 @@ var walk = (node, filter) => {
         return null;
       }
       child = node.children[index2];
-    } while (!filter(child));
+    } while (!filter || !filter(child));
     if (child.childElementCount) {
       iterator = walk(child, filter);
     }
@@ -366,21 +366,15 @@ var parseSelector = (selector) => {
   return attributes;
 };
 
-// src/symbols.js
-var ATTRIBUTES = Symbol("ATTRIBUTES");
-
 // src/Attribute.js
 class Attribute extends EventDispatcher {
   constructor(library, component, element, name, value) {
     super();
     const id = library.generateId();
-    if (!element[ATTRIBUTES]) {
-      element[ATTRIBUTES] = [];
-    }
-    element[ATTRIBUTES].push(this);
-    let data, directive, directiveName, key, keyRaw, modifiers, processExpression = library.getProcessor();
+    const processExpression = library.getProcessor();
+    let isEnabled = true, data, directive, directiveName, key, keyRaw, modifiers;
     if (name) {
-      const [_directive, _keyRaw, _key, _modifiers] = parseAttributeName(component.getLibrary().getOptions().prefix, name);
+      const [_directive, _keyRaw, _key, _modifiers] = parseAttributeName(library.getOptions().prefix, name);
       directiveName = _directive;
       key = _key;
       keyRaw = _keyRaw;
@@ -403,6 +397,9 @@ class Attribute extends EventDispatcher {
     };
     this.getElement = () => {
       return element;
+    };
+    this.getEnabled = () => {
+      return isEnabled;
     };
     this.getId = () => {
       return id;
@@ -430,21 +427,16 @@ class Attribute extends EventDispatcher {
       this.dispatchEvent("changed", [this]);
     };
     this.destroy = () => {
+      isEnabled = false;
       if (directive?.destroy) {
         directive.destroy(component, this, processExpression);
       }
-      this.setData(null);
-      const indexInElement = element[ATTRIBUTES].indexOf(this);
-      if (indexInElement >= 0) {
-        element[ATTRIBUTES].splice(indexInElement, 1);
-      }
+      data = null;
       this.dispatchEvent("destroyed", [this]);
       this.removeAllEventListeners();
     };
     this.update = () => {
-      if (!this.getElement() || this.getValue() === null || this.getValue() === undefined) {
-        component.removeAttribute(this);
-      } else if (directive) {
+      if (directive) {
         directive.update(component, this, processExpression);
       }
     };
@@ -461,8 +453,7 @@ var Component_default = (library, element) => {
     parentContextName,
     stateDirectiveName
   } = library.getOptions();
-  const processExpression = library.getProcessor();
-  const attributes = [], data = {}, componentName = `${prefix}-${stateDirectiveName}`, ignoreName = `${prefix}-${ignoreDirectiveName}`;
+  const attributes = [], data = {}, componentName = `${prefix}-${stateDirectiveName}`, ignoreName = `${prefix}-${ignoreDirectiveName}`, processExpression = library.getProcessor();
   let isInitialized = false, initialState, proxy, state;
   if (!element.attributes[`${prefix}-${stateDirectiveName}`]) {
     console.error("Doars: element given to component does not contain a state attribute!");
@@ -519,7 +510,6 @@ var Component_default = (library, element) => {
       }
       proxy = new ProxyDispatcher;
       state = proxy.add(initialState);
-      component.scanAttributes(element);
     },
     destroy: () => {
       if (!isInitialized) {
@@ -574,42 +564,28 @@ var Component_default = (library, element) => {
       attributes.splice(indexInAttributes, 1);
       attribute.destroy();
     },
-    scanAttributes: (element2) => {
+    scanAttributes: (_element) => {
+      if (!_element) {
+        _element = element;
+      }
       const attributesLength = attributes.length;
-      const iterator = walk(element2, (element3) => !element3.hasAttribute(componentName) && !element3.hasAttribute(ignoreName));
+      const iterator = walk(_element, (subElement) => !subElement.hasAttribute(componentName) && !subElement.hasAttribute(ignoreName));
       do {
-        for (const { name, value } of element2.attributes) {
+        for (const { name, value } of _element.attributes) {
           if (library.isDirectiveName(name)) {
-            component.addAttribute(element2, name, value);
+            component.addAttribute(_element, name, value);
           }
         }
-      } while (element2 = iterator());
+      } while (_element = iterator());
       return attributes.slice(attributesLength);
-    },
-    updateAttributes: (attributes2) => {
-      if (!isInitialized) {
-        return;
-      }
-      if (attributes2.length > 0) {
-        for (const attribute of attributes2) {
-          attribute.update();
-        }
-      }
-    },
-    updateAllAttributes: () => {
-      if (!isInitialized) {
-        return;
-      }
-      for (const attribute of attributes) {
-        attribute.update();
-      }
     }
   };
   const children = [];
   let parent = library.closestComponent(element);
   if (parent) {
-    if (!parent.getChildren().includes(component)) {
-      parent.getChildren().push(component);
+    const siblings = parent.getChildren();
+    if (!siblings.includes(component)) {
+      siblings.push(component);
       library.update(`${parent.getId()}:${childrenContextName}}`);
     }
   }
@@ -2827,8 +2803,8 @@ class Doars extends EventDispatcher {
       return;
     }
     const idFactory = createIdFactory();
-    let accessed, contextsByName, directivesNames, directivesObject, directivesRegexp, flushPromise, flushResolve, isEnabled = false, mutations, observer, processExpression, triggers;
-    const componentName = `${prefix}-${stateDirectiveName}`, ignoreName = `${prefix}-${ignoreDirectiveName}`, componentByElement = new WeakMap, components = [], contextsSimple = {}, contexts = [
+    let accessed, attributesByElement, componentByElement, contextsByName, directivesNames, directivesObject, directivesRegexp, flushPromise, flushResolve, isEnabled = false, mutations, observer, processExpression, triggers;
+    const componentName = `${prefix}-${stateDirectiveName}`, ignoreName = `${prefix}-${ignoreDirectiveName}`, components = [], contextsSimple = {}, contexts = [
       children_default(options),
       component_default(options),
       element_default(options),
@@ -2890,6 +2866,8 @@ class Doars extends EventDispatcher {
       triggers = [];
       this.dispatchEvent("enabling", [this]);
       isEnabled = true;
+      attributesByElement = new WeakMap;
+      componentByElement = new WeakMap;
       contextsByName = {};
       for (const context of contexts) {
         contextsByName[context.name] = context;
@@ -2934,18 +2912,45 @@ class Doars extends EventDispatcher {
       }
       observer.disconnect();
       observer = null;
-      accessed = {};
-      mutations = [];
-      triggers = [];
       this.dispatchEvent("disabling", [this], { reverse: true });
       removeComponentsByComponent(components);
+      accessed = null;
+      attributesByElement = null;
+      componentByElement = null;
+      contextsByName = null;
       directivesNames = [];
       directivesObject = {};
       directivesRegexp = null;
-      contextsByName = {};
+      mutations = null;
+      triggers = null;
       isEnabled = false;
       this.dispatchEvent("disabled", [this], { reverse: true });
       return this;
+    };
+    const addAttribute = (attribute) => {
+      const element = attribute.getElement();
+      let elementAttributes = attributesByElement.get(element);
+      if (!elementAttributes) {
+        elementAttributes = [attribute];
+      } else {
+        elementAttributes.push(attribute);
+      }
+      attributesByElement.set(element, elementAttributes);
+    };
+    const removeAttribute = (attribute) => {
+      const element = attribute.getElement();
+      const elementAttributes = attributesByElement.get(element);
+      if (elementAttributes?.length > 0) {
+        const attributeIndex = elementAttributes.indexOf(attribute);
+        if (attributeIndex >= 0) {
+          if (elementAttributes.length === 1) {
+            attributesByElement.delete(element);
+          } else {
+            elementAttributes.splice(attributeIndex, 1);
+            attributesByElement.set(element, elementAttributes);
+          }
+        }
+      }
     };
     const addComponents = (...elements) => {
       const results = [];
@@ -2966,11 +2971,14 @@ class Doars extends EventDispatcher {
       if (resultElements.length > 0) {
         this.dispatchEvent("components-added", [this, resultElements]);
       }
+      const attributes = [];
       for (const component of results) {
         component.initialize();
+        attributes.push(...component.scanAttributes());
       }
-      for (const component of results) {
-        component.updateAllAttributes();
+      for (const attribute of attributes) {
+        addAttribute(attribute);
+        attribute.update();
       }
       return results;
     };
@@ -2982,6 +2990,10 @@ class Doars extends EventDispatcher {
         }
         const component = componentByElement.get(element);
         results.push(element);
+        const attributes = component.getAttributes();
+        for (const attribute of attributes) {
+          attributesByElement.delete(attribute.getElement());
+        }
         component.destroy();
         componentByElement.delete(element);
         components.splice(index, 1);
@@ -3000,6 +3012,10 @@ class Doars extends EventDispatcher {
         }
         const element = component.getElement();
         results.push(element);
+        const attributes = component.getAttributes();
+        for (const attribute of attributes) {
+          attributesByElement.delete(attribute.getElement());
+        }
         component.destroy();
         componentByElement.delete(element);
         components.splice(index2, 1);
@@ -3026,7 +3042,7 @@ class Doars extends EventDispatcher {
         return true;
       }
       if (!name.match("^([a-zA-Z_$][a-zA-Z\\d_$]*)$")) {
-        console.warn('Doars: name of a bind can not start with a "$".');
+        console.warn("Doars: invalid name for a simple context.");
         return false;
       }
       contextsSimple[name] = value;
@@ -3154,28 +3170,27 @@ class Doars extends EventDispatcher {
       }
     };
     this.update = (path) => {
-      if (!isEnabled) {
-        return;
-      }
-      if (path && !triggers.includes(path)) {
+      if (isEnabled && path && !triggers.includes(path)) {
         triggers.push(path);
+        return flush();
       }
-      return flush();
     };
     const flush = async () => {
-      if (flushPromise) {
-        return flushPromise;
+      if (isEnabled) {
+        if (flushPromise) {
+          return flushPromise;
+        }
+        flushPromise = new Promise((resolve) => {
+          flushResolve = resolve;
+        });
+        await Promise.resolve();
+        while (isEnabled && (triggers.length > 0 || mutations.length > 0)) {
+          flushUpdates();
+          flushMutations();
+        }
+        flushPromise = null;
+        flushResolve();
       }
-      flushPromise = new Promise((resolve) => {
-        flushResolve = resolve;
-      });
-      await Promise.resolve();
-      do {
-        flushUpdates();
-        flushMutations();
-      } while (triggers.length > 0 || mutations.length > 0);
-      flushPromise = null;
-      flushResolve();
     };
     const flushUpdates = () => {
       if (triggers.length > 0) {
@@ -3188,9 +3203,9 @@ class Doars extends EventDispatcher {
             const attributes = accessed[trigger];
             delete accessed[trigger];
             for (const attribute of attributes) {
-              if (!updatedAttributes.includes(attribute)) {
-                attribute.update();
+              if (attribute.getEnabled() && !updatedAttributes.includes(attribute)) {
                 updatedAttributes.push(attribute);
+                attribute.update();
               }
             }
           }
@@ -3205,26 +3220,16 @@ class Doars extends EventDispatcher {
         const componentsToAdd = [];
         const componentsToRemove = [];
         const remove = (element) => {
-          if (element.nodeType !== 1) {
-            return;
-          }
-          if (componentByElement.has(element)) {
-            componentsToRemove.unshift(element);
+          if (element.nodeType === 1) {
+            if (componentByElement.has(element)) {
+              componentsToRemove.unshift(element);
+            }
             const componentElements = element.querySelectorAll(componentName);
             for (const componentElement of componentElements) {
               if (componentByElement.has(componentElement)) {
                 componentsToRemove.unshift(componentElement);
               }
             }
-          } else {
-            const iterator = walk(element, (element2) => {
-              if (componentByElement.has(element2)) {
-                componentsToRemove.unshift(element2);
-                return false;
-              }
-              return true;
-            });
-            do {} while (element = iterator());
           }
         };
         const add = (element) => {
@@ -3250,7 +3255,10 @@ class Doars extends EventDispatcher {
           const component = this.closestComponent(element);
           if (component) {
             const attributes = component.scanAttributes(element);
-            component.updateAttributes(attributes);
+            for (const attribute of attributes) {
+              addAttribute(attribute);
+              attribute.update();
+            }
           }
         };
         for (const mutation of newMutations) {
@@ -3269,11 +3277,15 @@ class Doars extends EventDispatcher {
               }
               const component2 = this.closestComponent(element);
               if (component2) {
-                let currentElement = element;
                 const iterator = walk(element, (element2) => element2.hasAttribute(componentName));
+                let currentElement = element;
                 do {
-                  for (const attribute2 of currentElement[ATTRIBUTES]) {
-                    component2.removeAttribute(attribute2);
+                  const currentAttributes = attributesByElement.get(currentElement);
+                  if (currentAttributes?.length > 0) {
+                    for (const attribute2 of currentAttributes) {
+                      component2.removeAttribute(attribute2);
+                      removeAttribute(attribute2);
+                    }
                   }
                 } while (currentElement = iterator());
               }
@@ -3295,8 +3307,9 @@ class Doars extends EventDispatcher {
               continue;
             }
             let attribute = null;
-            if (element[ATTRIBUTES]) {
-              for (const targetAttribute of element[ATTRIBUTES]) {
+            const elementAttributes = attributesByElement.get(element);
+            if (elementAttributes?.length > 0) {
+              for (const targetAttribute of elementAttributes) {
                 if (targetAttribute.getName() === mutation.attributeName) {
                   attribute = targetAttribute;
                   break;
@@ -4463,4 +4476,4 @@ export {
   DoarsInterpret_default as default
 };
 
-//# debugId=F5EBB19A52F9E36064756E2164756E21
+//# debugId=5DF862FB7C8B794864756E2164756E21
